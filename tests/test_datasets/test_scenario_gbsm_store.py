@@ -709,7 +709,7 @@ def test_scenario_gbsm_episode_layer_publication_failure_is_retryable(
             raise OSError("injected scenario GBSM episode-layer publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_scenario_layer)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_scenario_layer)
     with pytest.raises(OSError, match="scenario GBSM episode-layer publication failure"):
         write_episode_bundle(tmp_path, bundle)
 
@@ -717,7 +717,7 @@ def test_scenario_gbsm_episode_layer_publication_failure_is_retryable(
     assert not (tmp_path / "objects" / "scenario_gbsm").exists()
     assert not (tmp_path / "manifests" / "episodes").exists()
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     pointer = write_episode_bundle(tmp_path, bundle)
     restored = read_episode_bundle(tmp_path, pointer)
     assert restored.episode.episode_id == "drop-000"

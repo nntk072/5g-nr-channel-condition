@@ -170,9 +170,18 @@ def _reference_index(
         local_targets.setdefault(export["source"], {}).setdefault(export["public_name"], set()).add(
             export["qualified_name"]
         )
+        # A defining submodule inside a package is also reached through that package.
+        source_path = Path(export["source"])
+        defining_package = (
+            source_path.parent.as_posix().replace("/", ".")
+            if source_path.name != "__init__.py"
+            and (ROOT / source_path.parent / "__init__.py").is_file()
+            else None
+        )
         for module, symbol in (
             (source_module, export["public_name"]),
             (public_package, export["public_name"]),
+            *(((defining_package, export["public_name"]),) if defining_package else ()),
         ):
             import_targets.setdefault((module, symbol), set()).add(export["qualified_name"])
             module_targets.setdefault(module, {}).setdefault(symbol, set()).add(

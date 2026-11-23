@@ -403,7 +403,7 @@ def test_episode_bundle_manifest_publication_failure_is_retryable(tmp_path, monk
             raise OSError("injected manifest publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_before_manifest)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_before_manifest)
     with pytest.raises(OSError, match="injected manifest publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -434,7 +434,7 @@ def test_episode_bundle_mid_object_publication_failure_is_retryable(tmp_path, mo
                 raise OSError("injected mid-object publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_during_object_publication)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_during_object_publication)
     with pytest.raises(OSError, match="injected mid-object publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -464,7 +464,7 @@ def test_episode_bundle_layer_publication_failure_is_retryable(tmp_path, monkeyp
             raise OSError(f"injected {layer} publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_layer_once)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_layer_once)
     with pytest.raises(OSError, match=f"injected {layer} publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -472,7 +472,7 @@ def test_episode_bundle_layer_publication_failure_is_retryable(tmp_path, monkeyp
     assert not (store / "manifests" / "episodes").exists()
     assert not [path for path in store.rglob(".*") if path.is_file()]
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert loaded.episode.episode_id == bundle.episode.episode_id
@@ -498,7 +498,7 @@ def test_episode_bundle_counterfactual_object_publication_failure_is_retryable(
             raise OSError("injected counterfactual object publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_counterfactual_object)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_counterfactual_object)
     with pytest.raises(OSError, match="counterfactual object publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -507,7 +507,7 @@ def test_episode_bundle_counterfactual_object_publication_failure_is_retryable(
     assert not (store / "objects" / "counterfactual_ablations").exists()
     assert not (store / "manifests" / "episodes").exists()
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert len(loaded.direct_path_ablations) == 1
@@ -535,7 +535,7 @@ def test_episode_bundle_provenance_object_publication_failure_is_retryable(tmp_p
             raise OSError("injected provenance object publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_provenance_object)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_provenance_object)
     with pytest.raises(OSError, match="provenance object publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -544,7 +544,7 @@ def test_episode_bundle_provenance_object_publication_failure_is_retryable(tmp_p
     assert not (store / "objects" / "provenance").exists()
     assert not (store / "manifests" / "episodes").exists()
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert loaded.provenance_records[0].record_id == "counterfactual-ablation-provenance"
@@ -569,7 +569,7 @@ def test_episode_bundle_receiver_observation_publication_failure_is_retryable(
             raise OSError("injected receiver observation publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_receiver_observation)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_receiver_observation)
     with pytest.raises(OSError, match="receiver observation publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -578,7 +578,7 @@ def test_episode_bundle_receiver_observation_publication_failure_is_retryable(
     assert not (store / "objects" / "receiver_observations").exists()
     assert not (store / "manifests" / "episodes").exists()
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert loaded.receiver_observations[0].observation.sample_id == ("receiver-observation-fixture")

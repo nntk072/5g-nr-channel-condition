@@ -228,7 +228,12 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
         object_names=("wall-1",),
         triangles_m=np.zeros((4, 3, 3), dtype=np.float64),
     )
-    monkeypatch.setattr(adapter, "extract_scene_triangle_inventory", lambda _scene: fake_inventory)
+    monkeypatch.setattr(
+        adapter.raytrace, "extract_scene_triangle_inventory", lambda _scene: fake_inventory
+    )
+    monkeypatch.setattr(
+        adapter.generate, "extract_scene_triangle_inventory", lambda _scene: fake_inventory
+    )
 
     def candidate_metadata(_registry, *, candidate_id, actual_geometry_asset_sha256):
         return {
@@ -268,10 +273,16 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
     )
     monkeypatch.setattr(backend, "select_rt_backend", lambda requested: selection)
     monkeypatch.setattr(backend, "activate_rt_backend", lambda chosen: None)
-    monkeypatch.setattr(adapter, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"})
-    monkeypatch.setattr(adapter, "package_source_sha256", lambda: "source-v1")
     monkeypatch.setattr(
-        adapter,
+        adapter.raytrace, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"}
+    )
+    monkeypatch.setattr(
+        adapter.generate, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"}
+    )
+    monkeypatch.setattr(adapter.raytrace, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(adapter.generate, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(
+        adapter.generate,
         "rt_runtime_fingerprint",
         lambda base: {**base, "platform_machine": "test-machine"},
     )
@@ -320,7 +331,7 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
         )
         return _dataset(identity)
 
-    monkeypatch.setattr(adapter, "generate_raytraced", generate)
+    monkeypatch.setattr(adapter.generate, "generate_raytraced", generate)
     config = RayScene(name="mock_scene", per_class=1, max_attempts=2, samples_per_src=100)
     first = adapter.generate_raytraced_cached(
         config,
@@ -380,7 +391,12 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
         object_names=("wall-1",),
         triangles_m=np.zeros((4, 3, 3), dtype=np.float64),
     )
-    monkeypatch.setattr(adapter, "extract_scene_triangle_inventory", lambda _scene: fake_inventory)
+    monkeypatch.setattr(
+        adapter.raytrace, "extract_scene_triangle_inventory", lambda _scene: fake_inventory
+    )
+    monkeypatch.setattr(
+        adapter.generate, "extract_scene_triangle_inventory", lambda _scene: fake_inventory
+    )
 
     scene_xml = tmp_path / "mock_scene.xml"
     scene_xml.write_text(
@@ -408,10 +424,16 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
     )
     monkeypatch.setattr(backend, "select_rt_backend", lambda requested: selection)
     monkeypatch.setattr(backend, "activate_rt_backend", lambda chosen: None)
-    monkeypatch.setattr(adapter, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"})
-    monkeypatch.setattr(adapter, "package_source_sha256", lambda: "source-v1")
     monkeypatch.setattr(
-        adapter,
+        adapter.raytrace, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"}
+    )
+    monkeypatch.setattr(
+        adapter.generate, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"}
+    )
+    monkeypatch.setattr(adapter.raytrace, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(adapter.generate, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(
+        adapter.generate,
         "rt_runtime_fingerprint",
         lambda base: {**base, "platform_machine": "test-machine"},
     )
@@ -439,7 +461,7 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
         )
         return _dataset(identity)
 
-    monkeypatch.setattr(adapter, "generate_raytraced", generate)
+    monkeypatch.setattr(adapter.generate, "generate_raytraced", generate)
     cache_directory = tmp_path / "cache"
     result = adapter.generate_raytraced_cached(
         RayScene(name="mock_scene", per_class=1, max_attempts=2, samples_per_src=100),

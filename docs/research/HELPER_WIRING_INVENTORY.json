@@ -27,7 +27,7 @@
     "datasets/channel.py": "543191f9d28fd754108c4835443ea02d7a38882028190733000cadd7e3a7464e",
     "datasets/channel_view.py": "5aa3c0e7adf050ce1c0adab29c17cc361b9776c9d6b447dfb85b712cb9b6ad95",
     "datasets/counterfactual.py": "b458fbc627811623401cc913897883368e251b65b814643464dc4f6b854250c3",
-    "datasets/episode_store.py": "6990876d5a114b5d1ae942dc8790315feb19eeed6ffa8b5ccfb0ca507796c8d0",
+    "datasets/episode_store/episode.py": "7d7e4cdc1f66c5995d4f33e04beffac3f76fef65017303cf5ad62e5fc21ff733",
     "datasets/frequency_pair.py": "bf239c8364892f3fbf8aa530f1da98778df3fbaf11475fae64dbff208e873ea4",
     "datasets/independent_splits.py": "a5857d1a474c7f5fada8433ac205b740016d03b80e0d479c2e8fbe088626970d",
     "datasets/lineage.py": "00f193f28df5ed617365018b598320520e3e32ab9b4503ad570ac3ffe6dba010",
@@ -44,7 +44,8 @@
     "datasets/schema/network-pusch-workflow-report.v1.schema.json": "fb888b2e609160fba82a953788aee3a2114f954ae74eddec41f0cb77c5a3ec8e",
     "datasets/schema/network-transmitter-pusch-workflow-report.v1.schema.json": "fab854c31223edee142cd4e3b905a465300e281b4158ff9bb69fcbf26810efe4",
     "datasets/split_lineage.py": "a8da124d929952b925e2df43987cbc2ed435b0670eb47a5eeb9b30874a443d7f",
-    "datasets/split_policy.py": "c1b40295c9909f309b7a6efd7493d14dadcb837ee2f9df1323c1e1c9152e3597",
+    "datasets/split_policy/policy.py": "ec3a66060e01d28919576947614b1411693a5122284f8d06aa8b04151de0f604",
+    "datasets/split_policy/registry.py": "373f95c6f294b0ced090df35a8060ca51cab6735526f1897adb13f60c10af7a2",
     "datasets/splits.py": "ae9cdc009f945de2fc540945e68569c7d01bf1cf865a98c3e70eca94390c0187",
     "datasets/standardized.py": "fac090a20191abc1c2011f697547683ddfbf6860673948fa44d9d617861ce68f",
     "datasets/standardized_specs.py": "365dcb612de9d63c7f2713ae070a8ae1e0de0dab84467f55a7262bf82111f097",
@@ -52,34 +53,29 @@
     "datasets/targets.py": "e8a13165c7c09398ff44abf1498ebaa52cbfeb02333f5d12fae3fc0980a03248",
     "datasets/time_axis.py": "8db701f1eb34ba5c60f7c62ae792a5c851ddec8c7d7a76822675bc6a6daa8fbb",
     "docs/research/EXECUTION_QUEUE.md": "b1edbe7f6640d87ca7b590944077461d464f25e13f5149e5ead3c102aed6c0b4",
-    "docs/research/HELPER_WIRING_MATRIX.md": "c5700182700bdcee902210b6bd05f85a308dac9fd507c6c80ccbaaeb506395ee",
+    "docs/research/HELPER_WIRING_MATRIX.md": "ff8bf5e7df1b84a27dbe59981cf17c3b125fdb0b8e659698bffc85cb9339eb8e",
     "docs/research/IMPLEMENTATION_BACKLOG.md": "63af90f48d20999700045ec51574c58e86b5be916b23905611e54bad1d708cba",
     "docs/research/MASTER_RESEARCH_PLAN.md": "f30d8f567f97443aec722eabc459843aa4e5821f7574ce67080ab99747c5de93",
     "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2",
     "docs/research/schema/helper-wiring-inventory.v1.schema.json": "cbf3f4f5d3f5711d5d0bd208060e90543cbfba890ca718228f7be2befd0a170f",
-    "evaluation/acquisition_package.py": "4aaa5b0ab6e9642c0cb4fea9e1c350472b5ff42bfe1dfc9a3508673c9500569a",
     "evaluation/caez_forecast.py": "43a1f1d284c28ba12c8bc8265ef5d9e6aba15ef109a4c7f8e884718e1984c61e",
     "evaluation/class_support.py": "f85c297bc8b7451417012f0d90f5a255859a8e08a445f3bcffefae72c72b7d34",
-    "evaluation/complex_csi.py": "4ead85243feac621007693dad949d6c331ee9af70ce4efd02f57413986c17177",
+    "evaluation/complex_csi.py": "e12f665e44d5568014cf25aab043216da0284a77fb47974b3891cfbaaf92450f",
     "evaluation/duplicate_audit.py": "b3297d05e3a7d5cf7bfa81e89c8b09da625fbe8642d32d633568e16e655422ec",
-    "evaluation/joint_acceptance.py": "23a24a1f54610388916fef9e05e718be61bdd360d556042db4f5c200c191bbb5",
-    "evaluation/joint_evaluation.py": "c0a0ad02150c580d71737325d34b258781c2d68d9b55b1b582ee5b17208e4213",
-    "evaluation/joint_evidence_artifact.py": "1571a1f72fc9bc69dcef7d7b96a7c0a13916c47a13d9d50f8944af38f50e336a",
-    "evaluation/joint_evidence_run_manifest.py": "be155e1f71cef0940e835ae7ec22f88289f77288a8574e7a2d45ef960a6d0373",
+    "evaluation/joint_evaluation.py": "494cbf979620b98821678f31880afaf4d6c73809dc84a3490ea14389dbfd0d56",
+    "evaluation/joint_evidence_artifact.py": "a5ed10b6fa2a05d1783d00a49860b897497a4ae747e42d597eeef0f5318cf975",
+    "evaluation/joint_evidence_run_manifest.py": "92b065d5978cd4f783ac05de4576965c15540cc55165900f38bc8664617f9d63",
     "evaluation/low_confidence.py": "d1d5eff3513dcf5556ce78010ad05bc16b69bfeae85a59c5e99c24aa2c47203a",
-    "evaluation/material_calibration.py": "b512ab42d541f4beb73723d3259e7a3ba0212d3fd7bdfdd5b52aecbf17304698",
     "evaluation/metrics.py": "2872db0e70ccd8329061f37b53427bc8f2965f01c3f953971733f0bb48243fb3",
-    "evaluation/path_equivalence_assurance.py": "79a1b964e4ee469ce0b97fa343774c188fc8d1d5533b1ade3231f4ae2ccff31f",
-    "evaluation/path_equivalence_roster_cli.py": "c489f15e395a48cad18a6f3b9a0282fca3b066aecfb5a3056cd35399913728e5",
+    "evaluation/path_equivalence_assurance.py": "5531191ac75343016a263faf501fcb4588dee0aabfae30ffdd9c54e11805b2fb",
+    "evaluation/path_equivalence_roster_cli.py": "d2221271434dfeab7431b651e638a38c7298c8f44f964e9b948e15d0f177d5d6",
     "evaluation/population_audit.py": "a95d543391daa1b1a033e5933df5cd2034fc3fc09ebf0de24b68383242fb83b9",
     "evaluation/prior_shift.py": "038bfdb12e87f5cb00aa86ebaf8cd966e38d00b4dcb9c6c5a0384a55b6155d1b",
     "evaluation/probability_calibration.py": "13e1815e144b35d370dceca42d196534f6760559cf3d47376f33800e879c5618",
-    "evaluation/propagation_assurance.py": "b2d9b67f4943906afc3ee66c5ef9ec1b9abe9c6a5d51db1c396164613cbb1752",
-    "evaluation/propagation_metrics.py": "2bc4e48780c040648ed6045cc7e5cadfd192423ac6fdddce06a701361b2a1592",
-    "evaluation/qualification_contract.py": "e654eb17c8c8f96f1c48cdfb071006c44ab1a9ba37a28a14337d9a690584bf92",
-    "evaluation/receiver_assurance.py": "20f8b0304d31cb374e7b4f159fecc186860fc8df33755f70fdd51d40491926ee",
-    "evaluation/receiver_impact.py": "25e2e1ac5adc9d26aca823487dedccddbc23283ba07d50f41ba2b3465779a281",
-    "evaluation/sample_size_planning.py": "8f68f82a5db824aa7d671a0c5c05a855172aacc4146e7d7271ccd467728fc2a8",
+    "evaluation/qualification_contract.py": "be183cc189091f59cd9f13dd1aa3481ef1fcc050cb9bb19649a286f57a57c0ba",
+    "evaluation/receiver_assurance.py": "d2be4aefa83ddd119b5260a4ddfa0f302c1106b723d705329a34a28612a13ece",
+    "evaluation/receiver_impact.py": "c1b85562075563eed6ea70d578ed7751008ab5e86517b8645a01402f32ae4b73",
+    "evaluation/sample_size_planning.py": "886f9211e51a10144606e27f8b3fb2fc53a991ee858b7e41e2873fb631bc70ad",
     "evaluation/spatial_audit.py": "d8a1c3373d7604e76805c137828fc7873f9160ec912ada5528a27554ca68199e",
     "evaluation/spherical_angular_power.py": "2e97bfd7e7d665fb4159642a07377040226141dde4001ed74fe4cc41d2aa3ea6",
     "evaluation/statistics.py": "98dd7244f17fbf2127f70b410b2f1d57eeb93db70c2aa06863aea2db3653a190",
@@ -87,17 +83,17 @@
     "evaluation/tdl_profile_reference.py": "4ebe001194e9a82ec2e2ec304d0fb168170b9654a739b8b6017537432a5889ee",
     "evaluation/uncertainty.py": "5120bd36667e6065029a9cad0d6313296fbe6bab3b4457f6c0572e3aa77ba718",
     "evaluation/uncertainty_io.py": "e02da53cd45809ac68c2b178d1474a6c397ab8650072731bd543160203a4e880",
-    "experiments/acceptance.py": "4536b41bb8bef00c47001cda5f4af5a1af13dd701968f1baa9df5bffcea175cf",
     "experiments/audit_cp_bounded_dft_diagnostic.py": "1d925e23143a3f5576a783c14b252d45355005dde94ebe2e029abbd94abba2ce",
     "experiments/audit_static_reference_failures.py": "0f76e9adb9ffc21501215737d3b3678fa7829adeb8e42b7c0505f01e0532c609",
     "experiments/audit_tdl_dmrs_density_development.py": "fb2fd52ddc75ba2336ee705ef45339b5f8f01193ac896a11f79c05b85108062a",
+    "experiments/capacity_sweep.py": "123cfcec10335e46fda2a00c53e8a448e5fd4fa3cdc23af06f464d824f52dc40",
     "experiments/cp_margin.py": "27c3d25e03f17e43ef41251eddee79bd1790f84d902039836f8b1b439e3bfb6a",
     "experiments/diagnose_estimator_choice.py": "9edc5832219c384a42d837a36202569db105887b5f0492f353e8aff89e28f463",
     "experiments/doppler_awgn_receiver.py": "f01271437cde7cfb4278c43b72ccbfa4307b077cefedb2ae8b09d6891047c487",
     "experiments/independent_channel_receiver.py": "694ca9eaf1bd15364e0e9d58bed26234052eea0be55e3c20e16d7793ad25ef3a",
     "experiments/link_curves.py": "01a97663b6c9566fe0e60199c5e77a6a5c3c421e26133012a8e058b725dbe16a",
     "experiments/observable_multipath.py": "39a9008ee9d3d7ca4467be0a5310b9ce03ea48dfdb98b1431fd2197b91a24d2c",
-    "experiments/ordered_impairments_receiver.py": "59a7ebc0f76c4c4be04033d9cc6ff9cdbb8ecfc66e53d53de837e950bc5987ba",
+    "experiments/ordered_impairments_receiver.py": "ca7c9ade968ef9205911fa08c15c34907a8bd60f32941beb782299df45054022",
     "experiments/profile_holdout.py": "33dec583942a07cb5bc0fee759636f735a72f2420415ce1382b758c8ec304d7a",
     "experiments/qualify_delay_domain_dft.py": "3f041902955257c04e5c91839e0ee2906d3e0b84a2433fa7791a75162e70e1ea",
     "experiments/qualify_tdl_c_dmrs_density.py": "4d6b18aeeab2bb778f7f8b76bebb10dac215924dfd697b2d1d461078227a4cdd",
@@ -110,12 +106,14 @@
     "experiments/standardized_pusch_cp_exceedance.py": "db620a92883dbe21807c27bb84d686c3aca186db123795bc5446f6dd550f9f74",
     "experiments/time_varying_multipath_receiver.py": "52330289e52a98ffb075f0641449e137a5a36ee869d9f565180a39f0da990540",
     "experiments/trajectory_targets.py": "f966f7b4d0a42a2fc56a5764511f3f7f771f1a926b6a065ba8a33348d5d89cd2",
-    "integrations/sionna/adapter.py": "bb9600c9c9414d3ae75032a36c45f6cfa3beac4c3aa7e48f2f31e68b4f6bb63f",
+    "integrations/sionna/adapter/generate.py": "a5de3becd778c388e225339afa34f05bb0a815c17016781426221b75d93728b5",
+    "integrations/sionna/adapter/raytrace.py": "dd97be3fa46f73d7370d5b35de9bce76512b7d7e830a5d3220d38fa4209c22f4",
     "integrations/sionna/backend.py": "b43f037ac7b9d8f7ae7d9431e3bd4592fcb2ea86562d980d2d2946d36e45d0f8",
     "integrations/sionna/cdl.py": "800544a91c8ca2755e49b34c16d081123ce36d75f4892b806d85548166eb5953",
     "integrations/sionna/cp_margin.py": "4e6ba8ef62764084e87e8d7093660b7310447d92977ecbf2b041488d3b30ced6",
     "integrations/sionna/los_oracle.py": "e7baf049aa5036d5f663e7e42a85a0872cd78d1a83a771fa19b0dceaf09e3597",
-    "integrations/sionna/network_phy.py": "e3fd1a32a563be2afa85cd402fbcef00985ea101d111da7104e3aea5a01cebe0",
+    "integrations/sionna/network_phy/operations.py": "0ca65d27c7490a389b59319c076692626f6ed55b232cec9cb0bc7b60aac980b6",
+    "integrations/sionna/network_phy/records.py": "d121f0f21beef1c8646df622a92c1264ba3567184936512da5f7b6c67e576522",
     "integrations/sionna/network_receiver.py": "63dfc337b07a83a3e987e5ede19417cd797f9f5355064d9f4cccf4e928656cb9",
     "integrations/sionna/network_sinr.py": "6c25dff32f29ef45f9299eace2040b039a0d86a102a088ace8b5bc55c3623a95",
     "integrations/sionna/nr_prs.py": "2fa72bf82525e7af8034920cacc3b4cc17f3ec1eacd07b41a01dc0f7ab4d4429",
@@ -137,7 +135,7 @@
     "integrations/sionna/scenario_gbsm.py": "3dc5b1ddaccfed5742b461a57215789a6b2ec6469bf86422ba54d53beaee1ee0",
     "integrations/sionna/srs/srs_bwp_schedules.py": "3b4fe6bb167de429399e18aa2f4932c57c5304c3702f6381cf82753ab1939d92",
     "integrations/sionna/srs/srs_configuration.py": "d60051183cfef01a443e17878641f5cfc12d4bb69f0b3a7526ce32e82fc5fc39",
-    "integrations/sionna/srs/srs_constants.py": "f8512c53714de9b45ff0d5cb1f28469a3012c0a2cca38e4621f6d6dd633d18fd",
+    "integrations/sionna/srs/srs_constants/dci_0_3.py": "ea194b41b45149a075aabddf1edb1526635c0d07c929fc35bf8a9123174a0c17",
     "integrations/sionna/srs/srs_dci_multicell.py": "489e36154a9b782ee83c7f15bff92f04e33675a90decdf497376c519be0a4f17",
     "integrations/sionna/srs/srs_lookups.py": "d7da12e0bd784e16e60c8c58ff55bc7ec9697ec294b9cdac51ff75b0ba85746e",
     "integrations/sionna/srs/srs_resource_schedules.py": "30ba2ca7065f63de9bcd99e8a04df0b949dd3ab39b4f32d9257139fbe85f20c8",
@@ -159,8 +157,9 @@
     "receivers/nr/pusch.py": "b6a632a92fbc92a294fe7baf718a69b665635e4e5d0e71f4528b5b4d1333f003",
     "receivers/pilots.py": "8dde83da15e1a16031c039e7aed4ebf071b06990d1a4e17e80758dbb1f91c6ca",
     "scripts/audit_channel_population.py": "8c2a84c7f24db2d9237500dd861212a94aa0da9898f470f71933872385894e4c",
-    "scripts/audit_channel_split_lineage.py": "63f0ea3d427c37162155ceaaa46301444614adbcaf3c93d82403073cc6301767",
-    "scripts/audit_helper_wiring.py": "26b47696f4fdb703083c14e5f6bc96d4625d1f1ef73e5690d991914bfd349861",
+    "scripts/audit_channel_split_lineage/channel_audit.py": "2ff2db8f728703b49a537ceb8c3e985eb8b530c4fa7dc0cc5b7de3128518f835",
+    "scripts/audit_channel_split_lineage/split_artifacts.py": "6f51e08a3d8e919a0a3be71b550c0186d3db1323aac35ae0286756c7c4a64ea8",
+    "scripts/audit_helper_wiring.py": "af36ce676d18dd4c58dfe64c374ca0dfbfe4572945675035472f10329b690a9b",
     "scripts/audit_rt_dataset_ray_budget.py": "5379aae436f91254b50766caf9c4f5270107bcbb5b59dd9a85c2e09a3b5086f0",
     "scripts/audit_rt_nr_trajectories.py": "47d585e5d3843ee009e21e7a4e4ee7e72dd144d7e315a60acdabd8da934a25ba",
     "scripts/audit_rt_path_power_threshold.py": "8de7d64f6835d65616a3bc7585f84f05d06568366f33ca9f01b791f96fd89bcb",
@@ -180,7 +179,7 @@
     "scripts/materialize_direct_path_ablation.py": "95335d599a80f1e8651d1dd30437eb3ab13c2713006de060a54bb1f4bb219c98",
     "scripts/measure_nr_store_memory.py": "975293f477ce75d16599d0c32ab5c724a118cf724cabee2fed0db865783a25a8",
     "scripts/pair_stored_frequency_views.py": "8ef82c0ae945d5522b0060c02c724f4b8576cf7986efa60d029e9fc8edcfda12",
-    "scripts/plan_acquisition_design.py": "333403fd42e6c3e5e546fcad9dd6ab3a31215dc1f634f861d623cf37bda99a93",
+    "scripts/plan_acquisition_design.py": "40515c7308bd8957e1c8a49b3a9b0fdc0e98a04f03c004c051e65da605525964",
     "scripts/render_rt_endpoint_positions.py": "7fc16121d551402f042cdccaeca206b0a541172796c3c0d6ddf7d54ad2faae18",
     "scripts/render_rt_path_qa.py": "9a46318f58d860819b7d41ee89afbb89fa0ecd425c33ae01268dcf050ece0339",
     "scripts/run_cdl_e_fresh_seed_replication.py": "fd4a05073a1667a5897a166cbc4930e77cb70aed0672aa5b909f28f7436f7117",
@@ -199,39 +198,37 @@
     "tests/test_datasets/test_nr_store_streaming.py": "e05fd037677cb98b8e0c127b38c18530009b1ebac8701e9c45949d740719d0f5",
     "tests/test_datasets/test_path_evolution.py": "afbefd34e5d945e63f1bc80c554f31417f2464511b0c7b0a2a1b844a0205dda6",
     "tests/test_datasets/test_public_release.py": "bd83eaad1780ce585b9e5d59eeabea858a000cb4435c04c7252b9fe42127d542",
-    "tests/test_datasets/test_scenario_gbsm_store.py": "9105fcb8c7215e0db4214f62c05cc7eb59c5536dcf5a8f511a0f07e220f0d0b0",
+    "tests/test_datasets/test_scenario_gbsm_store.py": "8b89f9b2f48a5de0ec3678a218d97a2e07948ab01b04534feebb2138735ab045",
     "tests/test_datasets/test_scene_families.py": "5cdc8a3cd9494d9b76a55aa11129db4f83faad849e679d0d096e1f7ea4467553",
     "tests/test_datasets/test_sionna_paths_adapter.py": "641cdd3d97f6f681e9d642728a34b1547554be5c7410b0204723d271620fddb8",
     "tests/test_datasets/test_split_lineage_audit.py": "c7e52d258eead87647207ece7062a8a6520c1bc0be97f362e205e1adabc5a8c6",
     "tests/test_datasets/test_split_policy_signing.py": "6165bb016699d773389e06317df7889f9d52133d73c3706a5f067ea4d287abbd",
-    "tests/test_datasets/test_split_policy_v2.py": "1ed12dd4dfa076973022d4b1d49d662c92f2a4fffafe9bc9738c0313831479bc",
+    "tests/test_datasets/test_split_policy_v2.py": "fd0b622b22ff746ebbe863e47c7ddef81c8d946f04566bc2dfd42b8b31fc1443",
     "tests/test_datasets/test_standardized.py": "c3928a3ff634b63152d325ba875388e680d5076ac89dd6996e9f695fc5d431a6",
     "tests/test_datasets/test_time_axis.py": "656c112d9a9f37968e82a15bc473523c095bd24cddcc27b41ff7ad19f86556be",
     "tests/test_datasets/test_umcd_schema.py": "780396263d6c7bcbbacf6651352224fdb96265afd3d856f34d17d88239e2024d",
     "tests/test_datasets/test_umcd_splits.py": "9c4ef2f806baefeaf2e20ca86c90207033e66f7e9d703e3ea22c53fe1d53ab39",
-    "tests/test_datasets/test_umcd_store_integrity.py": "87ebc07238cf377161ad337df212abe795bb983a7439650b31f5ede3e28937dd",
+    "tests/test_datasets/test_umcd_store_integrity.py": "988f79b990890b7e0d52863d916fac3b5fc2f0944e29fc3a5aa069b4c03de3e8",
     "tests/test_evaluation/test_benchmark_partitions.py": "e69be8cc1c6117c70ee765be74608b6ab724e2442942da80dec8b04dc066dafb",
     "tests/test_evaluation/test_class_support.py": "445bf93cc05c046989d1ebfdacc3ea3970cc38fdaf5ffc2c2dfeae74ab6d99cb",
     "tests/test_evaluation/test_duplicate_audit.py": "b73b3d23884828f08447271f991f91bebb6279a684298457aba213a073e62434",
     "tests/test_evaluation/test_independent_splits.py": "4e65681de74da98e1696906a6db7c79baae993b6fc6410780f09bffd4ae9599a",
-    "tests/test_evaluation/test_joint_acceptance.py": "aa03433e550069130f8e401aba94c616a405ff3eea38a6ef475e189bae572583",
-    "tests/test_evaluation/test_joint_evaluation.py": "38b0b19ffc91352df223c2494cd632b640fa57b30cc889016a5ee9002dffe07d",
-    "tests/test_evaluation/test_joint_evidence_artifact.py": "1afdcddd775949feda5c44d812751a6ff06aa37edd973bbbfdf74c3f9523d395",
+    "tests/test_evaluation/test_joint_evaluation.py": "81cdddf776f7dac676e23f1cf240b4fcb845c65ed1294f5c7db618e13486c8f4",
+    "tests/test_evaluation/test_joint_evidence_artifact.py": "50dc38255ebe40114322a830d00d086846d96b1eebe41825ba6845f210a3ad83",
     "tests/test_evaluation/test_low_confidence.py": "868ca0cc19a4fbe94c5c2e35a610195e27c4f78bcaf224eb53dcd2db844895a1",
     "tests/test_evaluation/test_metrics.py": "c271db2cd2221e1e55500aa05bc3ca2250b6b9ea98e98441aabc4aab0d927077",
     "tests/test_evaluation/test_paired_regression_statistics.py": "4850a3704106cc7b6cdbbaa251249dce905d79966513a654f93529829f1a505e",
-    "tests/test_evaluation/test_path_equivalence_assurance.py": "9c605ec25327eeff0108499737b4ec2df7eb63f9cefd25aa277bd319062f27ee",
+    "tests/test_evaluation/test_path_equivalence_assurance.py": "b8cb444dadefda31205b212d2d3559f07da831952abc1ba2e5a693ce0f913d5b",
     "tests/test_evaluation/test_population_audit.py": "1c4e1c602f70bb68b978bd7a6b4b2e0adc9e643367384d33f4bc0c5539f32e45",
     "tests/test_evaluation/test_prior_shift.py": "c5cea188db9df85046999622cce97f97e0353d3e1328c7a55b2a8f9f745be9ac",
-    "tests/test_evaluation/test_qualification_contract.py": "36f0a828738b00baf130470c1b14ad301b65177ddb41b985b0c02551886443d0",
-    "tests/test_evaluation/test_receiver_impact.py": "d27bb08e6bf9b4451874b2fd339ceac5a6a8cab6a5ee69e91ed907a2a3b624bf",
-    "tests/test_evaluation/test_sample_size_planning.py": "d8b680368d4f63dc72429c3d4a82f5f8654fd5f683e37460f9ed3e8f64012e87",
+    "tests/test_evaluation/test_qualification_contract.py": "971c5c1337f453ac83ca18468fb577325725f53cccce5b397ceb29a666bb0e31",
+    "tests/test_evaluation/test_receiver_impact.py": "8f51f3a3d206c2834b1490f17c4e012bbd3abcd539f62c087cd12042f7cb2337",
+    "tests/test_evaluation/test_sample_size_planning.py": "3d9715ea5e7bc31b95a60d45c9942f8fb3d4b9aa30117dc746328e1b0fb60356",
     "tests/test_evaluation/test_spatial_audit.py": "f081bf6b277883c2032a871531dd73d24cceaef12251ff295071af5970edcc13",
     "tests/test_evaluation/test_spherical_angular_power.py": "8950d95800271bc819c5920e81770cfc345a8e6704509f05fda0ef6b8efdd499",
     "tests/test_evaluation/test_target_coverage.py": "45aaf9e23c01432c3e278f6250296de3e40a5da4a5d18485898d807b758cfc18",
     "tests/test_evaluation/test_tdl_profile_reference.py": "b743396524e8bae1e18f58aa4025ab79f14cf38054678807d50d7e0a770007a0",
     "tests/test_evaluation/test_uncertainty.py": "d60986d9951a1f107f84c0651d64cd9675e45feaa356cf3f00bf053c7c08e39c",
-    "tests/test_experiments/test_acceptance.py": "ead4e4de460d625863bd28c2e08b52b6a54a5f5c859ce3a9acff765063627aaa",
     "tests/test_experiments/test_capacity_sweep.py": "a71191c4061760aa8f107c777c8795efe97552820d458d8c524e3fae66459442",
     "tests/test_experiments/test_cp_bounded_dft_estimator.py": "9ecd5cc6f3049cabf1871fb6b3ad1bdc937a223e27ec2660aa9fe88de9ffd3ff",
     "tests/test_experiments/test_link_curves.py": "ebe70899c1af7d206130a0f15f1b1e62f91b8afda6420303bf5c2dddf6fe73c4",
@@ -300,9 +297,9 @@
     "tests/test_integrations/test_pbch_mib_native.py": "a3aaefb193a8bcab0f6a2ca555d2bea69f5fc4d6186858c03f0063b80a87f4f7",
     "tests/test_integrations/test_pbch_ofdm_receiver_native.py": "d2163cfdb0c0cfc49781d1f2bc6765aeb12589e3f3fa0e8b40b29d783bdf54ad",
     "tests/test_integrations/test_pbch_payload_native.py": "8aa7b8b1553eb05246c6dd3f52fa90af7db159830723057a7e2e30c0ea6abc48",
-    "tests/test_integrations/test_rt_cache.py": "f8d018815a05bd212b612cf83099cc68f47a9c5d80a27b489ff9f8a6482a2239",
+    "tests/test_integrations/test_rt_cache.py": "72498dd7b6d29b2479c0023739d16af0885dc99353b072aff25fe4f797d2ba31",
     "tests/test_integrations/test_rt_identity.py": "3b2349b5471105d4e0cd09e0861e2fcb2555880086662c79c5b89bc1337d114c",
-    "tests/test_integrations/test_rt_mock_integration.py": "7b553fa4e8c414abf1e50193c67db691ca8276b9aef5750f7e3d4f9f3d6dea28",
+    "tests/test_integrations/test_rt_mock_integration.py": "91b5a83e8044e1ac5da9e9e01c5000b0153bd05d34cc45a4aa6774bd29fd8ffe",
     "tests/test_integrations/test_rt_network.py": "01e8a622462583a4c23d72ab8c3fd626e8e3e26c4a9c4067345231244fba4bfa",
     "tests/test_integrations/test_rt_to_nr_contract.py": "031efa1684f5ce10b6de3420a920f8289529994d2aa45f3984794bd48fda8459",
     "tests/test_integrations/test_rt_to_nr_native.py": "7a3ab21ad74166446192462683d73b34d2ee7851f3d8c3e030235cb28383fba9",
@@ -311,10 +308,11 @@
     "tests/test_integrations/test_scalable_tdl_complex_circularity_native.py": "7cb428b897e69b8455fa1dea2f9c6a2b95e2faeae84a4ab869b47db1a39aadff",
     "tests/test_integrations/test_scalable_tdl_doppler_spectrum_native.py": "6a3a45ae04dc88c3d4deecd1a062efd6e6758cd5b23939dccfbb07a5a30bb63a",
     "tests/test_integrations/test_scalable_tdl_temporal_reference_native.py": "9699146e6544fa1683f9e285ed632f5cae2de9216876e1a9e63b5a2d99b4632b",
-    "tests/test_integrations/test_sionna_adapter.py": "991be000511eb6bd250fa46de1dde628eeb982b9e654b42e7b5f8ee0f2f1ae34",
+    "tests/test_integrations/test_sionna_adapter.py": "6bc03aefe547cce51445e82fe58458492159d43e5e7b4cb68bb198c4ed9e712e",
     "tests/test_integrations/test_sionna_backend.py": "202ecac089bbf746ddf581fb4dd91d29c35a337bf6bbefb8c9ec9b7d4c77d35e",
     "tests/test_integrations/test_sionna_scenario_gbsm_contract.py": "0ce8773d900094afca11f7fef62e1253380f55fd14d39805802cf9f5deb47aa1",
     "tests/test_integrations/test_srs_measurements.py": "d422d1394befd33484cf6bcc294ddb704572cbd291dcfe4f7246ea76fd57ccb8",
+    "tests/test_integrations/test_srs_resource_mapping.py": "1c48896e001e6d51cde40c987030e165e41406864a204d54d5d198206aa8e784",
     "tests/test_integrations/test_ssb_epre_native.py": "c5f326fecba6a1b4cecdf2ca5088da019821137ad1be2530e6b9190e840ad92a",
     "tests/test_integrations/test_ssb_half_frame_native.py": "25c97ad9b9117d0143b48eb04a4afc8cdb56c6e003d0ad3fc4787c759d58a133",
     "tests/test_integrations/test_ssb_timing_native.py": "7642b672b9602120099de31ba804a1f868a590ce742711e7a1c56c733c4b4a67",
@@ -331,14 +329,14 @@
     "tests/test_integrations/test_tdl_profile_tables_native.py": "205a08086b3d5ca6420ec7106866b04776a24bccfa2138d2b9337fb9a8764e62",
     "tests/test_integrations/test_tdl_pusch_contract.py": "f59c1621aff623f4cc3e5593eb2352eebcb7972951728c1e8cf66b64409fb895",
     "tests/test_integrations/test_tdl_pusch_native.py": "71bbac30615f9c138b650aa9bd2fbc74642b2fcae2d56a0973d582187e2f1a57",
-    "tests/test_integrations/test_tdl_rayleigh_marginal_native.py": "e44e441f3c6d337e7875d635f176642b971827fd7d17056fee724f76ac8c89ee",
+    "tests/test_integrations/test_tdl_rayleigh_marginal_native.py": "bc54333a64aae2ea388aa276d234c3c34a31e6a0ff14c45610a214837aba110e",
     "tests/test_models/test_observable_multipath.py": "8584be0bd60c83093357294e2c819b71086c6fa9fd70bc70f701284260666a34",
     "tests/test_propagation/test_identifiability.py": "f99a1877a56390aa916f21bc98dbe7033cf3c3bd70fda340942dad3ce82e31ee",
     "tests/test_propagation/test_scene_visibility.py": "fcafafdb8e6bcd2ef92bc84180c00f204227c28e45e750db59366b21f43f1975",
     "tests/test_propagation/test_visibility.py": "43d265cb10d27da769960fcd83587dbf13a6b39db0514aebf330d431339d3108",
     "tests/test_receivers/test_nr_pusch.py": "4b4069e6529e764bbac5b4f11a13c3f611b0f904d6ade03ec40127e30aa28e4c",
     "tests/test_receivers/test_pilots.py": "df8d826344842bcb3b5de2fe4f56af0cdd24b3db789d544754c683f775b93e20",
-    "tests/test_scripts/test_audit_channel_split_lineage.py": "2a7cdbc43e73d1615d60291b26ef8342539bd31d0d02ccb8312dc7b585653f50",
+    "tests/test_scripts/test_audit_channel_split_lineage.py": "86f8cb8c1db7e83fd077732e41b5c4890c503d519d4201f3da594c795dd3f075",
     "tests/test_scripts/test_audit_umcd_corpus.py": "e6e686729bed20668255e74ccd4117b8c63f60724def6a65bf63cccede230d79",
     "tests/test_scripts/test_bind_split_registry_children.py": "4b23490b6cdb349a4feb263982af8d4df1cfc007605e2f637099c51865023966",
     "tests/test_scripts/test_build_channel_split_registry.py": "5de99f806a2f3c0ace59691185b7c5288373ac31dbfec62843dc04e99cf0f534",
@@ -802,20 +800,20 @@
     {
       "public_name": "audit_spatiotemporal_leakage_relations",
       "qualified_name": "datasets.audit_spatiotemporal_leakage_relations",
-      "source": "datasets/split_policy.py",
-      "definition_line": 628,
+      "source": "datasets/split_policy/policy.py",
+      "definition_line": 640,
       "direct_production_references": [
         {
           "path": "datasets/split_lineage.py",
           "line": 580
         },
         {
-          "path": "datasets/split_policy.py",
-          "line": 712
+          "path": "datasets/split_policy/registry.py",
+          "line": 49
         },
         {
-          "path": "datasets/split_policy.py",
-          "line": 738
+          "path": "datasets/split_policy/registry.py",
+          "line": 75
         }
       ],
       "direct_test_references": [
@@ -837,12 +835,12 @@
     {
       "public_name": "audit_split_policy_child_roster",
       "qualified_name": "datasets.audit_split_policy_child_roster",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1364,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 424,
       "direct_production_references": [
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1901
+          "path": "scripts/audit_channel_split_lineage/channel_audit.py",
+          "line": 377
         },
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -868,12 +866,12 @@
     {
       "public_name": "audit_split_policy_parent_roster",
       "qualified_name": "datasets.audit_split_policy_parent_roster",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1333,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 393,
       "direct_production_references": [
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1878
+          "path": "scripts/audit_channel_split_lineage/channel_audit.py",
+          "line": 354
         }
       ],
       "direct_test_references": [],
@@ -884,8 +882,8 @@
     {
       "public_name": "audit_split_policy_registry",
       "qualified_name": "datasets.audit_split_policy_registry",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1292,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 352,
       "direct_production_references": [
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -929,8 +927,8 @@
     {
       "public_name": "audit_whole_scene_holdout",
       "qualified_name": "datasets.audit_whole_scene_holdout",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1424,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 484,
       "direct_production_references": [
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -981,8 +979,8 @@
     {
       "public_name": "bind_spatiotemporal_audit_to_registry",
       "qualified_name": "datasets.bind_spatiotemporal_audit_to_registry",
-      "source": "datasets/split_policy.py",
-      "definition_line": 703,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 40,
       "direct_production_references": [
         {
           "path": "datasets/split_lineage.py",
@@ -1006,8 +1004,8 @@
     {
       "public_name": "bind_split_children",
       "qualified_name": "datasets.bind_split_children",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1262,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 322,
       "direct_production_references": [
         {
           "path": "scripts/bind_split_registry_children.py",
@@ -1370,8 +1368,8 @@
           "line": 604
         },
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1802
+          "path": "scripts/audit_channel_split_lineage/channel_audit.py",
+          "line": 278
         }
       ],
       "direct_test_references": [
@@ -1479,16 +1477,16 @@
     {
       "public_name": "derive_split_components",
       "qualified_name": "datasets.derive_split_components",
-      "source": "datasets/split_policy.py",
-      "definition_line": 921,
+      "source": "datasets/split_policy/policy.py",
+      "definition_line": 888,
       "direct_production_references": [
         {
           "path": "datasets/split_lineage.py",
           "line": 503
         },
         {
-          "path": "datasets/split_policy.py",
-          "line": 991
+          "path": "datasets/split_policy/policy.py",
+          "line": 958
         }
       ],
       "direct_test_references": [
@@ -1582,8 +1580,8 @@
     {
       "public_name": "freeze_split_policy_registry",
       "qualified_name": "datasets.freeze_split_policy_registry",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1550,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 610,
       "direct_production_references": [
         {
           "path": "scripts/bind_split_registry_children.py",
@@ -1743,8 +1741,8 @@
     {
       "public_name": "iter_episode_bundle_shards",
       "qualified_name": "datasets.iter_episode_bundle_shards",
-      "source": "datasets/episode_store.py",
-      "definition_line": 938,
+      "source": "datasets/episode_store/episode.py",
+      "definition_line": 130,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -1935,8 +1933,8 @@
     {
       "public_name": "make_split_policy_registry",
       "qualified_name": "datasets.make_split_policy_registry",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1240,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 300,
       "direct_production_references": [
         {
           "path": "datasets/split_lineage.py",
@@ -2164,8 +2162,8 @@
     {
       "public_name": "network_episode_subject",
       "qualified_name": "datasets.network_episode_subject",
-      "source": "datasets/split_policy.py",
-      "definition_line": 748,
+      "source": "datasets/split_policy/policy.py",
+      "definition_line": 715,
       "direct_production_references": [
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -2288,16 +2286,16 @@
     {
       "public_name": "read_episode_bundle",
       "qualified_name": "datasets.read_episode_bundle",
-      "source": "datasets/episode_store.py",
-      "definition_line": 1356,
+      "source": "datasets/episode_store/episode.py",
+      "definition_line": 408,
       "direct_production_references": [
         {
-          "path": "datasets/episode_store.py",
-          "line": 1082
+          "path": "datasets/episode_store/episode.py",
+          "line": 274
         },
         {
-          "path": "datasets/episode_store.py",
-          "line": 1076
+          "path": "datasets/episode_store/episode.py",
+          "line": 268
         },
         {
           "path": "datasets/frequency_pair.py",
@@ -2308,8 +2306,8 @@
           "line": 248
         },
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1110
+          "path": "scripts/audit_channel_split_lineage/split_artifacts.py",
+          "line": 552
         },
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -2549,8 +2547,8 @@
     {
       "public_name": "read_frequency_model_inputs",
       "qualified_name": "datasets.read_frequency_model_inputs",
-      "source": "datasets/episode_store.py",
-      "definition_line": 1235,
+      "source": "datasets/episode_store/episode.py",
+      "definition_line": 360,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -2585,8 +2583,8 @@
           "line": 379
         },
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1019
+          "path": "scripts/audit_channel_split_lineage/split_artifacts.py",
+          "line": 461
         }
       ],
       "direct_test_references": [
@@ -2698,8 +2696,8 @@
           "line": 112
         },
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 919
+          "path": "scripts/audit_channel_split_lineage/split_artifacts.py",
+          "line": 361
         },
         {
           "path": "scripts/audit_rt_nr_trajectories.py",
@@ -2805,12 +2803,12 @@
     {
       "public_name": "read_receiver_inference_records",
       "qualified_name": "datasets.read_receiver_inference_records",
-      "source": "datasets/episode_store.py",
-      "definition_line": 1154,
+      "source": "datasets/episode_store/episode.py",
+      "definition_line": 279,
       "direct_production_references": [
         {
-          "path": "datasets/episode_store.py",
-          "line": 1232
+          "path": "datasets/episode_store/episode.py",
+          "line": 357
         }
       ],
       "direct_test_references": [
@@ -2833,8 +2831,8 @@
     {
       "public_name": "read_receiver_model_inputs",
       "qualified_name": "datasets.read_receiver_model_inputs",
-      "source": "datasets/episode_store.py",
-      "definition_line": 1224,
+      "source": "datasets/episode_store/episode.py",
+      "definition_line": 349,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -2864,8 +2862,8 @@
       "definition_line": 737,
       "direct_production_references": [
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1047
+          "path": "scripts/audit_channel_split_lineage/split_artifacts.py",
+          "line": 489
         }
       ],
       "direct_test_references": [
@@ -2897,12 +2895,12 @@
     {
       "public_name": "read_split_policy_registry",
       "qualified_name": "datasets.read_split_policy_registry",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1604,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 664,
       "direct_production_references": [
         {
-          "path": "datasets/split_policy.py",
-          "line": 1707
+          "path": "datasets/split_policy/registry.py",
+          "line": 767
         },
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -3277,8 +3275,8 @@
     {
       "public_name": "standardized_draw_subject",
       "qualified_name": "datasets.standardized_draw_subject",
-      "source": "datasets/split_policy.py",
-      "definition_line": 777,
+      "source": "datasets/split_policy/policy.py",
+      "definition_line": 744,
       "direct_production_references": [
         {
           "path": "datasets/split_lineage.py",
@@ -3832,24 +3830,24 @@
     {
       "public_name": "verify_openssh_signed_artifact",
       "qualified_name": "datasets.verify_openssh_signed_artifact",
-      "source": "datasets/split_policy.py",
-      "definition_line": 260,
+      "source": "datasets/split_policy/policy.py",
+      "definition_line": 272,
       "direct_production_references": [
         {
-          "path": "datasets/split_policy.py",
-          "line": 1697
+          "path": "datasets/split_policy/registry.py",
+          "line": 757
         },
         {
           "path": "experiments/runner/validation.py",
           "line": 528
         },
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1695
+          "path": "scripts/audit_channel_split_lineage/channel_audit.py",
+          "line": 171
         },
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1921
+          "path": "scripts/audit_channel_split_lineage/channel_audit.py",
+          "line": 397
         },
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -3881,12 +3879,12 @@
     {
       "public_name": "verify_registry_spatiotemporal_audit",
       "qualified_name": "datasets.verify_registry_spatiotemporal_audit",
-      "source": "datasets/split_policy.py",
-      "definition_line": 729,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 66,
       "direct_production_references": [
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1879
+          "path": "scripts/audit_channel_split_lineage/channel_audit.py",
+          "line": 355
         }
       ],
       "direct_test_references": [
@@ -3914,8 +3912,8 @@
     {
       "public_name": "verify_signed_split_policy_registry",
       "qualified_name": "datasets.verify_signed_split_policy_registry",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1710,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 770,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -3949,20 +3947,20 @@
     {
       "public_name": "verify_signed_split_policy_registry_attestation",
       "qualified_name": "datasets.verify_signed_split_policy_registry_attestation",
-      "source": "datasets/split_policy.py",
-      "definition_line": 1678,
+      "source": "datasets/split_policy/registry.py",
+      "definition_line": 738,
       "direct_production_references": [
         {
-          "path": "datasets/split_policy.py",
-          "line": 1718
+          "path": "datasets/split_policy/registry.py",
+          "line": 778
         },
         {
           "path": "experiments/runner/experiment_runner.py",
           "line": 247
         },
         {
-          "path": "scripts/audit_channel_split_lineage.py",
-          "line": 1865
+          "path": "scripts/audit_channel_split_lineage/channel_audit.py",
+          "line": 341
         },
         {
           "path": "scripts/evaluate_rt_nr_trajectory_forecasts.py",
@@ -3986,8 +3984,8 @@
     {
       "public_name": "write_episode_bundle",
       "qualified_name": "datasets.write_episode_bundle",
-      "source": "datasets/episode_store.py",
-      "definition_line": 874,
+      "source": "datasets/episode_store/episode.py",
+      "definition_line": 66,
       "direct_production_references": [
         {
           "path": "integrations/sionna/rt_network.py",
@@ -5094,8 +5092,8 @@
       "exact_plan_reference_files": []
     },
     {
-      "public_name": "build_g3_joint_evidence_run_manifest",
-      "qualified_name": "evaluation.build_g3_joint_evidence_run_manifest",
+      "public_name": "build_joint_evidence_run_manifest",
+      "qualified_name": "evaluation.build_joint_evidence_run_manifest",
       "source": "evaluation/joint_evidence_run_manifest.py",
       "definition_line": 695,
       "direct_production_references": [
@@ -5151,8 +5149,33 @@
       "exact_plan_reference_files": []
     },
     {
-      "public_name": "build_g3_qualification_run_contract",
-      "qualified_name": "evaluation.build_g3_qualification_run_contract",
+      "public_name": "build_low_confidence_audit",
+      "qualified_name": "evaluation.build_low_confidence_audit",
+      "source": "evaluation/low_confidence.py",
+      "definition_line": 12,
+      "direct_production_references": [
+        {
+          "path": "experiments/runner/experiment_runner.py",
+          "line": 839
+        }
+      ],
+      "direct_test_references": [
+        {
+          "path": "tests/test_evaluation/test_low_confidence.py",
+          "line": 12
+        },
+        {
+          "path": "tests/test_evaluation/test_low_confidence.py",
+          "line": 47
+        }
+      ],
+      "documented_route": true,
+      "audit_disposition": "documented_route_requires_manual_review",
+      "exact_plan_reference_files": []
+    },
+    {
+      "public_name": "build_qualification_run_contract",
+      "qualified_name": "evaluation.build_qualification_run_contract",
       "source": "evaluation/qualification_contract.py",
       "definition_line": 145,
       "direct_production_references": [
@@ -5220,8 +5243,8 @@
       "exact_plan_reference_files": []
     },
     {
-      "public_name": "build_g3_qualification_run_contract_v3",
-      "qualified_name": "evaluation.build_g3_qualification_run_contract_v3",
+      "public_name": "build_qualification_run_contract_v3",
+      "qualified_name": "evaluation.build_qualification_run_contract_v3",
       "source": "evaluation/qualification_contract.py",
       "definition_line": 505,
       "direct_production_references": [
@@ -5257,31 +5280,6 @@
       "exact_plan_reference_files": []
     },
     {
-      "public_name": "build_low_confidence_audit",
-      "qualified_name": "evaluation.build_low_confidence_audit",
-      "source": "evaluation/low_confidence.py",
-      "definition_line": 12,
-      "direct_production_references": [
-        {
-          "path": "experiments/runner/experiment_runner.py",
-          "line": 839
-        }
-      ],
-      "direct_test_references": [
-        {
-          "path": "tests/test_evaluation/test_low_confidence.py",
-          "line": 12
-        },
-        {
-          "path": "tests/test_evaluation/test_low_confidence.py",
-          "line": 47
-        }
-      ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
-      "exact_plan_reference_files": []
-    },
-    {
       "public_name": "compose_g3_joint_sample_size_design",
       "qualified_name": "evaluation.compose_g3_joint_sample_size_design",
       "source": "evaluation/sample_size_planning.py",
@@ -5309,8 +5307,53 @@
       ]
     },
     {
-      "public_name": "evaluate_g3_joint_evidence",
-      "qualified_name": "evaluation.evaluate_g3_joint_evidence",
+      "public_name": "evaluate_grouped_regression_uncertainty",
+      "qualified_name": "evaluation.evaluate_grouped_regression_uncertainty",
+      "source": "evaluation/uncertainty.py",
+      "definition_line": 152,
+      "direct_production_references": [
+        {
+          "path": "evaluation/uncertainty_io.py",
+          "line": 236
+        }
+      ],
+      "direct_test_references": [
+        {
+          "path": "tests/test_evaluation/test_uncertainty.py",
+          "line": 16
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty.py",
+          "line": 90
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty.py",
+          "line": 115
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty.py",
+          "line": 50
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty.py",
+          "line": 68
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty.py",
+          "line": 157
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty.py",
+          "line": 182
+        }
+      ],
+      "documented_route": true,
+      "audit_disposition": "documented_route_requires_manual_review",
+      "exact_plan_reference_files": []
+    },
+    {
+      "public_name": "evaluate_joint_evidence",
+      "qualified_name": "evaluation.evaluate_joint_evidence",
       "source": "evaluation/joint_evaluation.py",
       "definition_line": 609,
       "direct_production_references": [
@@ -5363,51 +5406,6 @@
         {
           "path": "tests/test_evaluation/test_joint_evaluation.py",
           "line": 591
-        }
-      ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
-      "exact_plan_reference_files": []
-    },
-    {
-      "public_name": "evaluate_grouped_regression_uncertainty",
-      "qualified_name": "evaluation.evaluate_grouped_regression_uncertainty",
-      "source": "evaluation/uncertainty.py",
-      "definition_line": 152,
-      "direct_production_references": [
-        {
-          "path": "evaluation/uncertainty_io.py",
-          "line": 236
-        }
-      ],
-      "direct_test_references": [
-        {
-          "path": "tests/test_evaluation/test_uncertainty.py",
-          "line": 16
-        },
-        {
-          "path": "tests/test_evaluation/test_uncertainty.py",
-          "line": 90
-        },
-        {
-          "path": "tests/test_evaluation/test_uncertainty.py",
-          "line": 115
-        },
-        {
-          "path": "tests/test_evaluation/test_uncertainty.py",
-          "line": 50
-        },
-        {
-          "path": "tests/test_evaluation/test_uncertainty.py",
-          "line": 68
-        },
-        {
-          "path": "tests/test_evaluation/test_uncertainty.py",
-          "line": 157
-        },
-        {
-          "path": "tests/test_evaluation/test_uncertainty.py",
-          "line": 182
         }
       ],
       "documented_route": true,
@@ -5627,6 +5625,83 @@
       "exact_plan_reference_files": []
     },
     {
+      "public_name": "evaluator_source_bundle_identity",
+      "qualified_name": "evaluation.evaluator_source_bundle_identity",
+      "source": "evaluation/joint_evidence_run_manifest.py",
+      "definition_line": 651,
+      "direct_production_references": [
+        {
+          "path": "evaluation/joint_evidence_artifact.py",
+          "line": 267
+        },
+        {
+          "path": "evaluation/joint_evidence_run_manifest.py",
+          "line": 1592
+        }
+      ],
+      "direct_test_references": [
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1174
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1482
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1508
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1543
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1575
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1608
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1638
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1663
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1684
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1707
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1729
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1755
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1822
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
+          "line": 1873
+        }
+      ],
+      "documented_route": true,
+      "audit_disposition": "documented_route_requires_manual_review",
+      "exact_plan_reference_files": []
+    },
+    {
       "public_name": "find_cross_split_temporal_overlaps",
       "qualified_name": "evaluation.find_cross_split_temporal_overlaps",
       "source": "evaluation/duplicate_audit.py",
@@ -5711,83 +5786,6 @@
         {
           "path": "tests/test_evaluation/test_independent_splits.py",
           "line": 217
-        }
-      ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
-      "exact_plan_reference_files": []
-    },
-    {
-      "public_name": "g3_evaluator_source_bundle_identity",
-      "qualified_name": "evaluation.g3_evaluator_source_bundle_identity",
-      "source": "evaluation/joint_evidence_run_manifest.py",
-      "definition_line": 651,
-      "direct_production_references": [
-        {
-          "path": "evaluation/joint_evidence_artifact.py",
-          "line": 267
-        },
-        {
-          "path": "evaluation/joint_evidence_run_manifest.py",
-          "line": 1592
-        }
-      ],
-      "direct_test_references": [
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1174
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1482
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1508
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1543
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1575
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1608
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1638
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1663
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1684
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1707
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1729
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1755
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1822
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1873
         }
       ],
       "documented_route": true,
@@ -5932,8 +5930,8 @@
       "definition_line": 68,
       "direct_production_references": [
         {
-          "path": "datasets/split_policy.py",
-          "line": 1011
+          "path": "datasets/split_policy/policy.py",
+          "line": 978
         },
         {
           "path": "datasets/splits.py",
@@ -6152,8 +6150,8 @@
       "exact_plan_reference_files": []
     },
     {
-      "public_name": "run_g3_frozen_qualification_evaluation",
-      "qualified_name": "evaluation.run_g3_frozen_qualification_evaluation",
+      "public_name": "run_frozen_qualification_evaluation",
+      "qualified_name": "evaluation.run_frozen_qualification_evaluation",
       "source": "evaluation/joint_evidence_artifact.py",
       "definition_line": 198,
       "direct_production_references": [
@@ -6206,9 +6204,7 @@
       ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
-      "exact_plan_reference_files": [
-        "docs/research/MASTER_RESEARCH_PLAN.md"
-      ]
+      "exact_plan_reference_files": []
     },
     {
       "public_name": "spherical_cell_solid_angles",
@@ -6291,26 +6287,6 @@
         {
           "path": "tests/test_evaluation/test_prior_shift.py",
           "line": 65
-        }
-      ],
-      "documented_route": true,
-      "audit_disposition": "documented_route_requires_manual_review",
-      "exact_plan_reference_files": []
-    },
-    {
-      "public_name": "verify_g3_joint_evidence_bundle",
-      "qualified_name": "evaluation.verify_g3_joint_evidence_bundle",
-      "source": "evaluation/joint_evaluation.py",
-      "definition_line": 617,
-      "direct_production_references": [],
-      "direct_test_references": [
-        {
-          "path": "tests/test_evaluation/test_joint_evaluation.py",
-          "line": 176
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_evaluation.py",
-          "line": 381
         }
       ],
       "documented_route": true,
@@ -6411,8 +6387,28 @@
       "exact_plan_reference_files": []
     },
     {
-      "public_name": "verify_g3_joint_sample_size_design",
-      "qualified_name": "evaluation.verify_g3_joint_sample_size_design",
+      "public_name": "verify_joint_evidence_bundle",
+      "qualified_name": "evaluation.verify_joint_evidence_bundle",
+      "source": "evaluation/joint_evaluation.py",
+      "definition_line": 617,
+      "direct_production_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
+          "line": 176
+        },
+        {
+          "path": "tests/test_evaluation/test_joint_evaluation.py",
+          "line": 381
+        }
+      ],
+      "documented_route": true,
+      "audit_disposition": "documented_route_requires_manual_review",
+      "exact_plan_reference_files": []
+    },
+    {
+      "public_name": "verify_joint_sample_size_design",
+      "qualified_name": "evaluation.verify_joint_sample_size_design",
       "source": "evaluation/sample_size_planning.py",
       "definition_line": 1350,
       "direct_production_references": [
@@ -6452,8 +6448,8 @@
       "exact_plan_reference_files": []
     },
     {
-      "public_name": "verify_g3_qualification_run_contract",
-      "qualified_name": "evaluation.verify_g3_qualification_run_contract",
+      "public_name": "verify_qualification_run_contract",
+      "qualified_name": "evaluation.verify_qualification_run_contract",
       "source": "evaluation/qualification_contract.py",
       "definition_line": 596,
       "direct_production_references": [
@@ -6642,8 +6638,130 @@
       "qualified_name": "experiments.run_experiment",
       "source": "experiments/runner/experiment_runner.py",
       "definition_line": 1116,
-      "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_production_references": [
+        {
+          "path": "experiments/capacity_sweep.py",
+          "line": 223
+        }
+      ],
+      "direct_test_references": [
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 119
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 306
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 538
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 791
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 805
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 838
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 850
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 981
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1000
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1017
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1061
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1124
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1173
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1217
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1240
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1281
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1355
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1418
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1482
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1590
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1660
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1724
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 1776
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 364
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 383
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 396
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 776
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 843
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 956
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": [
@@ -6658,16 +6776,16 @@
       "definition_line": 178,
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 488
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 813
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1517
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 93
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 797
+          "path": "integrations/sionna/adapter/raytrace.py",
+          "line": 473
         },
         {
           "path": "integrations/sionna/rt_network.py",
@@ -6714,8 +6832,8 @@
     {
       "public_name": "add_independent_receiver_awgn",
       "qualified_name": "integrations.sionna.add_independent_receiver_awgn",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 1538,
+      "source": "integrations/sionna/network_phy/operations.py",
+      "definition_line": 1119,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -6750,8 +6868,8 @@
     {
       "public_name": "add_independent_receiver_waveform_awgn",
       "qualified_name": "integrations.sionna.add_independent_receiver_waveform_awgn",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 1275,
+      "source": "integrations/sionna/network_phy/operations.py",
+      "definition_line": 856,
       "direct_production_references": [
         {
           "path": "integrations/sionna/network_receiver.py",
@@ -6914,8 +7032,8 @@
     {
       "public_name": "apply_network_link_budget",
       "qualified_name": "integrations.sionna.apply_network_link_budget",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 452,
+      "source": "integrations/sionna/network_phy/operations.py",
+      "definition_line": 114,
       "direct_production_references": [
         {
           "path": "integrations/sionna/network_sinr.py",
@@ -6978,8 +7096,8 @@
     {
       "public_name": "apply_network_transmitter_iq_imbalance",
       "qualified_name": "integrations.sionna.apply_network_transmitter_iq_imbalance",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 288,
+      "source": "integrations/sionna/network_phy/operations.py",
+      "definition_line": 27,
       "direct_production_references": [
         {
           "path": "integrations/sionna/network_receiver.py",
@@ -7241,7 +7359,20 @@
       "source": "integrations/sionna/srs/srs_resource_schedules.py",
       "definition_line": 228,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4370
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4388
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4419
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -7273,8 +7404,8 @@
     {
       "public_name": "compose_downlink_resource_grids",
       "qualified_name": "integrations.sionna.compose_downlink_resource_grids",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 648,
+      "source": "integrations/sionna/network_phy/operations.py",
+      "definition_line": 310,
       "direct_production_references": [
         {
           "path": "integrations/sionna/network_sinr.py",
@@ -7410,8 +7541,8 @@
     {
       "public_name": "compose_received_waveforms",
       "qualified_name": "integrations.sionna.compose_received_waveforms",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 818,
+      "source": "integrations/sionna/network_phy/operations.py",
+      "definition_line": 399,
       "direct_production_references": [
         {
           "path": "integrations/sionna/network_receiver.py",
@@ -7847,12 +7978,12 @@
     {
       "public_name": "generate_raytraced",
       "qualified_name": "integrations.sionna.generate_raytraced",
-      "source": "integrations/sionna/adapter.py",
-      "definition_line": 754,
+      "source": "integrations/sionna/adapter/generate.py",
+      "definition_line": 50,
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1628
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 924
         }
       ],
       "direct_test_references": [
@@ -7878,29 +8009,29 @@
     {
       "public_name": "generate_raytraced_cached",
       "qualified_name": "integrations.sionna.generate_raytraced_cached",
-      "source": "integrations/sionna/adapter.py",
-      "definition_line": 1491,
+      "source": "integrations/sionna/adapter/generate.py",
+      "definition_line": 787,
       "direct_production_references": [],
       "direct_test_references": [
         {
           "path": "tests/test_integrations/test_rt_cache.py",
-          "line": 325
+          "line": 336
         },
         {
           "path": "tests/test_integrations/test_rt_cache.py",
-          "line": 332
+          "line": 343
         },
         {
           "path": "tests/test_integrations/test_rt_cache.py",
-          "line": 344
+          "line": 355
         },
         {
           "path": "tests/test_integrations/test_rt_cache.py",
-          "line": 359
+          "line": 370
         },
         {
           "path": "tests/test_integrations/test_rt_cache.py",
-          "line": 444
+          "line": 466
         },
         {
           "path": "tests/test_scripts/test_d1_generation_gate.py",
@@ -7945,8 +8076,8 @@
     {
       "public_name": "generate_standardized",
       "qualified_name": "integrations.sionna.generate_standardized",
-      "source": "integrations/sionna/adapter.py",
-      "definition_line": 89,
+      "source": "integrations/sionna/adapter/raytrace.py",
+      "definition_line": 74,
       "direct_production_references": [
         {
           "path": "scripts/run_profile_proxy_dataset.py",
@@ -8218,8 +8349,8 @@
       "definition_line": 156,
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1003
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 299
         },
         {
           "path": "integrations/sionna/rt_trajectory.py",
@@ -8247,8 +8378,8 @@
       "definition_line": 192,
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1624
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 920
         }
       ],
       "direct_test_references": [
@@ -8392,7 +8523,12 @@
       "source": "integrations/sionna/srs/srs_resource_schedules.py",
       "definition_line": 828,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2424
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -8408,7 +8544,20 @@
           "line": 856
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2345
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2382
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4117
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -8419,7 +8568,52 @@
       "source": "integrations/sionna/srs/srs_configuration.py",
       "definition_line": 1335,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3003
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3169
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3202
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3328
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4134
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4175
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4240
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4262
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3208
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3410
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3412
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -8430,7 +8624,16 @@
       "source": "integrations/sionna/srs/srs_configuration.py",
       "definition_line": 1262,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2704
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2733
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -8446,7 +8649,20 @@
           "line": 1292
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2640
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2675
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2783
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -8462,7 +8678,52 @@
           "line": 1365
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2972
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3797
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3990
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4014
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4092
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4317
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3025
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4058
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4071
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4073
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4075
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -8637,8 +8898,8 @@
     {
       "public_name": "network_resource_sinr",
       "qualified_name": "integrations.sionna.network_resource_sinr",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 1442,
+      "source": "integrations/sionna/network_phy/operations.py",
+      "definition_line": 1023,
       "direct_production_references": [
         {
           "path": "integrations/sionna/network_sinr.py",
@@ -8672,8 +8933,8 @@
     {
       "public_name": "network_sinr",
       "qualified_name": "integrations.sionna.network_sinr",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 1380,
+      "source": "integrations/sionna/network_phy/operations.py",
+      "definition_line": 961,
       "direct_production_references": [
         {
           "path": "integrations/sionna/network_sinr.py",
@@ -8785,7 +9046,32 @@
           "line": 450
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 163
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 184
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 225
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 227
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 229
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 233
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -8947,7 +9233,24 @@
           "line": 1063
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3429
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3490
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3549
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3527
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9480,7 +9783,16 @@
           "line": 296
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1911
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1936
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9491,7 +9803,20 @@
       "source": "integrations/sionna/srs/srs_bwp_schedules.py",
       "definition_line": 566,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2282
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2321
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2323
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9499,8 +9824,8 @@
     {
       "public_name": "nr_srs_aperiodic_target_slot_index",
       "qualified_name": "integrations.sionna.nr_srs_aperiodic_target_slot_index",
-      "source": "integrations/sionna/srs/srs_constants.py",
-      "definition_line": 460,
+      "source": "integrations/sionna/srs/srs_constants/dci_0_3.py",
+      "definition_line": 84,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
@@ -9523,7 +9848,32 @@
           "line": 251
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3105
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3109
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3106
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3127
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3129
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3135
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9539,7 +9889,16 @@
           "line": 578
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3832
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3960
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9550,7 +9909,136 @@
       "source": "integrations/sionna/srs/srs_configuration.py",
       "definition_line": 469,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 513
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 519
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 675
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 683
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 691
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 711
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 723
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 751
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 760
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 814
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 825
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 831
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 918
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 531
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 540
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 561
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 613
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 619
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 646
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 728
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 773
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 784
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 792
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 840
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 553
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 567
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 576
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 585
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 594
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 603
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 635
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 626
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9558,8 +10046,8 @@
     {
       "public_name": "nr_srs_dci_0_3_frequency_assignment_widths",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_frequency_assignment_widths",
-      "source": "integrations/sionna/srs/srs_constants.py",
-      "definition_line": 1035,
+      "source": "integrations/sionna/srs/srs_constants/dci_0_3.py",
+      "definition_line": 659,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
@@ -9586,7 +10074,16 @@
           "line": 289
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1360
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1464
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9597,7 +10094,12 @@
       "source": "integrations/sionna/srs/srs_dci_multicell.py",
       "definition_line": 157,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1176
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9608,7 +10110,16 @@
       "source": "integrations/sionna/srs/srs_dci_multicell.py",
       "definition_line": 107,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1401
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1425
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9616,8 +10127,8 @@
     {
       "public_name": "nr_srs_dci_0_3_request_list_index_from_bits",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_request_list_index_from_bits",
-      "source": "integrations/sionna/srs/srs_constants.py",
-      "definition_line": 643,
+      "source": "integrations/sionna/srs/srs_constants/dci_0_3.py",
+      "definition_line": 267,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_dci_multicell.py",
@@ -9635,7 +10146,20 @@
       "source": "integrations/sionna/srs/srs_configuration.py",
       "definition_line": 428,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 286
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 808
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1035
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9643,8 +10167,8 @@
     {
       "public_name": "nr_srs_dci_0_3_scheduled_cell_ids",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_scheduled_cell_ids",
-      "source": "integrations/sionna/srs/srs_constants.py",
-      "definition_line": 515,
+      "source": "integrations/sionna/srs/srs_constants/dci_0_3.py",
+      "definition_line": 139,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
@@ -9675,7 +10199,28 @@
           "line": 202
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1085
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1102
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1114
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1120
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1140
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9691,7 +10236,64 @@
           "line": 507
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1491
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1557
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2626
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2673
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2696
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2770
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4114
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4331
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4339
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4400
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2802
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2328
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2371
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2407
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9711,7 +10313,20 @@
           "line": 411
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1555
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1523
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1546
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9727,7 +10342,20 @@
           "line": 1113
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3595
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3634
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3685
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9743,7 +10371,32 @@
           "line": 609
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3689
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3717
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3737
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3902
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3769
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3868
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9759,7 +10412,16 @@
           "line": 93
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2173
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2227
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9770,7 +10432,16 @@
       "source": "integrations/sionna/srs/srs_dci_multicell.py",
       "definition_line": 365,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1863
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1884
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9786,7 +10457,20 @@
           "line": 176
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2071
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2089
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2252
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9797,7 +10481,52 @@
       "source": "integrations/sionna/srs/srs_lookups.py",
       "definition_line": 1002,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4149
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4202
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4251
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4273
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4277
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4279
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4282
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4286
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4290
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4294
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4300
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9813,7 +10542,16 @@
           "line": 493
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1716
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1717
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9829,7 +10567,28 @@
           "line": 341
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1733
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1757
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1791
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1793
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1799
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9845,7 +10604,16 @@
           "line": 462
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1817
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1833
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9861,7 +10629,20 @@
           "line": 478
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1621
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1634
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1654
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9872,7 +10653,32 @@
       "source": "integrations/sionna/srs/srs_lookups.py",
       "definition_line": 53,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3284
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3289
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3296
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3302
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3308
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3310
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9888,7 +10694,20 @@
           "line": 672
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3080
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3092
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3150
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9904,7 +10723,28 @@
           "line": 678
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2993
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3039
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3159
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3885
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3378
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9924,7 +10764,20 @@
           "line": 1381
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3213
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2747
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3338
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9944,7 +10797,16 @@
           "line": 769
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2618
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2595
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9964,7 +10826,24 @@
           "line": 547
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1658
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1689
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1692
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1572
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -9980,7 +10859,40 @@
           "line": 673
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3756
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3788
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3851
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3962
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3975
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3929
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3931
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3941
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": [
@@ -9993,7 +10905,12 @@
       "source": "integrations/sionna/srs/srs_bwp_schedules.py",
       "definition_line": 646,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3315
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -10009,7 +10926,20 @@
           "line": 1123
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3714
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3659
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3673
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -10025,7 +10955,32 @@
           "line": 1133
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3139
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3140
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3542
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3699
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3726
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3561
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": [
@@ -10039,7 +10994,20 @@
       "source": "integrations/sionna/srs/srs_lookups.py",
       "definition_line": 961,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4103
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4126
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 4327
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -10050,7 +11018,24 @@
       "source": "integrations/sionna/srs/srs_configuration.py",
       "definition_line": 67,
       "direct_production_references": [],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3244
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3248
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3253
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3271
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -10066,7 +11051,44 @@
           "line": 490
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2459
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2486
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2502
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2524
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2525
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2530
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2546
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2562
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2471
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -10086,7 +11108,56 @@
           "line": 1032
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1995
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1996
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 1997
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2016
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2021
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2024
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2028
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2035
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2054
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2061
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2266
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2271
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -10102,7 +11173,28 @@
           "line": 390
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2924
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2992
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2877
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2945
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 2954
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -10410,8 +11502,8 @@
     {
       "public_name": "propagate_network_transmit_waveforms",
       "qualified_name": "integrations.sionna.propagate_network_transmit_waveforms",
-      "source": "integrations/sionna/network_phy.py",
-      "definition_line": 375,
+      "source": "integrations/sionna/network_phy/records.py",
+      "definition_line": 288,
       "direct_production_references": [
         {
           "path": "integrations/sionna/network_receiver.py",
@@ -10734,16 +11826,16 @@
       "definition_line": 111,
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 487
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 812
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1516
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 90
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 794
+          "path": "integrations/sionna/adapter/raytrace.py",
+          "line": 472
         },
         {
           "path": "integrations/sionna/rt_trajectory.py",
@@ -10890,7 +11982,20 @@
           "line": 603
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3428
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3532
+        },
+        {
+          "path": "tests/test_integrations/test_srs_resource_mapping.py",
+          "line": 3538
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -11023,8 +12128,8 @@
       "definition_line": 155,
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1646
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 942
         }
       ],
       "direct_test_references": [
@@ -11116,12 +12221,12 @@
           "line": 53
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1133
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 429
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 195
+          "path": "integrations/sionna/adapter/raytrace.py",
+          "line": 180
         }
       ],
       "direct_test_references": [
@@ -11141,16 +12246,16 @@
       "definition_line": 106,
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 510
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 852
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1556
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 160
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 864
+          "path": "integrations/sionna/adapter/raytrace.py",
+          "line": 495
         },
         {
           "path": "integrations/sionna/los_oracle.py",
@@ -11230,8 +12335,8 @@
           "line": 52
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 86
+          "path": "integrations/sionna/adapter/raytrace.py",
+          "line": 71
         }
       ],
       "direct_test_references": [
@@ -11302,11 +12407,11 @@
         },
         {
           "path": "tests/test_integrations/test_sionna_adapter.py",
-          "line": 199
+          "line": 200
         },
         {
           "path": "tests/test_integrations/test_sionna_adapter.py",
-          "line": 199
+          "line": 200
         }
       ],
       "documented_route": true,
@@ -11467,8 +12572,8 @@
           "line": 25
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 124
+          "path": "integrations/sionna/adapter/raytrace.py",
+          "line": 109
         }
       ],
       "direct_test_references": [
@@ -11545,7 +12650,7 @@
       ]
     }
   ],
-  "non_exported_plan_named_definition_count": 16,
+  "non_exported_plan_named_definition_count": 14,
   "non_exported_plan_named_definitions": [
     {
       "public_name": "_validated_real_scalar",
@@ -11637,120 +12742,6 @@
         {
           "path": "tests/test_datasets/test_counterfactual.py",
           "line": 138
-        }
-      ]
-    },
-    {
-      "public_name": "validate_g3_joint_acceptance_family",
-      "qualified_name": "evaluation.joint_acceptance.validate_g3_joint_acceptance_family",
-      "source": "evaluation/joint_acceptance.py",
-      "definition_line": 305,
-      "definition_kind": "function",
-      "plan_reference_files": [
-        "docs/research/MASTER_RESEARCH_PLAN.md"
-      ],
-      "direct_production_references": [
-        {
-          "path": "evaluation/acquisition_package.py",
-          "line": 1217
-        },
-        {
-          "path": "evaluation/complex_csi.py",
-          "line": 246
-        },
-        {
-          "path": "evaluation/joint_acceptance.py",
-          "line": 389
-        },
-        {
-          "path": "evaluation/joint_evaluation.py",
-          "line": 539
-        },
-        {
-          "path": "evaluation/material_calibration.py",
-          "line": 599
-        },
-        {
-          "path": "evaluation/path_equivalence_assurance.py",
-          "line": 445
-        },
-        {
-          "path": "evaluation/path_equivalence_roster_cli.py",
-          "line": 89
-        },
-        {
-          "path": "evaluation/propagation_assurance.py",
-          "line": 198
-        },
-        {
-          "path": "evaluation/propagation_metrics.py",
-          "line": 160
-        },
-        {
-          "path": "evaluation/qualification_contract.py",
-          "line": 166
-        },
-        {
-          "path": "evaluation/receiver_assurance.py",
-          "line": 123
-        },
-        {
-          "path": "evaluation/receiver_impact.py",
-          "line": 136
-        },
-        {
-          "path": "evaluation/sample_size_planning.py",
-          "line": 560
-        },
-        {
-          "path": "evaluation/sample_size_planning.py",
-          "line": 893
-        },
-        {
-          "path": "evaluation/sample_size_planning.py",
-          "line": 1602
-        },
-        {
-          "path": "evaluation/sample_size_planning.py",
-          "line": 2054
-        },
-        {
-          "path": "scripts/plan_acquisition_design.py",
-          "line": 307
-        }
-      ],
-      "direct_test_references": [
-        {
-          "path": "tests/test_evaluation/test_joint_acceptance.py",
-          "line": 36
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_acceptance.py",
-          "line": 103
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_acceptance.py",
-          "line": 132
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_acceptance.py",
-          "line": 146
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_acceptance.py",
-          "line": 165
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_acceptance.py",
-          "line": 277
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_acceptance.py",
-          "line": 295
-        },
-        {
-          "path": "tests/test_evaluation/test_joint_acceptance.py",
-          "line": 311
         }
       ]
     },
@@ -11875,60 +12866,6 @@
       ]
     },
     {
-      "public_name": "evaluate_g5_snr_curve_acceptance",
-      "qualified_name": "experiments.acceptance.evaluate_g5_snr_curve_acceptance",
-      "source": "experiments/acceptance.py",
-      "definition_line": 566,
-      "definition_kind": "function",
-      "plan_reference_files": [
-        "docs/research/MASTER_RESEARCH_PLAN.md"
-      ],
-      "direct_production_references": [
-        {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 1788
-        }
-      ],
-      "direct_test_references": [
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 613
-        },
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 621
-        },
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 635
-        },
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 609
-        },
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 649
-        },
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 657
-        },
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 673
-        },
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 690
-        },
-        {
-          "path": "tests/test_experiments/test_acceptance.py",
-          "line": 709
-        }
-      ]
-    },
-    {
       "public_name": "run_tdl_pusch_time_bler_curve",
       "qualified_name": "experiments.link_curves.run_tdl_pusch_time_bler_curve",
       "source": "experiments/link_curves.py",
@@ -12000,7 +12937,16 @@
         "docs/research/IMPLEMENTATION_BACKLOG.md"
       ],
       "direct_production_references": [],
-      "direct_test_references": []
+      "direct_test_references": [
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 652
+        },
+        {
+          "path": "tests/test_experiments/test_runner.py",
+          "line": 663
+        }
+      ]
     },
     {
       "public_name": "build_trajectory_horizon_targets",
@@ -12062,17 +13008,17 @@
     },
     {
       "public_name": "direct_indirect_diagnostics",
-      "qualified_name": "integrations.sionna.adapter.direct_indirect_diagnostics",
-      "source": "integrations/sionna/adapter.py",
-      "definition_line": 362,
+      "qualified_name": "integrations.sionna.adapter.raytrace.direct_indirect_diagnostics",
+      "source": "integrations/sionna/adapter/raytrace.py",
+      "definition_line": 347,
       "definition_kind": "function",
       "plan_reference_files": [
         "docs/research/IMPLEMENTATION_BACKLOG.md"
       ],
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1132
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 428
         }
       ],
       "direct_test_references": [
@@ -12082,11 +13028,7 @@
         },
         {
           "path": "tests/test_integrations/test_sionna_adapter.py",
-          "line": 163
-        },
-        {
-          "path": "tests/test_integrations/test_sionna_adapter.py",
-          "line": 196
+          "line": 164
         },
         {
           "path": "tests/test_integrations/test_sionna_adapter.py",
@@ -12094,11 +13036,15 @@
         },
         {
           "path": "tests/test_integrations/test_sionna_adapter.py",
-          "line": 178
+          "line": 198
         },
         {
           "path": "tests/test_integrations/test_sionna_adapter.py",
-          "line": 189
+          "line": 179
+        },
+        {
+          "path": "tests/test_integrations/test_sionna_adapter.py",
+          "line": 190
         }
       ]
     },
@@ -12137,16 +13083,16 @@
       ],
       "direct_production_references": [
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 635
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 721
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1425
+          "path": "integrations/sionna/adapter/generate.py",
+          "line": 899
         },
         {
-          "path": "integrations/sionna/adapter.py",
-          "line": 1603
+          "path": "integrations/sionna/adapter/raytrace.py",
+          "line": 620
         },
         {
           "path": "integrations/sionna/rt_trajectory.py",
@@ -12160,11 +13106,11 @@
         },
         {
           "path": "tests/test_integrations/test_rt_cache.py",
-          "line": 299
+          "line": 310
         },
         {
           "path": "tests/test_integrations/test_rt_cache.py",
-          "line": 422
+          "line": 444
         },
         {
           "path": "tests/test_integrations/test_rt_identity.py",
@@ -12283,11 +13229,39 @@
         },
         {
           "path": "tests/test_receivers/test_nr_pusch.py",
+          "line": 248
+        },
+        {
+          "path": "tests/test_receivers/test_nr_pusch.py",
+          "line": 538
+        },
+        {
+          "path": "tests/test_receivers/test_nr_pusch.py",
+          "line": 613
+        },
+        {
+          "path": "tests/test_receivers/test_nr_pusch.py",
+          "line": 677
+        },
+        {
+          "path": "tests/test_receivers/test_nr_pusch.py",
+          "line": 709
+        },
+        {
+          "path": "tests/test_receivers/test_nr_pusch.py",
+          "line": 779
+        },
+        {
+          "path": "tests/test_receivers/test_nr_pusch.py",
           "line": 756
         },
         {
           "path": "tests/test_receivers/test_nr_pusch.py",
           "line": 758
+        },
+        {
+          "path": "tests/test_receivers/test_nr_pusch.py",
+          "line": 811
         }
       ]
     }

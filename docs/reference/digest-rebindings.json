@@ -2099,6 +2099,30 @@
     {
       "new_path": "tests/test_scripts/test_verify_acquisition_package.py",
       "old_path": "tests/test_scripts/test_verify_g3_acquisition_package.py"
+    },
+    {
+      "old_path": "datasets/split_policy.py",
+      "new_path": "datasets/split_policy/__init__.py"
+    },
+    {
+      "old_path": "datasets/episode_store.py",
+      "new_path": "datasets/episode_store/__init__.py"
+    },
+    {
+      "old_path": "integrations/sionna/adapter.py",
+      "new_path": "integrations/sionna/adapter/__init__.py"
+    },
+    {
+      "old_path": "integrations/sionna/network_phy.py",
+      "new_path": "integrations/sionna/network_phy/__init__.py"
+    },
+    {
+      "old_path": "scripts/audit_channel_split_lineage.py",
+      "new_path": "scripts/audit_channel_split_lineage/__init__.py"
+    },
+    {
+      "old_path": "integrations/sionna/srs/srs_constants.py",
+      "new_path": "integrations/sionna/srs/srs_constants/__init__.py"
     }
   ],
   "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",

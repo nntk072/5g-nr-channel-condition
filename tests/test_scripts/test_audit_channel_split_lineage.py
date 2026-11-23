@@ -242,7 +242,7 @@ def test_signed_split_registry_audit_rejects_provisional_rt_scene_identity(
         policy=SplitPolicy.release_v2(seed="provisional-signed-lock"),
     )
     monkeypatch.setattr(
-        audit_module,
+        audit_module.channel_audit,
         "verify_signed_split_policy_registry_attestation",
         lambda *_args, **_kwargs: (registry, object()),
     )
@@ -1886,7 +1886,7 @@ def test_complete_split_audit_rejects_registry_without_child_bindings(
         policy=SplitPolicy.release_v2(seed="complete-audit-empty-children"),
     )
     monkeypatch.setattr(
-        audit_module,
+        audit_module.channel_audit,
         "verify_signed_split_policy_registry_attestation",
         lambda *_args, **_kwargs: (registry, object()),
     )

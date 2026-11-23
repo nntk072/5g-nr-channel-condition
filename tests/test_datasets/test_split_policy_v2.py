@@ -1158,11 +1158,11 @@ def test_registry_lock_is_canonical_immutable_and_detects_registry_or_policy_tam
 def test_registry_freeze_rejects_lock_larger_than_reader_limit_before_publication(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import datasets.split_policy as split_policy_module
+    import datasets.split_policy.registry as registry_module
 
     _, registry = _four_way_registry(_unlinked_subjects())
     destination = tmp_path / "oversized" / "split-registry.json"
-    monkeypatch.setattr(split_policy_module, "MAX_SPLIT_POLICY_LOCK_BYTES", 1)
+    monkeypatch.setattr(registry_module, "MAX_SPLIT_POLICY_LOCK_BYTES", 1)
 
     with pytest.raises(ValueError, match="exceeds its 1-byte reader limit"):
         freeze_split_policy_registry(destination, registry)

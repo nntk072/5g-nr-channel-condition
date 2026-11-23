@@ -37,7 +37,8 @@ def test_selected_failure_estimator_artifact_preserves_outcomes_and_flags_source
     current_sources = {
         current_repo_path(path, ROOT)
         for path, digest in report["source_sha256"].items()
-        if not recorded_digest_matches(
+        if not (ROOT / current_repo_path(path, ROOT)).is_file()
+        or not recorded_digest_matches(
             digest, (ROOT / current_repo_path(path, ROOT)).read_bytes(), ROOT
         )
     }
