@@ -68,7 +68,6 @@ def nr_srs_transmission_comb_from_rrc(
     decoded_choice: Mapping[str, object], *, positioning_resource: bool = False
 ) -> NRSRSTransmissionCombConfiguration:
     """Resolve a decoded TS 38.331 transmissionComb CHOICE."""
-
     if not isinstance(decoded_choice, Mapping) or len(decoded_choice) != 1:
         raise ValueError("transmissionComb must be a single-choice decoded mapping")
     if not isinstance(positioning_resource, bool):
@@ -105,7 +104,6 @@ def nr_srs_port_cyclic_shift_indices(
     TDM option, the standard's effective four-port roster and port remapping
     are applied before deriving the cyclic shifts.
     """
-
     if not isinstance(antenna_ports, tuple) or not antenna_ports:
         raise TypeError("antenna_ports must be a nonempty tuple of integers")
     if not isinstance(ports8_tdm, bool):
@@ -163,7 +161,6 @@ def nr_srs_cyclic_shift_hopping_offset(
     configured ``n_SRS^cs,max``-bit bitmap; finer granularity and a subset are
     mutually exclusive, as specified for the cyclicShiftHopping IE.
     """
-
     for name, value in (
         ("transmission_comb", transmission_comb),
         ("cyclic_shift_hopping_id", cyclic_shift_hopping_id),
@@ -398,7 +395,6 @@ def nr_srs_type1_bandwidth_configuration(
     hopping; :func:`nr_srs_fixed_frequency_allocation` resolves one position,
     using an explicit SRS transmission counter when hopping is enabled.
     """
-
     if isinstance(c_srs, bool) or not isinstance(c_srs, Integral):
         raise TypeError("c_srs must be an integer")
     c_srs = int(c_srs)
@@ -969,7 +965,6 @@ def nr_srs_multicell_request_resource_set_ids(
     DCI bits, decode ASN.1 RRC, resolve scheduled-cell combinations, or handle
     typeA antenna-switching semantics.
     """
-
     if isinstance(request_list_index, bool) or not isinstance(request_list_index, Integral):
         raise TypeError("request_list_index must be an integer")
     if not isinstance(request_list, Sequence) or isinstance(request_list, (str, bytes)):
@@ -1059,7 +1054,6 @@ def nr_srs_sequence_type1(
     determines the TS 38.211 cyclic-shift count through
     :func:`srs_cyclic_shift_count`.
     """
-
     return nr_low_papr_sequence_type1(
         sequence_length,
         group_index=group_index,
@@ -1092,7 +1086,6 @@ def nr_srs_hopped_sequence_type1(
     ``l'``. Sequence hopping applies only where the configured sequence-length
     eligibility threshold is met.
     """
-
     (
         sequence_id,
         slot_index,
@@ -1161,7 +1154,6 @@ def map_nr_srs_positioning_resource(
     symbol uses TS 38.211 Table 6.4.1.4.3-2 before applying the transmission
     comb, so the occupied subcarrier roster can vary by symbol.
     """
-
     integer_values = {
         "slot_symbol_count": slot_symbol_count,
         "subcarrier_count": subcarrier_count,
@@ -1275,7 +1267,6 @@ def map_nr_srs_positioning_multiport_resource(
     ports8_tdm: bool = False,
 ) -> NRSRSPositioningMultiportResourceGrid:
     """Map caller-scheduled positioning-SRS rows with TS per-port scaling."""
-
     values = np.asarray(sequences)
     if not np.iscomplexobj(values):
         raise TypeError("sequences must be complex-valued")
@@ -1348,7 +1339,6 @@ def map_nr_srs_multiport_resource(
     ports8_tdm: bool = False,
 ) -> NRSRSMultiportResourceGrid:
     """Map per-port SRS rows with TS 38.211 amplitude normalization."""
-
     values = np.asarray(sequences)
     if not np.iscomplexobj(values):
         raise TypeError("sequences must be complex-valued")

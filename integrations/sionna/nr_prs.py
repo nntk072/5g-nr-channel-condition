@@ -856,7 +856,6 @@ def measure_nr_dl_rstd(
     rule and records the required UE measurement reference point by frequency
     range. An exactly equidistant reference pair is rejected as ambiguous.
     """
-
     for value, label in (
         (target_tp_id, "target_tp_id"),
         (reference_tp_id, "reference_tp_id"),

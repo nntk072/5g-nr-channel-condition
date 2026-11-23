@@ -95,7 +95,6 @@ def nr_srs_aperiodic_target_slot_index(
     the caller after interpreting the applicable DCI/resource-set trigger
     mapping; this function does not decode that mapping.
     """
-
     if isinstance(triggering_dci_slot, bool) or not isinstance(triggering_dci_slot, Integral):
         raise TypeError("triggering_dci_slot must be an integer")
     if triggering_dci_slot < 0:

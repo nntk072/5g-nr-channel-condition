@@ -20,7 +20,6 @@ _UNIT_FIELDS = frozenset(
 
 def validate_expected_population_roster(roster: Mapping[str, Any]) -> dict[str, Any]:
     """Validate an exact, caller-frozen sample roster and outcome dispositions."""
-
     if not isinstance(roster, Mapping) or set(roster) != _ROSTER_FIELDS:
         raise ValueError("population roster must have exactly schema, roster_id, and units")
     if roster["schema"] != _ROSTER_SCHEMA:
@@ -71,7 +70,6 @@ def audit_expected_population(
     Non-included outcomes remain visible in the report and are not treated as
     missing rows. This verifies a declared roster, not its completeness or truth.
     """
-
     frozen = validate_expected_population_roster(roster)
     arrays = [
         np.asarray(observed_sample_ids, dtype=object),

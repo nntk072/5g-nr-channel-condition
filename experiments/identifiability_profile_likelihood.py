@@ -12,6 +12,8 @@ from artifacts.provenance import package_source_sha256, sha256_file, versions
 
 
 class ProfileLikelihoodResult(TypedDict):
+    """Profile-likelihood summary for one observed two-path channel."""
+
     relative_delay_grid_s: list[float]
     relative_delay_mass: list[float]
     relative_delay_log_likelihood_ratio: list[float]

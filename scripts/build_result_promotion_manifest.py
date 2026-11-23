@@ -1,4 +1,4 @@
-"Build a fail-closed promotion manifest over audited research-result bytes."
+"""Build a fail-closed promotion manifest over audited research-result bytes."""
 
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ def build_result_promotion_manifest(
     *,
     policy_path: str | Path,
 ) -> dict[str, Any]:
-    "Audit exact result bytes and decide whether the requested corpus may be promoted."
+    """Audit exact result bytes and decide whether the requested corpus may be promoted."""
     root = Path(results_root).resolve()
     if not root.is_dir():
         raise ValueError("results_root must be a directory")

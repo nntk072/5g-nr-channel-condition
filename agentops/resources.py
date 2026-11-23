@@ -527,7 +527,6 @@ def metered_gpu_execution(
     maximum_timeout_seconds: int,
 ) -> Iterator[int]:
     """Reserve a bounded CUDA execution window and charge elapsed time on every outcome."""
-
     if not authorization["selected_device"].startswith("cuda:"):
         yield maximum_timeout_seconds
         return

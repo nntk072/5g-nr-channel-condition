@@ -7,7 +7,8 @@ that must contain the reference in two-sided Bonferroni 99% confidence
 intervals. Each interval has a half-width at most 0.05 of unit normalized mean
 power. The reference averages byte-pinned ETSI cluster parameters, Table 7.5-3
 ray offsets, and all independent azimuth/zenith ray pairings rather than
-reusing channel output or adapter metadata as its expected answer."""
+reusing channel output or adapter metadata as its expected answer.
+"""
 
 from __future__ import annotations
 

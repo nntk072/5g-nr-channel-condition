@@ -23,7 +23,6 @@ def build_low_confidence_audit(
     This reports descriptive coverage only. It does not choose the operating
     threshold or margin, estimate error risk, or infer physical independence.
     """
-
     scores = np.asarray(probabilities, dtype=np.float64)
     vectors = [
         np.asarray(independent_group_ids, dtype=object),

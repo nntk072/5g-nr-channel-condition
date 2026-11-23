@@ -78,7 +78,6 @@ _BRANCH_OPTIONAL = {
 
 def _canonical_tree(value: Any) -> Any:
     """Encode JSON values and numeric arrays into an unambiguous hash tree."""
-
     if isinstance(value, np.ndarray):
         array = np.asarray(value)
         if array.dtype.hasobject or array.dtype.kind not in "biufc":
@@ -610,7 +609,6 @@ def evaluate_joint_evidence(
     payload: dict[str, Any], *, coefficient_relative_tolerance: float | None = None
 ) -> dict[str, Any]:
     """Run all five G3 numerical evaluators under one hash-bound family v4."""
-
     return _recompute(payload, coefficient_relative_tolerance=coefficient_relative_tolerance)
 
 
@@ -621,7 +619,6 @@ def verify_joint_evidence_bundle(
     coefficient_relative_tolerance: float | None = None,
 ) -> dict[str, Any]:
     """Recompute a saved bundle and reject any altered evaluator output or hash."""
-
     if not isinstance(bundle, dict):
         raise TypeError("bundle must be an object")
     expected = _recompute(payload, coefficient_relative_tolerance=coefficient_relative_tolerance)

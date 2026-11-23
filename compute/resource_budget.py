@@ -85,7 +85,6 @@ def build_resource_budget_report(request: dict[str, Any], *, request_sha256: str
     the caller's required 2x–3x headroom factor. Device peak memory is not
     multiplied by planned unit count.
     """
-
     _validate(request, _REQUEST_SCHEMA, "resource-budget request")
     if not isinstance(request_sha256, str) or not _SHA256.fullmatch(request_sha256):
         raise ValueError("request_sha256 must be lowercase SHA-256 hex")

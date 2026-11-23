@@ -34,7 +34,6 @@ def _calibration_roster_digest(
 
 def apply_platt_calibrator(probabilities: np.ndarray, report: dict[str, Any]) -> np.ndarray:
     """Apply a frozen positive-slope Platt transform to raw model probabilities."""
-
     scores = np.asarray(probabilities, dtype=np.float64)
     if scores.ndim != 1 or not np.all(np.isfinite(scores)) or np.any((scores < 0) | (scores > 1)):
         raise ValueError("probabilities must be a finite one-dimensional vector in [0, 1]")
@@ -59,7 +58,6 @@ def apply_platt_calibrator(probabilities: np.ndarray, report: dict[str, Any]) ->
 
 def invert_platt_calibrator(probabilities: np.ndarray, report: dict[str, Any]) -> np.ndarray:
     """Map calibrated probabilities back to the raw model probability scale."""
-
     calibrated = np.asarray(probabilities, dtype=np.float64)
     if (
         calibrated.ndim != 1
@@ -97,7 +95,6 @@ def fit_group_balanced_platt_calibrator(
     labels must contain both classes; callers must ensure these rows are
     disjoint from model fitting, threshold selection, and final evaluation.
     """
-
     scores = np.asarray(raw_probabilities, dtype=np.float64)
     labels_raw = np.asarray(calibration_labels)
     groups = np.asarray(independent_group_ids, dtype=object)

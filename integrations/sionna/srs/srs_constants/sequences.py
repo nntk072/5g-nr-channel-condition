@@ -157,7 +157,6 @@ def _normalized_multiport_beta(beta_srs: float, port_count: int, four_port_srs_3
 
 def _nr_gold_bits(c_init: int, count: int) -> np.ndarray:
     """Return ``count`` TS 38.211 Gold bits after the 1600-bit offset."""
-
     sequence_length = 1600 + count
     x1 = np.zeros(sequence_length + 31, dtype=np.uint8)
     x2 = np.zeros(sequence_length + 31, dtype=np.uint8)

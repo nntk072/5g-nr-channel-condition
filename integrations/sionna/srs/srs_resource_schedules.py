@@ -386,7 +386,6 @@ def nr_srs_fixed_frequency_allocation(
     CRB/BWP grid origin. SRS-PosResource symbol offsets remain a separate
     mapping step via :func:`nr_srs_positioning_symbol_offset`.
     """
-
     configuration = nr_srs_type1_bandwidth_configuration(
         c_srs, transmission_comb=transmission_comb, b_srs=b_srs
     )
@@ -469,7 +468,6 @@ def nr_srs_resource_frequency_allocations(
     configuration is checked in the transmission counter. This does not parse
     complete ASN.1 RRC messages or resolve resource-set triggering.
     """
-
     if periodicity_and_offset is not None or periodicity_and_offset_ext is not None:
         if periodicity_slots is not None or slot_offset is not None:
             raise ValueError("supply resolved periodicity or the RRC CHOICE, not both")
@@ -653,7 +651,6 @@ def nr_srs_port_sequences_type1(
     cyclic-shift hopping coordinates are forwarded unchanged to each port so
     all ports share the same per-symbol ``f_csh`` sequence.
     """
-
     if not isinstance(cyclic_shift_indices, tuple) or not cyclic_shift_indices:
         raise TypeError("cyclic_shift_indices must be a nonempty tuple of integers")
     shift_count = srs_cyclic_shift_count(transmission_comb)
@@ -712,7 +709,6 @@ def map_nr_srs_hopped_resource(
     field is retained in the result. Positioning-resource comb offsets are
     applied per symbol when ``positioning_resource`` is true.
     """
-
     if not isinstance(positioning_resource, bool):
         raise TypeError("positioning_resource must be a boolean")
     for name, value in (
@@ -843,7 +839,6 @@ def map_nr_srs_hopped_multiport_resource(
     Applies the TS 38.211 per-port ``1/sqrt(N_ap)`` amplitude factor; the
     four-port three-transmit configuration uses an effective count of three.
     """
-
     values = np.asarray(sequences)
     if not np.iscomplexobj(values):
         raise TypeError("sequences must be complex-valued")

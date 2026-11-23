@@ -22,6 +22,14 @@ sionna = ["sionna-no-rt==2.2.0", "torch>=2.9"]
 sionna-rt = ["sionna-no-rt==2.2.0", "sionna-rt==2.2.0", "torch>=2.9"]
 boosting = ["xgboost-cpu>=2.1,<4"]
 plots = ["matplotlib>=3.8,<4", "Pillow>=10"]
+docs = [
+  "myst-nb>=1.2",
+  "myst-parser>=4.0",
+  "pydata-sphinx-theme>=0.19",
+  "sphinx>=8.2",
+  "sphinx-autoapi>=3.6",
+  "sphinx-design>=0.6",
+]
 
 [tool.uv.sources]
 torch = [
@@ -103,7 +111,13 @@ target-version = "py311"
 src = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "loslab", "scripts", "agentops"]
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I"]
+select = ["E4", "E7", "E9", "F", "I", "D2", "D3", "D4"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D205"]
 
 [tool.mypy]
 python_version = "3.11"

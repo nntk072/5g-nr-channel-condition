@@ -49,7 +49,6 @@ def audit_class_support(
     to ``expected_strata``. Group IDs are required and are only counted within
     their class and stratum; the caller remains responsible for their validity.
     """
-
     label_array = np.asarray(labels, dtype=object)
     group_array = np.asarray(independent_group_ids, dtype=object)
     split_array = np.asarray(split_ids, dtype=object)

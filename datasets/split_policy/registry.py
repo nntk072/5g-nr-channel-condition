@@ -433,7 +433,6 @@ def audit_split_policy_child_roster(
     child class while the registry also contains other descendant kinds. The
     supplied bindings must exactly match every frozen child of ``child_kind``.
     """
-
     if not isinstance(registry, SplitPolicyRegistry):
         raise TypeError("registry must be a SplitPolicyRegistry")
     child_kind = _require_canonical_identity(child_kind, "child_kind")

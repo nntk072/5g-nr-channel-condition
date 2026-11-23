@@ -49,8 +49,18 @@ def _ledger_ids(repo_root: Path) -> set[str]:
 
 
 def requirement_anchored(requirement: str, queue_text: str) -> bool:
-    """True when the requirement ID appears as a whole identifier, not as a prefix of a longer
-    identifier or a dotted sub-identifier such as ``PKG06-003.1`` or ``PKG06-003.v2``."""
+    """Return whether the requirement ID occurs as a whole identifier.
+
+    A match is rejected when the ID is a prefix of a longer identifier or of a
+    dotted sub-identifier, such as ``PKG06-003.1`` or ``PKG06-003.v2``.
+
+    Args:
+        requirement: The requirement identifier to search for.
+        queue_text: The text of the execution queue.
+
+    Returns:
+        True when the identifier appears as a whole identifier in ``queue_text``.
+    """
     pattern = rf"(?<![A-Za-z0-9_.-]){re.escape(requirement)}(?![A-Za-z0-9_-]|\.[A-Za-z0-9_])"
     return re.search(pattern, queue_text) is not None
 

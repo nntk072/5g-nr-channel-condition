@@ -337,7 +337,6 @@ def nr_srs_periodic_resource_schedule(
     occasion. The caller still resolves resource-set selection, active-BWP
     feasibility, and collisions with other transmissions.
     """
-
     if isinstance(absolute_slot_index, bool) or not isinstance(absolute_slot_index, Integral):
         raise TypeError("absolute_slot_index must be an integer")
     if absolute_slot_index < 0:
@@ -537,7 +536,6 @@ def nr_srs_aperiodic_resource_schedule(
     Release 17 available-slot-offset index. This adapter then derives every
     resource-symbol frequency allocation. It does not parse DCI or ASN.1 RRC.
     """
-
     target_slot = nr_srs_aperiodic_target_slot_index(
         triggering_dci_slot,
         slot_offset=slot_offset,
@@ -582,7 +580,6 @@ def nr_srs_aperiodic_resource_set_schedules(
     all set identities and trigger assignments; frequency allocation is
     required only for sets selected by this DCI request.
     """
-
     selected_ids = nr_srs_triggered_resource_set_ids(
         srs_request_codepoint,
         resource_sets,
@@ -668,7 +665,6 @@ def nr_srs_scheduled_port_sequences_type1(
     For eight-port TDM, also pass ``ports8_tdm=True`` to the multiport mapper
     so inactive port-symbol elements are omitted from its grid and mask.
     """
-
     shifts = nr_srs_port_cyclic_shift_indices(
         antenna_ports,
         transmission_comb=transmission_comb,

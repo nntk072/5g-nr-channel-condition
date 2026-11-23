@@ -80,7 +80,6 @@ def measure_ul_srs_rsrp(
     diversity report not be below any individual branch. It is not a calibrated
     front-end or propagation model.
     """
-
     powers = np.asarray(received_re_power_w)
     mask = np.asarray(configured_re_mask)
     if powers.ndim != 3 or any(size <= 0 for size in powers.shape):
@@ -193,7 +192,6 @@ def measure_ul_srs_rsrp_from_grid(
     This is a receiver observation/report path, not interference rejection or
     receiver qualification.
     """
-
     from integrations.sionna.srs import (
         NRSRSHoppedMultiportResourceGrid,
         NRSRSMultiportResourceGrid,
@@ -358,7 +356,6 @@ def measure_ul_srs_rsrp_from_noisy_network_grid(
     contributions and independent receiver-noise grid that produced it. Batch
     draws become measurement occasions and receive ports become branches.
     """
-
     try:
         import torch
     except ImportError as error:
@@ -618,7 +615,6 @@ def report_ul_rtoa(
     This function binds the timing result; it does not detect the first path or
     establish clock calibration.
     """
-
     if receiver_category not in _TIMING_REFERENCE_POINTS:
         raise ValueError("receiver_category must be a terrestrial TS 38.104 base-station type")
     if isinstance(sfn, bool) or not isinstance(sfn, int) or not 0 <= sfn <= 1023:
@@ -668,7 +664,6 @@ def report_gnb_rx_tx_time_difference(
     timing_calibration_sha256: str,
 ) -> dict[str, Any]:
     """Report gNB Rx-Tx timing from caller-supplied TRP timing observations."""
-
     if receiver_category not in _TIMING_REFERENCE_POINTS:
         raise ValueError("receiver_category must be a terrestrial TS 38.104 base-station type")
     if transmitter_category not in _TIMING_REFERENCE_POINTS:
@@ -720,7 +715,6 @@ def report_ul_aoa(
     antenna. This report does not estimate the angles, validate the array
     calibration, or claim receiver qualification.
     """
-
     if not isinstance(sample_id, str) or not sample_id or sample_id != sample_id.strip():
         raise ValueError("sample_id must be a canonical non-empty string")
     if coordinate_system not in {"GCS", "LCS"}:

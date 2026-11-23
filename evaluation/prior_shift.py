@@ -28,7 +28,6 @@ _SPEC_FIELDS = frozenset(
 
 def validate_prior_shift_spec(spec: Mapping[str, Any]) -> dict[str, Any]:
     """Validate and return a canonical natural-target prior-shift declaration."""
-
     if not isinstance(spec, Mapping):
         raise TypeError("prior_shift must be a mapping")
     if any(not isinstance(field, str) for field in spec):
@@ -81,7 +80,6 @@ def adjust_probabilities_between_priors(
     target_positive_prevalence: float,
 ) -> np.ndarray:
     """Apply label-shift odds correction between two declared class priors."""
-
     scores = np.asarray(probabilities, dtype=np.float64)
     if (
         scores.ndim != 1
@@ -118,7 +116,6 @@ def adjust_probabilities_for_prior_shift(
     positive fraction is aggregated. Validation/test labels are not accepted by
     this API, preventing them from influencing prior estimation.
     """
-
     spec = validate_prior_shift_spec(prior_shift)
     scores = np.asarray(probabilities, dtype=np.float64)
     labels_raw = np.asarray(training_labels)

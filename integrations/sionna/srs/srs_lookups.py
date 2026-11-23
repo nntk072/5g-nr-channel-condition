@@ -41,7 +41,6 @@ if set(_DCI_0_3_FIELD_ORDER) != _DCI_0_3_CONFIG_DERIVED_FIELDS:
 
 def srs_cyclic_shift_count(transmission_comb: int) -> int:
     """Return TS 38.211's maximum SRS cyclic shifts for a transmission comb."""
-
     if isinstance(transmission_comb, bool) or not isinstance(transmission_comb, Integral):
         raise TypeError("transmission_comb must be an integer")
     try:
@@ -58,7 +57,6 @@ def nr_srs_port_configuration_from_rrc(
     comb_offset_hopping_enabled: bool = False,
 ) -> NRSRSPortConfiguration:
     """Resolve Release 19 decoded SRS port enums and ports8tdm constraints."""
-
     if not isinstance(cyclic_shift_hopping_enabled, bool) or not isinstance(
         comb_offset_hopping_enabled, bool
     ):
@@ -93,7 +91,6 @@ def nr_srs_port_symbol_activity(
     ports8_tdm: bool = False,
 ) -> tuple[tuple[bool, ...], ...]:
     """Return TS 38.211 activity by antenna port and resource-local symbol."""
-
     if not isinstance(antenna_ports, tuple) or not antenna_ports:
         raise TypeError("antenna_ports must be a nonempty tuple of integers")
     if isinstance(srs_symbol_count, bool) or not isinstance(srs_symbol_count, Integral):
@@ -133,7 +130,6 @@ def nr_srs_positioning_symbol_offset(
     ordinary SRS-Resource uses zero and should not call this helper. Symbol
     counts unsupported by the table are rejected rather than approximated.
     """
-
     for name, value in (
         ("transmission_comb", transmission_comb),
         ("srs_symbol_count", srs_symbol_count),
@@ -167,7 +163,6 @@ def nr_srs_frequency_position_indices(
     ``n_srs`` is the TS 38.211 transmission counter. Periodicity and
     higher-layer scheduling are intentionally not inferred by this primitive.
     """
-
     for name, value in (
         ("c_srs", c_srs),
         ("b_srs", b_srs),
@@ -249,7 +244,6 @@ def nr_srs_transmission_counter(
     Hyper-SFN index applies the TS 38.211 long-period gate using the supplied
     numerology and hyper-frame number.
     """
-
     if resource_type not in {"aperiodic", "periodic", "semi-persistent"}:
         raise ValueError("resource_type must be aperiodic, periodic, or semi-persistent")
     for name, value in (
@@ -351,7 +345,6 @@ def nr_srs_periodicity_and_offset_slots(
     This resolves only the time-domain CHOICE; it does not parse RRC messages,
     decide set-level triggering, or apply positioning Hyper-SFN gating.
     """
-
     selected = (
         (periodicity_and_offset_ext, _SRS_PERIODICITY_EXT_OFFSETS)
         if periodicity_and_offset_ext is not None
@@ -402,7 +395,6 @@ def nr_srs_triggered_resource_set_ids(
     DCI/RRC parsing, typeA handling, and decoded multi-cell request-list
     indirection are handled outside this single-cell resolver.
     """
-
     if not isinstance(dci_format, str) or dci_format not in _SRS_REQUEST_DCI_FORMATS:
         raise ValueError("unsupported DCI format for this SRS request resolver")
     if not isinstance(srs_tpc_pdcch_group, str) or srs_tpc_pdcch_group != "typeB":
@@ -696,7 +688,6 @@ def nr_srs_group_hopping_index(
     ``resource_symbol_index`` is the resource-local symbol index ``l'``.
     Set ``slot_symbol_count=12`` for extended-CP slots.
     """
-
     (
         sequence_id,
         slot_index,
@@ -732,7 +723,6 @@ def nr_srs_sequence_hopping_index(
     Sequence hopping is enabled only for ``M_ZC >= 6 N_sc^RB``; with the NR
     resource-block width ``N_sc^RB=12``, shorter sequences use base sequence 0.
     """
-
     (
         sequence_id,
         slot_index,
@@ -776,7 +766,6 @@ def nr_low_papr_sequence_type1(
     and 24 use standardized phase tables; length 30 and lengths at least 36
     use their respective closed-form definitions.
     """
-
     for name, value in (
         ("sequence_length", sequence_length),
         ("group_index", group_index),
@@ -863,7 +852,6 @@ def map_nr_srs_resource(
     ``c-SRS``/``b-SRS``; ``frequency_start_subcarrier`` and ``comb_offset`` are
     already-resolved mapping parameters.
     """
-
     integer_values = {
         "slot_symbol_count": slot_symbol_count,
         "subcarrier_count": subcarrier_count,
@@ -971,7 +959,6 @@ def nr_srs_single_port_ls_channel_estimate(
     receive combining, multiport separation, and noise-variance estimation
     remain receiver-level responsibilities.
     """
-
     if not isinstance(
         mapped_resource,
         (NRSRSResourceGrid, NRSRSHoppedResourceGrid, NRSRSPositioningResourceGrid),
