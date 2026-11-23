@@ -273,6 +273,10 @@ def build_hash_bound_result(
             "git_revision": _git_revision(repo_root),
             "source_path": source_name,
             "source_sha256": source_digest,
+            "implementation_sha256": {
+                path.relative_to(repo_root).as_posix(): _sha256(path.read_bytes())
+                for path in sorted((repo_root / "experiments" / "ordered_impairments").glob("*.py"))
+            },
             "source_matches_git_revision": _source_matches_git_revision(
                 repo_root, source_name, source_bytes
             ),
