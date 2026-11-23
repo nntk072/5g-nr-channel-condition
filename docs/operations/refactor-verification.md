@@ -100,7 +100,7 @@ decision.
 ## Frozen text
 
 Frozen research documents keep their base bytes. Rename passes had changed the
-text of seventeen research files and of six contract schemas. Those are restored
+text of sixteen research files and of six contract schemas. Those are restored
 to base bytes at their current paths, and only their paths moved. The master
 plan is the one authorised exception; it is edited for links and status and its
 digest is recorded (below). The requirement ledger is restored to base bytes.
@@ -120,7 +120,7 @@ Key changes:
 - `datasets/scene_families.py`: base `5309fd6110e6d68d248567a10f55553e5b5325c59e6b4ae02ed02aeb553324e3`; now `203d741a8147e4a24475c4c08eedf3e49052de589c31ac98cd3ca62c72309606`.
 - `docs/research/HELPER_WIRING_INVENTORY.json`: base `32b22aa4719b9155ba76b59b93d6ac92cafbb02bfe4f70b6cb764899749c5b7e`; now `dde3664893eb1184b952a628bdccfc93beb5dcfd85697437cc27e5427bbeea32` (regenerated, 254 helpers).
 - Digest-bound, not split: `evaluation/g3_sample_size_planning.py` base `990a8be9cee63209c9da2aa4c1a62fcb1a47d9b4e169e293636b07988bbaf7a0`, now `886f9211e51a10144606e27f8b3fb2fc53a991ee858b7e41e2873fb631bc70ad`; `evaluation/g3_acquisition_package.py` base `07bb9da6c12b86503218f8c087dfd430e4f2363987c4a9c56d1c86fcca056db3`, now `0a8db8921fe180f2bdaaec0adb20de957944f79ccddd5daf6440dacf2c7159ae`; `evaluation/g3_joint_evidence_run_manifest.py` base `c44ab0d3ee9e5ad196ca4dfd715f5b120c8c563ec30133c2bf732d257b18f26b`, now `92b065d5978cd4f783ac05de4576965c15540cc55165900f38bc8664617f9d63`; `receivers/nr/pusch.py` unchanged at `b6a632a92fbc92a294fe7baf718a69b665635e4e5d0e71f4528b5b4d1333f003`.
-- Restored to base bytes (digest equals base): the seventeen frozen research files and six contract schemas listed in the first commit of the restoration series.
+- Restored to base bytes (digest equals base): the sixteen frozen research files and six contract schemas listed in the first commit of the restoration series.
 
 Rebinding entries are appended only. Counts in `docs/reference/digest-rebindings.json`: `file_moves` 651, `pin_rebindings` 116, `source_digest_rebindings` 241. No existing entry was edited.
 
