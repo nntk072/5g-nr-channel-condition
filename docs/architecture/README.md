@@ -5,7 +5,7 @@ assets, generated evidence, and tests. The pages below explain how the
 pieces fit together and what each output means.
 
 - [Architecture overview](overview.md): the packages, their layers, and the main flows.
-- [Output tasks and channel families](output-tasks-and-channels.md): what each model output contains.
+- Output tasks and channel families: see the frozen output-task note under `docs/architecture/output-tasks-and-channels.md`, which is not a site page.
 - [Observable multipath model](observable-multipath-model.md): the analytical two-path decoder contract.
 - [Network topology support](network-topology-support.md): multi-link ray tracing to network PHY.
 - [Benchmark partition materialization](benchmark-partition-materialization.md): how train, validation and held-out partitions are built.

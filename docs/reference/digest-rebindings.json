@@ -2531,6 +2531,78 @@
     {
       "old_path": "docs/reference/refactor-digest-changes.tsv",
       "new_path": "dev-docs/reference/refactor-digest-changes.tsv"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/spatiotemporal.py"
+    },
+    {
+      "old_path": "evaluation/cdl_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/spatiotemporal.py"
+    },
+    {
+      "old_path": "evaluation/cdl_temporal_reference.py",
+      "new_path": "evaluation/cdl_covariance/temporal_reference.py"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_temporal_reference.py",
+      "new_path": "evaluation/cdl_covariance/temporal_reference.py"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_joint_tx_rx_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/joint_tx_rx.py"
+    },
+    {
+      "old_path": "evaluation/cdl_joint_tx_rx_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/joint_tx_rx.py"
+    },
+    {
+      "old_path": "evaluation/cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/joint_tx_rx_dual_pol.py"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/joint_tx_rx_dual_pol.py"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/joint_tx_rx_dual_tx_rx.py"
+    },
+    {
+      "old_path": "evaluation/cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/joint_tx_rx_dual_tx_rx.py"
+    },
+    {
+      "old_path": "evaluation/cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/rotated_dual_tx_rx.py"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/rotated_dual_tx_rx.py"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/patterned_rotated_dual_tx_rx.py"
+    },
+    {
+      "old_path": "evaluation/cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/patterned_rotated_dual_tx_rx.py"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_handheld_ut_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/handheld_ut.py"
+    },
+    {
+      "old_path": "evaluation/cdl_handheld_ut_spatiotemporal_covariance.py",
+      "new_path": "evaluation/cdl_covariance/handheld_ut.py"
+    },
+    {
+      "old_path": "evaluation/cdl_four_element_covariance.py",
+      "new_path": "evaluation/cdl_covariance/four_element.py"
+    },
+    {
+      "old_path": "evaluation/g4_cdl_four_element_covariance.py",
+      "new_path": "evaluation/cdl_covariance/four_element.py"
     }
   ],
   "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",
@@ -4666,6 +4738,12 @@
     {
       "new_path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
       "new_sha256": "6228c56d4ea0866d6b5d11967e9464e8ba13dd99c3d3619854becf208d54f72d",
+      "old_path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
+      "old_sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2"
+    },
+    {
+      "new_path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
+      "new_sha256": "7fb79e4eaf19e1bbd1ac4d95c07d7e132fe6dc8e0fc4891f21b9fe3ce226fda3",
       "old_path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
       "old_sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2"
     }

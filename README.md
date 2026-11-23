@@ -10,7 +10,7 @@ synthetic smoke data as debug-only.
 ## Start here
 
 - [Documentation index](docs/README.md): guides, concepts, and reference data.
-- [Quickstart](docs/guide/quickstart.md): set up the environment and run the checks.
+- [Getting started](docs/guide/getting-started.md): set up the environment and run the checks.
 - [Architecture overview](docs/architecture/overview.md): packages, layers and main flows.
 - [Research program and evidence limits](docs/research/RESEARCH_PROGRAM.md).
 - [2025 thesis PDF](docs/thesis/NguyenLong.pdf).

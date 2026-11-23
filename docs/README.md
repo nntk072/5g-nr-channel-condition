@@ -7,10 +7,11 @@ Start here. This index lists every document under `docs/`.
 Setup and workflows for users of the framework.
 
 - [Shared-split power-only baseline](guide/baseline-controls-workflow.md)
+- [Quickstart](guide/getting-started.md)
 - [Luna execution guide for the 5G NR Multipath MVP](guide/luna-execution-guide-2026-11-11.md)
 - [Sample-domain network waveform to PUSCH receiver](guide/network-pusch-receiver-workflow.md)
 - [UMCD pilot sampling workflow](guide/pilot-sampling-workflow.md)
-- [Quickstart](guide/quickstart.md)
+- [Start here — reproducible LOS/NLOS research upgrade](guide/quickstart.md)
 - [Measurement-driven resource budget preflight](guide/resource-budget-workflow.md)
 - [Runtime identity inventory](guide/runtime-inventory-workflow.md)
 - [G4 scenario GBSM generation command v1](guide/scenario-gbsm-generation-cli-v1.md)
@@ -20,6 +21,8 @@ Setup and workflows for users of the framework.
 Concepts and output contracts for users of the framework.
 
 - [Benchmark partition materialization](architecture/benchmark-partition-materialization.md)
+- [Module split design notes](architecture/module-split-design-notes.md)
+- [Naming exceptions](architecture/naming-exceptions.md)
 - [Multi-link RT to network PHY support](architecture/network-topology-support.md)
 - [Analytical two-path decoder: implementation contract](architecture/observable-multipath-model.md)
 - [Model outputs and channel families](architecture/output-tasks-and-channels.md)
@@ -30,11 +33,18 @@ Concepts and output contracts for users of the framework.
 - [External Sionna source reference](architecture/sionna-reference.md)
 - [Grouped scalar-regression uncertainty evaluation](architecture/uncertainty-evaluation.md)
 
+## Operations
+
+Refactor and verification records.
+
+- [Production-structure refactor: verification record](operations/refactor-verification.md)
+
 ## Reference
 
 Reference data and the digest rebinding record.
 
 - [digest-rebindings.json](reference/digest-rebindings.json)
+- [refactor-digest-changes.tsv](reference/refactor-digest-changes.tsv)
 - [Scene-family registry and candidate sampling](reference/scene-family-registry.md)
 
 ## Thesis

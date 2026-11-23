@@ -17,6 +17,7 @@ DOCS = ROOT / "docs"
 SECTIONS = {
     "guide": "Setup and workflows for users of the framework",
     "architecture": "Concepts and output contracts for users of the framework",
+    "operations": "Refactor and verification records",
     "reference": "Reference data and the digest rebinding record",
     "thesis": "Thesis document",
 }

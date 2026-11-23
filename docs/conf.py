@@ -7,8 +7,8 @@ workflow. API pages are generated from the library packages with
 
 from __future__ import annotations
 
-import sys
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +43,15 @@ exclude_patterns = [
     "thesis/**",
     "README.md",
     "**/README.md",
+    # Frozen research text moved into the guide folders: kept byte-identical to
+    # the evidence base, so these pages are not site pages.
+    "guide/quickstart.md",
+    "guide/luna-execution-guide-2026-11-11.md",
+    "architecture/output-tasks-and-channels.md",
+    # Repository records kept for auditors, not user pages.
+    "operations/refactor-verification.md",
+    "architecture/naming-exceptions.md",
+    "architecture/module-split-design-notes.md",
 ]
 
 myst_heading_anchors = 3

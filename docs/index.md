@@ -9,7 +9,7 @@ reference data you need.
 :caption: Get started
 :maxdepth: 1
 
-guide/quickstart
+guide/getting-started
 ```
 
 ```{toctree}
@@ -22,7 +22,6 @@ guide/network-pusch-receiver-workflow
 guide/resource-budget-workflow
 guide/runtime-inventory-workflow
 guide/baseline-controls-workflow
-guide/luna-execution-guide-2026-11-11
 ```
 
 ```{toctree}
@@ -30,7 +29,6 @@ guide/luna-execution-guide-2026-11-11
 :maxdepth: 1
 
 architecture/overview
-architecture/output-tasks-and-channels
 architecture/observable-multipath-model
 architecture/network-topology-support
 architecture/benchmark-partition-materialization
