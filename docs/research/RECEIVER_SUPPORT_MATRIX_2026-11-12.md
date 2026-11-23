@@ -24,7 +24,7 @@ decoder configuration, supported channel/impairment strata, independent
 channel-cluster unit, SNR grid, transport-block roster, failure/outcome
 accounting, and task-specific acceptance thresholds in the signed preregistered
 contract. The example thresholds in
-[`G5_09_SNR_FAMILY_ACCEPTANCE_CONTRACT_V1.md`](G5_09_SNR_FAMILY_ACCEPTANCE_CONTRACT_V1.md)
+[`G5_09_SNR_FAMILY_ACCEPTANCE_CONTRACT_V1.md`](SNR_FAMILY_ACCEPTANCE_CONTRACT_V1.md)
 are not defaults. The executable cluster floor is not a power guarantee.
 Trusted time, signer/keyring custody, and independent reviewer authority must
 be established separately. Preserve failed outcomes and unresolved grid

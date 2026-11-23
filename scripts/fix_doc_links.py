@@ -8,6 +8,9 @@ frozen documents (any file under ``docs/research/`` that is not listed in
 Usage:
     python scripts/fix_doc_links.py            # repair editable documents, report the rest
     python scripts/fix_doc_links.py --check    # exit 1 if any broken link remains in editable documents
+    python scripts/fix_doc_links.py --edit-frozen
+        # also repair link targets inside frozen documents. Only link text changes; every
+        # changed file then needs a rebinding entry from its base digest to its new digest.
 """
 
 from __future__ import annotations
@@ -108,12 +111,16 @@ def documents() -> list[Path]:
 
 
 def process(
-    path: Path, table: dict[str, list[str]], write: bool, frozen_digests: set[str]
+    path: Path,
+    table: dict[str, list[str]],
+    write: bool,
+    frozen_digests: set[str],
+    edit_frozen: bool = False,
 ) -> list[str]:
     rel = path.relative_to(ROOT).as_posix()
     text = path.read_text(encoding="utf-8")
     problems: list[str] = []
-    editable = not is_frozen(path, frozen_digests)
+    editable = edit_frozen or not is_frozen(path, frozen_digests)
     out_lines = []
     changed = False
     for number, line in enumerate(text.split("\n"), start=1):
@@ -177,12 +184,21 @@ def process(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--edit-frozen", action="store_true")
     args = parser.parse_args(argv)
     table = moves()
     frozen_digests = base_research_digests()
     problems: list[str] = []
     for path in documents():
-        problems.extend(process(path, table, write=not args.check, frozen_digests=frozen_digests))
+        problems.extend(
+            process(
+                path,
+                table,
+                write=not args.check,
+                frozen_digests=frozen_digests,
+                edit_frozen=args.edit_frozen,
+            )
+        )
     for item in problems:
         print(item)
     editable_left = [

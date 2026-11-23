@@ -1349,7 +1349,7 @@ implemented; native execution remains a later gated action.
 
 - **Dependencies:** E01 task-level scope audit; existing G5 receiver work and
   task-specific G3 acceptance definitions.
-- **Current evidence:** the 2026-11-12 [G5 receiver support matrix](G5_RECEIVER_SUPPORT_MATRIX_2026-11-12.md)
+- **Current evidence:** the 2026-11-12 [G5 receiver support matrix](RECEIVER_SUPPORT_MATRIX_2026-11-12.md)
   maps PUSCH, sample-domain impairment, multi-link, SSB/PBCH, PRS, and SRS
   receiver paths to their implemented boundaries and named blockers. It records
   the pinned Sionna 2.2.0 frequency-hopping/transform-precoding limitation and

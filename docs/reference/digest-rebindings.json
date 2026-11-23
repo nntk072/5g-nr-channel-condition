@@ -4804,6 +4804,66 @@
       "old_sha256": "fb2fd52ddc75ba2336ee705ef45339b5f8f01193ac896a11f79c05b85108062a",
       "new_path": "experiments/audit_tdl/dmrs_density_development.py",
       "new_sha256": "2a2b7454d0796db1ef9d2eef1cdbfd57dc05219181ee1ba5be9208449c43da90"
+    },
+    {
+      "old_path": "docs/research/OUTPUT_TASKS_AND_CHANNELS.md",
+      "old_sha256": "66931fde987ee742928b7d3a1278564ef45b97605f482ce53993b34a9a7248df",
+      "new_path": "docs/architecture/output-tasks-and-channels.md",
+      "new_sha256": "81bb84bf5c93e9f4e97c6dbea90d1de8b070427bfccdd26254094587e518ec4e"
+    },
+    {
+      "old_path": "docs/research/LUNA_EXECUTION_GUIDE_2026-11-11.md",
+      "old_sha256": "21af089986f0e38b40776fca793c6b98bb7842aa08d45c3cd8ef36a9da824418",
+      "new_path": "docs/guide/luna-execution-guide-2026-11-11.md",
+      "new_sha256": "a24cec23a4af28bf3af622995e9aef1d2c67e7f6fae7b59dde104d66476b226d"
+    },
+    {
+      "old_path": "docs/research/QUICKSTART.md",
+      "old_sha256": "0bd8b4427416e056331e6293dc4792594c9902b03129b0f705d92c9cf3e31a01",
+      "new_path": "docs/guide/quickstart.md",
+      "new_sha256": "df37d9f6ee3262295b3035b20ab723745e425917ae9fc1e8625a59e2cac6f891"
+    },
+    {
+      "old_path": "docs/research/G4_07_CDL_DUAL_ENDPOINT_PATTERN_PROTOCOL_2026-10-25.md",
+      "old_sha256": "b07ffbb28a3459905df64c5c89b39e616d1a0e87d42b2e0811a59416d748997c",
+      "new_path": "docs/research/CDL_DUAL_ENDPOINT_PATTERN_PROTOCOL_2026-10-25.md",
+      "new_sha256": "d62f0157cf03a136c61a7519686bf944225c73ed99cfb6b57bcb06859530f1e6"
+    },
+    {
+      "old_path": "docs/research/EXECUTION_QUEUE.md",
+      "old_sha256": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
+      "new_path": "docs/research/EXECUTION_QUEUE.md",
+      "new_sha256": "526395194771771f3a5c8691e88abe442d5205cddc086fa1a8c736606ea145cc"
+    },
+    {
+      "old_path": "docs/research/MEASURED_DATA_CANDIDATES.md",
+      "old_sha256": "49581a9ec58670102b1f360007f6cf81f9a7b0480858e031fab97386e0baf4a3",
+      "new_path": "docs/research/MEASURED_DATA_CANDIDATES.md",
+      "new_sha256": "bfec2e2341258515e89c490e6eb77149533f1d85341b936f271488a0248974ae"
+    },
+    {
+      "old_path": "docs/research/MVP_STATUS.md",
+      "old_sha256": "665d9a7757fc33f32e35fe60010d8e5f9c64a47f74ca5f520026d70844fda855",
+      "new_path": "docs/research/MVP_STATUS.md",
+      "new_sha256": "b74d7daeb383a6966d5dbc6fc35276516161ad44426159ba3d8ceda132fe5bdf"
+    },
+    {
+      "old_path": "docs/research/PHYSICS_VERIFICATION_STATUS.md",
+      "old_sha256": "f8383416aea8ace0de18568e29e7331f46af8c88ea6f6a42d7ec93e5e9c6f9d6",
+      "new_path": "docs/research/PHYSICS_VERIFICATION_STATUS.md",
+      "new_sha256": "df77e9d3b5cb9e3da4c3240933615009979c00b65ad6a3988e4b66b8b23dbee8"
+    },
+    {
+      "old_path": "docs/research/G5_RECEIVER_SUPPORT_MATRIX_2026-11-12.md",
+      "old_sha256": "7850466b506039714d244d647b2304da283d66c96badc9a8b52b3f4d8d7f9cd2",
+      "new_path": "docs/research/RECEIVER_SUPPORT_MATRIX_2026-11-12.md",
+      "new_sha256": "ab615c8b91a96a8446aa7c7c058d82dad7fc4ac8797f2d034cf5a6ea02e96070"
+    },
+    {
+      "old_path": "docs/research/G3_SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
+      "old_sha256": "a18dc3ac3db2e6e3918526767415e409c42947eae919a7b96d0df5446100621d",
+      "new_path": "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
+      "new_sha256": "9f70cd92f351304a1e7236255de8274406c0ca7a5f4b2ae3e4dd7938c39446b1"
     }
   ]
 }
