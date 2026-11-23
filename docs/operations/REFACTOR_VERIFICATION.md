@@ -1,7 +1,7 @@
 # Production-structure refactor: verification record
 
 This record covers the production-structure refactor from the evidence base
-`016168e` to the tree at `9959d81`. It states what was done, what is deferred and
+`016168e` to the tree at `8d3c62d`. It states what was done, what is deferred and
 why, every gate result as logged, the torch and native results, and the changed
 digests. Scientific status is unchanged: E04 remains engineering DONE and
 scientific NOT_QUALIFIED.
@@ -9,21 +9,21 @@ scientific NOT_QUALIFIED.
 Path note: the goal named `docs/operations/REFACTOR_VERIFICATION.md` and
 `docs/architecture/NAMING_EXCEPTIONS.md`. Both use those exact names.
 
-## Gate results on `9959d81`
+## Gate results on `8d3c62d`
 
 Commands are `./tools/check <gate>`. Lines are copied from the gate logs.
 
 | Gate | Result |
 | --- | --- |
 | `lock` | `uv lock --check`; `Resolved 157 packages`; exit 0 |
-| `lint` | `All checks passed!`; `839 files already formatted`; exit 0 |
+| `lint` | `All checks passed!`; `840 files already formatted`; exit 0 |
 | `typecheck` | `Success: no issues found in 444 source files`; exit 0 |
 | `architecture` | `tests/architecture`: 9 passed; exit 0 |
-| `agent` | `180 passed in 8.06s`; exit 0 |
+| `agent` | `180 passed in 8.56s`; exit 0 |
 | `docs` | Sphinx build with warnings as errors; exit 0 |
 | `build` | `Successfully built dist/5g_nr_channel_condition-0.2.0.tar.gz` and `...-py3-none-any.whl`; `import-smoke-ok`; exit 0 |
-| `test` | `3923 passed, 172 skipped, 1 warning in 270.65s (0:04:30)`; exit 0 |
-| `neural` | `Required test coverage of 75% reached. Total coverage: 75.89%`; `3923 passed, 172 skipped, 1 warning in 556.44s (0:09:16)`; exit 0 |
+| `test` | `3924 passed, 172 skipped, 1 warning in 276.85s (0:04:36)`; exit 0 |
+| `neural` | `Required test coverage of 75% reached. Total coverage: 75.89%`; `3924 passed, 172 skipped, 1 warning in 546.84s (0:09:06)`; exit 0 |
 
 Skipped tests are reported as skipped, not as passes. The 172 skips in `test` and
 `neural` are optional tests whose dependency or device is absent in CI (Sionna
@@ -35,7 +35,7 @@ Command: `DRJIT_LIBLLVM_PATH=<LLVM 18 library> /home/l2nguyen/agent-final-2026-1
 The LLVM path is required: without it the `conftest.py` import of Mitsuba fails at
 configuration.
 
-- Result on `9959d81`: `3998 passed, 4 skipped, 1272 deselected, 1 warning in 289.29s (0:04:49)`; exit 0.
+- Result on `8d3c62d`: `3999 passed, 4 skipped, 1272 deselected, 1 warning in 289.50s (0:04:49)`; exit 0.
 - Skipped: `test_network_receiver.py:81` (CUDA unavailable); `test_observable_multipath.py:186` (CUDA unavailable); two in `test_classical.py` (xgboost not installed).
 - The 1272 deselected tests are the native tests, run in the native section.
 
@@ -45,7 +45,7 @@ Command: `DRJIT_LIBLLVM_PATH=<LLVM 18 library> python -m pytest -m native_sionna
 
 | Tree | Passed | Failed | Skipped | Deselected | Duration |
 | --- | --- | --- | --- | --- | --- |
-| Current, `9959d81` | 1226 | 3 | 43 | 4002 | 1484.96s (0:24:44) |
+| Current, `8d3c62d` | 1226 | 3 | 43 | 4003 | 1540.37s (0:25:40) |
 | Base `016168e` | 1215 | 14 | 43 | 3997 | earlier base run |
 
 The base row is the count from the earlier base run. The saved base log in
@@ -89,7 +89,7 @@ Parity criterion: no native failure was added. Native parity is "no regression",
 
 - **Deleted crosswalk builder and test** (`7681f9a`, owner decision). `scripts/build_historical_status_crosswalk.py` and `tests/test_scripts/test_build_historical_status_crosswalk.py` were deleted because the builder read the master plan, which left the tree. The frozen record `docs/research/HISTORICAL_STATUS_CROSSWALK.json` stays.
 - **Ledger citation for PKG00-002** (resolved, owner decision, `adcd5cb`). `docs/research/REQUIREMENT_LEDGER.json` no longer lists the deleted files as evidence. Its verification status is now `incomplete` with no command, because the cited test was deleted. The ledger validates against `docs/research/schema/requirement-ledger.v1.schema.json`. A source-digest rebinding records the edit: base de1c2b6d7b366cd3eb03de905915b7c2c5215cda1b54e6c618c65a7b40259b4e → 5508055d7d613ccd9b2c8d32249a944169bdd07849c612a4eb87d4c10320eb14.
-- **Known remaining:** `scripts/validate_requirement_ledger.py` exits 1 because it reads `docs/research/MASTER_RESEARCH_PLAN.md`, which left the tree with the topic-document split. This is unchanged by today's edits.
+- **Requirement-ledger validator** (fixed, `8d3c62d`). `scripts/validate_requirement_ledger.py` read `docs/research/MASTER_RESEARCH_PLAN.md`, which left the tree. It now reads the unified plan at the evidence base (digest `3285eb13…`) and the Appendix E text from the archive tag (digest `f30d8f56…`), each through git and checked by digest. Cited paths resolve through the recorded move chains and the package rule. The four developer records moved to the local `dev-docs/` folder resolve there. Four explicit exceptions are listed in `docs/reference/ledger-evidence-exceptions.json` with reasons: the removed master plan and three test modules split by concept. `tests/test_scripts/test_validate_requirement_ledger.py` runs the validator. The validator exits 0 and reports 316 requirements, 182 backlog items, 30 governing gates, 104 dataset-gate criteria and 10 Appendix E gates. A clean clone without `dev-docs/` would fail the check for those developer records.
 
 ## Retained PUSCH source digests (provenance recorded, not verified)
 
@@ -103,7 +103,7 @@ Frozen research documents keep their base bytes, except the ten documents whose 
 
 ## Changed digests
 
-Every changed path, with its old and new SHA-256 (base `016168e` to `9959d81`), is in `docs/reference/refactor-digest-changes.tsv`: 878 rows (541 renames, 179 additions, 86 deletions, 72 modifications). Rebinding entries are appended only. Counts in `docs/reference/digest-rebindings.json`: `file_moves` 658, `pin_rebindings` 116, `source_digest_rebindings` 263.
+Every changed path, with its old and new SHA-256 (base `016168e` to `8d3c62d`), is in `docs/reference/refactor-digest-changes.tsv`: 881 rows (541 renames, 181 additions, 86 deletions, 73 modifications). Rebinding entries are appended only. Counts in `docs/reference/digest-rebindings.json`: `file_moves` 658, `pin_rebindings` 116, `source_digest_rebindings` 263.
 
 Key changes (old → new):
 
@@ -121,4 +121,4 @@ Key changes (old → new):
 
 ## Commits since `016168e`
 
-Newest first, from `9959d81` (retained-revision record) through `adcd5cb` (ledger citation and admission wording), `73c6404` (protocol-v5 record), `abe83c7` (V5 design note), `113f5cb` (protocol v5), `d91ad93` (native diagnosis), `7681f9a` (crosswalk deletion), and the earlier refactor commits. `git log --oneline 016168e..9959d81` lists them all.
+Newest first, from `8d3c62d` (validator fix) through `adcd5cb` (ledger citation and admission wording), `73c6404` (protocol-v5 record), `abe83c7` (V5 design note), `113f5cb` (protocol v5), `d91ad93` (native diagnosis), `7681f9a` (crosswalk deletion), and the earlier refactor commits. `git log --oneline 016168e..9959d81` lists them all.
