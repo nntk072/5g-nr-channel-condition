@@ -121,4 +121,4 @@ Key changes (old → new):
 
 ## Commits since `016168e`
 
-Newest first, from `8d3c62d` (validator fix) through `adcd5cb` (ledger citation and admission wording), `73c6404` (protocol-v5 record), `abe83c7` (V5 design note), `113f5cb` (protocol v5), `d91ad93` (native diagnosis), `7681f9a` (crosswalk deletion), and the earlier refactor commits. `git log --oneline 016168e..9959d81` lists them all.
+Newest first, from `8d3c62d` (validator fix) through `adcd5cb` (ledger citation and admission wording), `73c6404` (protocol-v5 record), `abe83c7` (V5 design note), `113f5cb` (protocol v5), `d91ad93` (native diagnosis), `7681f9a` (crosswalk deletion), and the earlier refactor commits. `git log --oneline 016168e..8d3c62d` lists them all.
