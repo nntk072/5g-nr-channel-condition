@@ -1,7 +1,7 @@
 # Production-structure refactor: verification record
 
 This record is the final outcome of the production-structure refactor, from the
-evidence base `016168e` to the head `45e3e52`. It states what was done, what was
+evidence base `016168e` to the head `f6e4cc3`. It states what was done, what was
 deferred and why, every gate result exactly as logged, the native and torch
 results, and the changed digests. Scientific status is not changed by anything
 here: E04 remains engineering DONE and scientific NOT_QUALIFIED.
@@ -11,7 +11,7 @@ and the naming note `docs/architecture/NAMING_EXCEPTIONS.md`. They are lowercase
 here (`refactor-verification.md`, `naming-exceptions.md`) under the repository's
 documentation naming rule.
 
-## Gate results on `45e3e52`
+## Gate results on `f6e4cc3`
 
 Commands are the repository's gates (`./tools/check <gate>`). Exit codes and
 summary lines are copied from the gate logs.
@@ -19,24 +19,24 @@ summary lines are copied from the gate logs.
 | Gate | Result |
 | --- | --- |
 | `lock` | exit 0 |
-| `lint` | `All checks passed!`; `779 files already formatted`; exit 0 |
-| `typecheck` | `Success: no issues found in 413 source files`; exit 0 |
+| `lint` | `All checks passed!`; `769 files already formatted`; exit 0 |
+| `typecheck` | `Success: no issues found in 404 source files`; exit 0 |
 | `architecture` | exit 0 |
-| `test` | `3924 passed, 170 skipped, 1 warning in 267.41s (0:04:27)`; exit 0 |
-| `neural` | `3924 passed, 170 skipped, 1 warning in 529.20s (0:08:49)`; coverage `75.78%` (threshold 75%); exit 0 |
+| `test` | `3924 passed, 170 skipped, 1 warning in 332.61s (0:05:32)`; exit 0 |
+| `neural` | `3924 passed, 170 skipped, 1 warning in 601.55s (0:10:01)`; coverage `75.75%` (threshold 75%); exit 0 |
 | `build` | wheel `5g_nr_channel_condition-0.2.0` built; `import-smoke-ok`; exit 0 |
-| `agent` | `180 passed in 8.40s`; exit 0 |
+| `agent` | `180 passed in 12.15s`; exit 0 |
 | `docs` | sphinx-build with warnings as errors; exit 0 |
 
-Skipped tests in `test` and `neural` (170) are skips in the core suite; they are
-reported as skipped, not as passes. They are the opt-in tests whose markers or
-optional dependencies are absent from CI's environment.
+The 170 skipped tests in `test` and `neural` are reported as skipped, not as
+passes. They are the opt-in tests whose markers or optional dependencies are
+absent from CI's environment.
 
 ## Torch tests, `envs/py312-gpu`, `CUDA_VISIBLE_DEVICES=-1`
 
 Command: `python -m pytest --no-cov -o addopts= -q -rs -m "not native_sionna"`.
 
-- Result on `45e3e52`: `3999 passed, 4 skipped, 1272 deselected, 1 warning in 280.23s (0:04:40)`; exit 0.
+- Result on `f6e4cc3`: `3999 passed, 4 skipped, 1272 deselected, 1 warning in 343.44s (0:05:43)`; exit 0.
 - Skipped, reported as skipped: 4 tests. Two are `test_classical.py` (xgboost not installed in this environment) and `test_observable_multipath.py` (CUDA unavailable by design).
 - 1272 deselected are the native tests, which run in the native section below.
 
@@ -44,30 +44,39 @@ Command: `python -m pytest --no-cov -o addopts= -q -rs -m "not native_sionna"`.
 
 Command: `python -m pytest -m native_sionna --no-cov -o addopts= -q -rfE`, with
 `CUDA_VISIBLE_DEVICES=-1` and `DRJIT_LIBLLVM_PATH` set to the LLVM 18 library.
-Both trees ran in the same environment, in parallel.
+The base extract ran in the same environment.
 
 | Tree | Passed | Failed | Skipped | Deselected |
 | --- | --- | --- | --- | --- |
-| Current `a161422` (`45e3e52` changes no native-tested code) | 1221 | 8 | 43 | 4003 |
-| Base `016168e` (extract) | 1215 | 14 | 43 | 3997 |
+| Current `f6e4cc3` | 1223 | 6 | 43 | 4003 |
+| Base `016168e` (extract, earlier run) | 1215 | 14 | 43 | 3997 |
 
-Failures on the current tree (`a161422`), all present at base:
+Failures on the current tree, all also present at base:
 
-1. `test_admission_native.py` `[C60]`, `[B100]`, `[A30]`: the assertion expects the older message wording; the message has drifted.
-2. `test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py` `[B]`: independent-reference tolerance.
-3. `test_cdl_spatial_covariance_4element_native.py` `[E]`: independent-reference tolerance.
-4. `test_statistical_confidence_native.py` `[3-D]` and `[4-E]`: `IndexError` on the tap axis.
-5. `test_rt_trajectory_native.py::test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory`: environment-dependent string assertion.
+1. `test_admission_native.py` `[C60]`, `[B100]`, `[A30]`: the admission code and its
+   expected message disagree. This is scientific admission behaviour; the expectation is not changed.
+2. `test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py` `[B]`: tolerance miss
+   against the independent reference. Changing the tolerance would change a
+   scientific acceptance criterion.
+3. `test_cdl_spatial_covariance_4element_native.py` `[E]`: tolerance miss against
+   the independent reference, same reason.
+4. `test_rt_trajectory_native.py::test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory`:
+   the test asserts the geometric-LOS oracle is an "independent Mitsuba" oracle; the
+   code describes a digest-bound NumPy inventory cross-checked by Mitsuba. That is a
+   claim about oracle independence, so it is not changed here.
 
-Base-only failures (fixed on the current tree): the three dual-pol cases, the
-CDL-D case, and the two K-factor cases. Some of those fixes are test-expectation
-or digest-pin corrections made in this branch, not code fixes. They are
-recorded as such.
+Base-only failures, no longer present on the current tree: the three dual-pol
+cases, the CDL-D case, the two K-factor cases, and the two statistical-confidence
+cases. Some of these changed in this branch, and the change is recorded as such:
 
-No failure occurs on the current tree that does not also occur at base. The eight
-open failures are not root-caused. Changing their expectations would change
-scientific acceptance criteria, so they are left as recorded and need an owner
-decision.
+- The statistical-confidence cases read the wrong axis (size-1 axis instead of the tap axis) and raised `IndexError` before any assertion. The index now reads the second tap as the test's comment intends (commit `f6e4cc3`). The tolerance and the expected value are unchanged.
+- The dual-pol cases and K-factor cases were fixed by earlier test expectation and digest-pin corrections in this branch (`96a41ed`, `25ff349`, `4f585ba`).
+
+Parity criterion. The refactor adds no native failure: every current failure
+also fails at base, and the failing set shrinks from 14 to 6. Native parity
+against the baseline is therefore met as "no regression"; it is not "all native
+tests pass". The six open failures need an owner decision, because each one is a
+scientific acceptance or claim question.
 
 ## Goal items
 
@@ -88,7 +97,7 @@ decision.
    - Deferred: the `evaluation/g3_*` and `g4_*` modules are already concept-named, and the remaining evaluator modules are in the digest-bound roster (see item 4). The audit scripts (`experiments/audit_tdl_*`) each audit a different frozen protocol, so merging them would change audit provenance. Not merged.
 4. **Splits.**
    - Done, digest-free: `datasets/split_policy`, `datasets/episode_store`, `integrations/sionna/adapter`, `integrations/sionna/network_phy`, the SRS constants package, and the lineage audit package. None of these is named in a retained result or config.
-   - Done, digest-bound, design note written after the split: `experiments/ordered_impairments_receiver.py`. The facade keeps the original path. **Deviation:** the goal asked for the note and rebinding entries before the split; the split came first, and no rebinding was added. See `docs/architecture/module-split-design-notes.md`.
+   - Reverted, deferred: `experiments/ordered_impairments_receiver.py`. The split (`846af03`) was made before its design note and rebinding entries, which the ordering rule forbids. The pre-split module and test are restored, and the split can be reapplied after approval and rebinding. See `docs/architecture/module-split-design-notes.md`.
    - Deferred, digest-bound, with design notes and old and new digests: `evaluation/sample_size_planning.py`, `evaluation/acquisition_package.py`, `evaluation/joint_evidence_run_manifest.py` (all in the frozen evaluator roster; splitting would add files outside a roster fixed at 41 entries by the V4 schema), and `receivers/nr/pusch.py` (named by 71 references and hashed by about 18 tools; a split cannot be proven equivalent by rebinding).
    - Note: the goal listed `evaluation/acquisition_package.py` and `receivers/nr/pusch.py` as digest-free. They are not; the design note records why.
 5. **Documentation.** Non-research documents are under `guide/`, `architecture/`, `operations/` and `reference/`; the research folder keeps its names. `docs/README.md` is a generated index that reaches every document in `docs/`. `scripts/fix_doc_links.py` repairs broken links in editable documents (the master plan and the repository's own pages) by following the recorded moves, and turns unresolvable targets into plain text marked "not in this tree". Frozen research text is back at base bytes (see below). **Open:** 46 broken links remain inside frozen research text, which cannot change without approval; they are listed by file in the check output (`python scripts/fix_doc_links.py --check`). The frozen-link breakdown on `45e3e52`: `docs/research/MVP_STATUS.md` 21, `docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md` 0 editable (its links are repaired or marked), `docs/architecture/output-tasks-and-channels.md` 6 and `docs/guide/quickstart.md` 5 and `docs/guide/luna-execution-guide-2026-11-11.md` 4 (frozen text moved from research), and about 10 more across `docs/research/`.
@@ -112,7 +121,7 @@ and the directional-pattern reference names). Identity strings stay.
 ## Changed digests
 
 Every changed path, with old and new SHA-256, is in
-`docs/reference/refactor-digest-changes.tsv` (982 rows, from `016168e` to `45e3e52`).
+`docs/reference/refactor-digest-changes.tsv` (973 rows, from `016168e` to `f6e4cc3`).
 Key changes:
 
 - Master plan (`docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md`): base `3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2`; now `e1e6fb8435da71e5df073f9b6888d02f4fc7dea07aac3a5756737803a2075241`. The scene-family registry still pins the base value; the validator accepts the current bytes through appended `source_digest_rebindings` entries. The pin is not rewritten.
@@ -126,5 +135,5 @@ Rebinding entries are appended only. Counts in `docs/reference/digest-rebindings
 
 ## Commits since `016168e` (final round)
 
-`git log --oneline 016168e..45e3e52`. The final-round commits are, oldest first:
-`07d0c76`, `483b27f`, `5d06e9b`, `1a3b8ea`, `a41a635`, `d06895c`, `34f9cc6`, `1ab90b8`, `295ca28`, `578b17a`, `fc5589c`, `4767f11`, `1b0c460`, `63847a2`, `22b66c4`, `a161422`, `45e3e52`.
+`git log --oneline 016168e..f6e4cc3`. The final-round commits are, oldest first:
+`07d0c76`, `483b27f`, `5d06e9b`, `1a3b8ea`, `a41a635`, `d06895c`, `34f9cc6`, `1ab90b8`, `295ca28`, `578b17a`, `fc5589c`, `4767f11`, `1b0c460`, `63847a2`, `22b66c4`, `a161422`, `45e3e52`, `8f26703`, `aaf8ca5`, `f6e4cc3`.
