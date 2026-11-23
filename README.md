@@ -52,7 +52,7 @@ estimates with axes
 <code>[batch, rx, rx_antenna, tx, stream, ofdm_symbol, subcarrier]</code>,
 Sionna's broadcastable estimator error variance, the DMRS pilot mask, and
 configuration/version metadata. Run the native test with
-<code>python -m pytest tests/test_integrations/test_nr_pusch_native.py</code>. The native
+<code>python -m pytest tests/test_integrations/test_nr_pusch_channel_estimation.py tests/test_integrations/test_nr_pusch_dmrs_layout.py tests/test_integrations/test_nr_pusch_decode_and_allocation.py</code>. The native
 test is discovered by the regular suite and skips when Sionna is absent. In a
 CUDA environment it verifies a known flat complex channel, checks that estimator
 NMSE decreases as AWGN variance falls, and exercises a Rayleigh waveform/channel/
