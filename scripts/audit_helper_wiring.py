@@ -80,6 +80,40 @@ def _relative_module(base: Path, level: int, module: str | None) -> Path:
     return Path(*parts, *(module or "").split("."))
 
 
+def _defining_function(
+    module: Path, name: str, depth: int = 0
+) -> tuple[Path, ast.FunctionDef | ast.AsyncFunctionDef] | None:
+    """Follow re-exports until the module that defines ``name`` is found."""
+    if depth > 8:
+        return None
+    source_file = module.with_suffix(".py")
+    if not (ROOT / source_file).is_file():
+        source_file = module / "__init__.py"
+    if not (ROOT / source_file).is_file():
+        return None
+    tree = ast.parse(
+        (ROOT / source_file).read_text(encoding="utf-8"), filename=source_file.as_posix()
+    )
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+            return source_file, node
+    for node in tree.body:
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        for alias in node.names:
+            if (alias.asname or alias.name) != name:
+                continue
+            target = (
+                _relative_module(source_file.parent, node.level, node.module)
+                if node.level
+                else Path(*(node.module or "").split("."))
+            )
+            found = _defining_function(target, alias.name, depth + 1)
+            if found is not None:
+                return found
+    return None
+
+
 def _package_exports(package: str) -> list[dict[str, Any]]:
     base = Path(package)
     init_path = base / "__init__.py"
@@ -108,28 +142,18 @@ def _package_exports(package: str) -> list[dict[str, Any]]:
         if resolved is None:
             continue
         source_module, source_name = resolved
-        source_file = source_module.with_suffix(".py")
-        if not (ROOT / source_file).is_file():
-            source_file = source_module / "__init__.py"
-        if not (ROOT / source_file).is_file():
+        found = _defining_function(source_module, source_name)
+        if found is None:
             continue
-        source_tree = ast.parse(
-            (ROOT / source_file).read_text(encoding="utf-8"), filename=source_file.as_posix()
+        source_file, node = found
+        results.append(
+            {
+                "public_name": public_name,
+                "qualified_name": f"{package.replace('/', '.')}.{public_name}",
+                "source": source_file.as_posix(),
+                "definition_line": node.lineno,
+            }
         )
-        for node in source_tree.body:
-            if (
-                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-                and node.name == source_name
-            ):
-                results.append(
-                    {
-                        "public_name": public_name,
-                        "qualified_name": f"{package.replace('/', '.')}.{public_name}",
-                        "source": source_file.as_posix(),
-                        "definition_line": node.lineno,
-                    }
-                )
-                break
     return results
 
 
