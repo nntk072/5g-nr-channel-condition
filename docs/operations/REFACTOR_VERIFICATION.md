@@ -69,6 +69,26 @@ Parity criterion: no native failure was added. Native parity is "no regression",
 3. CDL 4-element `[E]`: the same check. The logged absolute errors reach about 0.015 against an interval capped at `_MAX_INTERVAL_HALF_WIDTH = 0.05`; the per-component half-width is not printed.
 4. RT oracle label: the test requires `independent Mitsuba`; the code describes a NumPy oracle cross-checked by Mitsuba.
 
+## Follow-up on the three native failures (options 2 and 5)
+
+Option 2, diagnostic probes. Temporary copies of the two CDL test files printed each
+component's error against its interval half-width, run in the GPU environment with
+CUDA hidden. The copies were deleted afterwards; no expectation was changed.
+
+- CDL joint `[B]`: one component of 16 fails. Row 0, column 1, real part: error 0.022122 against half-width 0.021810 (ratio 1.014).
+- CDL four-element `[E]`: one component of 16 fails. Component 4 (row 0, column 1, real part): error 0.013574 against half-width 0.012969 (ratio 1.047). The largest half-width is 0.017116, under the 0.05 cap.
+
+Both misses are marginal, and each is a single component under a family-wise 99% interval. One run with fixed seeds cannot separate sampling noise from a small reference or model bias. An independent-seed replication would be needed; that is a new scientific run and is not done here.
+
+Option 5, RT oracle claim. The test asserted that the geometric-LOS provenance starts with `independent Mitsuba`, and that its source is `mitsuba_segment_intersection_oracle`. The code states `digest-bound NumPy loaded-scene triangle inventory, cross-checked by Mitsuba segment intersection and depth-zero Sionna PathSolver`, and its source is `numpy_loaded_scene_triangle_inventory`. Both test assertions now state the code's description; the test no longer claims independence.
+
+Two items need a decision and were not changed:
+
+- The frozen identity `umcd.rt-trajectory.geometric-los.v1` in `datasets/targets.py` still carries the semantic `independent Mitsuba segment-intersection geometry oracle`. The target definition hashes that semantic, and identity strings must stay, so the code and the identity now disagree. Resolving it needs a new identity version with the accurate semantic, which is a contract change.
+- The same RT test then fails at a third stale expectation: the list of stored target semantics expects only `geometric direct-path visibility`, but the code also derives `rms_delay_spread` (the flag `derive_rms_delay_spread_targets=True` dates from commit `2e6780d`). Choosing between the code and the test is a claim decision.
+
+The native table above was run on `8d3c62d`, before this change. The RT test file was then re-run alone on the GPU environment: `1 failed, 7 passed in 45.12s`, with the failure at the target-list assertion. The two CDL cases are unchanged.
+
 ## Goal items
 
 1. **Helper wiring.** `scripts/audit_helper_wiring.py` resolves package re-exports and facade re-exports to the defining submodule. The helper count is `254`; `--check` exits 0; `tests/test_scripts/test_audit_helper_wiring.py` passes. Dispositions: 245 manual review, 1 no direct reference, 8 route mapping required. The moved `compose_pusch_intra_slot_hops` is now `receivers.nr.pusch_core.hopping.compose_pusch_intra_slot_hops`.

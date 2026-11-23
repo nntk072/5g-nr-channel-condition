@@ -78,12 +78,16 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         assert not np.allclose(symbol_channels, symbol_channels[0:1], rtol=0.0, atol=1e-8)
         assert bool(np.asarray(record.target_masks["channel_cfr"]).all())
         assert bool(np.asarray(record.target_masks["geometric_los"]).all())
-        assert record.provenance["target_semantics"]["geometric_los"].startswith(
-            "independent Mitsuba"
+        # The oracle is a digest-bound NumPy inventory cross-checked by Mitsuba, not an
+        # independent Mitsuba oracle; the test asserts that description.
+        geometric_los_semantics = record.provenance["target_semantics"]["geometric_los"]
+        assert geometric_los_semantics.startswith(
+            "digest-bound NumPy loaded-scene triangle inventory"
         )
+        assert "cross-checked by Mitsuba segment intersection" in geometric_los_semantics
         assert (
             record.target_definitions["geometric_los"].source
-            == "mitsuba_segment_intersection_oracle"
+            == "numpy_loaded_scene_triangle_inventory"
         )
         assert record.target_definitions["channel_cfr"].units.startswith("complex channel gain")
         assert not hasattr(model_inputs, "targets")
