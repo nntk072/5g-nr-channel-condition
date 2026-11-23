@@ -67,6 +67,17 @@ Parity criterion: no native failure was added. The failing set matches the earli
 exactly. Native parity is "no regression", not "all native tests pass". The six open
 failures need an owner decision; each is a scientific acceptance or claim question.
 
+### Diagnosis of the six native failures (no expectation changed)
+
+Diagnosis only, as the owner asked. No test expectation, tolerance or claim was changed.
+
+1. `test_admission_native.py` `[C60]`, `[B100]`, `[A30]`: the admission decision is correct in all three cases (each carrier is rejected). The failure is the message: the test expects `not applicable in FR1`, `not applicable in FR2` or `require an FR1 or FR2 carrier`, while `datasets/standardized.py:212` reports `carrier_frequency_hz must be within <ranges>`. The expected wording is not produced by the code. Decision needed: adopt the code's wording in the test, or add the FR-specific wording to the code.
+2. `test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py` `[B]`: the component check `abs(estimate - expected) <= half_width` (line 213) fails for one or more of the 16 components of the family-wise interval (alpha 0.01). The log does not print the half-width, so the size of the miss relative to the interval is not recorded here. Decision needed: whether the interval or the reference is wrong.
+3. `test_cdl_spatial_covariance_4element_native.py` `[E]`: the same check (line 213). The logged absolute errors reach about 0.015 against an interval capped at `_MAX_INTERVAL_HALF_WIDTH = 0.05`. The per-component half-width is not printed in the log. Decision needed, as for case 2.
+4. `test_rt_trajectory_native.py::test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory` (line 82): the test requires the oracle label to start with `independent Mitsuba`. The code labels it `digest-bound NumPy loaded-scene triangle inventory, cross-checked by Mitsuba segment intersection and depth-zero Sionna PathSolver`. The code describes a NumPy oracle cross-checked by Mitsuba, not an independent Mitsuba oracle. Decision needed: whether the claim or the label is correct.
+
+The two CDL cases and the RT case are scientific acceptance or claim questions. The admission cases are a wording decision.
+
 ## Goal items
 
 1. **Helper wiring.** `scripts/audit_helper_wiring.py` resolves package re-exports and facade re-exports to the defining submodule. The helper count is `254`; `--check` exits 0; `tests/test_scripts/test_audit_helper_wiring.py` passes. Dispositions: 245 manual review, 1 no direct reference, 8 route mapping required. The mix is the same as before the splits; the only identity change is the moved `compose_pusch_intra_slot_hops`, now `receivers.nr.pusch_core.hopping.compose_pusch_intra_slot_hops`.
