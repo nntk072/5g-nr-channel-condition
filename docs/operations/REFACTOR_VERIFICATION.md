@@ -89,6 +89,17 @@ Two items need a decision and were not changed:
 
 The native table above was run on `8d3c62d`, before this change. The RT test file was then re-run alone on the GPU environment: `1 failed, 7 passed in 45.12s`, with the failure at the target-list assertion. The two CDL cases are unchanged.
 
+## Pre-registered CDL replication (fresh seeds)
+
+Recorded before the run, so the decision rule is fixed in advance. Tolerances and
+interval definitions are unchanged; only the random seeds are replaced.
+
+- Joint case `[B]`: the test seeds each model at `2_811_000 + model index`. The replication uses `12_811_000 + model index`.
+- Four-element case `[E]`: the test uses seed `6714`. The replication uses `98_714`.
+- Decision rule: the case passes the replication only if every one of its 16 components lies within its family-wise 99% half-width (the same `_FAMILYWISE_ALPHA`, the same `_MAX_INTERVAL_HALF_WIDTH` cap, the same batch size).
+- The replication runs as a temporary copy of each test file, which is deleted afterwards. The committed tests are not changed for this run.
+- If a case fails the replication, the result is recorded as a failure. No further seeds are tried in this record.
+
 ## Goal items
 
 1. **Helper wiring.** `scripts/audit_helper_wiring.py` resolves package re-exports and facade re-exports to the defining submodule. The helper count is `254`; `--check` exits 0; `tests/test_scripts/test_audit_helper_wiring.py` passes. Dispositions: 245 manual review, 1 no direct reference, 8 route mapping required. The moved `compose_pusch_intra_slot_hops` is now `receivers.nr.pusch_core.hopping.compose_pusch_intra_slot_hops`.
