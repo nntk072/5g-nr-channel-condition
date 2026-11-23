@@ -4,19 +4,19 @@ All commands run from `long_nguyen_thesis-main/` in Python **3.11+**.
 
 ## See the simulated buildings and link geometry
 
-![3D Urban43 scene with 16 building meshes, three transmitter sites, and 120 audited receiver positions](figures/rt-urban43-spatial-holdout-3d-20261022.png)
+![3D Urban43 scene with 16 building meshes, three transmitter sites, and 120 audited receiver positions](../research/figures/rt-urban43-spatial-holdout-3d-20261022.png)
 
 This is a 3D view of the actual generated building meshes. The audit contains
 120 receiver locations across three transmitter sites (40 per site), with 60
 geometric LOS and 60 geometric NLOS direct-path labels. Solid and dashed
 segments show representative clear and building-blocked direct paths; these
 are geometry checks, not simulated multipath rays or measured channels. See
-the [spatial-holdout report](results/rt-urban43-joint-location-holdout-20261022.json)
-and [figure metadata](figures/rt-urban43-spatial-holdout-3d-20261022.json).
-The separate [RT depth-convergence plot](figures/rt-box-los-nlos-convergence-depth20-100k-20261022.png)
+the [spatial-holdout report](../research/results/rt-urban43-joint-location-holdout-20261022.json)
+and [figure metadata](../research/figures/rt-urban43-spatial-holdout-3d-20261022.json).
+The separate [RT depth-convergence plot](../research/figures/rt-box-los-nlos-convergence-depth20-100k-20261022.png)
 shows a controlled thin-screen box experiment; its increasing path and delay
 statistics through depth 20 are a solver diagnostic, not the building scene.
-The [matched scattering-budget plot](figures/rt-box-los-nlos-scattering-budget-verified-20261022.png)
+The [matched scattering-budget plot](../research/figures/rt-box-los-nlos-scattering-budget-verified-20261022.png)
 compares zero and synthetic nonzero screen scattering. Its ray-budget response
 is still material and the coefficient is not calibrated.
 

@@ -16,7 +16,7 @@ assets, generated evidence, historical work, and tests:
 
 See [the refactor plan](REFACTOR_PLAN.md) for ownership rules, migration history,
 and the phased acceptance gates. The active research workflow is in
-[`docs/research/QUICKSTART.md`](../research/QUICKSTART.md).
+[`docs/guide/QUICKSTART.md`](../guide/QUICKSTART.md).
 
 The automated checks and matching local commands are documented in
 [`CI.md`](CI.md).

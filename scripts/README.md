@@ -45,7 +45,7 @@ independence across runs. Scenario LOS is retained as a standardized-model
 state, while geometric LOS and the physical RT path oracle remain absent.
 The v2 report lists the run-store and episode-store manifests and remains
 `SYNTHETIC_STANDARDIZED_MODEL_DATA_NOT_QUALIFIED`. See
-`docs/research/SCENARIO_GBSM_GENERATION_CLI_V1.md` for the bounded config
+`docs/guide/SCENARIO_GBSM_GENERATION_CLI_V1.md` for the bounded config
 contract and limitations.
 
 ## Standardized generator scope reports

@@ -9,13 +9,13 @@ synthetic smoke data as debug-only.
 
 ## Start here
 
-- [Research quickstart](docs/research/QUICKSTART.md)
+- [Research quickstart](docs/guide/QUICKSTART.md)
 - [Research program and evidence limits](docs/research/RESEARCH_PROGRAM.md)
 - [Repository architecture](docs/architecture/README.md)
 - [Agent engineering operations](docs/operations/AGENT_OPERATIONS.md)
 - [Agent task protocol](docs/operations/AGENT_TASK_PROTOCOL.md)
 - [Full phased refactor plan](docs/architecture/REFACTOR_PLAN.md)
-- [Master 5G NR research and engineering plan](docs/research/MASTER_RESEARCH_PLAN.md)
+- Master 5G NR research and engineering plan (kept at the git tag `docs/master-research-plan-archive`)
 - [MVP implementation status and exit checklist](docs/research/MVP_STATUS.md)
 - [2025 thesis PDF](docs/thesis/NguyenLong.pdf)
 

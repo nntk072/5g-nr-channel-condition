@@ -24,7 +24,7 @@ WORKFLOW_SCHEMAS = (
     Path("datasets/schema/network-grid-sinr-workflow-report.v1.schema.json"),
     Path("datasets/schema/network-transmitter-pusch-workflow-report.v1.schema.json"),
 )
-MATRIX = Path("docs/research/HELPER_WIRING_MATRIX.md")
+MATRIX = Path("docs/reference/HELPER_WIRING_MATRIX.md")
 PLAN_SOURCES = (
     Path("docs/research/MASTER_RESEARCH_PLAN.md"),
     Path("docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md"),

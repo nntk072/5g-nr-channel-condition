@@ -5,7 +5,7 @@ The original Tampere 2025 thesis and notebooks are preserved under
 framework has explicit domain packages and tests under `tests/`. This branch targets *genuine physical LOS/NLOS detection*
 under cross-domain distribution shift, not reclassification of TDL/CDL labels.
 
-**Start:** `docs/research/QUICKSTART.md`
+**Start:** `docs/guide/QUICKSTART.md`
 
 **Repository architecture:** `docs/architecture/README.md`
 

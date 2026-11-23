@@ -2,7 +2,7 @@
 
 **Status:** repository-source audit, partial implementation evidence; not
 scientific qualification. The machine-readable row inventory is
-[TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.json](TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.json).
+[TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.json](../research/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.json).
 
 The inventory covers all 19 recognized target-definition versions in
 `datasets.targets._CANONICAL_TARGET_CONTRACTS` and its provenance registry.

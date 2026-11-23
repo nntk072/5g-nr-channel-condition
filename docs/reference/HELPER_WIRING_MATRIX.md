@@ -5,7 +5,7 @@ helper inventory. Rows identify helpers that must reach a canonical workflow;
 an API's existence or a unit test alone does not count as wiring. Scientific
 qualification remains separate from software routing.
 
-The generated [`HELPER_WIRING_INVENTORY.json`](HELPER_WIRING_INVENTORY.json)
+The generated [`HELPER_WIRING_INVENTORY.json`](../research/HELPER_WIRING_INVENTORY.json)
 indexes exported top-level functions from `datasets`, `evaluation`,
 `experiments`, `integrations.sionna`, `propagation`, and `receivers`, with
 same-module and direct import/call sites from the source trees, scripts,
@@ -78,7 +78,7 @@ Regenerate and compare it with:
 
 The following exports are intentionally exposed as library APIs and have no
 repository-local production workflow caller. Their exact test references are
-recorded in the source-hash-bound [helper inventory](HELPER_WIRING_INVENTORY.json).
+recorded in the source-hash-bound [helper inventory](../research/HELPER_WIRING_INVENTORY.json).
 This is an explicit public-API disposition, not a claim of canonical workflow
 integration; test coverage proves API behavior only. Plan-named APIs retain any
 separate limitations stated below and in their owning requirement cards.
