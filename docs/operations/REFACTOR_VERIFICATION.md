@@ -47,7 +47,7 @@ Skipped tests are reported as skipped and are not counted as passed.
 
 Full list with old and new SHA-256 for every path that differs between
 `016168e` and the current tree: [refactor-digest-changes.tsv](../reference/refactor-digest-changes.tsv)
-(943 rows: 348 renamed, 49 modified, 280 added, 266 deleted; rename-only moves keep their bytes).
+(see the file for the row count; rename-only moves keep their bytes).
 
 Retained evidence keeps its recorded digests. Changes that retained evidence binds are recorded in
 [digest-rebindings.json](../reference/digest-rebindings.json):
