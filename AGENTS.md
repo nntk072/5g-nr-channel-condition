@@ -45,5 +45,5 @@ Do not commit, push, merge, rerun remote workflows, delete evidence, cancel jobs
 - Task-specific package guidance lives in `.agents/domain_maps/`.
 - Research integrity and qualification boundaries live in `.agents/rules/research-integrity.md` and `.agents/rules/qualification-gates.md`.
 - Context and handoff rules live in `.agents/rules/context-management.md`.
-- Operator commands, durable-state recovery, and resource authorization live in `docs/operations/AGENT_TASK_PROTOCOL.md` and `docs/operations/AGENT_COMPUTE_POLICY.md`.
-- Baseline evidence and current control-plane operating guidance live in `docs/operations/AGENT_OPERATIONS.md`.
+- Operator commands, durable-state recovery, and resource authorization live in `docs/operations/agent-task-protocol.md` and `docs/operations/agent-compute-policy.md`.
+- Baseline evidence and current control-plane operating guidance live in `docs/operations/agent-operations.md`.

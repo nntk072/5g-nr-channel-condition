@@ -14,12 +14,12 @@ assets, generated evidence, historical work, and tests:
 - `notebooks/legacy_2025/` and `archive/legacy_2025/` preserve the earlier thesis.
 - `tests/` mirrors the active package boundaries.
 
-See [the refactor plan](REFACTOR_PLAN.md) for ownership rules, migration history,
+See [the refactor plan](refactor-plan.md) for ownership rules, migration history,
 and the phased acceptance gates. The active research workflow is in
-[`docs/guide/QUICKSTART.md`](../guide/QUICKSTART.md).
+[`docs/guide/quickstart.md`](../guide/quickstart.md).
 
 The automated checks and matching local commands are documented in
-[`CI.md`](CI.md).
+[`CI.md`](ci.md).
 
 ## Agent control plane
 
@@ -44,5 +44,5 @@ roots. The curated queue reconciles those operational states without rewriting
 
 Native resource classes are fail-closed behind explicit resource authorization and
 measured host inventory. Portable CPU engineering paths do not import Sionna RT or
-allocate GPU resources. See [Agent Operations](../operations/AGENT_OPERATIONS.md)
+allocate GPU resources. See [Agent Operations](../operations/agent-operations.md)
 for the operator workflow.

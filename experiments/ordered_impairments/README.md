@@ -17,6 +17,6 @@ Concept modules for the ordered-impairment receiver check. The public entry poin
 
 ## Invariants
 
-- The producer source binding in `build_hash_bound_result` hashes the facade file only. The implementation modules are not covered by that digest; see `docs/operations/REFACTOR_VERIFICATION.md`.
+- The producer source binding in `build_hash_bound_result` hashes the facade file only. The implementation modules are not covered by that digest; see `docs/operations/refactor-verification.md`.
 - A function is looked up in the module that calls it. Tests that replace a function must patch every module that binds it.
 - File-relative paths in these modules use `parents[2]` for the repository root.

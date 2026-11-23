@@ -2219,6 +2219,246 @@
     {
       "old_path": "docs/research/SCENE_FAMILY_REGISTRY.md",
       "new_path": "docs/reference/SCENE_FAMILY_REGISTRY.md"
+    },
+    {
+      "old_path": "docs/guide/BASELINE_CONTROLS_WORKFLOW.md",
+      "new_path": "docs/guide/baseline-controls-workflow.md"
+    },
+    {
+      "old_path": "docs/research/BASELINE_CONTROLS_WORKFLOW.md",
+      "new_path": "docs/guide/baseline-controls-workflow.md"
+    },
+    {
+      "old_path": "docs/guide/LUNA_EXECUTION_GUIDE_2026-11-11.md",
+      "new_path": "docs/guide/luna-execution-guide-2026-11-11.md"
+    },
+    {
+      "old_path": "docs/research/LUNA_EXECUTION_GUIDE_2026-11-11.md",
+      "new_path": "docs/guide/luna-execution-guide-2026-11-11.md"
+    },
+    {
+      "old_path": "docs/research/NETWORK_PUSCH_RECEIVER_WORKFLOW.md",
+      "new_path": "docs/guide/network-pusch-receiver-workflow.md"
+    },
+    {
+      "old_path": "docs/guide/NETWORK_PUSCH_RECEIVER_WORKFLOW.md",
+      "new_path": "docs/guide/network-pusch-receiver-workflow.md"
+    },
+    {
+      "old_path": "docs/research/PILOT_SAMPLING_WORKFLOW.md",
+      "new_path": "docs/guide/pilot-sampling-workflow.md"
+    },
+    {
+      "old_path": "docs/guide/PILOT_SAMPLING_WORKFLOW.md",
+      "new_path": "docs/guide/pilot-sampling-workflow.md"
+    },
+    {
+      "old_path": "docs/guide/QUICKSTART.md",
+      "new_path": "docs/guide/quickstart.md"
+    },
+    {
+      "old_path": "docs/research/QUICKSTART.md",
+      "new_path": "docs/guide/quickstart.md"
+    },
+    {
+      "old_path": "docs/guide/RESOURCE_BUDGET_WORKFLOW.md",
+      "new_path": "docs/guide/resource-budget-workflow.md"
+    },
+    {
+      "old_path": "docs/research/RESOURCE_BUDGET_WORKFLOW.md",
+      "new_path": "docs/guide/resource-budget-workflow.md"
+    },
+    {
+      "old_path": "docs/guide/RUNTIME_INVENTORY_WORKFLOW.md",
+      "new_path": "docs/guide/runtime-inventory-workflow.md"
+    },
+    {
+      "old_path": "docs/research/RUNTIME_INVENTORY_WORKFLOW.md",
+      "new_path": "docs/guide/runtime-inventory-workflow.md"
+    },
+    {
+      "old_path": "docs/guide/SCENARIO_GBSM_GENERATION_CLI_V1.md",
+      "new_path": "docs/guide/scenario-gbsm-generation-cli-v1.md"
+    },
+    {
+      "old_path": "docs/research/SCENARIO_GBSM_GENERATION_CLI_V1.md",
+      "new_path": "docs/guide/scenario-gbsm-generation-cli-v1.md"
+    },
+    {
+      "old_path": "docs/research/G4_SCENARIO_GBSM_GENERATION_CLI_V1.md",
+      "new_path": "docs/guide/scenario-gbsm-generation-cli-v1.md"
+    },
+    {
+      "old_path": "docs/architecture/BASELINE.md",
+      "new_path": "docs/architecture/baseline.md"
+    },
+    {
+      "old_path": "docs/architecture/BENCHMARK_PARTITION_MATERIALIZATION.md",
+      "new_path": "docs/architecture/benchmark-partition-materialization.md"
+    },
+    {
+      "old_path": "docs/research/BENCHMARK_PARTITION_MATERIALIZATION.md",
+      "new_path": "docs/architecture/benchmark-partition-materialization.md"
+    },
+    {
+      "old_path": "docs/architecture/CI.md",
+      "new_path": "docs/architecture/ci.md"
+    },
+    {
+      "old_path": "docs/research/MODEL_INPUT_ROUTE_INVENTORY.md",
+      "new_path": "docs/architecture/model-input-route-inventory.md"
+    },
+    {
+      "old_path": "docs/architecture/MODEL_INPUT_ROUTE_INVENTORY.md",
+      "new_path": "docs/architecture/model-input-route-inventory.md"
+    },
+    {
+      "old_path": "docs/architecture/MODULE_SPLIT_DESIGN_NOTES.md",
+      "new_path": "docs/architecture/module-split-design-notes.md"
+    },
+    {
+      "old_path": "docs/architecture/NAMING_EXCEPTIONS.md",
+      "new_path": "docs/architecture/naming-exceptions.md"
+    },
+    {
+      "old_path": "docs/research/NETWORK_TOPOLOGY_SUPPORT.md",
+      "new_path": "docs/architecture/network-topology-support.md"
+    },
+    {
+      "old_path": "docs/architecture/NETWORK_TOPOLOGY_SUPPORT.md",
+      "new_path": "docs/architecture/network-topology-support.md"
+    },
+    {
+      "old_path": "docs/architecture/OBSERVABLE_MULTIPATH_MODEL.md",
+      "new_path": "docs/architecture/observable-multipath-model.md"
+    },
+    {
+      "old_path": "docs/research/OBSERVABLE_MULTIPATH_MODEL.md",
+      "new_path": "docs/architecture/observable-multipath-model.md"
+    },
+    {
+      "old_path": "docs/research/OUTPUT_TASKS_AND_CHANNELS.md",
+      "new_path": "docs/architecture/output-tasks-and-channels.md"
+    },
+    {
+      "old_path": "docs/architecture/OUTPUT_TASKS_AND_CHANNELS.md",
+      "new_path": "docs/architecture/output-tasks-and-channels.md"
+    },
+    {
+      "old_path": "docs/architecture/REFACTOR_PLAN.md",
+      "new_path": "docs/architecture/refactor-plan.md"
+    },
+    {
+      "old_path": "docs/research/RT_BACKEND_SELECTION.md",
+      "new_path": "docs/architecture/rt-backend-selection.md"
+    },
+    {
+      "old_path": "docs/architecture/RT_BACKEND_SELECTION.md",
+      "new_path": "docs/architecture/rt-backend-selection.md"
+    },
+    {
+      "old_path": "docs/architecture/RT_RUN_IDENTITY.md",
+      "new_path": "docs/architecture/rt-run-identity.md"
+    },
+    {
+      "old_path": "docs/research/RT_RUN_IDENTITY.md",
+      "new_path": "docs/architecture/rt-run-identity.md"
+    },
+    {
+      "old_path": "docs/architecture/RT_SCENE_ASSET_IDENTITY.md",
+      "new_path": "docs/architecture/rt-scene-asset-identity.md"
+    },
+    {
+      "old_path": "docs/research/RT_SCENE_ASSET_IDENTITY.md",
+      "new_path": "docs/architecture/rt-scene-asset-identity.md"
+    },
+    {
+      "old_path": "docs/architecture/SIONNA_REFERENCE.md",
+      "new_path": "docs/architecture/sionna-reference.md"
+    },
+    {
+      "old_path": "docs/research/UNCERTAINTY_EVALUATION.md",
+      "new_path": "docs/architecture/uncertainty-evaluation.md"
+    },
+    {
+      "old_path": "docs/architecture/UNCERTAINTY_EVALUATION.md",
+      "new_path": "docs/architecture/uncertainty-evaluation.md"
+    },
+    {
+      "old_path": "docs/operations/AGENT_COMPUTE_POLICY.md",
+      "new_path": "docs/operations/agent-compute-policy.md"
+    },
+    {
+      "old_path": "docs/operations/AGENT_OPERATIONS.md",
+      "new_path": "docs/operations/agent-operations.md"
+    },
+    {
+      "old_path": "docs/operations/AGENT_RELEASE_ACCEPTANCE_2026-11-19.md",
+      "new_path": "docs/operations/agent-release-acceptance-2026-11-19.md"
+    },
+    {
+      "old_path": "docs/operations/AGENT_TASK_PROTOCOL.md",
+      "new_path": "docs/operations/agent-task-protocol.md"
+    },
+    {
+      "old_path": "docs/research/PROBABILITY_PRIOR_POLICY.md",
+      "new_path": "docs/operations/probability-prior-policy.md"
+    },
+    {
+      "old_path": "docs/operations/PROBABILITY_PRIOR_POLICY.md",
+      "new_path": "docs/operations/probability-prior-policy.md"
+    },
+    {
+      "old_path": "docs/operations/REFACTOR_VERIFICATION.md",
+      "new_path": "docs/operations/refactor-verification.md"
+    },
+    {
+      "old_path": "docs/operations/RELEASE_SPLIT_POLICY_V2.md",
+      "new_path": "docs/operations/release-split-policy-v2.md"
+    },
+    {
+      "old_path": "docs/research/RELEASE_SPLIT_POLICY_V2.md",
+      "new_path": "docs/operations/release-split-policy-v2.md"
+    },
+    {
+      "old_path": "docs/research/RESULT_PROMOTION_POLICY.md",
+      "new_path": "docs/operations/result-promotion-policy.md"
+    },
+    {
+      "old_path": "docs/operations/RESULT_PROMOTION_POLICY.md",
+      "new_path": "docs/operations/result-promotion-policy.md"
+    },
+    {
+      "old_path": "docs/operations/UPGRADE_CHANGELOG.md",
+      "new_path": "docs/operations/upgrade-changelog.md"
+    },
+    {
+      "old_path": "docs/research/UPGRADE_CHANGELOG.md",
+      "new_path": "docs/operations/upgrade-changelog.md"
+    },
+    {
+      "old_path": "docs/research/HELPER_WIRING_MATRIX.md",
+      "new_path": "docs/reference/helper-wiring-matrix.md"
+    },
+    {
+      "old_path": "docs/reference/HELPER_WIRING_MATRIX.md",
+      "new_path": "docs/reference/helper-wiring-matrix.md"
+    },
+    {
+      "old_path": "docs/reference/SCENE_FAMILY_REGISTRY.md",
+      "new_path": "docs/reference/scene-family-registry.md"
+    },
+    {
+      "old_path": "docs/research/SCENE_FAMILY_REGISTRY.md",
+      "new_path": "docs/reference/scene-family-registry.md"
+    },
+    {
+      "old_path": "docs/reference/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.md",
+      "new_path": "docs/reference/target-family-producer-consumer-matrix.md"
+    },
+    {
+      "old_path": "docs/research/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.md",
+      "new_path": "docs/reference/target-family-producer-consumer-matrix.md"
     }
   ],
   "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",
@@ -4350,6 +4590,12 @@
       "old_path": "tests/test_integrations/test_tdl_rayleigh_marginal_native.py",
       "old_sha256": "e79903ac4bec37740728988e302d619e01dd6d4eea7b199da187dfbf70ad9c87",
       "reason": "owner-authorized identifier rename (2026-11-23): phase tokens removed from test names; the previously recorded digest chain ends at e44e441f3c6d337e7875d635f176642b971827fd7d17056fee724f76ac8c89ee"
+    },
+    {
+      "new_path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
+      "new_sha256": "6228c56d4ea0866d6b5d11967e9464e8ba13dd99c3d3619854becf208d54f72d",
+      "old_path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
+      "old_sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2"
     }
   ]
 }

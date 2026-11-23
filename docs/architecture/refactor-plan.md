@@ -30,7 +30,7 @@ The final code edits after the last full test run still need a complete test
 pass. Native Sionna execution, standardized NR receiver implementation, and
 reconstruction of the old CNN/CVNN baselines remain research tasks rather than
 folder-migration tasks. The upstream Sionna source reference is documented at
-[`SIONNA_REFERENCE.md`](SIONNA_REFERENCE.md) and cloned outside this repository.
+[`SIONNA_REFERENCE.md`](sionna-reference.md) and cloned outside this repository.
 
 ## Current repository problems
 

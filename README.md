@@ -9,19 +9,19 @@ synthetic smoke data as debug-only.
 
 ## Start here
 
-- [Research quickstart](docs/guide/QUICKSTART.md)
+- [Research quickstart](docs/guide/quickstart.md)
 - [Research program and evidence limits](docs/research/RESEARCH_PROGRAM.md)
 - [Repository architecture](docs/architecture/README.md)
-- [Agent engineering operations](docs/operations/AGENT_OPERATIONS.md)
-- [Agent task protocol](docs/operations/AGENT_TASK_PROTOCOL.md)
-- [Full phased refactor plan](docs/architecture/REFACTOR_PLAN.md)
+- [Agent engineering operations](docs/operations/agent-operations.md)
+- [Agent task protocol](docs/operations/agent-task-protocol.md)
+- [Full phased refactor plan](docs/architecture/refactor-plan.md)
 - Master 5G NR research and engineering plan (kept at the git tag `docs/master-research-plan-archive`)
 - [MVP implementation status and exit checklist](docs/research/MVP_STATUS.md)
 - [2025 thesis PDF](docs/thesis/NguyenLong.pdf)
 
 ## Bounded agent engineering
 
-The repository includes an engineering-only `agentops/` control plane for reviewed task cards. `nr-agent` can validate the curated queue, inspect plans and state, run bounded software tasks, verify exact gates, resume safe checkpoints, and emit structured handoffs. Agent engineering status never promotes G0-G8, G5, G3, publication, or production D1 scientific status. See [Agent Operations](docs/operations/AGENT_OPERATIONS.md) before using mutating commands.
+The repository includes an engineering-only `agentops/` control plane for reviewed task cards. `nr-agent` can validate the curated queue, inspect plans and state, run bounded software tasks, verify exact gates, resume safe checkpoints, and emit structured handoffs. Agent engineering status never promotes G0-G8, G5, G3, publication, or production D1 scientific status. See [Agent Operations](docs/operations/agent-operations.md) before using mutating commands.
 
 ## Install and run
 
