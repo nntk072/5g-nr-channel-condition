@@ -164,7 +164,10 @@ def process(
                     return match.group(0)
                 changed = True
                 return f"{match.group(1)} (not in this tree)"
-            line = FULL_LINK.sub(lambda m: plain(m) if m.group(0).startswith("[") else m.group(0), line)
+
+            line = FULL_LINK.sub(
+                lambda m: plain(m) if m.group(0).startswith("[") else m.group(0), line
+            )
         out_lines.append(line)
     if changed:
         path.write_text("\n".join(out_lines), encoding="utf-8")
