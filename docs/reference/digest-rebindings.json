@@ -4906,6 +4906,12 @@
       "old_sha256": "b6a632a92fbc92a294fe7baf718a69b665635e4e5d0e71f4528b5b4d1333f003",
       "new_path": "receivers/nr/pusch.py",
       "new_sha256": "f13ed883a2d546bb5e90d0ac7cb9d314c88c2b05e9f5719fd7c2f5c40af42895"
+    },
+    {
+      "old_path": "docs/research/REQUIREMENT_LEDGER.json",
+      "old_sha256": "de1c2b6d7b366cd3eb03de905915b7c2c5215cda1b54e6c618c65a7b40259b4e",
+      "new_path": "docs/research/REQUIREMENT_LEDGER.json",
+      "new_sha256": "5508055d7d613ccd9b2c8d32249a944169bdd07849c612a4eb87d4c10320eb14"
     }
   ]
 }

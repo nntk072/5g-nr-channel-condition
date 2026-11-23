@@ -150,9 +150,14 @@ def test_fixed_delay_tdl_profiles_are_admitted_and_roundtrip(
 @pytest.mark.parametrize(
     ("model", "carrier_hz", "channel_bandwidth_hz", "message"),
     (
-        ("C60", 3.5e9, None, "not applicable in FR1"),
-        ("B100", 28e9, None, "not applicable in FR2"),
-        ("A30", 10e9, None, "require an FR1 or FR2 carrier"),
+        ("C60", 3.5e9, None, "carrier_frequency_hz must be within 24.25–71 GHz"),
+        ("B100", 28e9, None, "carrier_frequency_hz must be within 0.5–7.125 GHz"),
+        (
+            "A30",
+            10e9,
+            None,
+            "carrier_frequency_hz must be within 0.5–7.125 GHz, 24.25–71 GHz",
+        ),
         ("A10", 28e9, 200e6, "requires channel_bandwidth_hz > 200 MHz"),
         ("D10", 28e9, None, "requires channel_bandwidth_hz > 200 MHz"),
     ),

@@ -4857,18 +4857,16 @@
           "docs/research/MVP_STATUS.md",
           "docs/research/EXECUTION_QUEUE.md",
           "docs/research/REQUIREMENT_LEDGER.json",
-          "scripts/build_historical_status_crosswalk.py",
           "docs/research/schema/historical-status-crosswalk.v1.schema.json",
           "docs/research/HISTORICAL_STATUS_CROSSWALK.json",
-          "tests/test_scripts/test_build_historical_status_crosswalk.py",
           "docs/research/HISTORICAL_STATUS_MANUAL_MAPPINGS.json",
           "docs/research/schema/historical-status-manual-mappings.v1.schema.json"
         ],
         "basis": "The ledger is the single current requirement disposition and the queue is the single ordered action list; historical research and MVP notes remain intact. The source-bound crosswalk currently indexes 1,390 dated notes. It resolves 604 exact-ID/numbered-criterion matches and 80 additional manually reviewed notes; the separate manual-map file binds the exact heading and full note-block SHA-256, canonical ledger IDs, and rationale, and fails closed on stale, duplicate, unknown, or unmatched mappings. Fifty-four additional notes now have pinned mappings: 21 duplicate G4 status entries, nine source-audited G4 notes, and 24 direct evidence-to-owner mappings covering replay/runtime, synchronized time, receiver software, corpus release, Phase-0, priors/baselines, ODbL source audit, and plan tooling; every mapping retains its source hashes and evidence boundary. Bare existing repository paths cited in prose are also indexed when present. The inventory never infers gate equivalence or current status. The remaining 706 notes and conflicting current-summary audit are open, so this package row remains partial."
       },
       "verification": {
-        "status": "pass",
-        "command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' ./.venv/bin/python -m pytest -o addopts='' --confcutdir=tests/test_scripts -q tests/test_scripts/test_build_historical_status_crosswalk.py (3 passed); ./.venv/bin/python scripts/build_historical_status_crosswalk.py --check; ./.venv/bin/python -m scripts.validate_requirement_ledger; Ruff, format, JSON Schema, and git diff --check pass. The generated inventory has 604 exact matches, 80 manual mappings, and 706 unresolved notes.",
+        "status": "incomplete",
+        "command": null,
         "commit": null
       },
       "qualification": {
