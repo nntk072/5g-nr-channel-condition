@@ -165,7 +165,7 @@
     "scripts/audit_channel_population.py": "8c2a84c7f24db2d9237500dd861212a94aa0da9898f470f71933872385894e4c",
     "scripts/audit_channel_split_lineage/channel_audit.py": "2ff2db8f728703b49a537ceb8c3e985eb8b530c4fa7dc0cc5b7de3128518f835",
     "scripts/audit_channel_split_lineage/split_artifacts.py": "6f51e08a3d8e919a0a3be71b550c0186d3db1323aac35ae0286756c7c4a64ea8",
-    "scripts/audit_helper_wiring.py": "63f4584409cf03da67b4f34376013e152a06ed8d9f2558f8eb7f589233409a4c",
+    "scripts/audit_helper_wiring.py": "9bdd6b10e45928d5e1bb902945bc81d4cb477e968775e5154b4aceb27f3ab8c3",
     "scripts/audit_rt_dataset_ray_budget.py": "5379aae436f91254b50766caf9c4f5270107bcbb5b59dd9a85c2e09a3b5086f0",
     "scripts/audit_rt_nr_trajectories.py": "816eabff0c3406129c59fe1acaa29779f2706a26135c70ce7119fa6e94bf9630",
     "scripts/audit_rt_path_power_threshold.py": "8de7d64f6835d65616a3bc7585f84f05d06568366f33ca9f01b791f96fd89bcb",
