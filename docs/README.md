@@ -20,9 +20,9 @@ Setup and workflows for users of the framework.
 
 Concepts and output contracts for users of the framework.
 
+- [Naming exceptions](architecture/NAMING_EXCEPTIONS.md)
 - [Benchmark partition materialization](architecture/benchmark-partition-materialization.md)
 - [Module split design notes](architecture/module-split-design-notes.md)
-- [Naming exceptions](architecture/naming-exceptions.md)
 - [Multi-link RT to network PHY support](architecture/network-topology-support.md)
 - [Analytical two-path decoder: implementation contract](architecture/observable-multipath-model.md)
 - [Model outputs and channel families](architecture/output-tasks-and-channels.md)
@@ -37,7 +37,7 @@ Concepts and output contracts for users of the framework.
 
 Refactor and verification records.
 
-- [Production-structure refactor: verification record](operations/refactor-verification.md)
+- [Production-structure refactor: verification record](operations/REFACTOR_VERIFICATION.md)
 
 ## Reference
 

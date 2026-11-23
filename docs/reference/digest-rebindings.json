@@ -2603,6 +2603,14 @@
     {
       "old_path": "evaluation/g4_cdl_four_element_covariance.py",
       "new_path": "evaluation/cdl_covariance/four_element.py"
+    },
+    {
+      "old_path": "docs/operations/refactor-verification.md",
+      "new_path": "docs/operations/REFACTOR_VERIFICATION.md"
+    },
+    {
+      "old_path": "docs/architecture/naming-exceptions.md",
+      "new_path": "docs/architecture/NAMING_EXCEPTIONS.md"
     }
   ],
   "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",

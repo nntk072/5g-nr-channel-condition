@@ -49,8 +49,8 @@ exclude_patterns = [
     "guide/luna-execution-guide-2026-11-11.md",
     "architecture/output-tasks-and-channels.md",
     # Repository records kept for auditors, not user pages.
-    "operations/refactor-verification.md",
-    "architecture/naming-exceptions.md",
+    "operations/REFACTOR_VERIFICATION.md",
+    "architecture/NAMING_EXCEPTIONS.md",
     "architecture/module-split-design-notes.md",
 ]
 

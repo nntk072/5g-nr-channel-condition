@@ -8,7 +8,7 @@ here: E04 remains engineering DONE and scientific NOT_QUALIFIED.
 
 Path note: the goal named this file `docs/operations/REFACTOR_VERIFICATION.md`
 and the naming note `docs/architecture/NAMING_EXCEPTIONS.md`. They are lowercase
-here (`refactor-verification.md`, `naming-exceptions.md`) under the repository's
+here (`REFACTOR_VERIFICATION.md`, `NAMING_EXCEPTIONS.md`) under the repository's
 documentation naming rule.
 
 ## Gate results on `f6e4cc3`
@@ -91,7 +91,7 @@ scientific acceptance or claim question.
    production names are kept because frozen artifacts or schemas reference them.
    The `_vN` schema-version names stay, since the goal lists only `g3`, `g4`,
    `g5` and `_v1`. Each kept name, with its reason, is in
-   `docs/architecture/naming-exceptions.md`.
+   `docs/architecture/NAMING_EXCEPTIONS.md`.
 3. **Merges.**
    - Done: the nine CDL covariance modules are one package, `evaluation/cdl_covariance/`. Helper bodies that were byte-identical in every family that used them are in `shared.py`; families whose helpers differ keep their own. Importers are updated; the CDL unit tests pass (197 passed in the CDL evaluation subset).
    - Deferred: the `evaluation/g3_*` and `g4_*` modules are already concept-named, and the remaining evaluator modules are in the digest-bound roster (see item 4). The audit scripts (`experiments/audit_tdl_*`) each audit a different frozen protocol, so merging them would change audit provenance. Not merged.
