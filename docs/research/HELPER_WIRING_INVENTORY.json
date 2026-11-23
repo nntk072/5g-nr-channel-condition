@@ -93,7 +93,9 @@
     "experiments/independent_channel_receiver.py": "694ca9eaf1bd15364e0e9d58bed26234052eea0be55e3c20e16d7793ad25ef3a",
     "experiments/link_curves.py": "01a97663b6c9566fe0e60199c5e77a6a5c3c421e26133012a8e058b725dbe16a",
     "experiments/observable_multipath.py": "39a9008ee9d3d7ca4467be0a5310b9ce03ea48dfdb98b1431fd2197b91a24d2c",
-    "experiments/ordered_impairments_receiver.py": "786a45b4a1f9145645d239120b915e895d5a9a63f61d007e951ee96f19dd3101",
+    "experiments/ordered_impairments/independent_probe.py": "483150e5fb2189417fc2c10d9edaa97436ef6116a312d267025404a341965b31",
+    "experiments/ordered_impairments/paired_probe.py": "608bb84b20a22c8017fce594f347bde0fee7f41a3627026b627589c58e283639",
+    "experiments/ordered_impairments/signal_models.py": "e99d8731f89f0c5c44fa257b81e885697e1ea625406d04f44e99da7c432b6e6d",
     "experiments/profile_holdout.py": "33dec583942a07cb5bc0fee759636f735a72f2420415ce1382b758c8ec304d7a",
     "experiments/qualify_delay_domain_dft.py": "3f041902955257c04e5c91839e0ee2906d3e0b84a2433fa7791a75162e70e1ea",
     "experiments/qualify_tdl_c_dmrs_density.py": "4d6b18aeeab2bb778f7f8b76bebb10dac215924dfd697b2d1d461078227a4cdd",
@@ -206,15 +208,22 @@
     "tests/test_datasets/test_split_policy_v2.py": "fd0b622b22ff746ebbe863e47c7ddef81c8d946f04566bc2dfd42b8b31fc1443",
     "tests/test_datasets/test_standardized.py": "c3928a3ff634b63152d325ba875388e680d5076ac89dd6996e9f695fc5d431a6",
     "tests/test_datasets/test_time_axis.py": "656c112d9a9f37968e82a15bc473523c095bd24cddcc27b41ff7ad19f86556be",
-    "tests/test_datasets/test_umcd_schema.py": "d6dcb532c1a335c976ad20420f28b99a0fe3083dac8d32a0a7df4a335a05935e",
+    "tests/test_datasets/test_umcd_channel_receiver_views.py": "b8b9fe5631b1aec07562d4fd56410d6c4f71b5eea82933e780b2021ef73204d3",
+    "tests/test_datasets/test_umcd_path_oracle.py": "c5aa7462d180ced9ad7ab2737069154da81727da067a5fc1134c4efd63894f40",
+    "tests/test_datasets/test_umcd_provenance_lineage.py": "cae59019ae2c517c8acd77c2b52025ca249edbee1b4e6dd8e901548a0ac7f48f",
+    "tests/test_datasets/test_umcd_schema.py": "7984691e74941cf525d0fe34948194ee86050f3cf9b8d1e48a291582cdbe8667",
     "tests/test_datasets/test_umcd_splits.py": "9c4ef2f806baefeaf2e20ca86c90207033e66f7e9d703e3ea22c53fe1d53ab39",
     "tests/test_datasets/test_umcd_store_integrity.py": "988f79b990890b7e0d52863d916fac3b5fc2f0944e29fc3a5aa069b4c03de3e8",
+    "tests/test_datasets/test_umcd_targets.py": "a5ce47f61dd5539f80cd7931f408ac5d50e5c29a69bfe210e42403bef79ee639",
+    "tests/test_evaluation/joint_evidence_artifact_support.py": "27aa6a950398e9068ee2587c5342bf3ccb434e09e6cf7308d3bfff1c81faeef1",
     "tests/test_evaluation/test_benchmark_partitions.py": "e69be8cc1c6117c70ee765be74608b6ab724e2442942da80dec8b04dc066dafb",
     "tests/test_evaluation/test_class_support.py": "445bf93cc05c046989d1ebfdacc3ea3970cc38fdaf5ffc2c2dfeae74ab6d99cb",
     "tests/test_evaluation/test_duplicate_audit.py": "b73b3d23884828f08447271f991f91bebb6279a684298457aba213a073e62434",
     "tests/test_evaluation/test_independent_splits.py": "4e65681de74da98e1696906a6db7c79baae993b6fc6410780f09bffd4ae9599a",
     "tests/test_evaluation/test_joint_evaluation.py": "81cdddf776f7dac676e23f1cf240b4fcb845c65ed1294f5c7db618e13486c8f4",
-    "tests/test_evaluation/test_joint_evidence_artifact.py": "58474b811a1f5d87f182fa32fb361c9ed081ddaebe4738f3a16f98d7d15f46b5",
+    "tests/test_evaluation/test_joint_evidence_contract_binding.py": "a8c40821c2af811585d73b5afd574b3c4a6714642f8ae4d2ea5b48073654a87d",
+    "tests/test_evaluation/test_joint_evidence_inventory.py": "1a1af6d03bf6b16c810ed8264ce4e75eb657efd31e8c3bc3ecf4675321a8a1b1",
+    "tests/test_evaluation/test_joint_evidence_signatures.py": "fb7995811829b8c4a43d25d846afe84cecae119b84abbac7e005e4363fdde815",
     "tests/test_evaluation/test_low_confidence.py": "868ca0cc19a4fbe94c5c2e35a610195e27c4f78bcaf224eb53dcd2db844895a1",
     "tests/test_evaluation/test_metrics.py": "c271db2cd2221e1e55500aa05bc3ca2250b6b9ea98e98441aabc4aab0d927077",
     "tests/test_evaluation/test_paired_regression_statistics.py": "4850a3704106cc7b6cdbbaa251249dce905d79966513a654f93529829f1a505e",
@@ -231,10 +240,12 @@
     "tests/test_evaluation/test_uncertainty.py": "d60986d9951a1f107f84c0651d64cd9675e45feaa356cf3f00bf053c7c08e39c",
     "tests/test_experiments/test_capacity_sweep.py": "a71191c4061760aa8f107c777c8795efe97552820d458d8c524e3fae66459442",
     "tests/test_experiments/test_cp_bounded_dft_estimator.py": "9ecd5cc6f3049cabf1871fb6b3ad1bdc937a223e27ec2660aa9fe88de9ffd3ff",
+    "tests/test_experiments/test_experiment_runner_feature_routing.py": "54494922aee3551493b877c8f4992675da77e6c0526dfd13cb5ce539e1093c74",
+    "tests/test_experiments/test_experiment_runner_labels.py": "757684815475428572aa050032ee000dcabe19d45d66d2f1ca23c4ec5fbdac80",
+    "tests/test_experiments/test_experiment_runner_split_and_artifacts.py": "78a9952eae46575327f4b2680ec3ee1f025352d0ea8ae8af788b9d0982a1b280",
     "tests/test_experiments/test_link_curves.py": "ebe70899c1af7d206130a0f15f1b1e62f91b8afda6420303bf5c2dddf6fe73c4",
     "tests/test_experiments/test_observable_multipath_inputs.py": "25ff7aa6b4e328b34bf5962e4b93111d447d94665eebccd01570ef3b0a9c2139",
     "tests/test_experiments/test_rt_trajectory_forecast.py": "2feb3147ae81905b16d76efe84eaa8f8ad83a39a27f04853781a97760725b141",
-    "tests/test_experiments/test_runner.py": "4c67e7dc359b7740d5fc8881c1b95254552f94f41dc401e583ec787540ef2e21",
     "tests/test_experiments/test_trajectory_targets.py": "36c33da5924975ae3ac11c49272ffb77f1e47707207987747f71141ff9bb623e",
     "tests/test_experiments/test_two_path_experiment_contract.py": "74ccfb6688b59d5890dafc4653ce7e4748803b4657cb3e6bee3673cf5ed2dc9f",
     "tests/test_integrations/test_admission_native.py": "91c992a7260d6876a825e29255358b1da82ab353f25cd9a6542854f9b3b1d889",
@@ -287,7 +298,7 @@
     "tests/test_integrations/test_network_sinr_workflow.py": "2d72e09d05b465ae0f1e43c72bbb8f02da2f789bcde9a77917f2c5d42cf3c525",
     "tests/test_integrations/test_nr_frequency_order.py": "58c78fb702ac3d82447fb9c1cd07dc97fadb94aa360137dc15a1a26d49e42fd7",
     "tests/test_integrations/test_nr_prs.py": "d7647baca5efa086ea28450778bdc96f8c9ba37bab05d94f593d6ade1a6d361f",
-    "tests/test_integrations/test_nr_pusch_native.py": "3bf375e9f966699f056280cd2d9be91661d15653ccdc8cb5ad09d9eb63540a68",
+    "tests/test_integrations/test_nr_pusch_decode_and_allocation.py": "278540066139ac1cd21998364a5a27e5c28eb53e030fa25ad863ac6b4e1f8df4",
     "tests/test_integrations/test_nr_waveform_impairments_native.py": "39590787c90dbfdbd23d95c9712d1cd77cf48a1d6d7df85b16f7c1e1de2c061b",
     "tests/test_integrations/test_ofdm_impairments_torch.py": "37b7ac97db768f977d3959a08892627df7f04e1c7fe8572f7676388687ccc74c",
     "tests/test_integrations/test_pbch_acquisition_contract.py": "5e760d824d7860ca548e9c8520ce1f7dda523ae197bac36b3fe61540f668a039",
@@ -311,8 +322,13 @@
     "tests/test_integrations/test_sionna_adapter.py": "6bc03aefe547cce51445e82fe58458492159d43e5e7b4cb68bb198c4ed9e712e",
     "tests/test_integrations/test_sionna_backend.py": "202ecac089bbf746ddf581fb4dd91d29c35a337bf6bbefb8c9ec9b7d4c77d35e",
     "tests/test_integrations/test_sionna_scenario_gbsm_contract.py": "0ce8773d900094afca11f7fef62e1253380f55fd14d39805802cf9f5deb47aa1",
+    "tests/test_integrations/test_srs_dci_field_layout.py": "dbe8daf2128da210c78336d5832aab3f76641340285a88a9d4200bae14e13954",
+    "tests/test_integrations/test_srs_dci_request_selection.py": "aed68552927562a0998bbb1c838fce9c19476b8122a5d3cbc2622c84200c62dd",
     "tests/test_integrations/test_srs_measurements.py": "d422d1394befd33484cf6bcc294ddb704572cbd291dcfe4f7246ea76fd57ccb8",
-    "tests/test_integrations/test_srs_resource_mapping.py": "1c48896e001e6d51cde40c987030e165e41406864a204d54d5d198206aa8e784",
+    "tests/test_integrations/test_srs_positioning.py": "f5423dad2533362b6e6927b51d7cd6edfde4c9cf24e3f158782ab4b2708c4905",
+    "tests/test_integrations/test_srs_resource_mapping.py": "6069069ad99f79b14179f1850616ce02bc96233efa2ce3a5ed5181f1594c3584",
+    "tests/test_integrations/test_srs_schedule_timing.py": "0ad887ff58a92132dd319358128f46fc188003f272d50ec2be03afd2b92e0954",
+    "tests/test_integrations/test_srs_sequence_mapping.py": "ab0ad42cf97b35e2bdc70f685a66f2969c5b74e2d4ad1f749e3b3673c2853d93",
     "tests/test_integrations/test_ssb_epre_native.py": "c5f326fecba6a1b4cecdf2ca5088da019821137ad1be2530e6b9190e840ad92a",
     "tests/test_integrations/test_ssb_half_frame_native.py": "25c97ad9b9117d0143b48eb04a4afc8cdb56c6e003d0ad3fc4787c759d58a133",
     "tests/test_integrations/test_ssb_timing_native.py": "7642b672b9602120099de31ba804a1f868a590ce742711e7a1c56c733c4b4a67",
@@ -336,7 +352,8 @@
     "tests/test_propagation/test_visibility.py": "43d265cb10d27da769960fcd83587dbf13a6b39db0514aebf330d431339d3108",
     "tests/test_receivers/test_nr_pusch.py": "4b4069e6529e764bbac5b4f11a13c3f611b0f904d6ade03ec40127e30aa28e4c",
     "tests/test_receivers/test_pilots.py": "df8d826344842bcb3b5de2fe4f56af0cdd24b3db789d544754c683f775b93e20",
-    "tests/test_scripts/test_audit_channel_split_lineage.py": "86f8cb8c1db7e83fd077732e41b5c4890c503d519d4201f3da594c795dd3f075",
+    "tests/test_scripts/test_audit_channel_split_child_rosters.py": "b3a2d4d1352a1721e601c442a2c6caa516d0a9ab22b8a570717363a3f68a3922",
+    "tests/test_scripts/test_audit_channel_split_dataset_registry.py": "aa6fa26e603a354a82f952a5b5f0614296ccd32ab8073c7da55248ce562df14f",
     "tests/test_scripts/test_audit_umcd_corpus.py": "e6e686729bed20668255e74ccd4117b8c63f60724def6a65bf63cccede230d79",
     "tests/test_scripts/test_bind_split_registry_children.py": "4b23490b6cdb349a4feb263982af8d4df1cfc007605e2f637099c51865023966",
     "tests/test_scripts/test_build_channel_split_registry.py": "5de99f806a2f3c0ace59691185b7c5288373ac31dbfec62843dc04e99cf0f534",
@@ -371,7 +388,7 @@
         },
         {
           "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1971
+          "line": 256
         }
       ],
       "documented_route": true,
@@ -482,24 +499,24 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2401
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 602
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2408
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 609
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2415
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 616
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2421
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 622
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2425
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 626
         }
       ],
       "documented_route": true,
@@ -514,28 +531,28 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2349
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 550
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2383
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 584
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2372
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 573
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2374
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 575
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2376
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 577
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2378
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 579
         }
       ],
       "documented_route": true,
@@ -1066,28 +1083,28 @@
           "line": 902
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1777
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 288
         },
         {
           "path": "tests/test_datasets/test_umcd_store_integrity.py",
           "line": 270
         },
         {
-          "path": "tests/test_experiments/test_rt_trajectory_forecast.py",
-          "line": 236
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 451
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 452
+          "path": "tests/test_experiments/test_rt_trajectory_forecast.py",
+          "line": 236
         },
         {
           "path": "tests/test_experiments/test_trajectory_targets.py",
           "line": 147
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 1587
+          "path": "tests/test_scripts/test_audit_channel_split_dataset_registry.py",
+          "line": 129
         },
         {
           "path": "tests/test_scripts/test_evaluate_rt_nr_trajectory_forecasts.py",
@@ -1245,88 +1262,88 @@
           "line": 86
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 964
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 21
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 535
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 37
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 768
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 81
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 787
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 115
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 836
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 161
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 848
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 193
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 998
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 236
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1014
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 290
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1058
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 354
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1094
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 399
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1150
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 469
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1196
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 546
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1228
+          "path": "tests/test_experiments/test_experiment_runner_labels.py",
+          "line": 104
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1271
+          "path": "tests/test_experiments/test_experiment_runner_labels.py",
+          "line": 160
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1345
+          "path": "tests/test_experiments/test_experiment_runner_labels.py",
+          "line": 285
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1408
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 534
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1472
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 767
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1580
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 786
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1650
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 835
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1722
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 847
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1774
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 884
         }
       ],
       "documented_route": true,
@@ -1341,12 +1358,12 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 891
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 139
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 895
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 143
         }
       ],
       "documented_route": true,
@@ -1674,16 +1691,16 @@
           "line": 1416
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 91
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 90
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 190
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 189
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 1589
+          "path": "tests/test_scripts/test_audit_channel_split_dataset_registry.py",
+          "line": 131
         },
         {
           "path": "tests/test_scripts/test_audit_umcd_corpus.py",
@@ -1864,16 +1881,16 @@
           "line": 225
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 239
+          "path": "tests/test_scripts/test_audit_channel_split_child_rosters.py",
+          "line": 1166
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 1574
+          "path": "tests/test_scripts/test_audit_channel_split_dataset_registry.py",
+          "line": 53
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 1883
+          "path": "tests/test_scripts/test_audit_channel_split_dataset_registry.py",
+          "line": 116
         }
       ],
       "documented_route": true,
@@ -2067,8 +2084,8 @@
           "line": 1091
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1778
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 289
         },
         {
           "path": "tests/test_datasets/test_umcd_store_integrity.py",
@@ -2079,32 +2096,32 @@
           "line": 45
         },
         {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 86
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 185
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 452
+        },
+        {
           "path": "tests/test_experiments/test_rt_trajectory_forecast.py",
           "line": 233
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 87
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 186
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 453
         },
         {
           "path": "tests/test_experiments/test_trajectory_targets.py",
           "line": 140
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 964
+          "path": "tests/test_scripts/test_audit_channel_split_child_rosters.py",
+          "line": 756
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 1005
+          "path": "tests/test_scripts/test_audit_channel_split_child_rosters.py",
+          "line": 797
         },
         {
           "path": "tests/test_scripts/test_audit_umcd_corpus.py",
@@ -2260,20 +2277,20 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 714
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 112
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 718
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 116
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 722
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 120
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 726
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 124
         }
       ],
       "documented_route": true,
@@ -2344,84 +2361,60 @@
           "line": 690
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 748
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 146
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 207
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 324
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 344
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_path_oracle.py",
+          "line": 348
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 143
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 155
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 250
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 313
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 356
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 504
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 440
         },
         {
           "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 770
+          "line": 234
         },
         {
           "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1013
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1086
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1179
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1246
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1307
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1374
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1603
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1614
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1669
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1739
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1802
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1845
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1876
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2021
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2219
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2303
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2153
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2239
+          "line": 306
         },
         {
           "path": "tests/test_datasets/test_umcd_store_integrity.py",
@@ -2478,6 +2471,30 @@
         {
           "path": "tests/test_datasets/test_umcd_store_integrity.py",
           "line": 415
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 56
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 257
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 324
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 385
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 614
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 644
         },
         {
           "path": "tests/test_integrations/test_rt_network.py",
@@ -2552,8 +2569,8 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1877
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 208
         },
         {
           "path": "tests/test_integrations/test_rt_to_nr_native.py",
@@ -2813,12 +2830,12 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2198
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 303
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2237
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 342
         }
       ],
       "documented_route": true,
@@ -2836,16 +2853,16 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2207
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 312
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1885
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 216
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2236
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 341
         }
       ],
       "documented_route": true,
@@ -3119,8 +3136,8 @@
           "line": 161
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1784
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 295
         },
         {
           "path": "tests/test_datasets/test_umcd_store_integrity.py",
@@ -3868,8 +3885,8 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 278
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 277
         }
       ],
       "documented_route": true,
@@ -3973,8 +3990,8 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 225
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 224
         }
       ],
       "documented_route": true,
@@ -4078,88 +4095,60 @@
           "line": 714
         },
         {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 747
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 145
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 206
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_channel_receiver_views.py",
+          "line": 301
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_path_oracle.py",
+          "line": 347
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_path_oracle.py",
+          "line": 395
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 121
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 154
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 249
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 312
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 403
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 503
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_provenance_lineage.py",
+          "line": 405
         },
         {
           "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 769
+          "line": 233
         },
         {
           "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1012
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1085
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1178
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1211
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1276
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1352
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1602
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1613
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1668
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1738
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1801
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1875
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2020
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2116
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2196
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2302
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1060
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 1204
-        },
-        {
-          "path": "tests/test_datasets/test_umcd_schema.py",
-          "line": 2118
+          "line": 305
         },
         {
           "path": "tests/test_datasets/test_umcd_store_integrity.py",
@@ -4262,16 +4251,44 @@
           "line": 802
         },
         {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 55
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 256
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 289
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 354
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 613
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 643
+        },
+        {
+          "path": "tests/test_datasets/test_umcd_targets.py",
+          "line": 282
+        },
+        {
           "path": "tests/test_integrations/test_rt_network.py",
           "line": 198
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 776
+          "path": "tests/test_scripts/test_audit_channel_split_child_rosters.py",
+          "line": 568
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 872
+          "path": "tests/test_scripts/test_audit_channel_split_child_rosters.py",
+          "line": 664
         },
         {
           "path": "tests/test_scripts/test_audit_umcd_corpus.py",
@@ -4507,8 +4524,8 @@
           "line": 207
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 1193
+          "path": "tests/test_scripts/test_audit_channel_split_child_rosters.py",
+          "line": 985
         }
       ],
       "documented_route": true,
@@ -4592,8 +4609,8 @@
           "line": 1437
         },
         {
-          "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
-          "line": 1116
+          "path": "tests/test_scripts/test_audit_channel_split_child_rosters.py",
+          "line": 908
         },
         {
           "path": "tests/test_scripts/test_audit_umcd_corpus.py",
@@ -5108,40 +5125,40 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 510
+          "path": "tests/test_evaluation/joint_evidence_artifact_support.py",
+          "line": 312
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 538
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 528
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 937
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 559
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 973
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 44
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1483
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 106
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1030
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 142
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1828
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 219
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1858
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 199
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1876
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 275
         }
       ],
       "documented_route": false,
@@ -5259,8 +5276,8 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 799
+          "path": "tests/test_evaluation/joint_evidence_artifact_support.py",
+          "line": 565
         },
         {
           "path": "tests/test_evaluation/test_qualification_contract.py",
@@ -5641,60 +5658,60 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1173
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 161
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1481
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 283
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1507
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 315
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1542
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 348
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1574
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 373
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1607
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 394
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1637
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 417
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1662
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 439
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1683
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 465
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1706
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 521
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1728
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 555
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1754
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 217
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1821
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 240
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1872
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 386
         }
       ],
       "documented_route": false,
@@ -6162,44 +6179,44 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1511
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 293
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1552
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 333
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1592
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 359
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1622
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 379
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1648
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 400
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1668
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 423
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1689
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 450
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1712
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 487
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1739
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 255
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1776
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 390
         }
       ],
       "documented_route": false,
@@ -6306,80 +6323,80 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 547
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 230
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 885
+          "path": "tests/test_evaluation/test_joint_evidence_contract_binding.py",
+          "line": 304
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 919
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 53
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 959
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 75
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 994
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 128
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1051
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 163
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1134
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 225
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1242
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 291
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1367
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 317
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1387
+          "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
+          "line": 339
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1424
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 60
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1449
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 82
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1463
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 165
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1489
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 271
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1519
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 291
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1563
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 328
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1892
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 353
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1918
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 367
         },
         {
-          "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1940
+          "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
+          "line": 398
         }
       ],
       "documented_route": true,
@@ -6646,120 +6663,120 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 119
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 23
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 306
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 40
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 538
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 84
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 791
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 138
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 805
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 182
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 838
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 205
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 850
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 246
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 981
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 300
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1000
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1017
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1061
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1124
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1173
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1217
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1240
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1281
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1355
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1418
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1482
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1590
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1660
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1724
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 1776
-        },
-        {
-          "path": "tests/test_experiments/test_runner.py",
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
           "line": 364
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 383
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 409
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 396
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 479
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 776
+          "path": "tests/test_experiments/test_experiment_runner_feature_routing.py",
+          "line": 548
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 843
+          "path": "tests/test_experiments/test_experiment_runner_labels.py",
+          "line": 121
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 956
+          "path": "tests/test_experiments/test_experiment_runner_labels.py",
+          "line": 170
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_labels.py",
+          "line": 287
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_labels.py",
+          "line": 96
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 118
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 305
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 537
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 790
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 804
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 837
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 849
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 914
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 363
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 382
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 395
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 775
+        },
+        {
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 842
         }
       ],
       "documented_route": true,
@@ -6931,40 +6948,40 @@
       "definition_line": 475,
       "direct_production_references": [
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 380
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 325
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 538
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 364
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 959
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 366
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 554
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 385
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 557
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 182
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 584
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 198
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 998
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 201
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 1000
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 228
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 1019
+          "path": "experiments/ordered_impairments/signal_models.py",
+          "line": 108
         },
         {
           "path": "integrations/sionna/standardized_pusch.py",
@@ -7131,24 +7148,24 @@
       "definition_line": 80,
       "direct_production_references": [
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 373
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 317
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 530
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 399
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 595
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 174
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 951
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 239
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 1033
+          "path": "experiments/ordered_impairments/signal_models.py",
+          "line": 101
         },
         {
           "path": "integrations/sionna/standardized_pusch.py",
@@ -7268,24 +7285,24 @@
           "line": 184
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 366
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 310
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 523
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 356
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 546
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 167
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 944
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 190
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 990
+          "path": "experiments/ordered_impairments/signal_models.py",
+          "line": 94
         },
         {
           "path": "experiments/qualify_delay_domain_dft.py",
@@ -7362,15 +7379,15 @@
       "direct_test_references": [
         {
           "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4370
+          "line": 85
         },
         {
           "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4388
+          "line": 103
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4419
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1168
         }
       ],
       "documented_route": true,
@@ -8525,8 +8542,8 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2424
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 59
         }
       ],
       "documented_route": true,
@@ -8546,16 +8563,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2345
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 86
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2382
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 541
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4117
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 935
         }
       ],
       "documented_route": true,
@@ -8570,48 +8587,48 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3003
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 715
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3169
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 289
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3202
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 412
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3328
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 445
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4134
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 952
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4175
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 993
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4240
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1058
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4262
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1080
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3208
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 451
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3410
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 545
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3412
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 547
         }
       ],
       "documented_route": true,
@@ -8626,12 +8643,12 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2704
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 301
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2733
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 330
         }
       ],
       "documented_route": true,
@@ -8651,16 +8668,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2640
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 237
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2675
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 272
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2783
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 380
         }
       ],
       "documented_route": true,
@@ -8681,47 +8698,47 @@
       "direct_test_references": [
         {
           "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2972
+          "line": 42
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3797
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 258
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3990
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 773
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4014
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 836
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4092
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 860
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4317
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 910
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3025
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1135
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4058
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 311
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4071
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 889
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4073
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 891
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4075
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 893
         }
       ],
       "documented_route": true,
@@ -9048,28 +9065,28 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 163
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 67
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 184
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 88
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 225
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 129
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 227
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 131
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 229
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 133
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 233
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 137
         }
       ],
       "documented_route": true,
@@ -9235,20 +9252,20 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3429
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 564
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3490
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 612
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3549
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 671
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3527
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 649
         }
       ],
       "documented_route": true,
@@ -9785,12 +9802,12 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1911
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 413
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1936
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 438
         }
       ],
       "documented_route": true,
@@ -9805,16 +9822,16 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2282
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 873
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2321
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 912
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2323
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 914
         }
       ],
       "documented_route": true,
@@ -9850,28 +9867,28 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3105
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 648
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3109
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 652
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3106
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 649
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3127
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 670
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3129
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 672
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3135
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 678
         }
       ],
       "documented_route": true,
@@ -9891,12 +9908,12 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3832
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 929
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3960
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 806
         }
       ],
       "documented_route": true,
@@ -9911,132 +9928,132 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 513
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 360
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 519
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 366
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 675
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 522
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 683
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 530
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 691
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 538
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 711
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 558
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 723
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 570
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 751
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 598
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 760
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 607
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 814
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 661
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 825
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 672
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 831
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 678
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 918
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 765
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 531
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 378
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 540
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 387
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 561
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 408
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 613
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 460
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 619
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 466
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 646
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 493
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 728
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 575
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 773
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 620
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 784
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 631
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 792
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 639
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 840
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 687
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 553
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 400
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 567
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 414
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 576
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 423
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 585
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 432
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 594
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 441
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 603
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 450
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 635
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 482
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 626
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 473
         }
       ],
       "documented_route": true,
@@ -10076,12 +10093,12 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1360
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 481
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1464
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 585
         }
       ],
       "documented_route": true,
@@ -10096,8 +10113,8 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1176
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 297
         }
       ],
       "documented_route": true,
@@ -10112,12 +10129,12 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1401
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 522
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1425
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 546
         }
       ],
       "documented_route": true,
@@ -10148,16 +10165,16 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 286
+          "path": "tests/test_integrations/test_srs_dci_field_layout.py",
+          "line": 655
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 808
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 99
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1035
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 156
         }
       ],
       "documented_route": true,
@@ -10201,24 +10218,24 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1085
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 206
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1102
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 223
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1114
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 235
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1120
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 241
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1140
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 261
         }
       ],
       "documented_route": true,
@@ -10238,60 +10255,60 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1491
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 223
+        },
+        {
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 270
+        },
+        {
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 293
+        },
+        {
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 367
+        },
+        {
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 75
         },
         {
           "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1557
+          "line": 46
         },
         {
           "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2626
+          "line": 54
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2673
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 44
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2696
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 110
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2770
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 635
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4114
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 524
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4331
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 932
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4339
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1149
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4400
-        },
-        {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2802
-        },
-        {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2328
-        },
-        {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2371
-        },
-        {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2407
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 42
         }
       ],
       "documented_route": true,
@@ -10315,16 +10332,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1555
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 108
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1523
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 76
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1546
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 99
         }
       ],
       "documented_route": true,
@@ -10344,16 +10361,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3595
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 794
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3634
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 833
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3685
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 700
         }
       ],
       "documented_route": true,
@@ -10373,28 +10390,28 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3689
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 883
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3717
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 903
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3737
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 999
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3902
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 965
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3769
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 704
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3868
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 745
         }
       ],
       "documented_route": true,
@@ -10414,12 +10431,12 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2173
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 810
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2227
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 509
         }
       ],
       "documented_route": true,
@@ -10434,12 +10451,12 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1863
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 365
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1884
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 386
         }
       ],
       "documented_route": true,
@@ -10459,16 +10476,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2071
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 708
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2089
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 726
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2252
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 843
         }
       ],
       "documented_route": true,
@@ -10483,48 +10500,48 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4149
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 967
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4202
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1020
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4251
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1069
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4273
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1091
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4277
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1095
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4279
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1097
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4282
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1100
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4286
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1104
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4290
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1108
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4294
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1112
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4300
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1118
         }
       ],
       "documented_route": true,
@@ -10544,12 +10561,12 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1716
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 64
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1717
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 65
         }
       ],
       "documented_route": true,
@@ -10569,24 +10586,24 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1733
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 235
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1757
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 259
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1791
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 293
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1793
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 295
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1799
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 301
         }
       ],
       "documented_route": true,
@@ -10606,12 +10623,12 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1817
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 319
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1833
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 335
         }
       ],
       "documented_route": true,
@@ -10631,16 +10648,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1621
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 174
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1634
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 187
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1654
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 207
         }
       ],
       "documented_route": true,
@@ -10655,28 +10672,28 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3284
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 683
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3289
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 689
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3296
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 695
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3302
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 697
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3308
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 515
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3310
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 520
         }
       ],
       "documented_route": true,
@@ -10696,16 +10713,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3080
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 366
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3092
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 378
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3150
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 393
         }
       ],
       "documented_route": true,
@@ -10725,24 +10742,24 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2993
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 982
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3039
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 765
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3159
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 279
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3885
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 325
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3378
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 402
         }
       ],
       "documented_route": true,
@@ -10766,16 +10783,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3213
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 344
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2747
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 725
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3338
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 456
         }
       ],
       "documented_route": true,
@@ -10799,12 +10816,12 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2618
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 215
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2595
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 192
         }
       ],
       "documented_route": true,
@@ -10828,20 +10845,20 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1658
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 37
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1689
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 40
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1692
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 211
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1572
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 125
         }
       ],
       "documented_route": true,
@@ -10861,36 +10878,36 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3756
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 948
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3788
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 1026
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3851
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 1028
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3962
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 1038
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3975
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 732
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3929
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 764
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3931
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 808
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3941
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 821
         }
       ],
       "documented_route": true,
@@ -10907,8 +10924,8 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3315
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 702
         }
       ],
       "documented_route": true,
@@ -10928,16 +10945,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3714
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 880
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3659
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 858
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3673
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 872
         }
       ],
       "documented_route": true,
@@ -10957,28 +10974,28 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3139
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 892
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3140
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 382
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3542
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 383
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3699
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 664
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3726
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 714
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3561
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 683
         }
       ],
       "documented_route": true,
@@ -10996,16 +11013,16 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4103
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 921
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4126
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 944
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 4327
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 1145
         }
       ],
       "documented_route": true,
@@ -11020,20 +11037,20 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3244
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 386
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3248
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 391
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3253
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 487
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3271
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 502
         }
       ],
       "documented_route": true,
@@ -11053,40 +11070,40 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2459
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 121
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2486
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 122
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2502
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 127
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2524
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 143
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2525
+          "path": "tests/test_integrations/test_srs_positioning.py",
+          "line": 159
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2530
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 568
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2546
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 595
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2562
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 611
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2471
+          "path": "tests/test_integrations/test_srs_schedule_timing.py",
+          "line": 580
         }
       ],
       "documented_route": true,
@@ -11110,52 +11127,52 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1995
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 632
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1996
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 633
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 1997
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 634
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2016
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 653
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2021
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 658
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2024
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 661
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2028
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 665
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2035
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 672
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2054
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 691
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2061
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 698
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2266
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 857
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2271
+          "path": "tests/test_integrations/test_srs_dci_request_selection.py",
+          "line": 862
         }
       ],
       "documented_route": true,
@@ -11175,24 +11192,24 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2924
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 210
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2992
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 278
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2877
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 163
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2945
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 231
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 2954
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 240
         }
       ],
       "documented_route": true,
@@ -11984,16 +12001,16 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3428
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 563
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3532
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 654
         },
         {
-          "path": "tests/test_integrations/test_srs_resource_mapping.py",
-          "line": 3538
+          "path": "tests/test_integrations/test_srs_sequence_mapping.py",
+          "line": 660
         }
       ],
       "documented_route": true,
@@ -12402,8 +12419,8 @@
           "line": 280
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 630
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 629
         },
         {
           "path": "tests/test_integrations/test_sionna_adapter.py",
@@ -12939,12 +12956,12 @@
       "direct_production_references": [],
       "direct_test_references": [
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 652
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 651
         },
         {
-          "path": "tests/test_experiments/test_runner.py",
-          "line": 663
+          "path": "tests/test_experiments/test_experiment_runner_split_and_artifacts.py",
+          "line": 662
         }
       ]
     },
@@ -13224,8 +13241,8 @@
       ],
       "direct_test_references": [
         {
-          "path": "tests/test_integrations/test_nr_pusch_native.py",
-          "line": 203
+          "path": "tests/test_integrations/test_nr_pusch_decode_and_allocation.py",
+          "line": 133
         },
         {
           "path": "tests/test_receivers/test_nr_pusch.py",
