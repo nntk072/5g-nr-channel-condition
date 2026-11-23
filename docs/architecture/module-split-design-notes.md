@@ -133,3 +133,15 @@ commit.
 - `NRPUSCHConfig` and `NRChannelEstimate` stay defined in the facade: their module path is part of the audited model-input contract identity (`datasets/model_input_audit.py`), so moving them would change that identity.
 - Package `receivers/nr/pusch_core/`: `constants`, `types` (grid dataclasses), `dmrs`, `mapping`, `estimation`, `hopping`. Dependency order: constants and types, then dmrs, then mapping and hopping, then estimation; no cycles.
 - The submodules are outside the digests that the audit tools name, the same narrowed binding as the other splits.
+
+## Protocol v5: split submodules join the signed roster (owner-approved, 2026-11-23)
+
+The owner chose a protocol change over the narrowed binding for the sample-planning,
+run-manifest and acquisition modules. The change adds a new manifest version; it does
+not edit any frozen file.
+
+- New schema `datasets/schema/joint-evidence-run-manifest.v5.schema.json`, digest `7411d406e2c5ec9d340dc0c7b95afddb1e2e31a8593943a528cbe4e21caef16f`. Its `$id`, title and `schema` const are new; `evaluator_sources` is pinned to 63 entries. The V4 schema (`joint-evidence-run-manifest.v4.schema.json`, base bytes, digest `d6022a555f0d…`) is unchanged.
+- Roster `V5_EVALUATOR_SOURCE_PATHS` (`evaluation/run_manifest/constants.py`, digest `55ea618f48273d61b2e67c973ce23945355e70fca3edc70a33853438357831d2` at the commit that adds it) equals the 41 V4 entries plus `NEW_V5_SOURCE_PATHS`: 22 files from `evaluation/sample_size/`, `evaluation/run_manifest/` and `evaluation/acquisition/`.
+- The builder writes v5 manifests when a runtime inventory is included. The verifier accepts v1 to v5; v4 keeps its own schema and roster, so earlier v4 manifests still verify. Strict signed reviewer admission accepts v4 or v5.
+- No retained signed manifest exists in the tree, so no bundle rebinding is needed for v5.
+- Not in any roster: `receivers/nr/pusch_core/` (PUSCH is not an evaluator source; its narrowed binding stands).
