@@ -471,7 +471,7 @@ def test_tdl_ae_receive_covariance_matches_one_simultaneous_matrix_family(
     # TDL-D/E are LOS profiles: use their second tap so the
     # covariance claim concerns the diffuse field rather than its specular atom.
     tap_index = 1 if model in {"D", "E"} else 0
-    samples = channel.h_path[:, 0, :, 0, 0, 0, tap_index]
+    samples = channel.h_path[:, 0, :, 0, 0, tap_index, 0]
     outer_products = samples[:, :, None] * samples[:, None, :].conj()
     empirical = outer_products.mean(dim=0)
     real_se = outer_products.real.std(dim=0, unbiased=True) / math.sqrt(batch_size)
