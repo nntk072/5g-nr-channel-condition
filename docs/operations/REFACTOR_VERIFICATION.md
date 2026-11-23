@@ -78,3 +78,60 @@ Retained evidence keeps its recorded digests. Changes that retained evidence bin
 - The native baseline's pass and skip counts are not recorded (see above).
 - Stale links in frozen text (35) and protected authorities (3 documents) are unchanged, by rule.
 - Items deferred in step 3 and step 4 need owner decisions before they can be done.
+
+## Decisions and final status (supersedes the open items above)
+
+These decisions were made without further approval, as requested. Each is
+recorded with the reason it stays as it is.
+
+### Item 3 — merges: deferred, not done
+
+- **CDL covariance modules (`evaluation/cdl_*.py`, 9 files):** each is an independent reference for a separate frozen protocol. Merging them would weaken that independence and create one module of about 2,600 lines. Moving them into a package was also rejected: `docs/research/REQUIREMENT_LEDGER.json` (protected authority) names these paths, and changing them needs a recorded amendment to that ledger.
+- **`experiments/audit_tdl_*` audits:** each audits a different frozen protocol, so merging changes audit provenance.
+- **`evaluation/*_joint_*` modules:** already concept-named by the rename pass. The remaining candidates are in the digest-bound evaluator roster (item 4).
+
+### Item 4 — digest-bound splits: deferred, not done
+
+- **`evaluation/sample_size_planning.py`, `evaluation/acquisition_package.py`, `evaluation/joint_evidence_run_manifest.py`:** listed in the frozen evaluator rosters (`V1_`, `V2_`, `V4_EVALUATOR_SOURCE_PATHS`). Splitting one changes the roster's file set, so the change needs a new roster version. Roster versions are contract data, and a new version is a protocol change, which is out of scope for this refactor.
+- **`experiments/ordered_impairments_receiver.py`:** not in a roster, but retained 2026-10-23 fixtures record its path and a digest (`bb9abef2…`) that matches no tracked file. A split would change which file those records resolve to. The design note with old and new digests is in `docs/architecture/MODULE_SPLIT_DESIGN_NOTES.md`.
+
+### Item 5 — 35 broken links: accepted as documented exceptions
+
+The links are in frozen text, which must not change without approval. They point at
+pre-refactor `G*` file names and are left as they are:
+
+- `docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md` — 33 links
+- `docs/research/RECEIVER_SUPPORT_MATRIX_2026-11-12.md` — 1 link
+- `docs/research/CDL_DUAL_ENDPOINT_PATTERN_PROTOCOL_2026-10-25.md` — 1 link
+
+The protected authorities `docs/research/EXECUTION_QUEUE.md` and
+`docs/research/REQUIREMENT_LEDGER.json` also name moved documents in plain text.
+They are unchanged, because amending them needs a recorded amendment.
+
+### Item 9 — native reference failures: root-caused where possible, not changed
+
+Environment change: `sionna-rt==2.2.0` (the project's declared `sionna-rt` extra)
+was installed into `envs/py312-gpu`. Mitsuba 3.9.1 then imports with
+`CUDA_VISIBLE_DEVICES=-1` and `DRJIT_LIBLLVM_PATH` set to the LLVM 18 library.
+Before this, `mitsuba` was missing, so two native tests failed for an environment
+reason.
+
+Subset rerun with Mitsuba available (`test_cdl_dual_pol_array_covariance_native.py`,
+`test_network_phy_native.py`, `test_tdl_los_k_factor_reference_native.py`):
+
+| Tree | Result | Failing tests |
+| --- | --- | --- |
+| Current | `5 failed, 5 passed` | CDL dual-pol `[A]`, `[B]`, `[C]`; LOS K-factor `[D10]`, `[D30]` |
+| `016168e` | `5 failed, 5 passed` | the same five |
+
+The co-channel PUSCH and reciprocity tests pass in both trees now.
+
+- **LOS K-factor (root cause found):** the native adapter reports Sionna's K-factor, which is LOS power divided by the first tap's mean power. For D10 that is 12.20 dB. The reference uses LOS power divided by the sum of the Rayleigh tap powers, which is 9.02 dB for D10 and 9.00 dB for D30. Both values are internally correct for their own definitions. The adapter's `k_factor_linear` is stored by `datasets/standardized_specs.py`, so changing it would change stored data. I have not changed it. The project needs to choose one definition, and that choice is scientific.
+- **CDL dual-pol `[A|B|C]` (root cause not determined):** the native covariance differs from the pinned independent reference by more than the frozen tolerance. Both trees show the same failure, so it predates the refactor. I have not loosened the tolerance or changed the reference, because either would change a scientific acceptance criterion.
+
+### Final status
+
+- **Verified:** lock, lint, typecheck, test, neural (exit 0 with CPU torch 2.11.0), build, and agent gates; the structure tests; the inventory at 254 helpers; and all renames, package splits and doc moves listed above.
+- **Skipped (reported as skipped, not passed):** native tests need `sionna.rt`, Mitsuba and CUDA. CUDA is hidden in this environment, so CUDA-only cases are skipped.
+- **Still failing:** CDL dual-pol `[A|B|C]` and LOS K-factor `[D10|D30]`, in both trees.
+- **Digests:** see `docs/reference/refactor-digest-changes.tsv` for every changed path, and `docs/reference/digest-rebindings.json` for the rebinding entries.
