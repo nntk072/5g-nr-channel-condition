@@ -33,7 +33,7 @@ from ..targets import (
     TargetDefinition,
     TargetValidity,
     TargetValue,
-    migrate_legacy_target_definition_v1,
+    migrate_legacy_target_definition,
 )
 from .storage import (
     EpisodeBundle,
@@ -541,7 +541,7 @@ def read_episode_bundle(
             raise ValueError("unsupported target layer schema")
         definition_payload = target_metadata["definition"]
         if target_schema == "umcd.target.v1":
-            definition = migrate_legacy_target_definition_v1(definition_payload)
+            definition = migrate_legacy_target_definition(definition_payload)
         else:
             definition = TargetDefinition(**definition_payload)
         target_reasons = tuple(TargetValidity(item) for item in target_metadata["reason_codes"])

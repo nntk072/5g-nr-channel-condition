@@ -78,7 +78,7 @@ from datasets.targets import (
     TargetValidity,
     TargetValue,
     definition_digest,
-    migrate_legacy_target_definition_v1,
+    migrate_legacy_target_definition,
     target_definition_digest,
 )
 from datasets.time_axis import align_named_time_axes
@@ -912,7 +912,7 @@ def test_legacy_definition_defaults_remain_constructible_but_not_canonical_targe
 
 
 def test_v1_target_definition_migrates_with_explicitly_unknown_contract_fields():
-    migrated = migrate_legacy_target_definition_v1(
+    migrated = migrate_legacy_target_definition(
         {
             "semantic": "legacy_delay",
             "units": "s",
@@ -1183,7 +1183,7 @@ def test_axis_bound_cfr_target_must_match_episode_subcarrier_grid(tmp_path, vers
 
 def test_legacy_v1_target_definition_cannot_be_republished_as_target_v2(tmp_path):
     bundle = _bundle()
-    legacy_definition = migrate_legacy_target_definition_v1(
+    legacy_definition = migrate_legacy_target_definition(
         {
             "semantic": "geometric_direct_path",
             "units": "boolean",

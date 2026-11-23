@@ -34,7 +34,7 @@ from .targets import (
     TargetDefinition,
     TargetValidity,
     TargetValue,
-    migrate_legacy_target_definition_v1,
+    migrate_legacy_target_definition,
     target_definition_digest,
 )
 
@@ -926,7 +926,7 @@ def read_standardized_learning_run(
         for name, item in target_payload["targets"].items():
             definition_payload = item["definition"]
             if target_schema == "standardized_targets.v1":
-                definition = migrate_legacy_target_definition_v1(definition_payload)
+                definition = migrate_legacy_target_definition(definition_payload)
             else:
                 definition = TargetDefinition(**definition_payload)
             targets[name] = TargetValue(

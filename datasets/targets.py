@@ -799,7 +799,7 @@ def target_definition_digest(
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def migrate_legacy_target_definition_v1(payload: dict[str, object]) -> TargetDefinition:
+def migrate_legacy_target_definition(payload: dict[str, object]) -> TargetDefinition:
     """Upgrade a v1 definition while marking fields absent from that schema unknown."""
     semantic_value = payload.get("semantic")
     units_value = payload.get("units")
