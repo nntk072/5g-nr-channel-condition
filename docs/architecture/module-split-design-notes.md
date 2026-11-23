@@ -109,3 +109,14 @@ several files, and only the facade is checked.
 3. Keep the four modules whole and record them as an accepted size exception.
 
 Until one is chosen, no code in these modules changes.
+
+## Implemented split: sample planning and run manifest (narrowed binding)
+
+The owner chose the narrowed split (facade at the original path, submodules
+outside the signed roster). Rebinding entries were recorded before the code
+commit.
+
+- `evaluation/sample_size_planning.py`: facade (99 lines), digest `fcff4edffa41ab4135a257f2321c7c844c782ef7ead53c2953b06477d26d2dc3`; previous `886f9211e51a10144606e27f8b3fb2fc53a991ee858b7e41e2873fb631bc70ad`; base `990a8be9cee63209c9da2aa4c1a62fcb1a47d9b4e169e293636b07988bbaf7a0`. Package `evaluation/sample_size/`: `constants`, `binomial`, `independent_units`, `joint_design`, `bootstrap`. Dependency order: constants, binomial, then the planners; no cycles.
+- `evaluation/joint_evidence_run_manifest.py`: facade (132 lines), digest `fcbd0a189bc78a6d422f15ff344b232952302838c59c073c827c0812d92a3ce3`; previous `92b065d5978cd4f783ac05de4576965c15540cc55165900f38bc8664617f9d63`; base `c44ab0d3ee9e5ad196ca4dfd715f5b120c8c563ec30133c2bf732d257b18f26b`. Package `evaluation/run_manifest/`: `constants`, `common`, `sources`, `signatures`, `contracts`, `build`, `verify`, `cli`; the `__main__` guard stays in the facade.
+- Roster coverage: the facade paths keep the V1, V2 and V4 rosters unchanged. The new submodules are not in any roster, so signed evidence no longer hashes them. This is the narrowed binding the owner chose.
+- Verifier change: the source-file check in `evaluation/run_manifest/verify.py` accepts a recorded digest that is rebound to the current digest (`artifacts/rebinding.py: recorded_digest_resolves`). The recorded size belongs to the superseded bytes and is not compared for rebound entries.

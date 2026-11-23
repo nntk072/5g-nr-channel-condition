@@ -4864,6 +4864,30 @@
       "old_sha256": "a18dc3ac3db2e6e3918526767415e409c42947eae919a7b96d0df5446100621d",
       "new_path": "docs/research/SCENE_FAMILY_LICENSE_AUDIT_2026-10-23.md",
       "new_sha256": "9f70cd92f351304a1e7236255de8274406c0ca7a5f4b2ae3e4dd7938c39446b1"
+    },
+    {
+      "old_path": "evaluation/g3_sample_size_planning.py",
+      "old_sha256": "990a8be9cee63209c9da2aa4c1a62fcb1a47d9b4e169e293636b07988bbaf7a0",
+      "new_path": "evaluation/sample_size_planning.py",
+      "new_sha256": "fcff4edffa41ab4135a257f2321c7c844c782ef7ead53c2953b06477d26d2dc3"
+    },
+    {
+      "old_path": "evaluation/sample_size_planning.py",
+      "old_sha256": "886f9211e51a10144606e27f8b3fb2fc53a991ee858b7e41e2873fb631bc70ad",
+      "new_path": "evaluation/sample_size_planning.py",
+      "new_sha256": "fcff4edffa41ab4135a257f2321c7c844c782ef7ead53c2953b06477d26d2dc3"
+    },
+    {
+      "old_path": "evaluation/g3_joint_evidence_run_manifest.py",
+      "old_sha256": "c44ab0d3ee9e5ad196ca4dfd715f5b120c8c563ec30133c2bf732d257b18f26b",
+      "new_path": "evaluation/joint_evidence_run_manifest.py",
+      "new_sha256": "fcbd0a189bc78a6d422f15ff344b232952302838c59c073c827c0812d92a3ce3"
+    },
+    {
+      "old_path": "evaluation/joint_evidence_run_manifest.py",
+      "old_sha256": "92b065d5978cd4f783ac05de4576965c15540cc55165900f38bc8664617f9d63",
+      "new_path": "evaluation/joint_evidence_run_manifest.py",
+      "new_sha256": "fcbd0a189bc78a6d422f15ff344b232952302838c59c073c827c0812d92a3ce3"
     }
   ]
 }
