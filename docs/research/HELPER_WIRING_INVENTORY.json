@@ -61,7 +61,7 @@
     "evaluation/caez_forecast.py": "43a1f1d284c28ba12c8bc8265ef5d9e6aba15ef109a4c7f8e884718e1984c61e",
     "evaluation/class_support.py": "f85c297bc8b7451417012f0d90f5a255859a8e08a445f3bcffefae72c72b7d34",
     "evaluation/complex_csi.py": "e12f665e44d5568014cf25aab043216da0284a77fb47974b3891cfbaaf92450f",
-    "evaluation/duplicate_audit.py": "b3297d05e3a7d5cf7bfa81e89c8b09da625fbe8642d32d633568e16e655422ec",
+    "evaluation/duplicate_audit.py": "346cb866a9ea60c0e0edd84f189d8003755d9d81b80c79bbab7efd6a1d6d11f4",
     "evaluation/joint_evaluation.py": "494cbf979620b98821678f31880afaf4d6c73809dc84a3490ea14389dbfd0d56",
     "evaluation/joint_evidence_artifact.py": "a5ed10b6fa2a05d1783d00a49860b897497a4ae747e42d597eeef0f5318cf975",
     "evaluation/joint_evidence_run_manifest.py": "92b065d5978cd4f783ac05de4576965c15540cc55165900f38bc8664617f9d63",
@@ -76,7 +76,7 @@
     "evaluation/receiver_assurance.py": "d2be4aefa83ddd119b5260a4ddfa0f302c1106b723d705329a34a28612a13ece",
     "evaluation/receiver_impact.py": "c1b85562075563eed6ea70d578ed7751008ab5e86517b8645a01402f32ae4b73",
     "evaluation/sample_size_planning.py": "886f9211e51a10144606e27f8b3fb2fc53a991ee858b7e41e2873fb631bc70ad",
-    "evaluation/spatial_audit.py": "d8a1c3373d7604e76805c137828fc7873f9160ec912ada5528a27554ca68199e",
+    "evaluation/spatial_audit.py": "0e4d34a247529c369fb2a131af3902e30250fe53fdf8bcb221c8af56d1f08b3f",
     "evaluation/spherical_angular_power.py": "2e97bfd7e7d665fb4159642a07377040226141dde4001ed74fe4cc41d2aa3ea6",
     "evaluation/statistics.py": "98dd7244f17fbf2127f70b410b2f1d57eeb93db70c2aa06863aea2db3653a190",
     "evaluation/target_coverage.py": "e29ca0b611a4875a40b483cf3d4c8ac2f3f0d822a2203f24e288c4bec8323563",
@@ -93,7 +93,7 @@
     "experiments/independent_channel_receiver.py": "694ca9eaf1bd15364e0e9d58bed26234052eea0be55e3c20e16d7793ad25ef3a",
     "experiments/link_curves.py": "01a97663b6c9566fe0e60199c5e77a6a5c3c421e26133012a8e058b725dbe16a",
     "experiments/observable_multipath.py": "39a9008ee9d3d7ca4467be0a5310b9ce03ea48dfdb98b1431fd2197b91a24d2c",
-    "experiments/ordered_impairments_receiver.py": "ca7c9ade968ef9205911fa08c15c34907a8bd60f32941beb782299df45054022",
+    "experiments/ordered_impairments_receiver.py": "786a45b4a1f9145645d239120b915e895d5a9a63f61d007e951ee96f19dd3101",
     "experiments/profile_holdout.py": "33dec583942a07cb5bc0fee759636f735a72f2420415ce1382b758c8ec304d7a",
     "experiments/qualify_delay_domain_dft.py": "3f041902955257c04e5c91839e0ee2906d3e0b84a2433fa7791a75162e70e1ea",
     "experiments/qualify_tdl_c_dmrs_density.py": "4d6b18aeeab2bb778f7f8b76bebb10dac215924dfd697b2d1d461078227a4cdd",
@@ -106,7 +106,7 @@
     "experiments/standardized_pusch_cp_exceedance.py": "db620a92883dbe21807c27bb84d686c3aca186db123795bc5446f6dd550f9f74",
     "experiments/time_varying_multipath_receiver.py": "52330289e52a98ffb075f0641449e137a5a36ee869d9f565180a39f0da990540",
     "experiments/trajectory_targets.py": "f966f7b4d0a42a2fc56a5764511f3f7f771f1a926b6a065ba8a33348d5d89cd2",
-    "integrations/sionna/adapter/generate.py": "a5de3becd778c388e225339afa34f05bb0a815c17016781426221b75d93728b5",
+    "integrations/sionna/adapter/generate.py": "5250562b4735ee3c7f95fbaaff50fd2d95b4d19fb1a864230a74bd837f06b05d",
     "integrations/sionna/adapter/raytrace.py": "dd97be3fa46f73d7370d5b35de9bce76512b7d7e830a5d3220d38fa4209c22f4",
     "integrations/sionna/backend.py": "b43f037ac7b9d8f7ae7d9431e3bd4592fcb2ea86562d980d2d2946d36e45d0f8",
     "integrations/sionna/cdl.py": "800544a91c8ca2755e49b34c16d081123ce36d75f4892b806d85548166eb5953",
@@ -153,7 +153,7 @@
     "propagation/physics.py": "bde34eb0018f8300fc5f1d5acb0dc52134d21b1e8129fd15ec591aa3daf083ef",
     "propagation/scene_visibility.py": "9afedb819449e78062ad8e10094063d689f6d899fa48e10376ee3f0f974e4fa0",
     "propagation/visibility.py": "e1e151456b68371b112dfb1b73b122fe67bc6da9665bb52e75fa68cf25fc5e52",
-    "pyproject.toml": "2d1c219ed3a65856ae2145a72d776df98476a0fc88cbe78668738146c17bf3e9",
+    "pyproject.toml": "5d8e656aab1f2d806180237dff281fa34d06f1dce3c56c698c49d7880ae4ac85",
     "receivers/nr/pusch.py": "b6a632a92fbc92a294fe7baf718a69b665635e4e5d0e71f4528b5b4d1333f003",
     "receivers/pilots.py": "8dde83da15e1a16031c039e7aed4ebf071b06990d1a4e17e80758dbb1f91c6ca",
     "scripts/audit_channel_population.py": "8c2a84c7f24db2d9237500dd861212a94aa0da9898f470f71933872385894e4c",
@@ -161,7 +161,7 @@
     "scripts/audit_channel_split_lineage/split_artifacts.py": "6f51e08a3d8e919a0a3be71b550c0186d3db1323aac35ae0286756c7c4a64ea8",
     "scripts/audit_helper_wiring.py": "0d71825e0eefe4ad4365bcc3d467fe906922c1e84cc31d0cecd1a4285b4e4ec8",
     "scripts/audit_rt_dataset_ray_budget.py": "5379aae436f91254b50766caf9c4f5270107bcbb5b59dd9a85c2e09a3b5086f0",
-    "scripts/audit_rt_nr_trajectories.py": "47d585e5d3843ee009e21e7a4e4ee7e72dd144d7e315a60acdabd8da934a25ba",
+    "scripts/audit_rt_nr_trajectories.py": "816eabff0c3406129c59fe1acaa29779f2706a26135c70ce7119fa6e94bf9630",
     "scripts/audit_rt_path_power_threshold.py": "8de7d64f6835d65616a3bc7585f84f05d06568366f33ca9f01b791f96fd89bcb",
     "scripts/audit_rt_spatial_holdout_labels.py": "99815f1fd0bd7468dfc818eff0c97081bac60b7c61dc22f67402be83923c30af",
     "scripts/audit_umcd_corpus.py": "d77ece30640095659d45359e49ce7caf52e7cf2a056fbb958b433d8c89904a66",
@@ -173,7 +173,7 @@
     "scripts/evaluate_caez_cross_environment.py": "ebb4e1d4219626bfd796c5592647e8a790fd6605f06b2b6971966b1aca50a273",
     "scripts/evaluate_caez_magnitude_forecast.py": "eccf8ac5cfaed831c327346bd98de34c98371c4e0da55590e2dca6b46b11ec08",
     "scripts/evaluate_regression_uncertainty.py": "bfa289291513471bd5b1152e95c8034a28837bb288fb8b75b9a52a2b626bdb91",
-    "scripts/evaluate_rt_nr_trajectory_forecasts.py": "144bf4ae8747bc72431cb6f6df091ab557f04d92802f634a4db2ea47fbd586ba",
+    "scripts/evaluate_rt_nr_trajectory_forecasts.py": "58d605032c5eca1a4719adbaed6cb799ee9d536d70c5f820acbd6dcde119dba1",
     "scripts/export_public_release.py": "6e041dccca62ebadb1badd066d50fdac7ce9887f5e0c571291bdd5e4cabdcd45",
     "scripts/materialize_benchmark_partitions.py": "865f66a79fbb7b3de921c026ceca508fa4fba7d3252b7eec16c7e5456b43be06",
     "scripts/materialize_direct_path_ablation.py": "95335d599a80f1e8651d1dd30437eb3ab13c2713006de060a54bb1f4bb219c98",
@@ -214,7 +214,7 @@
     "tests/test_evaluation/test_duplicate_audit.py": "b73b3d23884828f08447271f991f91bebb6279a684298457aba213a073e62434",
     "tests/test_evaluation/test_independent_splits.py": "4e65681de74da98e1696906a6db7c79baae993b6fc6410780f09bffd4ae9599a",
     "tests/test_evaluation/test_joint_evaluation.py": "81cdddf776f7dac676e23f1cf240b4fcb845c65ed1294f5c7db618e13486c8f4",
-    "tests/test_evaluation/test_joint_evidence_artifact.py": "50dc38255ebe40114322a830d00d086846d96b1eebe41825ba6845f210a3ad83",
+    "tests/test_evaluation/test_joint_evidence_artifact.py": "58474b811a1f5d87f182fa32fb361c9ed081ddaebe4738f3a16f98d7d15f46b5",
     "tests/test_evaluation/test_low_confidence.py": "868ca0cc19a4fbe94c5c2e35a610195e27c4f78bcaf224eb53dcd2db844895a1",
     "tests/test_evaluation/test_metrics.py": "c271db2cd2221e1e55500aa05bc3ca2250b6b9ea98e98441aabc4aab0d927077",
     "tests/test_evaluation/test_paired_regression_statistics.py": "4850a3704106cc7b6cdbbaa251249dce905d79966513a654f93529829f1a505e",
@@ -4875,7 +4875,7 @@
       "public_name": "audit_cfr_near_duplicates",
       "qualified_name": "evaluation.audit_cfr_near_duplicates",
       "source": "evaluation/duplicate_audit.py",
-      "definition_line": 37,
+      "definition_line": 36,
       "direct_production_references": [
         {
           "path": "scripts/audit_rt_nr_trajectories.py",
@@ -5001,7 +5001,7 @@
       "public_name": "audit_spatial_buffer",
       "qualified_name": "evaluation.audit_spatial_buffer",
       "source": "evaluation/spatial_audit.py",
-      "definition_line": 38,
+      "definition_line": 37,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -5117,31 +5117,31 @@
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 938
+          "line": 937
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 974
+          "line": 973
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1484
+          "line": 1483
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1031
+          "line": 1030
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1829
+          "line": 1828
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1859
+          "line": 1858
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1877
+          "line": 1876
         }
       ],
       "documented_route": true,
@@ -5260,7 +5260,7 @@
       "direct_test_references": [
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 800
+          "line": 799
         },
         {
           "path": "tests/test_evaluation/test_qualification_contract.py",
@@ -5642,59 +5642,59 @@
       "direct_test_references": [
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1174
+          "line": 1173
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1482
+          "line": 1481
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1508
+          "line": 1507
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1543
+          "line": 1542
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1575
+          "line": 1574
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1608
+          "line": 1607
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1638
+          "line": 1637
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1663
+          "line": 1662
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1684
+          "line": 1683
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1707
+          "line": 1706
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1729
+          "line": 1728
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1755
+          "line": 1754
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1822
+          "line": 1821
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1873
+          "line": 1872
         }
       ],
       "documented_route": true,
@@ -5705,7 +5705,7 @@
       "public_name": "find_cross_split_temporal_overlaps",
       "qualified_name": "evaluation.find_cross_split_temporal_overlaps",
       "source": "evaluation/duplicate_audit.py",
-      "definition_line": 120,
+      "definition_line": 119,
       "direct_production_references": [
         {
           "path": "scripts/audit_rt_nr_trajectories.py",
@@ -6163,43 +6163,43 @@
       "direct_test_references": [
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1512
+          "line": 1511
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1553
+          "line": 1552
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1593
+          "line": 1592
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1623
+          "line": 1622
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1649
+          "line": 1648
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1669
+          "line": 1668
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1690
+          "line": 1689
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1713
+          "line": 1712
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1740
+          "line": 1739
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1777
+          "line": 1776
         }
       ],
       "documented_route": true,
@@ -6311,75 +6311,75 @@
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 886
+          "line": 885
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 920
+          "line": 919
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 960
+          "line": 959
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 995
+          "line": 994
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1052
+          "line": 1051
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1135
+          "line": 1134
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1243
+          "line": 1242
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1368
+          "line": 1367
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1388
+          "line": 1387
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1425
+          "line": 1424
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1450
+          "line": 1449
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1464
+          "line": 1463
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1490
+          "line": 1489
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1520
+          "line": 1519
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1564
+          "line": 1563
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1893
+          "line": 1892
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1919
+          "line": 1918
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_artifact.py",
-          "line": 1941
+          "line": 1940
         }
       ],
       "documented_route": true,
@@ -6777,11 +6777,11 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 813
+          "line": 816
         },
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 93
+          "line": 96
         },
         {
           "path": "integrations/sionna/adapter/raytrace.py",
@@ -7979,11 +7979,11 @@
       "public_name": "generate_raytraced",
       "qualified_name": "integrations.sionna.generate_raytraced",
       "source": "integrations/sionna/adapter/generate.py",
-      "definition_line": 50,
+      "definition_line": 53,
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 924
+          "line": 927
         }
       ],
       "direct_test_references": [
@@ -8010,7 +8010,7 @@
       "public_name": "generate_raytraced_cached",
       "qualified_name": "integrations.sionna.generate_raytraced_cached",
       "source": "integrations/sionna/adapter/generate.py",
-      "definition_line": 787,
+      "definition_line": 790,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -8350,7 +8350,7 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 299
+          "line": 302
         },
         {
           "path": "integrations/sionna/rt_trajectory.py",
@@ -8379,7 +8379,7 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 920
+          "line": 923
         }
       ],
       "direct_test_references": [
@@ -11827,11 +11827,11 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 812
+          "line": 815
         },
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 90
+          "line": 93
         },
         {
           "path": "integrations/sionna/adapter/raytrace.py",
@@ -12129,7 +12129,7 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 942
+          "line": 945
         }
       ],
       "direct_test_references": [
@@ -12222,7 +12222,7 @@
         },
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 429
+          "line": 432
         },
         {
           "path": "integrations/sionna/adapter/raytrace.py",
@@ -12247,11 +12247,11 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 852
+          "line": 855
         },
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 160
+          "line": 163
         },
         {
           "path": "integrations/sionna/adapter/raytrace.py",
@@ -13018,7 +13018,7 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 428
+          "line": 431
         }
       ],
       "direct_test_references": [
@@ -13084,11 +13084,11 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 721
+          "line": 724
         },
         {
           "path": "integrations/sionna/adapter/generate.py",
-          "line": 899
+          "line": 902
         },
         {
           "path": "integrations/sionna/adapter/raytrace.py",

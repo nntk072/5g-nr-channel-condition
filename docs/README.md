@@ -44,6 +44,7 @@ Agent operations, task protocol, compute policy, and release acceptance.
 - [AgentOps P14 Release Acceptance Report](operations/AGENT_RELEASE_ACCEPTANCE_2026-11-19.md)
 - [Agent Task Protocol](operations/AGENT_TASK_PROTOCOL.md)
 - [Probability calibration and prior policy](operations/PROBABILITY_PRIOR_POLICY.md)
+- [Production-structure refactor: verification record](operations/REFACTOR_VERIFICATION.md)
 - [UMCD release split policy v2](operations/RELEASE_SPLIT_POLICY_V2.md)
 - [Research result promotion](operations/RESULT_PROMOTION_POLICY.md)
 - [Research upgrade changelog — 2026-10-21](operations/UPGRADE_CHANGELOG.md)
@@ -56,6 +57,7 @@ Generated matrices, registries, and the rebinding record.
 - [Scene-family registry and candidate sampling](reference/SCENE_FAMILY_REGISTRY.md)
 - [Canonical target producer and consumer matrix](reference/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.md)
 - [digest-rebindings.json](reference/digest-rebindings.json)
+- [refactor-digest-changes.tsv](reference/refactor-digest-changes.tsv)
 
 ## Thesis
 
