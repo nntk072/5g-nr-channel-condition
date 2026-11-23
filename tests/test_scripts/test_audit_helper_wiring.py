@@ -54,7 +54,7 @@ def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
     assert planned_internal["datasets.model_input_audit._validated_real_scalar"][
         "direct_production_references"
     ]
-    assert planned_internal["receivers.nr.pusch.compose_pusch_intra_slot_hops"][
+    assert planned_internal["receivers.nr.pusch_core.hopping.compose_pusch_intra_slot_hops"][
         "direct_test_references"
     ]
 

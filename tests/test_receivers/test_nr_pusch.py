@@ -751,7 +751,7 @@ def test_pusch_intra_slot_hops_bounds_allocation_before_creating_carrier_grid(mo
     def unexpected_allocation(*args, **kwargs):
         raise AssertionError("resource rejection must precede output allocation")
 
-    monkeypatch.setattr(pusch.np, "zeros", unexpected_allocation)
+    monkeypatch.setattr(np, "zeros", unexpected_allocation)
     with pytest.raises(TypeError, match="must be a NumPy array"):
         pusch.compose_pusch_intra_slot_hops(bwp_grid.tolist(), **options)
     with pytest.raises(ValueError, match="input and output exceed max_output_elements"):

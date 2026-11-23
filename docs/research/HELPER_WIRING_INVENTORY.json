@@ -64,7 +64,6 @@
     "evaluation/duplicate_audit.py": "346cb866a9ea60c0e0edd84f189d8003755d9d81b80c79bbab7efd6a1d6d11f4",
     "evaluation/joint_evaluation.py": "654fe588db045360481101681c027aeac4fc2b4ffd6ad002504819d5c63e2aba",
     "evaluation/joint_evidence_artifact.py": "a5ed10b6fa2a05d1783d00a49860b897497a4ae747e42d597eeef0f5318cf975",
-    "evaluation/joint_evidence_run_manifest.py": "92b065d5978cd4f783ac05de4576965c15540cc55165900f38bc8664617f9d63",
     "evaluation/low_confidence.py": "40a6dc710eb4065314ce5d602982300007b07c0fdacf4319f15b6123fbf767f9",
     "evaluation/metrics.py": "2872db0e70ccd8329061f37b53427bc8f2965f01c3f953971733f0bb48243fb3",
     "evaluation/path_equivalence_assurance.py": "5531191ac75343016a263faf501fcb4588dee0aabfae30ffdd9c54e11805b2fb",
@@ -75,7 +74,12 @@
     "evaluation/qualification_contract.py": "be183cc189091f59cd9f13dd1aa3481ef1fcc050cb9bb19649a286f57a57c0ba",
     "evaluation/receiver_assurance.py": "d2be4aefa83ddd119b5260a4ddfa0f302c1106b723d705329a34a28612a13ece",
     "evaluation/receiver_impact.py": "c1b85562075563eed6ea70d578ed7751008ab5e86517b8645a01402f32ae4b73",
-    "evaluation/sample_size_planning.py": "886f9211e51a10144606e27f8b3fb2fc53a991ee858b7e41e2873fb631bc70ad",
+    "evaluation/run_manifest/build.py": "05156f600610930ab374c3b0ec9dd90e9842c1e03af6cbc87a1cef5bd655d64d",
+    "evaluation/run_manifest/cli.py": "c6f494a231022885ad8f5253ec84e3ad2fb7970208b39eaf4046e10b737ad2e2",
+    "evaluation/run_manifest/contracts.py": "25f3dbbc79815e7c938d9b6d6f13669bde94f7275c6d236f6894ce408caef3ac",
+    "evaluation/run_manifest/sources.py": "273db5c1205a04a6e4795a0d5f68f5f9cdfa614351d55b14b4aa0c5be60d5b15",
+    "evaluation/run_manifest/verify.py": "290dfdd1d32a913120d236be90d952b18a481f4a59f7a46fb8e710503c42d9ab",
+    "evaluation/sample_size/joint_design.py": "d60521563bc6dac0ffe6af94900803f2482fad793c544092e5006dcf6ac71fde",
     "evaluation/spatial_audit.py": "0e4d34a247529c369fb2a131af3902e30250fe53fdf8bcb221c8af56d1f08b3f",
     "evaluation/spherical_angular_power.py": "2e97bfd7e7d665fb4159642a07377040226141dde4001ed74fe4cc41d2aa3ea6",
     "evaluation/statistics.py": "98dd7244f17fbf2127f70b410b2f1d57eeb93db70c2aa06863aea2db3653a190",
@@ -156,12 +160,12 @@
     "propagation/scene_visibility.py": "9afedb819449e78062ad8e10094063d689f6d899fa48e10376ee3f0f974e4fa0",
     "propagation/visibility.py": "e1e151456b68371b112dfb1b73b122fe67bc6da9665bb52e75fa68cf25fc5e52",
     "pyproject.toml": "e7217160357d2eade91bb3e91b4926246eba72af644303143a03627498c04b05",
-    "receivers/nr/pusch.py": "b6a632a92fbc92a294fe7baf718a69b665635e4e5d0e71f4528b5b4d1333f003",
+    "receivers/nr/pusch_core/hopping.py": "381b0d60b97ad7b15841493d5455f111f939bc21a681dd8372b1b5f8a895cc38",
     "receivers/pilots.py": "8dde83da15e1a16031c039e7aed4ebf071b06990d1a4e17e80758dbb1f91c6ca",
     "scripts/audit_channel_population.py": "8c2a84c7f24db2d9237500dd861212a94aa0da9898f470f71933872385894e4c",
     "scripts/audit_channel_split_lineage/channel_audit.py": "2ff2db8f728703b49a537ceb8c3e985eb8b530c4fa7dc0cc5b7de3128518f835",
     "scripts/audit_channel_split_lineage/split_artifacts.py": "6f51e08a3d8e919a0a3be71b550c0186d3db1323aac35ae0286756c7c4a64ea8",
-    "scripts/audit_helper_wiring.py": "5144950d5ab34f24861b292bf84ba7a15c22ea4176e905530b843fff8125b8ca",
+    "scripts/audit_helper_wiring.py": "63f4584409cf03da67b4f34376013e152a06ed8d9f2558f8eb7f589233409a4c",
     "scripts/audit_rt_dataset_ray_budget.py": "5379aae436f91254b50766caf9c4f5270107bcbb5b59dd9a85c2e09a3b5086f0",
     "scripts/audit_rt_nr_trajectories.py": "816eabff0c3406129c59fe1acaa29779f2706a26135c70ce7119fa6e94bf9630",
     "scripts/audit_rt_path_power_threshold.py": "8de7d64f6835d65616a3bc7585f84f05d06568366f33ca9f01b791f96fd89bcb",
@@ -187,6 +191,7 @@
     "scripts/run_cdl_e_fresh_seed_replication.py": "61b230c3c1009db66ff7f928aa2920fba6d9b9f3cc4106148e43f4c803a4c9ad",
     "scripts/run_observable_multipath_experiment.py": "ade85753c92f35f8337a893aa89c24689e657c161a298fe9fd3202e9b016ed33",
     "scripts/run_profile_proxy_dataset.py": "7e569af9db6b7463eecb592380e3e67f5d2dcdd0eb9c5b8e6ea7befd1cecfeaf",
+    "scripts/run_pusch_cp_margin_experiment.py": "a680cd8e1da4fa2466eeb3c67149daec1fc303a4912e011c986ee1c658f7e003",
     "scripts/run_rt_solver_convergence.py": "df0da07a637aa177178ceaa1cb765d46e59ea96aa2d3b8ccfe79fb29175bc66c",
     "scripts/run_tdl_pusch_time_bler_curve.py": "24857c95e364e3cea1b54c9dff211f09ef5531b68aa36cf23e693b18b716227b",
     "tests/test_datasets/test_analytical.py": "e4cddfddd17ddd096f446b679f0c2070751cf7466eada3d0becb46b84fca6f1e",
@@ -238,8 +243,10 @@
     "tests/test_evaluation/test_target_coverage.py": "45aaf9e23c01432c3e278f6250296de3e40a5da4a5d18485898d807b758cfc18",
     "tests/test_evaluation/test_tdl_profile_reference.py": "b743396524e8bae1e18f58aa4025ab79f14cf38054678807d50d7e0a770007a0",
     "tests/test_evaluation/test_uncertainty.py": "d60986d9951a1f107f84c0651d64cd9675e45feaa356cf3f00bf053c7c08e39c",
+    "tests/test_evaluation/test_uncertainty_runner.py": "5ddf7e504ca7adf6c161295c688bb4409f3839065ae7c79f45b0ac4b7da42f7b",
     "tests/test_experiments/test_capacity_sweep.py": "a71191c4061760aa8f107c777c8795efe97552820d458d8c524e3fae66459442",
     "tests/test_experiments/test_cp_bounded_dft_estimator.py": "9ecd5cc6f3049cabf1871fb6b3ad1bdc937a223e27ec2660aa9fe88de9ffd3ff",
+    "tests/test_experiments/test_cp_margin.py": "22f08571a74a3e556f3cb5e976d6fd930d156e7e004418359a44673ce3dbc3ce",
     "tests/test_experiments/test_experiment_runner_feature_routing.py": "54494922aee3551493b877c8f4992675da77e6c0526dfd13cb5ce539e1093c74",
     "tests/test_experiments/test_experiment_runner_labels.py": "757684815475428572aa050032ee000dcabe19d45d66d2f1ca23c4ec5fbdac80",
     "tests/test_experiments/test_experiment_runner_split_and_artifacts.py": "78a9952eae46575327f4b2680ec3ee1f025352d0ea8ae8af788b9d0982a1b280",
@@ -350,7 +357,7 @@
     "tests/test_propagation/test_identifiability.py": "f99a1877a56390aa916f21bc98dbe7033cf3c3bd70fda340942dad3ce82e31ee",
     "tests/test_propagation/test_scene_visibility.py": "fcafafdb8e6bcd2ef92bc84180c00f204227c28e45e750db59366b21f43f1975",
     "tests/test_propagation/test_visibility.py": "43d265cb10d27da769960fcd83587dbf13a6b39db0514aebf330d431339d3108",
-    "tests/test_receivers/test_nr_pusch.py": "4b4069e6529e764bbac5b4f11a13c3f611b0f904d6ade03ec40127e30aa28e4c",
+    "tests/test_receivers/test_nr_pusch.py": "83b735cce509358bc7ca1f12702e52e22cfc7e659680f1b6bfe2dcb69766799b",
     "tests/test_receivers/test_pilots.py": "df8d826344842bcb3b5de2fe4f56af0cdd24b3db789d544754c683f775b93e20",
     "tests/test_scripts/test_audit_channel_split_child_rosters.py": "b3a2d4d1352a1721e601c442a2c6caa516d0a9ab22b8a570717363a3f68a3922",
     "tests/test_scripts/test_audit_channel_split_dataset_registry.py": "aa6fa26e603a354a82f952a5b5f0614296ccd32ab8073c7da55248ce562df14f",
@@ -1131,7 +1138,12 @@
       "qualified_name": "datasets.debug_multipath",
       "source": "datasets/synthetic.py",
       "definition_line": 11,
-      "direct_production_references": [],
+      "direct_production_references": [
+        {
+          "path": "loslab/__main__.py",
+          "line": 235
+        }
+      ],
       "direct_test_references": [
         {
           "path": "tests/test_datasets/test_data.py",
@@ -5111,16 +5123,16 @@
     {
       "public_name": "build_joint_evidence_run_manifest",
       "qualified_name": "evaluation.build_joint_evidence_run_manifest",
-      "source": "evaluation/joint_evidence_run_manifest.py",
-      "definition_line": 695,
+      "source": "evaluation/run_manifest/build.py",
+      "definition_line": 41,
       "direct_production_references": [
         {
           "path": "evaluation/joint_evidence_artifact.py",
           "line": 302
         },
         {
-          "path": "evaluation/joint_evidence_run_manifest.py",
-          "line": 1639
+          "path": "evaluation/run_manifest/cli.py",
+          "line": 210
         }
       ],
       "direct_test_references": [
@@ -5299,8 +5311,8 @@
     {
       "public_name": "compose_g3_joint_sample_size_design",
       "qualified_name": "evaluation.compose_g3_joint_sample_size_design",
-      "source": "evaluation/sample_size_planning.py",
-      "definition_line": 875,
+      "source": "evaluation/sample_size/joint_design.py",
+      "definition_line": 20,
       "direct_production_references": [
         {
           "path": "scripts/plan_acquisition_design.py",
@@ -5567,7 +5579,52 @@
           "line": 388
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 77
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 132
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 205
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 225
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 240
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 265
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 289
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 312
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 326
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 334
+        },
+        {
+          "path": "tests/test_evaluation/test_uncertainty_runner.py",
+          "line": 343
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -5644,16 +5701,16 @@
     {
       "public_name": "evaluator_source_bundle_identity",
       "qualified_name": "evaluation.evaluator_source_bundle_identity",
-      "source": "evaluation/joint_evidence_run_manifest.py",
-      "definition_line": 651,
+      "source": "evaluation/run_manifest/sources.py",
+      "definition_line": 62,
       "direct_production_references": [
         {
           "path": "evaluation/joint_evidence_artifact.py",
           "line": 267
         },
         {
-          "path": "evaluation/joint_evidence_run_manifest.py",
-          "line": 1592
+          "path": "evaluation/run_manifest/cli.py",
+          "line": 163
         }
       ],
       "direct_test_references": [
@@ -6313,12 +6370,12 @@
     {
       "public_name": "verify_g3_joint_evidence_run_manifest",
       "qualified_name": "evaluation.verify_g3_joint_evidence_run_manifest",
-      "source": "evaluation/joint_evidence_run_manifest.py",
-      "definition_line": 879,
+      "source": "evaluation/run_manifest/verify.py",
+      "definition_line": 75,
       "direct_production_references": [
         {
-          "path": "evaluation/joint_evidence_run_manifest.py",
-          "line": 1670
+          "path": "evaluation/run_manifest/cli.py",
+          "line": 241
         }
       ],
       "direct_test_references": [
@@ -6426,16 +6483,16 @@
     {
       "public_name": "verify_joint_sample_size_design",
       "qualified_name": "evaluation.verify_joint_sample_size_design",
-      "source": "evaluation/sample_size_planning.py",
-      "definition_line": 1350,
+      "source": "evaluation/sample_size/joint_design.py",
+      "definition_line": 495,
       "direct_production_references": [
-        {
-          "path": "evaluation/joint_evidence_run_manifest.py",
-          "line": 487
-        },
         {
           "path": "evaluation/qualification_contract.py",
           "line": 471
+        },
+        {
+          "path": "evaluation/run_manifest/contracts.py",
+          "line": 80
         },
         {
           "path": "scripts/plan_acquisition_design.py",
@@ -6471,16 +6528,20 @@
       "definition_line": 596,
       "direct_production_references": [
         {
-          "path": "evaluation/joint_evidence_run_manifest.py",
-          "line": 477
+          "path": "evaluation/joint_evidence_artifact.py",
+          "line": 266
         },
         {
-          "path": "evaluation/joint_evidence_run_manifest.py",
-          "line": 854
+          "path": "evaluation/run_manifest/build.py",
+          "line": 200
         },
         {
-          "path": "evaluation/joint_evidence_run_manifest.py",
-          "line": 1163
+          "path": "evaluation/run_manifest/contracts.py",
+          "line": 70
+        },
+        {
+          "path": "evaluation/run_manifest/verify.py",
+          "line": 359
         }
       ],
       "direct_test_references": [
@@ -6659,6 +6720,10 @@
         {
           "path": "experiments/capacity_sweep.py",
           "line": 223
+        },
+        {
+          "path": "loslab/__main__.py",
+          "line": 520
         }
       ],
       "direct_test_references": [
@@ -11768,9 +11833,22 @@
         {
           "path": "experiments/cp_margin.py",
           "line": 31
+        },
+        {
+          "path": "scripts/run_pusch_cp_margin_experiment.py",
+          "line": 40
         }
       ],
-      "direct_test_references": [],
+      "direct_test_references": [
+        {
+          "path": "tests/test_experiments/test_cp_margin.py",
+          "line": 56
+        },
+        {
+          "path": "tests/test_integrations/test_nr_waveform_impairments_native.py",
+          "line": 962
+        }
+      ],
       "documented_route": true,
       "audit_disposition": "documented_route_requires_manual_review",
       "exact_plan_reference_files": []
@@ -13225,9 +13303,9 @@
     },
     {
       "public_name": "compose_pusch_intra_slot_hops",
-      "qualified_name": "receivers.nr.pusch.compose_pusch_intra_slot_hops",
-      "source": "receivers/nr/pusch.py",
-      "definition_line": 871,
+      "qualified_name": "receivers.nr.pusch_core.hopping.compose_pusch_intra_slot_hops",
+      "source": "receivers/nr/pusch_core/hopping.py",
+      "definition_line": 22,
       "definition_kind": "function",
       "plan_reference_files": [
         "docs/research/IMPLEMENTATION_BACKLOG.md",
@@ -13235,8 +13313,8 @@
       ],
       "direct_production_references": [
         {
-          "path": "receivers/nr/pusch.py",
-          "line": 1054
+          "path": "receivers/nr/pusch_core/hopping.py",
+          "line": 205
         }
       ],
       "direct_test_references": [
@@ -13246,39 +13324,11 @@
         },
         {
           "path": "tests/test_receivers/test_nr_pusch.py",
-          "line": 248
-        },
-        {
-          "path": "tests/test_receivers/test_nr_pusch.py",
-          "line": 538
-        },
-        {
-          "path": "tests/test_receivers/test_nr_pusch.py",
-          "line": 613
-        },
-        {
-          "path": "tests/test_receivers/test_nr_pusch.py",
-          "line": 677
-        },
-        {
-          "path": "tests/test_receivers/test_nr_pusch.py",
-          "line": 709
-        },
-        {
-          "path": "tests/test_receivers/test_nr_pusch.py",
-          "line": 779
-        },
-        {
-          "path": "tests/test_receivers/test_nr_pusch.py",
           "line": 756
         },
         {
           "path": "tests/test_receivers/test_nr_pusch.py",
           "line": 758
-        },
-        {
-          "path": "tests/test_receivers/test_nr_pusch.py",
-          "line": 811
         }
       ]
     }
