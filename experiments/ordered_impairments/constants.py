@@ -1,0 +1,121 @@
+"""Constants for ordered impairments receiver."""
+
+from __future__ import annotations
+
+from experiments.acceptance import (
+    SNR_CURVE_BOOTSTRAP_DRAWS,
+    SNR_CURVE_BOOTSTRAP_SEED,
+)
+
+SCHEMA = "umcd.g5_ordered_impairments_receiver.v2"
+
+
+RESULT_SCHEMA = "umcd.g5_ordered_impairments_result.v2"
+
+
+_LEGACY_RESULT_SCHEMA = "umcd.g5_ordered_impairments_result.v1"
+
+
+PAYLOAD_SEEDS = tuple(range(73_501, 73_509))
+
+
+BLOCKS_PER_SEED = 16
+
+
+NOISE_SEED_OFFSET = 200_000
+
+
+TX_PHASE_SEED_OFFSET = 300_000
+
+
+RX_PHASE_SEED_OFFSET = 400_000
+
+
+NOISE_VARIANCE = 1e-3
+
+
+CFO_HZ = 600.0
+
+
+TIMING_OFFSET_SAMPLES = 2
+
+
+TX_LINEWIDTH_HZ = 10.0
+
+
+RX_LINEWIDTH_HZ = 10.0
+
+
+TX_IQ_GAIN_IMBALANCE_DB = 0.5
+
+
+TX_IQ_PHASE_IMBALANCE_RAD = 0.02
+
+
+RX_IQ_GAIN_IMBALANCE_DB = 0.5
+
+
+RX_IQ_PHASE_IMBALANCE_RAD = -0.02
+
+
+DIRECT_COEFFICIENT = 0.9 - 0.1j
+
+
+ECHO_COEFFICIENT = 0.35 + 0.2j
+
+
+ECHO_DELAY_SAMPLES = 2
+
+
+MAX_TIMING_OFFSET_SAMPLES = 3
+
+
+CP_GUARD_SAMPLES = ECHO_DELAY_SAMPLES
+
+
+# Frozen before running the confirmatory seeds: timing acquisition must be
+# exact; absolute CFO error must be below 250 Hz at P95 and 350 Hz maximum;
+# clean reference BLER must be <=1%; corrected CRC retention must be >=90%.
+MAX_CFO_ERROR_P95_HZ = 250.0
+
+
+MAX_CFO_ERROR_HZ = 350.0
+
+
+MAX_REFERENCE_BLER = 0.01
+
+
+MAX_IMPAIRED_BLER = 0.10
+
+
+INDEPENDENT_CHANNEL_SEEDS = tuple(range(74_001, 74_065))
+
+
+INDEPENDENT_CHANNEL_BOOTSTRAP_SEED = 74_999
+
+
+INDEPENDENT_SNR_CURVE_BOOTSTRAP_SEED = SNR_CURVE_BOOTSTRAP_SEED
+
+
+INDEPENDENT_SNR_CURVE_BOOTSTRAP_DRAWS = SNR_CURVE_BOOTSTRAP_DRAWS
+
+
+INDEPENDENT_CHANNEL_BOOTSTRAP_DRAWS = 20_000
+
+
+_MAX_INDEPENDENT_TRANSPORT_BLOCKS = 16_384
+
+
+_MAX_INDEPENDENT_SNR_POINTS = 64
+
+
+_MAX_WAVEFORM_EVIDENCE_BYTES = 512 * 1024 * 1024
+
+
+_MAX_WAVEFORM_EVIDENCE_UNCOMPRESSED_BYTES = 1024 * 1024 * 1024
+
+
+_MAX_WAVEFORM_NPZ_MEMBERS = 32
+
+
+_MAX_WAVEFORM_NPZ_MEMBER_NAME_BYTES = 128

@@ -35,6 +35,34 @@ from experiments.ordered_impairments_receiver import (  # noqa: E402
 )
 
 
+def _patch_package(monkeypatch, name: str, value) -> None:
+    """Patch every module of the split receiver that binds ``name``.
+
+    The receiver is split into a facade and concept modules. A function is looked up
+    in the module that calls it, so a patch must reach every module that binds the name.
+    """
+    import importlib
+
+    modules = [experiment]
+    for leaf in (
+        "constants",
+        "hashing",
+        "paired_probe",
+        "independent_probe",
+        "independent_snr_curve",
+        "statistics",
+        "signal_models",
+        "waveform_evidence",
+    ):
+        modules.append(importlib.import_module(f"experiments.ordered_impairments.{leaf}"))
+    patched = False
+    for module in modules:
+        if hasattr(module, name):
+            monkeypatch.setattr(module, name, value)
+            patched = True
+    assert patched, f"no split receiver module binds {name!r}"
+
+
 def _fake_snr_point(**kwargs: Any) -> dict[str, Any]:
     seeds = kwargs["channel_seeds"]
     blocks = kwargs["blocks_per_channel"]
@@ -125,7 +153,7 @@ def test_independent_snr_curve_pairs_seed_roster_and_binds_variance(monkeypatch)
         calls.append(kwargs)
         return _fake_snr_point(**kwargs)
 
-    monkeypatch.setattr(experiment, "run_independent_ordered_impairment_probe", fake_probe)
+    _patch_package(monkeypatch, "run_independent_ordered_impairment_probe", fake_probe)
     report = experiment.run_independent_ordered_impairment_snr_curve(
         snr_db=(0.0, 10.0), channel_seeds=(17, 23), blocks_per_channel=2
     )
@@ -157,8 +185,8 @@ def test_independent_snr_curve_routes_explicit_cuda_device_and_versions_report(
         calls.append(kwargs)
         return _fake_snr_point(**kwargs)
 
-    monkeypatch.setattr(experiment, "_validate_execution_device", lambda device: device)
-    monkeypatch.setattr(experiment, "run_independent_ordered_impairment_probe", fake_probe)
+    _patch_package(monkeypatch, "_validate_execution_device", lambda device: device)
+    _patch_package(monkeypatch, "run_independent_ordered_impairment_probe", fake_probe)
     report = experiment.run_independent_ordered_impairment_snr_curve(
         snr_db=(0.0, 10.0),
         channel_seeds=(17, 23),
@@ -184,8 +212,8 @@ def test_independent_snr_curve_routes_explicit_cuda_device_and_versions_report(
 def test_independent_snr_curve_applies_pre_run_family_acceptance_contract(
     monkeypatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setattr(
-        experiment,
+    _patch_package(
+        monkeypatch,
         "run_independent_ordered_impairment_probe",
         _fake_snr_point,
     )
@@ -240,8 +268,8 @@ def test_independent_snr_curve_rejects_acceptance_contract_roster_mismatch_befor
     def unexpected_probe(**_kwargs: Any) -> dict[str, Any]:
         raise AssertionError("receiver must not run for a mismatched acceptance contract")
 
-    monkeypatch.setattr(
-        experiment,
+    _patch_package(
+        monkeypatch,
         "run_independent_ordered_impairment_probe",
         unexpected_probe,
     )
@@ -270,8 +298,8 @@ def test_independent_snr_curve_rejects_contract_below_executable_cluster_floor(
     def unexpected_probe(**_kwargs: Any) -> dict[str, Any]:
         raise AssertionError("receiver must not run below the acceptance cluster floor")
 
-    monkeypatch.setattr(
-        experiment,
+    _patch_package(
+        monkeypatch,
         "run_independent_ordered_impairment_probe",
         unexpected_probe,
     )
@@ -423,7 +451,7 @@ def test_independent_snr_curve_retains_each_condition_input_across_snr(
             report["schema"] = "umcd.g5_ordered_impairments_independent_channels.v19"
         return report
 
-    monkeypatch.setattr(experiment, "run_independent_ordered_impairment_probe", fake_probe)
+    _patch_package(monkeypatch, "run_independent_ordered_impairment_probe", fake_probe)
     evidence_path = tmp_path / "curve.waveforms.npz"
     report = experiment.run_independent_ordered_impairment_snr_curve(
         snr_db=(0.0, 10.0),
@@ -479,7 +507,7 @@ def test_snr_curve_waveform_destination_is_rejected_before_receiver(
     def unexpected_probe(**kwargs):
         raise AssertionError(f"receiver invoked before evidence-path rejection: {kwargs}")
 
-    monkeypatch.setattr(experiment, "run_independent_ordered_impairment_probe", unexpected_probe)
+    _patch_package(monkeypatch, "run_independent_ordered_impairment_probe", unexpected_probe)
     with pytest.raises(FileExistsError, match="refusing to overwrite"):
         experiment.run_independent_ordered_impairment_snr_curve(
             snr_db=(0.0,), waveform_evidence_output=existing
@@ -493,7 +521,7 @@ def test_independent_snr_curve_rejects_invalid_grid_and_total_work_before_receiv
     def unexpected_probe(**kwargs):
         raise AssertionError(f"receiver invoked before validation: {kwargs}")
 
-    monkeypatch.setattr(experiment, "run_independent_ordered_impairment_probe", unexpected_probe)
+    _patch_package(monkeypatch, "run_independent_ordered_impairment_probe", unexpected_probe)
     with pytest.raises(ValueError, match="strictly increasing"):
         experiment.run_independent_ordered_impairment_snr_curve(snr_db=(5.0, 5.0))
     with pytest.raises(ValueError, match="exceeding the bounded limit"):
@@ -534,8 +562,8 @@ def test_independent_snr_curve_rejects_invalid_grid_and_total_work_before_receiv
 
 
 def test_independent_snr_curve_bound_result_is_diagnostic_only(monkeypatch) -> None:
-    monkeypatch.setattr(
-        experiment,
+    _patch_package(
+        monkeypatch,
         "run_independent_ordered_impairment_probe",
         _fake_snr_point,
     )
@@ -556,7 +584,7 @@ def test_independent_snr_curve_auditor_recomputes_retained_crc_counts(
     def fake_probe(**kwargs):
         return _fake_snr_point(**kwargs)
 
-    monkeypatch.setattr(experiment, "run_independent_ordered_impairment_probe", fake_probe)
+    _patch_package(monkeypatch, "run_independent_ordered_impairment_probe", fake_probe)
     report = experiment.run_independent_ordered_impairment_snr_curve(
         snr_db=(0.0, 10.0), channel_seeds=(31, 37), blocks_per_channel=2
     )
@@ -717,7 +745,7 @@ def test_bounded_npz_writer_streams_channel_chunks_without_array_stacking() -> N
 
 
 def test_bounded_npz_writer_rejects_uncompressed_budget_overrun(monkeypatch) -> None:
-    monkeypatch.setattr(experiment, "_MAX_WAVEFORM_EVIDENCE_UNCOMPRESSED_BYTES", 64)
+    _patch_package(monkeypatch, "_MAX_WAVEFORM_EVIDENCE_UNCOMPRESSED_BYTES", 64)
 
     with pytest.raises(ValueError, match="uncompressed waveform evidence"):
         experiment._write_bounded_npz(
@@ -768,7 +796,7 @@ def test_waveform_evidence_destination_is_checked_before_receiver_setup(
     def unexpected_receiver(*_args, **_kwargs):
         raise AssertionError("destination validation must happen before receiver setup")
 
-    monkeypatch.setattr(experiment, "SionnaPUSCHLSReceiver", unexpected_receiver)
+    _patch_package(monkeypatch, "SionnaPUSCHLSReceiver", unexpected_receiver)
     with pytest.raises(ValueError, match="sibling-safe .npz"):
         experiment._run_independent_ordered_impairment_probe(
             channel_seeds=(1,),
@@ -814,7 +842,7 @@ def test_probe_restores_torch_thread_count_when_probe_raises(monkeypatch):
         del kwargs
         raise RuntimeError("synthetic probe failure")
 
-    monkeypatch.setattr(experiment, "_run_ordered_impairment_probe", fail_probe)
+    _patch_package(monkeypatch, "_run_ordered_impairment_probe", fail_probe)
     with pytest.raises(RuntimeError, match="synthetic probe failure"):
         run_ordered_impairment_probe(payload_seeds=(1,), blocks_per_seed=1)
 
@@ -958,7 +986,7 @@ def test_cli_accepts_an_explicit_independent_channel_seed_range(monkeypatch):
         received.update(kwargs)
         return {"schema": "fake"}
 
-    monkeypatch.setattr(experiment, "run_independent_ordered_impairment_probe", fake_probe)
+    _patch_package(monkeypatch, "run_independent_ordered_impairment_probe", fake_probe)
     monkeypatch.setattr(
         "sys.argv",
         [
@@ -989,9 +1017,9 @@ def test_independent_ordered_impairment_probe_rejects_duplicate_channels():
 def test_independent_ordered_impairment_probe_bounds_total_work_before_receiver_setup(
     monkeypatch,
 ):
-    monkeypatch.setattr(experiment, "_MAX_INDEPENDENT_TRANSPORT_BLOCKS", 3)
-    monkeypatch.setattr(
-        experiment,
+    _patch_package(monkeypatch, "_MAX_INDEPENDENT_TRANSPORT_BLOCKS", 3)
+    _patch_package(
+        monkeypatch,
         "SionnaPUSCHLSReceiver",
         lambda *_args, **_kwargs: pytest.fail("workload must be rejected before receiver setup"),
     )
@@ -1005,8 +1033,8 @@ def test_independent_ordered_impairment_probe_bounds_total_work_before_receiver_
 def test_waveform_evidence_seed_storage_range_is_checked_before_receiver_setup(
     monkeypatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setattr(
-        experiment,
+    _patch_package(
+        monkeypatch,
         "SionnaPUSCHLSReceiver",
         lambda *_args, **_kwargs: pytest.fail("invalid seed must fail before receiver setup"),
     )
