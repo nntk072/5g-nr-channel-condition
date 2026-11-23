@@ -126,3 +126,10 @@ commit.
 - `evaluation/acquisition_package.py`: facade, digest `05e11caeb31a8bb17d3333ab6152592b8ef4881336d8283c4c9e92e58d76e185`; previous `0a8db8921fe180f2bdaaec0adb20de957944f79ccddd5daf6440dacf2c7159ae`; base `07bb9da6c12b86503218f8c087dfd430e4f2363987c4a9c56d1c86fcca056db3` (`evaluation/g3_acquisition_package.py`). It is in the V1, V2 and V4 rosters; the facade path keeps the rosters unchanged.
 - Package `evaluation/acquisition/`: `constants`, `noise`, `canonical`, `files`, `index`, `verify` (the verifier is about 1,400 lines, under the limit).
 - The submodules are outside the signed roster, the same narrowed binding as above.
+
+### Implemented split: NR PUSCH (narrowed binding)
+
+- `receivers/nr/pusch.py`: facade (keeps the original path, which about 18 tools and retained results name), digest `f13ed883a2d546bb5e90d0ac7cb9d314c88c2b05e9f5719fd7c2f5c40af42895`; previous `b6a632a92fbc92a294fe7baf718a69b665635e4e5d0e71f4528b5b4d1333f003` (unchanged base).
+- `NRPUSCHConfig` and `NRChannelEstimate` stay defined in the facade: their module path is part of the audited model-input contract identity (`datasets/model_input_audit.py`), so moving them would change that identity.
+- Package `receivers/nr/pusch_core/`: `constants`, `types` (grid dataclasses), `dmrs`, `mapping`, `estimation`, `hopping`. Dependency order: constants and types, then dmrs, then mapping and hopping, then estimation; no cycles.
+- The submodules are outside the digests that the audit tools name, the same narrowed binding as the other splits.
