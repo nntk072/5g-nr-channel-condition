@@ -95,3 +95,19 @@ def recorded_digest_resolves(recorded_sha256: object, current_sha256: str, root:
     if recorded_sha256 == current_sha256:
         return True
     return _source_digest_map(root).get(recorded_sha256) == current_sha256
+
+
+def historical_revision(path: str, sha256: str, root: Path) -> str | None:
+    """Return the commit whose blob of ``path`` has ``sha256``, from the recorded revisions.
+
+    The record is ``docs/reference/historical-source-revisions.json``. A match identifies
+    provenance only; it does not show that the current file has the same digest.
+    """
+    record = root / "docs" / "reference" / "historical-source-revisions.json"
+    if not record.is_file():
+        return None
+    payload = json.loads(record.read_text(encoding="utf-8"))
+    for item in payload.get("entries", []):
+        if item.get("path") == path and item.get("sha256") == sha256:
+            return str(item["commit"])
+    return None
