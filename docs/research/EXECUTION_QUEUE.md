@@ -457,7 +457,7 @@ and the source-level derivation review found no arithmetic defect; the implied
 error is 3.5801 standard errors against a 3.4205 simultaneous critical value.
 The cause (sampling variation versus simulator/reference mismatch) remains
 unresolved. The review is recorded in
-`CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. Keep the original result failed;
+`G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. Keep the original result failed;
 the separate post-hoc 65,536-draw diagnostic cannot replace it. A fresh-seed
 preregistration is queued and must not run until its seed roster and environment
 are frozen.
@@ -817,7 +817,7 @@ they do not authorize native qualification.
 - **Dependencies:** finish `E01.PKG05` and the G4 gate crosswalk; retain the
   frozen protocol/result and independent ETSI fixture identities.
 - **Current evidence:** result artifact
-  `docs/research/results/cdl-four-element-covariance-frozen-execution-20261109.json`;
+  `docs/research/results/g4-cdl-four-element-covariance-frozen-execution-20261109.json`;
   frozen seed 6714, 8,192 draws/profile, CDL-E `Re(C[0,1])` absolute error
   0.0135743014 and half-width 0.0129694116. The deterministic ray oracle passes
   Hermitian/unit-diagonal/PSD checks. A larger post-hoc diagnostic is
@@ -837,7 +837,7 @@ they do not authorize native qualification.
 The implied frozen error is 3.580059 standard errors against a 3.420527
 simultaneous critical value; the miss remains a failure, with stochastic
 variation versus simulator/reference mismatch unresolved. See
-`docs/research/CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. The five dependency-
+`docs/research/G4_CDL_E_FROZEN_MISS_REVIEW_2026-11-11.md`. The five dependency-
 light oracle checks pass. No native rerun or result/threshold edit was made.
 
 **Preregistration increment (2026-11-12):** seed `2823000` clears the retained
@@ -1349,7 +1349,7 @@ implemented; native execution remains a later gated action.
 
 - **Dependencies:** E01 task-level scope audit; existing G5 receiver work and
   task-specific G3 acceptance definitions.
-- **Current evidence:** the 2026-11-12 [G5 receiver support matrix](RECEIVER_SUPPORT_MATRIX_2026-11-12.md)
+- **Current evidence:** the 2026-11-12 [G5 receiver support matrix](G5_RECEIVER_SUPPORT_MATRIX_2026-11-12.md)
   maps PUSCH, sample-domain impairment, multi-link, SSB/PBCH, PRS, and SRS
   receiver paths to their implemented boundaries and named blockers. It records
   the pinned Sionna 2.2.0 frequency-hopping/transform-precoding limitation and
@@ -1394,7 +1394,7 @@ implemented; native execution remains a later gated action.
   `NOT_QUALIFIED`; synthetic G5 v3 acceptance cannot satisfy that prerequisite.
   The complex-CSI scorer now uses `phase_comparison_disposition()` for records
   that carry paired physical-view contracts validated by strict schema
-  `evaluation/schema/complex-csi-channel-view-contract.v1.schema.json`,
+  `evaluation/schema/g3-complex-csi-channel-view-contract.v1.schema.json`,
   records the declared-gauge audit, and rejects mismatched or masked views; 50
   focused CSI/joint-evaluator tests pass. Legacy raw-array diagnostics remain
   accepted with `NOT_PROVIDED`, and the contract does not establish physical

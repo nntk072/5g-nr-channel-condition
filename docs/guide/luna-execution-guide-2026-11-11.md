@@ -11,7 +11,7 @@ criteria.
 ## Live executor state (2026-11-12)
 
 The initial E00/E01/E02/E03 prerequisite slices are recorded in
-[`EXECUTION_QUEUE.md`](../research/EXECUTION_QUEUE.md); E03 software closures do not imply
+[`EXECUTION_QUEUE.md`](EXECUTION_QUEUE.md); E03 software closures do not imply
 channel-truth or physical qualification. E04 is the active receiver/G3
 readiness workstream. Its PUSCH hopping slice now includes caller-resolved
 timing, port-0 DM-RS references, one-layer local RE mapping, and a replayable
@@ -63,9 +63,9 @@ hierarchy for the proposed execution process:
 4. An evidence index containing exact artifact/commit identities and outcomes.
 5. Historical status entries, consulted when a task references them.
 
-The active, finite task queue is [EXECUTION_QUEUE.md](../research/EXECUTION_QUEUE.md); its
-initial requirement index is [REQUIREMENT_LEDGER.json](../research/REQUIREMENT_LEDGER.json)
-with schema [requirement-ledger.v1.schema.json](../research/schema/requirement-ledger.v1.schema.json).
+The active, finite task queue is [EXECUTION_QUEUE.md](EXECUTION_QUEUE.md); its
+initial requirement index is [REQUIREMENT_LEDGER.json](REQUIREMENT_LEDGER.json)
+with schema [requirement-ledger.v1.schema.json](schema/requirement-ledger.v1.schema.json).
 The queue records E00 as focused-verified and E01 as the initial audit task;
 those initial statuses are historical and superseded by the live executor state
 above and the current queue.
