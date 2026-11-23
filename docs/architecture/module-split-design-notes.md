@@ -24,14 +24,14 @@ No tracked retained result, config, or schema names these modules or their base 
 
 ## Digest-bound splits
 
-### `experiments/ordered_impairments_receiver.py` (split reverted; deferred until approved)
+### `experiments/ordered_impairments_receiver.py` (split reapplied after rebinding)
 
-- Base path: `experiments/g5_ordered_impairments_receiver.py`.
-- Base digest: `d6c5b9791e30f10e9efbc07a9e0409fe89ef618c7eabe06ffd49151e0640309a`.
-- Current digest (single file, restored to its pre-split form): `experiments/ordered_impairments_receiver.py`.
-- Not in any evaluator roster. Eleven retained results name the path, and their recorded source digest (`95f130de…`) matches no tracked version of the file.
-- History: the split was committed as `846af03` (into `experiments/ordered_impairments/`) with a facade at the original path, and `1a3b8ea` added `provenance.implementation_sha256`. Both were made before this note and before any rebinding entry, which breaks the ordering rule. The split was therefore reverted to the pre-split file and test (restored from `25ff349`), and it stays deferred.
-- To proceed: approve the split, record a rebinding entry for the superseded digest, then reapply `846af03` and `1a3b8ea`. A rebinding records supersession, not equivalence.
+- Base path: `experiments/g5_ordered_impairments_receiver.py`. Base digest `d6c5b9791e30f10e9efbc07a9e0409fe89ef618c7eabe06ffd49151e0640309a`.
+- Pre-split digest (tree before this split): `786a45b4a1f9145645d239120b915e895d5a9a63f61d007e951ee96f19dd3101`.
+- Post-split facade digest: `2e9f96621bc3be1cb1c97b2ce71873afa1adf001cbad56b1fb6530ff45190a34`.
+- Split into `experiments/ordered_impairments/` (`constants`, `hashing`, `signal_models`, `statistics`, `paired_probe`, `independent_probe`, `independent_snr_curve`, `waveform_evidence`). The facade keeps the original path and its public names.
+- Not in any evaluator roster. Retained results name the base digest, which is recorded in `source_digest_rebindings` (last entry wins) and now resolves to the facade digest.
+- Rebinding entries were written before this change (commit history: rebinding commit, then split commit). A rebinding records supersession, not equivalence: the split was checked by its test suite (`tests/test_experiments/test_ordered_impairments_receiver.py`), not by a new scientific run.
 
 ### `evaluation/sample_size_planning.py` (deferred)
 

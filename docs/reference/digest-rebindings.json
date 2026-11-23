@@ -4760,6 +4760,18 @@
       "new_sha256": "e1e6fb8435da71e5df073f9b6888d02f4fc7dea07aac3a5756737803a2075241",
       "old_path": "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md",
       "old_sha256": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2"
+    },
+    {
+      "old_path": "experiments/g5_ordered_impairments_receiver.py",
+      "old_sha256": "d6c5b9791e30f10e9efbc07a9e0409fe89ef618c7eabe06ffd49151e0640309a",
+      "new_path": "experiments/ordered_impairments_receiver.py",
+      "new_sha256": "2e9f96621bc3be1cb1c97b2ce71873afa1adf001cbad56b1fb6530ff45190a34"
+    },
+    {
+      "old_path": "experiments/ordered_impairments_receiver.py",
+      "old_sha256": "786a45b4a1f9145645d239120b915e895d5a9a63f61d007e951ee96f19dd3101",
+      "new_path": "experiments/ordered_impairments_receiver.py",
+      "new_sha256": "2e9f96621bc3be1cb1c97b2ce71873afa1adf001cbad56b1fb6530ff45190a34"
     }
   ]
 }
