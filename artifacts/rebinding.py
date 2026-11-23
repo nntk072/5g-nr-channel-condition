@@ -81,3 +81,17 @@ def current_repo_path(recorded: str, root: Path) -> str:
     if (root / recorded).exists():
         return recorded
     return _path_map(root).get(recorded, recorded)
+
+
+def recorded_digest_resolves(recorded_sha256: object, current_sha256: str, root: Path) -> bool:
+    """True when a recorded SHA-256 equals the current digest or is rebound to it.
+
+    Use this when only digests are available (no bytes). A rebinding records that
+    the recorded digest was superseded by the current digest; it does not prove
+    the two versions are equivalent.
+    """
+    if not isinstance(recorded_sha256, str):
+        return False
+    if recorded_sha256 == current_sha256:
+        return True
+    return _source_digest_map(root).get(recorded_sha256) == current_sha256
