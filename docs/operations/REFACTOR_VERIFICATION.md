@@ -172,3 +172,29 @@ The co-channel PUSCH and reciprocity tests pass in both trees now.
 - **Result:** `test_cdl_dual_pol_array_covariance_native.py`: 3 passed (`[A]`, `[B]`, `[C]`).
   The base tree fails the same test for the same reason; that base result is not
   rerun here.
+
+## Update: native rerun after the Mitsuba install (current tree)
+
+Nine native files, run with `CUDA_VISIBLE_DEVICES=-1` and `DRJIT_LIBLLVM_PATH` set:
+`121 passed, 8 failed` (`36.74 s`). Before the fixes above, the same files gave 16
+failures in the earlier torch run.
+
+- **Fixed:** LOS K-factor (`[D10]`, `[D30]`), CDL dual-pol (`[A]`, `[B]`, `[C]`),
+  network PHY reciprocity and co-channel cases.
+- **Fixed, test-only:** `test_cdl_d_los_temporal_reference_native.py` pinned a
+  63-character CDL-D table digest. A SHA-256 has 64 characters, so the pin could never
+  match. The installed table's digest differs from the pin by one inserted character,
+  which looks like a transcription error. The pin is corrected to the 64-character digest
+  of the installed table (`a8960f17…c0cb90fb…6e40176`). The table itself was not changed.
+- **Still failing (both trees unless noted):**
+  - Admission `[A30]`, `[B100]`, `[C60]`: the tests expect the rejection reason
+    "not applicable in FR1/FR2" and the code reports "carrier_frequency_hz must be within
+    …". Both reject the carrier. The expected text is stale, and the test was not changed.
+  - `test_cdl_d_los_diffuse_temporal_covariance…`, and statistical confidence
+    `[3-D]` and `[4-E]`: `IndexError` on `h_path[:, 0, :, 0, 0, 0, tap_index]`. The test
+    assumes a tap axis that the current output shape does not have. This predates the
+    refactor (failing in `016168e` too). It needs an API-contract review; I did not
+    change the indexing.
+  - `test_cdl_joint_tx_rx_spatiotemporal_covariance…[B]` and
+    `test_cdl_four_element_spatial_covariance…[E]`: an estimate misses its tolerance
+    band. Not root-caused in this session.
