@@ -17,8 +17,8 @@ from experiments.acceptance import (
     SNR_EXECUTION_ACCEPTANCE_SCHEMA,
     evaluate_snr_curve_acceptance,
     freeze_snr_acceptance_criteria,
-    snr_execution_context_from_config,
     load_snr_acceptance_contract,
+    snr_execution_context_from_config,
     validate_preregistration_order,
 )
 
@@ -632,9 +632,7 @@ def test_acceptance_fails_when_either_bound_misses_at_one_snr() -> None:
 
 
 def test_acceptance_stays_not_evaluable_below_frozen_cluster_floor() -> None:
-    result = evaluate_snr_curve_acceptance(
-        _freeze(), curve_inference=_inference(cluster_count=19)
-    )
+    result = evaluate_snr_curve_acceptance(_freeze(), curve_inference=_inference(cluster_count=19))
 
     assert result["status"] == "NOT_EVALUABLE"
     assert result["pass"] is False

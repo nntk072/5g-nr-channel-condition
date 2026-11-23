@@ -1,6 +1,5 @@
 """Sionna network PHY: records, composition, and link operations."""
-
-"""network_phy_src split by concept."""
+# ruff: noqa: F401, E402
 
 import math
 from dataclasses import dataclass

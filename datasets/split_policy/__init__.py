@@ -1,4 +1,5 @@
 """Immutable UMCD release splits and their leakage policy."""
+# ruff: noqa: F401, E402
 
 from .policy import (
     _DEFAULT_FOUR_WAY,

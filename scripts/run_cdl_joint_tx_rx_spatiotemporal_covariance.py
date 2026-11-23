@@ -15,9 +15,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 TEST = ROOT / "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py"
-PROTOCOL = (
-    ROOT / "docs/research/CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md"
-)
+PROTOCOL = ROOT / "docs/research/CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-09.md"
 SEED_AUDIT = (
     ROOT / "docs/research/CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json"
 )

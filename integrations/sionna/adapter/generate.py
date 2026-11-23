@@ -8,7 +8,7 @@ import sys
 from dataclasses import asdict, replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
 
 import numpy as np
 from artifacts.provenance import package_source_sha256, versions
@@ -45,6 +45,9 @@ from .raytrace import (
     has_valid_path,
     rt_cfr,
 )
+
+if TYPE_CHECKING:
+    from integrations.sionna.backend import RTBackendSelection
 
 
 def generate_raytraced(

@@ -1,4 +1,3 @@
-# ruff: noqa: F401
 """Public SRS constants and resource-grid types."""
 # ruff: noqa: F401, E402
 

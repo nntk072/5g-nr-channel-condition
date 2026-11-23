@@ -20,8 +20,7 @@ ORACLE_PORTABLE_TEST = (
     ROOT / "tests/test_evaluation/test_cdl_handheld_ut_spatiotemporal_covariance.py"
 )
 PROTOCOL = (
-    ROOT
-    / "docs/research/CDL_PHYSICAL_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+    ROOT / "docs/research/CDL_PHYSICAL_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
 )
 SEED_AUDIT = (
     ROOT

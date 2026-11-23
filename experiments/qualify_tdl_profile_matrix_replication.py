@@ -13,9 +13,7 @@ from experiments.qualify_tdl_c_dmrs_density import FAMILYWISE_ALPHA, run_confirm
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = Path("docs/research/TDL_AE_DMRS_DENSITY_FAMILY_REPLICATION_V2_PROTOCOL_2026-10-24.md")
-DEFAULT_OUTPUT = Path(
-    "docs/research/results/tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json"
-)
+DEFAULT_OUTPUT = Path("docs/research/results/tdl-ae-dmrs-density-family-reconfirm-v2-20261024.json")
 PROFILES = ("A", "B", "C", "D", "E")
 CHANNEL_SEEDS = tuple(range(936_001, 936_081))
 FAMILY_CLAIM_COUNT = len(PROFILES) * 3

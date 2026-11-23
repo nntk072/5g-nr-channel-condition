@@ -71,10 +71,10 @@ from experiments.acceptance import (
     freeze_snr_acceptance_criteria as _freeze_independent_snr_acceptance_criteria,
 )
 from experiments.acceptance import (
-    snr_execution_context_from_config as _snr_execution_context_from_config,
+    load_snr_acceptance_contract as _load_snr_acceptance_contract,
 )
 from experiments.acceptance import (
-    load_snr_acceptance_contract as _load_snr_acceptance_contract,
+    snr_execution_context_from_config as _snr_execution_context_from_config,
 )
 
 SCHEMA = "umcd.g5_ordered_impairments_receiver.v2"

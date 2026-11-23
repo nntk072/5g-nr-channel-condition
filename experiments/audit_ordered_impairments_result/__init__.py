@@ -21,6 +21,7 @@ from evaluation.signed_attestation import verify_openssh_signature_for_bytes
 from scipy.stats import beta
 
 from experiments.acceptance import (
+    MIN_INDEPENDENT_ACCEPTANCE_CHANNELS,
     SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
     SNR_CURVE_BOOTSTRAP_DRAWS,
     SNR_CURVE_BOOTSTRAP_SEED,
@@ -28,7 +29,6 @@ from experiments.acceptance import (
     SNR_REVIEWER_POLICY_PURPOSE,
     SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
     SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-    MIN_INDEPENDENT_ACCEPTANCE_CHANNELS,
     _verify_reviewer_policy,
     validate_preregistration_order,
 )
@@ -47,19 +47,19 @@ from .waveform import (
     _CUDA_CURVE_BASE_VERSIONS,
     _CUDA_DEVICE_REPORT_SCHEMAS,
     _EXACT_SEED_ROSTER_CURVE_SCHEMAS,
-    _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
     _HEX,
     _MAX_RESULT_BYTES,
     _MAX_WAVEFORM_EVIDENCE_BYTES,
     _MAX_WAVEFORM_EVIDENCE_UNCOMPRESSED_BYTES,
     _PER_CHANNEL_WAVEFORM_DIAGNOSTIC_SCHEMAS,
     _RESULT_SCHEMA,
+    _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
     REPOSITORY_ROOT,
     _canonical_json_bytes,
     _cluster_bootstrap_interval,
     _curve_report_schema_status,
-    _estimator_source_checks,
     _declared_preregistration_order_matches,
+    _estimator_source_checks,
     _execution_context_matches,
     _inference_seed_roster_consistent,
     _iq_imbalance_reference,

@@ -12,13 +12,13 @@ from typing import Any
 
 import jsonschema
 from artifacts.provenance import package_source_sha256, sha256_file, versions
+from datasets.independent_splits import IndependentSplit
 from datasets.nr_store import NRStoredTrajectory, read_nr_trajectory
 from datasets.split_policy import (
     SplitPolicyRegistry,
     VerifiedOpenSSHArtifact,
     verify_signed_split_policy_registry_attestation,
 )
-from datasets.independent_splits import IndependentSplit
 from experiments.rt_trajectory_forecast import (
     evaluate_trajectory_forecasts,
     summarize_forecast_rows,

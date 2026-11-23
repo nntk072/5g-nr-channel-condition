@@ -3,33 +3,18 @@ import os
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 UV = shutil.which("uv") or str(Path.home() / ".local/bin/uv")
-BASE = [
-    "artifacts",
-    "configuration",
-    "datasets",
-    "propagation",
-    "receivers",
-    "models",
-    "learning",
-    "evaluation",
-    "experiments",
-    "integrations",
-    "compute",
-    "loslab",
-    "scripts",
-    "tests",
-]
+_PACKAGES = tomllib.loads((ROOT / "config" / "packages.toml").read_text(encoding="utf-8"))["packages"]
+PACKAGE_NAMES = list(_PACKAGES["names"])
+BASE = [*PACKAGE_NAMES, *_PACKAGES["test_roots"]]
 AGENT = ["agentops", "tests/test_agentops", "tools/agent"]
 IMPORT_SMOKE = (
     "import importlib; "
-    "[importlib.import_module(name) for name in ("
-    "'artifacts', 'configuration', 'datasets', 'propagation', 'receivers', 'models', "
-    "'learning', 'evaluation', 'experiments', 'integrations', 'compute', 'loslab', "
-    "'agentops')]; "
+    "[importlib.import_module(name) for name in " + repr(PACKAGE_NAMES) + "]; "
     "print('import-smoke-ok')"
 )
 
@@ -103,8 +88,8 @@ elif gate == "fast":
     active = active_python_paths()
     ruff_paths = unique_paths(AGENT, active)
     mypy_paths = unique_paths(
-        ["agentops"],
-        [path for path in active if not path.startswith(("agentops/", "tests/", "tools/"))],
+        [AGENT[0]],
+        [path for path in active if not path.startswith((AGENT[0] + "/", "tests/", "tools/"))],
     )
     active_tests = [path for path in active if path.startswith("tests/")]
     uv("run", "--locked", "ruff", "check", *ruff_paths)
@@ -126,8 +111,8 @@ elif gate == "fast":
 elif gate == "lock":
     uv("lock", "--check")
 elif gate == "lint":
-    uv("run", "--locked", "ruff", "check", *BASE, "agentops")
-    uv("run", "--locked", "ruff", "format", "--check", *BASE, "agentops")
+    uv("run", "--locked", "ruff", "check", *BASE)
+    uv("run", "--locked", "ruff", "format", "--check", *BASE)
 elif gate == "typecheck":
     uv("run", "--locked", "mypy")
 elif gate == "architecture":
@@ -142,8 +127,8 @@ elif gate == "build":
     uv("run", "--locked", "python", "-c", IMPORT_SMOKE)
 elif gate == "full":
     uv("lock", "--check")
-    uv("run", "--locked", "ruff", "check", *BASE, "agentops")
-    uv("run", "--locked", "ruff", "format", "--check", *BASE, "agentops")
+    uv("run", "--locked", "ruff", "check", *BASE)
+    uv("run", "--locked", "ruff", "format", "--check", *BASE)
     uv("run", "--locked", "mypy")
     uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
     uv("build")

@@ -15,15 +15,13 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 TEST = (
-    ROOT
-    / "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py"
+    ROOT / "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py"
 )
 ORACLE_TEST = (
     ROOT / "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_oracle_native.py"
 )
 PROTOCOL = (
-    ROOT
-    / "docs/research/CDL_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+    ROOT / "docs/research/CDL_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
 )
 SEED_AUDIT = (
     ROOT

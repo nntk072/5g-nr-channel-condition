@@ -1,4 +1,5 @@
 """Episode bundle store: immutable publication, reads, and shard iteration."""
+# ruff: noqa: F401, E402
 
 from .episode import (
     iter_episode_bundle_shards,

@@ -18,8 +18,8 @@ from artifacts.rebinding import resolve_recorded_path
 from experiments.audit_ordered_impairments_result import (
     _audit_result,
     _canonical_json_bytes,
-    _estimator_source_checks,
     _declared_preregistration_order_matches,
+    _estimator_source_checks,
     _preflight_waveform_archive,
     _read_bounded_evidence_file,
     _recompute_waveform_diagnostics,

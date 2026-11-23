@@ -12,6 +12,7 @@ from artifacts.rebinding import recorded_digest_matches
 from scipy.stats import beta
 
 from experiments.acceptance import (
+    MIN_INDEPENDENT_ACCEPTANCE_CHANNELS,
     SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
     SNR_CURVE_BOOTSTRAP_DRAWS,
     SNR_CURVE_BOOTSTRAP_SEED,
@@ -19,7 +20,6 @@ from experiments.acceptance import (
     SNR_REVIEWER_POLICY_PURPOSE,
     SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
     SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-    MIN_INDEPENDENT_ACCEPTANCE_CHANNELS,
     _verify_reviewer_policy,
 )
 
@@ -28,16 +28,16 @@ from .waveform import (
     _CFO_CHANNEL_TAIL_SCHEMAS,
     _CUDA_CURVE_BASE_VERSIONS,
     _CUDA_DEVICE_REPORT_SCHEMAS,
-    _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
     _HEX,
     _PER_CHANNEL_WAVEFORM_DIAGNOSTIC_SCHEMAS,
     _RESULT_SCHEMA,
+    _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
     REPOSITORY_ROOT,
     _canonical_json_bytes,
     _cluster_bootstrap_interval,
     _curve_report_schema_status,
-    _estimator_source_checks,
     _declared_preregistration_order_matches,
+    _estimator_source_checks,
     _execution_context_matches,
     _inference_seed_roster_consistent,
     _is_finite_nonnegative,
@@ -1107,9 +1107,7 @@ def _audit_independent_snr_curve(
                 observed = rates.mean(axis=2)
                 rng = np.random.default_rng(SNR_CURVE_BOOTSTRAP_SEED)
                 bootstrap_batches: list[np.ndarray] = []
-                for start in range(
-                    0, SNR_CURVE_BOOTSTRAP_DRAWS, SNR_CURVE_BOOTSTRAP_BATCH_SIZE
-                ):
+                for start in range(0, SNR_CURVE_BOOTSTRAP_DRAWS, SNR_CURVE_BOOTSTRAP_BATCH_SIZE):
                     batch_size = min(
                         SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
                         SNR_CURVE_BOOTSTRAP_DRAWS - start,
@@ -1204,9 +1202,7 @@ def _audit_independent_snr_curve(
                             estimate = float(observed_paired_improvement[snr_index])
                             expected_intervals = {
                                 "pointwise_95_percent_interval": [
-                                    float(
-                                        ordered[math.floor(0.025 * SNR_CURVE_BOOTSTRAP_DRAWS)]
-                                    ),
+                                    float(ordered[math.floor(0.025 * SNR_CURVE_BOOTSTRAP_DRAWS)]),
                                     float(
                                         ordered[math.ceil(0.975 * SNR_CURVE_BOOTSTRAP_DRAWS) - 1]
                                     ),

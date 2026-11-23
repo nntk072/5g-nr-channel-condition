@@ -18,12 +18,10 @@ TEST = ROOT / (
     "tests/test_integrations/test_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py"
 )
 PROTOCOL = ROOT / (
-    "docs/research/"
-    "CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
+    "docs/research/CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_PROTOCOL_2026-11-10.md"
 )
 SEED_AUDIT = ROOT / (
-    "docs/research/"
-    "CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
+    "docs/research/CDL_JOINT_TX_RX_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
 )
 REFERENCE = ROOT / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 EVALUATION = ROOT / "evaluation/cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py"

@@ -1,5 +1,5 @@
-# ruff: noqa: F401
 """Public Sionna adapter: ray-traced channel generation entry points."""
+# ruff: noqa: F401, E402
 
 import hashlib
 import json

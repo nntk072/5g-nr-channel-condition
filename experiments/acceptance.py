@@ -273,8 +273,7 @@ def _verify_reviewer_policy(
     import jsonschema
 
     schema_path = (
-        Path(__file__).resolve().parents[1]
-        / "datasets/schema/snr-reviewer-policy.v1.schema.json"
+        Path(__file__).resolve().parents[1] / "datasets/schema/snr-reviewer-policy.v1.schema.json"
     )
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     errors = list(jsonschema.Draft202012Validator(schema).iter_errors(policy))

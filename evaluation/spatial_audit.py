@@ -6,9 +6,8 @@ from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
 import numpy as np
-from scipy.spatial import cKDTree
-
 from datasets.independent_splits import IndependentSplit
+from scipy.spatial import cKDTree
 
 
 @dataclass(frozen=True, slots=True)

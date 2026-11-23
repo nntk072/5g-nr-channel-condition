@@ -570,8 +570,7 @@ def _sign_run_manifest(manifest_path: Path, directory: Path) -> tuple[Path, Path
     public_key = private_key.with_suffix(".pub").read_text(encoding="utf-8").strip()
     allowed_signers = directory / "allowed_signers"
     allowed_signers.write_text(
-        f'{signer_id} namespaces="{run_manifest.RUN_MANIFEST_SIGNATURE_NAMESPACE}" '
-        f"{public_key}\n",
+        f'{signer_id} namespaces="{run_manifest.RUN_MANIFEST_SIGNATURE_NAMESPACE}" {public_key}\n',
         encoding="utf-8",
     )
     subprocess.run(
