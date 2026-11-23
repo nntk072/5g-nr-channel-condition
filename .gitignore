@@ -59,3 +59,6 @@ ray_tracing_data/
 # Documentation build output and generated API pages
 docs/_build/
 docs/api/generated/
+
+# Developer-only documentation: kept in the local working copy, not published
+dev-docs/

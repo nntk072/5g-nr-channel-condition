@@ -2459,6 +2459,78 @@
     {
       "old_path": "docs/research/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.md",
       "new_path": "docs/reference/target-family-producer-consumer-matrix.md"
+    },
+    {
+      "old_path": "docs/operations/agent-compute-policy.md",
+      "new_path": "dev-docs/operations/agent-compute-policy.md"
+    },
+    {
+      "old_path": "docs/operations/agent-operations.md",
+      "new_path": "dev-docs/operations/agent-operations.md"
+    },
+    {
+      "old_path": "docs/operations/agent-release-acceptance-2026-11-19.md",
+      "new_path": "dev-docs/operations/agent-release-acceptance-2026-11-19.md"
+    },
+    {
+      "old_path": "docs/operations/agent-task-protocol.md",
+      "new_path": "dev-docs/operations/agent-task-protocol.md"
+    },
+    {
+      "old_path": "docs/operations/probability-prior-policy.md",
+      "new_path": "dev-docs/operations/probability-prior-policy.md"
+    },
+    {
+      "old_path": "docs/operations/refactor-verification.md",
+      "new_path": "dev-docs/operations/refactor-verification.md"
+    },
+    {
+      "old_path": "docs/operations/release-split-policy-v2.md",
+      "new_path": "dev-docs/operations/release-split-policy-v2.md"
+    },
+    {
+      "old_path": "docs/operations/result-promotion-policy.md",
+      "new_path": "dev-docs/operations/result-promotion-policy.md"
+    },
+    {
+      "old_path": "docs/operations/upgrade-changelog.md",
+      "new_path": "dev-docs/operations/upgrade-changelog.md"
+    },
+    {
+      "old_path": "docs/architecture/baseline.md",
+      "new_path": "dev-docs/architecture/baseline.md"
+    },
+    {
+      "old_path": "docs/architecture/ci.md",
+      "new_path": "dev-docs/architecture/ci.md"
+    },
+    {
+      "old_path": "docs/architecture/model-input-route-inventory.md",
+      "new_path": "dev-docs/architecture/model-input-route-inventory.md"
+    },
+    {
+      "old_path": "docs/architecture/module-split-design-notes.md",
+      "new_path": "dev-docs/architecture/module-split-design-notes.md"
+    },
+    {
+      "old_path": "docs/architecture/naming-exceptions.md",
+      "new_path": "dev-docs/architecture/naming-exceptions.md"
+    },
+    {
+      "old_path": "docs/architecture/refactor-plan.md",
+      "new_path": "dev-docs/architecture/refactor-plan.md"
+    },
+    {
+      "old_path": "docs/reference/helper-wiring-matrix.md",
+      "new_path": "dev-docs/reference/helper-wiring-matrix.md"
+    },
+    {
+      "old_path": "docs/reference/target-family-producer-consumer-matrix.md",
+      "new_path": "dev-docs/reference/target-family-producer-consumer-matrix.md"
+    },
+    {
+      "old_path": "docs/reference/refactor-digest-changes.tsv",
+      "new_path": "dev-docs/reference/refactor-digest-changes.tsv"
     }
   ],
   "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",

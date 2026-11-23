@@ -4,60 +4,38 @@ Start here. This index lists every document under `docs/`.
 
 ## Guide
 
-How-to guides and workflows.
+Setup and workflows for users of the framework.
 
 - [Shared-split power-only baseline](guide/baseline-controls-workflow.md)
 - [Luna execution guide for the 5G NR Multipath MVP](guide/luna-execution-guide-2026-11-11.md)
 - [Sample-domain network waveform to PUSCH receiver](guide/network-pusch-receiver-workflow.md)
 - [UMCD pilot sampling workflow](guide/pilot-sampling-workflow.md)
-- [Start here — reproducible LOS/NLOS research upgrade](guide/quickstart.md)
+- [Quickstart](guide/quickstart.md)
 - [Measurement-driven resource budget preflight](guide/resource-budget-workflow.md)
 - [Runtime identity inventory](guide/runtime-inventory-workflow.md)
 - [G4 scenario GBSM generation command v1](guide/scenario-gbsm-generation-cli-v1.md)
 
 ## Architecture
 
-System design, package map, CI, and decision records.
+Concepts and output contracts for users of the framework.
 
-- [Refactor baseline](architecture/baseline.md)
 - [Benchmark partition materialization](architecture/benchmark-partition-materialization.md)
-- [Continuous integration](architecture/ci.md)
-- [Model input route inventory — working audit](architecture/model-input-route-inventory.md)
-- [Module split design notes](architecture/module-split-design-notes.md)
-- [Naming exceptions](architecture/naming-exceptions.md)
 - [Multi-link RT to network PHY support](architecture/network-topology-support.md)
 - [Analytical two-path decoder: implementation contract](architecture/observable-multipath-model.md)
 - [Model outputs and channel families](architecture/output-tasks-and-channels.md)
-- [Repository Refactor Plan](architecture/refactor-plan.md)
+- [Architecture overview](architecture/overview.md)
 - [Sionna RT backend selection](architecture/rt-backend-selection.md)
 - [Sionna RT run identity](architecture/rt-run-identity.md)
 - [RT scene asset identity](architecture/rt-scene-asset-identity.md)
 - [External Sionna source reference](architecture/sionna-reference.md)
 - [Grouped scalar-regression uncertainty evaluation](architecture/uncertainty-evaluation.md)
 
-## Operations
-
-Agent operations, task protocol, compute policy, and release acceptance.
-
-- [Agent Compute Policy](operations/agent-compute-policy.md)
-- [Agent Operations](operations/agent-operations.md)
-- [AgentOps P14 Release Acceptance Report](operations/agent-release-acceptance-2026-11-19.md)
-- [Agent Task Protocol](operations/agent-task-protocol.md)
-- [Probability calibration and prior policy](operations/probability-prior-policy.md)
-- [Production-structure refactor: verification record](operations/refactor-verification.md)
-- [UMCD release split policy v2](operations/release-split-policy-v2.md)
-- [Research result promotion](operations/result-promotion-policy.md)
-- [Research upgrade changelog — 2026-10-21](operations/upgrade-changelog.md)
-
 ## Reference
 
-Generated matrices, registries, and the rebinding record.
+Reference data and the digest rebinding record.
 
-- [Helper-to-canonical-route wiring matrix](reference/helper-wiring-matrix.md)
-- [Scene-family registry and candidate sampling](reference/scene-family-registry.md)
-- [Canonical target producer and consumer matrix](reference/target-family-producer-consumer-matrix.md)
 - [digest-rebindings.json](reference/digest-rebindings.json)
-- [refactor-digest-changes.tsv](reference/refactor-digest-changes.tsv)
+- [Scene-family registry and candidate sampling](reference/scene-family-registry.md)
 
 ## Thesis
 

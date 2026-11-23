@@ -41,17 +41,8 @@ exclude_patterns = [
     # records, and internal audits stay in the repository.
     "research/**",
     "thesis/**",
-    "operations/**",
     "README.md",
     "**/README.md",
-    "architecture/ci.md",
-    "architecture/baseline.md",
-    "architecture/refactor-plan.md",
-    "architecture/module-split-design-notes.md",
-    "architecture/naming-exceptions.md",
-    "architecture/model-input-route-inventory.md",
-    "reference/helper-wiring-matrix.md",
-    "reference/target-family-producer-consumer-matrix.md",
 ]
 
 myst_heading_anchors = 3

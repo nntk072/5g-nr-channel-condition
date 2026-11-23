@@ -37,6 +37,9 @@ Operational agent state belongs under ignored state roots. Existing `artifacts/`
 
 Do not commit, push, merge, rerun remote workflows, delete evidence, cancel jobs, or launch native scientific work without the authorization required by the active task and repository policy.
 
+
+> Developer-only operations documents are kept in the local, git-ignored `dev-docs/` folder. The paths below refer to that folder.
+
 ## Navigation
 
 - Architecture and package direction live in `.agents/architecture.md`.
@@ -45,5 +48,5 @@ Do not commit, push, merge, rerun remote workflows, delete evidence, cancel jobs
 - Task-specific package guidance lives in `.agents/domain_maps/`.
 - Research integrity and qualification boundaries live in `.agents/rules/research-integrity.md` and `.agents/rules/qualification-gates.md`.
 - Context and handoff rules live in `.agents/rules/context-management.md`.
-- Operator commands, durable-state recovery, and resource authorization live in `docs/operations/agent-task-protocol.md` and `docs/operations/agent-compute-policy.md`.
-- Baseline evidence and current control-plane operating guidance live in `docs/operations/agent-operations.md`.
+- Operator commands, durable-state recovery, and resource authorization live in `dev-docs/operations/agent-task-protocol.md` and `dev-docs/operations/agent-compute-policy.md`.
+- Baseline evidence and current control-plane operating guidance live in `dev-docs/operations/agent-operations.md`.

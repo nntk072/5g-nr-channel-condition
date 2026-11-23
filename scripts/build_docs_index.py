@@ -15,10 +15,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 SECTIONS = {
-    "guide": "How-to guides and workflows",
-    "architecture": "System design, package map, CI, and decision records",
-    "operations": "Agent operations, task protocol, compute policy, and release acceptance",
-    "reference": "Generated matrices, registries, and the rebinding record",
+    "guide": "Setup and workflows for users of the framework",
+    "architecture": "Concepts and output contracts for users of the framework",
+    "reference": "Reference data and the digest rebinding record",
     "thesis": "Thesis document",
 }
 TITLE = re.compile(r"^#\s+(.+)$", re.MULTILINE)
