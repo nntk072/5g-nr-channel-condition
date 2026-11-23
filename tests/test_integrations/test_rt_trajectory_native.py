@@ -126,7 +126,8 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         bundle.provenance_records[0].run_identity_sha256
         == generation["rt_run_identity"]["cache_key_sha256"]
     )
-    material_state = generation["rt_run_identity"]["inputs"]["physical_config"]["material_state"]
+    # The structured scene material manifest is stored as the identity's material_config input.
+    material_state = generation["rt_run_identity"]["inputs"]["material_config"]
     assert material_state["schema"] == "sionna_rt_material_state.v1"
     assert material_state["materials"]["reflector-mat"]["properties"]["scattering_coefficient"] == [
         0.0

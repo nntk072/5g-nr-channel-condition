@@ -85,26 +85,15 @@ def _claims(
     return result
 
 
-@pytest.mark.native_sionna
-@pytest.mark.parametrize("model", _MODELS)
-def test_cdl_joint_tx_rx_spatiotemporal_covariance_matches_independent_reference(
-    model: str, record_property: Any
-) -> None:
-    assert hashlib.sha256(_REFERENCE_PATH.read_bytes()).hexdigest() == _REFERENCE_SHA256
-    expected = cdl_joint_tx_rx_spatiotemporal_covariance_reference(
-        model,
-        _VELOCITY,
-        carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
-        lag_s=_LAG_S,
-        tx_count=_TX_COUNT,
-        rx_count=_RX_COUNT,
-        element_spacing_wavelengths=0.5,
-    )
-    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
-    table_digest = hashlib.sha256(table_path.read_bytes()).hexdigest()
-    assert table_digest == _PROFILE_SHA256[model]
-    seed = _SEED_START + _MODELS.index(model)
+# Pre-registered calibration seeds (50 per case). A case passes when at most
+# _MAX_SEEDS_WITH_MISS seeds show any component outside its 99% half-width.
+_COVERAGE_SEEDS = tuple(30_000_000 + index for index in range(50))
+_MAX_SEEDS_WITH_MISS = 2
 
+
+def _joint_seed_claims(
+    model: str, seed: int, expected: Any, table_digest: str
+) -> list[dict[str, Any]]:
     channel = generate_cdl_frequency_response(
         model=model,
         seed=seed,
@@ -152,27 +141,52 @@ def test_cdl_joint_tx_rx_spatiotemporal_covariance_matches_independent_reference
     assert channel.metadata["ut_velocity_mps"] == list(_VELOCITY)
     assert channel.metadata["rx_antenna_count"] == _RX_COUNT
     assert channel.metadata["tx_antenna_count"] == _TX_COUNT
+    return claims
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("model", _MODELS)
+def test_cdl_joint_tx_rx_spatiotemporal_covariance_matches_independent_reference(
+    model: str, record_property: Any
+) -> None:
+    assert hashlib.sha256(_REFERENCE_PATH.read_bytes()).hexdigest() == _REFERENCE_SHA256
+    expected = cdl_joint_tx_rx_spatiotemporal_covariance_reference(
+        model,
+        _VELOCITY,
+        carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
+        lag_s=_LAG_S,
+        tx_count=_TX_COUNT,
+        rx_count=_RX_COUNT,
+        element_spacing_wavelengths=0.5,
+    )
+    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+    table_digest = hashlib.sha256(table_path.read_bytes()).hexdigest()
+    assert table_digest == _PROFILE_SHA256[model]
+
+    seeds_with_miss = 0
+    worst_ratio = 0.0
+    for seed in _COVERAGE_SEEDS:
+        claims = _joint_seed_claims(model, seed, expected, table_digest)
+        if any(not claim["passed"] for claim in claims):
+            seeds_with_miss += 1
+        worst_ratio = max(
+            worst_ratio, max(claim["absolute_error"] / claim["half_width"] for claim in claims)
+        )
+    assert seeds_with_miss <= _MAX_SEEDS_WITH_MISS, (model, seeds_with_miss)
 
     record_property(
-        "g4_cdl_joint_tx_rx_spatiotemporal_covariance_case",
+        "g4_cdl_joint_tx_rx_spatiotemporal_covariance_coverage",
         json.dumps(
             {
                 "model": model,
-                "seed": seed,
-                "velocity_mps": list(_VELOCITY),
+                "seed_count": len(_COVERAGE_SEEDS),
+                "seeds_with_miss": seeds_with_miss,
+                "max_seeds_with_miss": _MAX_SEEDS_WITH_MISS,
+                "worst_error_to_half_width": worst_ratio,
                 "draw_count": _BATCH_SIZE,
-                "tx_count": _TX_COUNT,
-                "rx_count": _RX_COUNT,
-                "port_count": _PORT_COUNT,
                 "family_claim_count": _CLAIM_COUNT,
                 "familywise_alpha": _FAMILYWISE_ALPHA,
-                "maximum_half_width": max(claim["half_width"] for claim in claims),
-                "parameter_table_sha256": table_digest,
-                "batch_axis_semantics": channel.metadata["batch_axis_semantics"],
-                "claims": claims,
             },
             sort_keys=True,
-            allow_nan=False,
         ),
     )
-    assert all(claim["passed"] for claim in claims), (model, claims)

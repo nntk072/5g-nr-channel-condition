@@ -19,6 +19,7 @@ import json
 import math
 from pathlib import Path
 from statistics import NormalDist
+from typing import Any
 
 import numpy as np
 import pytest
@@ -143,27 +144,23 @@ def test_four_element_cdl_covariance_reference_is_hermitian_normalized_and_psd(
     assert np.linalg.eigvalsh(covariance).min() >= -1e-12
 
 
-@pytest.mark.native_sionna
-@pytest.mark.parametrize("model", tuple(_PROFILE_TABLE_SHA256))
-def test_cdl_four_element_spatial_covariance_matches_independent_ray_reference(
-    model: str,
-) -> None:
-    torch = pytest.importorskip("torch")
-    pytest.importorskip("sionna.phy")
+# Pre-registered calibration seeds (50 per case). A case passes when at most
+# _MAX_SEEDS_WITH_MISS seeds show any component outside its 99% half-width.
+_COVERAGE_SEEDS = tuple(50_000 + index for index in range(50))
+_MAX_SEEDS_WITH_MISS = 2
+
+
+def _four_element_seed_components(
+    torch: Any, model: str, seed: int, expected: Any
+) -> tuple[Any, Any, dict[str, Any]]:
     from integrations.sionna.cdl import (  # noqa: PLC0415
         CDLArrayConfig,
         generate_cdl_frequency_response,
     )
-    from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: PLC0415
 
-    expected_array, _ = _independent_cdl_spatial_covariance_reference(model)
-    expected = torch.as_tensor(expected_array, dtype=torch.complex128)
-    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
-    source_digest = hashlib.sha256(table_path.read_bytes()).hexdigest()
-    assert source_digest == _PROFILE_TABLE_SHA256[model]
     channel = generate_cdl_frequency_response(
         model=model,
-        seed=6714,
+        seed=seed,
         carrier_frequency_hz=3.5e9,
         subcarrier_spacing_hz=30_000.0,
         num_subcarriers=8,
@@ -210,11 +207,35 @@ def test_cdl_four_element_spatial_covariance_matches_independent_ray_reference(
     assert component_count == 16
     z_simultaneous = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * component_count))
     half_width = z_simultaneous * standard_error
-    assert bool((torch.abs(estimate - expected_vector) <= half_width).all())
     assert float(half_width.max()) <= _MAX_INTERVAL_HALF_WIDTH
     torch.testing.assert_close(empirical, empirical.mH, rtol=0.0, atol=1e-7)
     assert float(torch.linalg.eigvalsh(empirical).min()) >= -1e-7
+    return torch.abs(estimate - expected_vector), half_width, dict(channel.metadata)
 
-    assert channel.metadata["profile_los_component"] is (model in {"D", "E"})
-    assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
-    assert channel.metadata["parameter_table_sha256"] == source_digest
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("model", tuple(_PROFILE_TABLE_SHA256))
+def test_cdl_four_element_spatial_covariance_matches_independent_ray_reference(
+    model: str,
+) -> None:
+    torch = pytest.importorskip("torch")
+    pytest.importorskip("sionna.phy")
+    from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: PLC0415
+
+    expected_array, _ = _independent_cdl_spatial_covariance_reference(model)
+    expected = torch.as_tensor(expected_array, dtype=torch.complex128)
+    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+    source_digest = hashlib.sha256(table_path.read_bytes()).hexdigest()
+    assert source_digest == _PROFILE_TABLE_SHA256[model]
+
+    seeds_with_miss = 0
+    worst_ratio = 0.0
+    for seed in _COVERAGE_SEEDS:
+        error, half_width, metadata = _four_element_seed_components(torch, model, seed, expected)
+        if bool((error > half_width).any()):
+            seeds_with_miss += 1
+        worst_ratio = max(worst_ratio, float((error / half_width).max()))
+        assert metadata["profile_los_component"] is (model in {"D", "E"})
+        assert metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
+        assert metadata["parameter_table_sha256"] == source_digest
+    assert seeds_with_miss <= _MAX_SEEDS_WITH_MISS, (model, seeds_with_miss)
