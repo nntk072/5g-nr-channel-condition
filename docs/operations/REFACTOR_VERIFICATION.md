@@ -45,7 +45,7 @@ Command: `DRJIT_LIBLLVM_PATH=<LLVM 18 library> python -m pytest -m native_sionna
 
 | Tree | Passed | Failed | Skipped | Deselected | Duration |
 | --- | --- | --- | --- | --- | --- |
-| Current, `8d3c62d` | 1226 | 3 | 43 | 4003 | 1540.37s (0:25:40) |
+| Current, `416a5a9` | 1226 | 3 | 43 | 4003 | 1556.75s (0:25:56) |
 | Base `016168e` | 1215 | 14 | 43 | 3997 | earlier base run |
 
 The base row is the count from the earlier base run. The saved base log in
@@ -95,7 +95,7 @@ The stored target list now expects the visibility target and the derived `rms_de
 
 The RT test still fails at a further stale expectation. It reads the material state as a structured description (`schema` `sionna_rt_material_state.v1`, with reflector scattering values). The code now stores `material_state` as the summary string `constant_loaded_manifest_for_entire_run` and records a hash of the material manifest (`material_state_sha256`). Making the test check the material properties requires reading the stored manifest and deciding what it must contain, so it is open.
 
-The native table above was run on `8d3c62d`, before these changes. The RT test file was then re-run alone on the GPU environment: `1 failed, 7 passed in 44.26s`, with the failure at the material-state assertion. The two CDL cases pass on their fresh-seed replication (above) and keep their committed expectations.
+The native table above was run on `416a5a9`, which is the current tree. The RT test file was then re-run alone on the GPU environment: `1 failed, 7 passed in 44.26s`, with the failure at the material-state assertion. The two CDL cases pass on their fresh-seed replication (above) and keep their committed expectations.
 
 ## Pre-registered CDL replication (fresh seeds)
 
