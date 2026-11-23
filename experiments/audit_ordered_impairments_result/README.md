@@ -19,7 +19,8 @@ The audit is organised by concept: constants, hashing, preregistration checks, e
 | `references.py` | Closed-form references and finite-number helpers |
 | `waveform.py` | Waveform diagnostic recomputation and cluster bootstrap |
 | `replay.py` | Deterministic replay of a recorded experiment |
-| `independent.py` | Independent-channel and SNR-curve audit checks |
+| `independent.py` | Independent-channel result audit checks |
+| `snr_curve.py` | SNR-curve result audit checks |
 | `file.py` | Audit of one result file and the command-line interface |
 
 ## Public API (40 names)

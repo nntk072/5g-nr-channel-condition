@@ -65,7 +65,6 @@ from .hashing import (
     _unique_object,
 )
 from .independent import (
-    _audit_independent_snr_curve,
     _audit_result,
 )
 from .preregistration import (
@@ -86,6 +85,9 @@ from .references import (
 from .replay import (
     _replay_experiment,
     _run_receiver_probe,
+)
+from .snr_curve import (
+    _audit_independent_snr_curve,
 )
 from .waveform import (
     _cluster_bootstrap_interval,

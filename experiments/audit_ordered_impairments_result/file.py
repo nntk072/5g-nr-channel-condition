@@ -24,11 +24,13 @@ from .hashing import (
     _unique_object,
 )
 from .independent import (
-    _audit_independent_snr_curve,
     _audit_result,
 )
 from .replay import (
     _replay_experiment,
+)
+from .snr_curve import (
+    _audit_independent_snr_curve,
 )
 
 
