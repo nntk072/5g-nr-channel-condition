@@ -45,33 +45,33 @@
     "datasets/schema/network-transmitter-pusch-workflow-report.v1.schema.json": "fab854c31223edee142cd4e3b905a465300e281b4158ff9bb69fcbf26810efe4",
     "datasets/split_lineage.py": "a8da124d929952b925e2df43987cbc2ed435b0670eb47a5eeb9b30874a443d7f",
     "datasets/split_policy/policy.py": "ec3a66060e01d28919576947614b1411693a5122284f8d06aa8b04151de0f604",
-    "datasets/split_policy/registry.py": "373f95c6f294b0ced090df35a8060ca51cab6735526f1897adb13f60c10af7a2",
+    "datasets/split_policy/registry.py": "2e6a142379998fd1c68371e68568cd2d90f76984922ce8097dc37bdf36067d17",
     "datasets/splits.py": "ae9cdc009f945de2fc540945e68569c7d01bf1cf865a98c3e70eca94390c0187",
     "datasets/standardized.py": "fac090a20191abc1c2011f697547683ddfbf6860673948fa44d9d617861ce68f",
     "datasets/standardized_specs.py": "365dcb612de9d63c7f2713ae070a8ae1e0de0dab84467f55a7262bf82111f097",
     "datasets/synthetic.py": "eacec8d5eb8001160c6765bfa70520036cf19a4e03668f3370c88af65729fd56",
     "datasets/targets.py": "e8a13165c7c09398ff44abf1498ebaa52cbfeb02333f5d12fae3fc0980a03248",
     "datasets/time_axis.py": "8db701f1eb34ba5c60f7c62ae792a5c851ddec8c7d7a76822675bc6a6daa8fbb",
-    "docs/reference/HELPER_WIRING_MATRIX.md": "d8cc579c0c5190053e09d24b8f39e647f84d0200da145c24f042786a1ff1afe8",
+    "docs/reference/helper-wiring-matrix.md": "d8cc579c0c5190053e09d24b8f39e647f84d0200da145c24f042786a1ff1afe8",
     "docs/research/EXECUTION_QUEUE.md": "b1edbe7f6640d87ca7b590944077461d464f25e13f5149e5ead3c102aed6c0b4",
     "docs/research/IMPLEMENTATION_BACKLOG.md": "f19649f86bcbc174eb331dbdfa0cd5c55adf600f3a9b0dccc20b953d6b1deadc",
     "docs/research/MASTER_RESEARCH_PLAN.md": "f30d8f567f97443aec722eabc459843aa4e5821f7574ce67080ab99747c5de93",
-    "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2",
+    "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "6228c56d4ea0866d6b5d11967e9464e8ba13dd99c3d3619854becf208d54f72d",
     "docs/research/schema/helper-wiring-inventory.v1.schema.json": "cbf3f4f5d3f5711d5d0bd208060e90543cbfba890ca718228f7be2befd0a170f",
     "evaluation/caez_forecast.py": "43a1f1d284c28ba12c8bc8265ef5d9e6aba15ef109a4c7f8e884718e1984c61e",
-    "evaluation/class_support.py": "f85c297bc8b7451417012f0d90f5a255859a8e08a445f3bcffefae72c72b7d34",
+    "evaluation/class_support.py": "8c0e4836b3771a5895ff155ce7568acc1d2c7a366ef7a0a701043286c58fd23f",
     "evaluation/complex_csi.py": "e12f665e44d5568014cf25aab043216da0284a77fb47974b3891cfbaaf92450f",
     "evaluation/duplicate_audit.py": "346cb866a9ea60c0e0edd84f189d8003755d9d81b80c79bbab7efd6a1d6d11f4",
-    "evaluation/joint_evaluation.py": "494cbf979620b98821678f31880afaf4d6c73809dc84a3490ea14389dbfd0d56",
+    "evaluation/joint_evaluation.py": "654fe588db045360481101681c027aeac4fc2b4ffd6ad002504819d5c63e2aba",
     "evaluation/joint_evidence_artifact.py": "a5ed10b6fa2a05d1783d00a49860b897497a4ae747e42d597eeef0f5318cf975",
     "evaluation/joint_evidence_run_manifest.py": "92b065d5978cd4f783ac05de4576965c15540cc55165900f38bc8664617f9d63",
-    "evaluation/low_confidence.py": "d1d5eff3513dcf5556ce78010ad05bc16b69bfeae85a59c5e99c24aa2c47203a",
+    "evaluation/low_confidence.py": "40a6dc710eb4065314ce5d602982300007b07c0fdacf4319f15b6123fbf767f9",
     "evaluation/metrics.py": "2872db0e70ccd8329061f37b53427bc8f2965f01c3f953971733f0bb48243fb3",
     "evaluation/path_equivalence_assurance.py": "5531191ac75343016a263faf501fcb4588dee0aabfae30ffdd9c54e11805b2fb",
     "evaluation/path_equivalence_roster_cli.py": "d2221271434dfeab7431b651e638a38c7298c8f44f964e9b948e15d0f177d5d6",
-    "evaluation/population_audit.py": "a95d543391daa1b1a033e5933df5cd2034fc3fc09ebf0de24b68383242fb83b9",
-    "evaluation/prior_shift.py": "038bfdb12e87f5cb00aa86ebaf8cd966e38d00b4dcb9c6c5a0384a55b6155d1b",
-    "evaluation/probability_calibration.py": "13e1815e144b35d370dceca42d196534f6760559cf3d47376f33800e879c5618",
+    "evaluation/population_audit.py": "3dc5a93f42fd765ecb6ddc2ac7bcc519f8ad4d83c5551da6286295efe5fd9272",
+    "evaluation/prior_shift.py": "62b9847fcf4db6b08cbce1fdf1833af6e537733b34cf1afeef185b8b1a01de58",
+    "evaluation/probability_calibration.py": "ba89a9dccd1039ffa1f0d327b5580020397f3eb58448d1d360dea0f601d83fe5",
     "evaluation/qualification_contract.py": "be183cc189091f59cd9f13dd1aa3481ef1fcc050cb9bb19649a286f57a57c0ba",
     "evaluation/receiver_assurance.py": "d2be4aefa83ddd119b5260a4ddfa0f302c1106b723d705329a34a28612a13ece",
     "evaluation/receiver_impact.py": "c1b85562075563eed6ea70d578ed7751008ab5e86517b8645a01402f32ae4b73",
@@ -93,7 +93,9 @@
     "experiments/independent_channel_receiver.py": "694ca9eaf1bd15364e0e9d58bed26234052eea0be55e3c20e16d7793ad25ef3a",
     "experiments/link_curves.py": "01a97663b6c9566fe0e60199c5e77a6a5c3c421e26133012a8e058b725dbe16a",
     "experiments/observable_multipath.py": "39a9008ee9d3d7ca4467be0a5310b9ce03ea48dfdb98b1431fd2197b91a24d2c",
-    "experiments/ordered_impairments_receiver.py": "786a45b4a1f9145645d239120b915e895d5a9a63f61d007e951ee96f19dd3101",
+    "experiments/ordered_impairments/independent_probe.py": "483150e5fb2189417fc2c10d9edaa97436ef6116a312d267025404a341965b31",
+    "experiments/ordered_impairments/paired_probe.py": "608bb84b20a22c8017fce594f347bde0fee7f41a3627026b627589c58e283639",
+    "experiments/ordered_impairments/signal_models.py": "e99d8731f89f0c5c44fa257b81e885697e1ea625406d04f44e99da7c432b6e6d",
     "experiments/profile_holdout.py": "33dec583942a07cb5bc0fee759636f735a72f2420415ce1382b758c8ec304d7a",
     "experiments/qualify_delay_domain_dft.py": "3f041902955257c04e5c91839e0ee2906d3e0b84a2433fa7791a75162e70e1ea",
     "experiments/qualify_tdl_c_dmrs_density.py": "4d6b18aeeab2bb778f7f8b76bebb10dac215924dfd697b2d1d461078227a4cdd",
@@ -116,7 +118,7 @@
     "integrations/sionna/network_phy/records.py": "d121f0f21beef1c8646df622a92c1264ba3567184936512da5f7b6c67e576522",
     "integrations/sionna/network_receiver.py": "63dfc337b07a83a3e987e5ede19417cd797f9f5355064d9f4cccf4e928656cb9",
     "integrations/sionna/network_sinr.py": "6c25dff32f29ef45f9299eace2040b039a0d86a102a088ace8b5bc55c3623a95",
-    "integrations/sionna/nr_prs.py": "2fa72bf82525e7af8034920cacc3b4cc17f3ec1eacd07b41a01dc0f7ab4d4429",
+    "integrations/sionna/nr_prs.py": "a997ce0d5d682315ffa83da5b27372e52b897c8d4739bffcb823c3b1614dce51",
     "integrations/sionna/nr_pusch.py": "7876e644bde69021898b7b8873cfaa1ac55c94ec623d69c3affbaaa6bf44fb59",
     "integrations/sionna/ofdm_impairments.py": "c19a2dcde09d2a828c153e086f4c5f22a4e6d3d8bac1d0f9e785930513c0a40c",
     "integrations/sionna/path_oracle.py": "ccb47399dcd497440245c28e8a156e18d128d4b33f6cfa90be352d555b765037",
@@ -125,7 +127,7 @@
     "integrations/sionna/pbch_data.py": "328aa41c2e3ded895278e8b31a6c2ecfec433499e7deb53c7fd8629b80d06cee",
     "integrations/sionna/pbch_dmrs.py": "07aa28bd9e3a5cec0a9ceb92525f3878ab8d80372c2dbebb13c9558dd1d32ac4",
     "integrations/sionna/pbch_mib.py": "b334c450de6413a531ca509c510b5a8a760b4b4bdf58baec4f420de410ab6fae",
-    "integrations/sionna/pbch_ofdm_receiver.py": "aa6b92928d3c57f474b745253cf069084681697311ee6fe61582b3755be6d367",
+    "integrations/sionna/pbch_ofdm_receiver.py": "2d13cc40e6e7ca3756ec185f254f75478c103b25d0883aa570bc10ff62685e4f",
     "integrations/sionna/pbch_payload.py": "099617252e39f649fcede56f5760aa71f0c78e01e8d1ba2765fc0afb55011100",
     "integrations/sionna/rt_cache.py": "8a48b0847b6631ffad4d932608bb7a3118b0a5183fdf30af21ffb2f650213714",
     "integrations/sionna/rt_identity.py": "537ede784bf9ae83ec2191a7290bb057d1daff4c3313a2f8d338c6ca52949269",
@@ -133,13 +135,13 @@
     "integrations/sionna/rt_to_nr.py": "d99ce54382f38d709dac698e44165001f1d45b2a0e6ee953a587ba9078055c3b",
     "integrations/sionna/rt_trajectory.py": "a7df84f11b64962468efbd2f726bcc116044c39b2fbeeedc7d92e027fcc90d04",
     "integrations/sionna/scenario_gbsm.py": "3dc5b1ddaccfed5742b461a57215789a6b2ec6469bf86422ba54d53beaee1ee0",
-    "integrations/sionna/srs/srs_bwp_schedules.py": "3b4fe6bb167de429399e18aa2f4932c57c5304c3702f6381cf82753ab1939d92",
-    "integrations/sionna/srs/srs_configuration.py": "d60051183cfef01a443e17878641f5cfc12d4bb69f0b3a7526ce32e82fc5fc39",
-    "integrations/sionna/srs/srs_constants/dci_0_3.py": "ea194b41b45149a075aabddf1edb1526635c0d07c929fc35bf8a9123174a0c17",
+    "integrations/sionna/srs/srs_bwp_schedules.py": "7f82c2d7442f748bdc4792202a84bd8e43aec9a6262a49a83994159c308710bd",
+    "integrations/sionna/srs/srs_configuration.py": "3f4ee65072c49bf0d410583f26ad92d409d8cc0e5a0ca09d40a4158ce86dd79d",
+    "integrations/sionna/srs/srs_constants/dci_0_3.py": "f6692ddf55795c6038ff5ec61468e879e5ed072ef287ef35ccbf12205af4499b",
     "integrations/sionna/srs/srs_dci_multicell.py": "489e36154a9b782ee83c7f15bff92f04e33675a90decdf497376c519be0a4f17",
-    "integrations/sionna/srs/srs_lookups.py": "d7da12e0bd784e16e60c8c58ff55bc7ec9697ec294b9cdac51ff75b0ba85746e",
-    "integrations/sionna/srs/srs_resource_schedules.py": "30ba2ca7065f63de9bcd99e8a04df0b949dd3ab39b4f32d9257139fbe85f20c8",
-    "integrations/sionna/srs_measurements.py": "e78eb27d59419e2eaaa8f0952f24aaf1a0cd88574913cfe9c543e2a18e6f58ab",
+    "integrations/sionna/srs/srs_lookups.py": "79fd3509a9575e33f5031fafe9228ad1511b3bb673f2c25367fe83ecc9e3cf97",
+    "integrations/sionna/srs/srs_resource_schedules.py": "efb9b5a96a306409333f1f6affd1394fa620d8eb48007db2cf59176790cb3c13",
+    "integrations/sionna/srs_measurements.py": "64590669d6b8129690f77ac5c2f210b6171d157c53496d9cdb4255c777ad24da",
     "integrations/sionna/ssb_grid.py": "21192558436d804e530463b472e681f6366cea638a83d6b53ea289d58ec253de",
     "integrations/sionna/ssb_ofdm.py": "731501e6c8fb4a06f5a42046bebe0d91b41e5bba6b266db50df663bfd0b3ec41",
     "integrations/sionna/ssb_timing.py": "01b373132eb2f54136ec9ec81c581876f83129c76d5d1b9f2b6141268e5a5ed9",
@@ -150,16 +152,16 @@
     "loslab/lineage_audit.py": "37e53df12c6f629da607b345a7943735b873b7c4cb77e52ffd6d71f526c64c07",
     "loslab/scenario_gbsm.py": "83fbf366c6de022b5a80a54c0ace7c1cfa25a2cfd75068aa415d26a153c976f9",
     "propagation/identifiability.py": "bcc41f209dc0d2e7cd8591e94009dcda69b16171aa8a8c776572e7f8c6cde7d9",
-    "propagation/physics.py": "bde34eb0018f8300fc5f1d5acb0dc52134d21b1e8129fd15ec591aa3daf083ef",
+    "propagation/physics.py": "ae06c8a3e140d1845460e6e620d4f6b39abc360cd0b85d603c421421dc374865",
     "propagation/scene_visibility.py": "9afedb819449e78062ad8e10094063d689f6d899fa48e10376ee3f0f974e4fa0",
     "propagation/visibility.py": "e1e151456b68371b112dfb1b73b122fe67bc6da9665bb52e75fa68cf25fc5e52",
-    "pyproject.toml": "5d8e656aab1f2d806180237dff281fa34d06f1dce3c56c698c49d7880ae4ac85",
+    "pyproject.toml": "e7217160357d2eade91bb3e91b4926246eba72af644303143a03627498c04b05",
     "receivers/nr/pusch.py": "b6a632a92fbc92a294fe7baf718a69b665635e4e5d0e71f4528b5b4d1333f003",
     "receivers/pilots.py": "8dde83da15e1a16031c039e7aed4ebf071b06990d1a4e17e80758dbb1f91c6ca",
     "scripts/audit_channel_population.py": "8c2a84c7f24db2d9237500dd861212a94aa0da9898f470f71933872385894e4c",
     "scripts/audit_channel_split_lineage/channel_audit.py": "2ff2db8f728703b49a537ceb8c3e985eb8b530c4fa7dc0cc5b7de3128518f835",
     "scripts/audit_channel_split_lineage/split_artifacts.py": "6f51e08a3d8e919a0a3be71b550c0186d3db1323aac35ae0286756c7c4a64ea8",
-    "scripts/audit_helper_wiring.py": "0d71825e0eefe4ad4365bcc3d467fe906922c1e84cc31d0cecd1a4285b4e4ec8",
+    "scripts/audit_helper_wiring.py": "4da1eda944629d8a1b5efb318336f654048d311e08ea619ca7d2770ea1e38895",
     "scripts/audit_rt_dataset_ray_budget.py": "5379aae436f91254b50766caf9c4f5270107bcbb5b59dd9a85c2e09a3b5086f0",
     "scripts/audit_rt_nr_trajectories.py": "816eabff0c3406129c59fe1acaa29779f2706a26135c70ce7119fa6e94bf9630",
     "scripts/audit_rt_path_power_threshold.py": "8de7d64f6835d65616a3bc7585f84f05d06568366f33ca9f01b791f96fd89bcb",
@@ -269,7 +271,7 @@
     "tests/test_integrations/test_cdl_profile_tables_native.py": "b6b0ea7aecba9a8f73ff352e02145d196b62740438ed98f568498952669c2228",
     "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "1c5f0408dedd46536f95b8876ba4e86fcc63edce3b5b804c45ed71508b2c2193",
     "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py": "a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2",
-    "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py": "9a43fb8acf5c7ac1dcb0e2d23c95ec71b444806fe7f88f7a917bde072196e2a2",
+    "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py": "da0ba387f38aebb982c76ebc683a10a3b810f5afee0313b0816ae47d67f1df9d",
     "tests/test_integrations/test_cdl_spatiotemporal_covariance_native.py": "d78fc6dcc49c8e60ddc0142527655ed866e9a329ae27e0e49dd3a858144366f3",
     "tests/test_integrations/test_cdl_temporal_vector_reference_native.py": "c0b55ec45aa7d66f11a5e943d5e4117817bf7fbd90af84d3b962172848704bca",
     "tests/test_integrations/test_channel_draw_semantics_native.py": "06d870e7d9272a1f312be529bfc4da23772acf1f5b2aff13091e9925138f6f04",
@@ -928,7 +930,7 @@
       "public_name": "audit_whole_scene_holdout",
       "qualified_name": "datasets.audit_whole_scene_holdout",
       "source": "datasets/split_policy/registry.py",
-      "definition_line": 484,
+      "definition_line": 483,
       "direct_production_references": [
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -1581,7 +1583,7 @@
       "public_name": "freeze_split_policy_registry",
       "qualified_name": "datasets.freeze_split_policy_registry",
       "source": "datasets/split_policy/registry.py",
-      "definition_line": 610,
+      "definition_line": 609,
       "direct_production_references": [
         {
           "path": "scripts/bind_split_registry_children.py",
@@ -2896,11 +2898,11 @@
       "public_name": "read_split_policy_registry",
       "qualified_name": "datasets.read_split_policy_registry",
       "source": "datasets/split_policy/registry.py",
-      "definition_line": 664,
+      "definition_line": 663,
       "direct_production_references": [
         {
           "path": "datasets/split_policy/registry.py",
-          "line": 767
+          "line": 766
         },
         {
           "path": "scripts/audit_umcd_corpus.py",
@@ -3835,7 +3837,7 @@
       "direct_production_references": [
         {
           "path": "datasets/split_policy/registry.py",
-          "line": 757
+          "line": 756
         },
         {
           "path": "experiments/runner/validation.py",
@@ -3913,7 +3915,7 @@
       "public_name": "verify_signed_split_policy_registry",
       "qualified_name": "datasets.verify_signed_split_policy_registry",
       "source": "datasets/split_policy/registry.py",
-      "definition_line": 770,
+      "definition_line": 769,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -3948,11 +3950,11 @@
       "public_name": "verify_signed_split_policy_registry_attestation",
       "qualified_name": "datasets.verify_signed_split_policy_registry_attestation",
       "source": "datasets/split_policy/registry.py",
-      "definition_line": 738,
+      "definition_line": 737,
       "direct_production_references": [
         {
           "path": "datasets/split_policy/registry.py",
-          "line": 778
+          "line": 777
         },
         {
           "path": "experiments/runner/experiment_runner.py",
@@ -4784,11 +4786,11 @@
       "public_name": "adjust_probabilities_between_priors",
       "qualified_name": "evaluation.adjust_probabilities_between_priors",
       "source": "evaluation/prior_shift.py",
-      "definition_line": 78,
+      "definition_line": 77,
       "direct_production_references": [
         {
           "path": "evaluation/prior_shift.py",
-          "line": 151
+          "line": 148
         },
         {
           "path": "experiments/runner/experiment_runner.py",
@@ -4813,7 +4815,7 @@
       "public_name": "adjust_probabilities_for_prior_shift",
       "qualified_name": "evaluation.adjust_probabilities_for_prior_shift",
       "source": "evaluation/prior_shift.py",
-      "definition_line": 109,
+      "definition_line": 107,
       "direct_production_references": [
         {
           "path": "experiments/runner/experiment_runner.py",
@@ -4850,7 +4852,7 @@
       "direct_production_references": [
         {
           "path": "evaluation/probability_calibration.py",
-          "line": 153
+          "line": 150
         },
         {
           "path": "experiments/runner/experiment_runner.py",
@@ -4933,7 +4935,7 @@
       "public_name": "audit_expected_population",
       "qualified_name": "evaluation.audit_expected_population",
       "source": "evaluation/population_audit.py",
-      "definition_line": 59,
+      "definition_line": 58,
       "direct_production_references": [
         {
           "path": "scripts/audit_channel_population.py",
@@ -5355,7 +5357,7 @@
       "public_name": "evaluate_joint_evidence",
       "qualified_name": "evaluation.evaluate_joint_evidence",
       "source": "evaluation/joint_evaluation.py",
-      "definition_line": 609,
+      "definition_line": 608,
       "direct_production_references": [
         {
           "path": "evaluation/joint_evidence_artifact.py",
@@ -5420,7 +5422,7 @@
       "direct_production_references": [
         {
           "path": "evaluation/joint_evaluation.py",
-          "line": 577
+          "line": 576
         },
         {
           "path": "evaluation/path_equivalence_roster_cli.py",
@@ -5563,7 +5565,7 @@
       "direct_production_references": [
         {
           "path": "evaluation/joint_evaluation.py",
-          "line": 576
+          "line": 575
         },
         {
           "path": "evaluation/receiver_assurance.py",
@@ -5734,7 +5736,7 @@
       "public_name": "fit_group_balanced_platt_calibrator",
       "qualified_name": "evaluation.fit_group_balanced_platt_calibrator",
       "source": "evaluation/probability_calibration.py",
-      "definition_line": 89,
+      "definition_line": 87,
       "direct_production_references": [
         {
           "path": "experiments/runner/experiment_runner.py",
@@ -5906,7 +5908,7 @@
       "public_name": "invert_platt_calibrator",
       "qualified_name": "evaluation.invert_platt_calibrator",
       "source": "evaluation/probability_calibration.py",
-      "definition_line": 60,
+      "definition_line": 59,
       "direct_production_references": [
         {
           "path": "experiments/runner/experiment_runner.py",
@@ -6235,7 +6237,7 @@
       "direct_production_references": [
         {
           "path": "evaluation/population_audit.py",
-          "line": 75
+          "line": 73
         },
         {
           "path": "scripts/audit_channel_population.py",
@@ -6260,7 +6262,7 @@
       "direct_production_references": [
         {
           "path": "evaluation/prior_shift.py",
-          "line": 122
+          "line": 119
         },
         {
           "path": "experiments/runner/experiment_runner.py",
@@ -6390,7 +6392,7 @@
       "public_name": "verify_joint_evidence_bundle",
       "qualified_name": "evaluation.verify_joint_evidence_bundle",
       "source": "evaluation/joint_evaluation.py",
-      "definition_line": 617,
+      "definition_line": 615,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -6931,40 +6933,40 @@
       "definition_line": 475,
       "direct_production_references": [
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 380
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 325
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 538
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 364
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 959
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 366
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 554
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 385
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 557
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 182
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 584
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 198
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 998
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 201
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 1000
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 228
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 1019
+          "path": "experiments/ordered_impairments/signal_models.py",
+          "line": 108
         },
         {
           "path": "integrations/sionna/standardized_pusch.py",
@@ -7131,24 +7133,24 @@
       "definition_line": 80,
       "direct_production_references": [
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 373
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 317
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 530
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 399
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 595
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 174
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 951
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 239
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 1033
+          "path": "experiments/ordered_impairments/signal_models.py",
+          "line": 101
         },
         {
           "path": "integrations/sionna/standardized_pusch.py",
@@ -7268,24 +7270,24 @@
           "line": 184
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 366
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 310
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 523
+          "path": "experiments/ordered_impairments/independent_probe.py",
+          "line": 356
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 546
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 167
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 944
+          "path": "experiments/ordered_impairments/paired_probe.py",
+          "line": 190
         },
         {
-          "path": "experiments/ordered_impairments_receiver.py",
-          "line": 990
+          "path": "experiments/ordered_impairments/signal_models.py",
+          "line": 94
         },
         {
           "path": "experiments/qualify_delay_domain_dft.py",
@@ -7936,7 +7938,7 @@
         },
         {
           "path": "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py",
-          "line": 122
+          "line": 123
         },
         {
           "path": "tests/test_integrations/test_cdl_spatiotemporal_covariance_native.py",
@@ -8521,7 +8523,7 @@
       "public_name": "map_nr_srs_hopped_multiport_resource",
       "qualified_name": "integrations.sionna.map_nr_srs_hopped_multiport_resource",
       "source": "integrations/sionna/srs/srs_resource_schedules.py",
-      "definition_line": 828,
+      "definition_line": 824,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -8537,11 +8539,11 @@
       "public_name": "map_nr_srs_hopped_resource",
       "qualified_name": "integrations.sionna.map_nr_srs_hopped_resource",
       "source": "integrations/sionna/srs/srs_resource_schedules.py",
-      "definition_line": 696,
+      "definition_line": 693,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 856
+          "line": 851
         }
       ],
       "direct_test_references": [
@@ -8566,7 +8568,7 @@
       "public_name": "map_nr_srs_multiport_resource",
       "qualified_name": "integrations.sionna.map_nr_srs_multiport_resource",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 1335,
+      "definition_line": 1326,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -8622,7 +8624,7 @@
       "public_name": "map_nr_srs_positioning_multiport_resource",
       "qualified_name": "integrations.sionna.map_nr_srs_positioning_multiport_resource",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 1262,
+      "definition_line": 1254,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -8642,11 +8644,11 @@
       "public_name": "map_nr_srs_positioning_resource",
       "qualified_name": "integrations.sionna.map_nr_srs_positioning_resource",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 1144,
+      "definition_line": 1137,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1292
+          "line": 1283
         }
       ],
       "direct_test_references": [
@@ -8671,11 +8673,11 @@
       "public_name": "map_nr_srs_resource",
       "qualified_name": "integrations.sionna.map_nr_srs_resource",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 839,
+      "definition_line": 828,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1365
+          "line": 1355
         }
       ],
       "direct_test_references": [
@@ -8815,7 +8817,7 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs_measurements.py",
-          "line": 261
+          "line": 259
         }
       ],
       "direct_test_references": [
@@ -8840,11 +8842,11 @@
       "public_name": "measure_ul_srs_rsrp_from_grid",
       "qualified_name": "integrations.sionna.measure_ul_srs_rsrp_from_grid",
       "source": "integrations/sionna/srs_measurements.py",
-      "definition_line": 175,
+      "definition_line": 174,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs_measurements.py",
-          "line": 476
+          "line": 473
         }
       ],
       "direct_test_references": [
@@ -8876,7 +8878,7 @@
       "public_name": "measure_ul_srs_rsrp_from_noisy_network_grid",
       "qualified_name": "integrations.sionna.measure_ul_srs_rsrp_from_noisy_network_grid",
       "source": "integrations/sionna/srs_measurements.py",
-      "definition_line": 339,
+      "definition_line": 337,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -9039,11 +9041,11 @@
       "public_name": "nr_dci_0_3_field_values_from_layout",
       "qualified_name": "integrations.sionna.nr_dci_0_3_field_values_from_layout",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 616,
+      "definition_line": 608,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 450
+          "line": 446
         }
       ],
       "direct_test_references": [
@@ -9101,7 +9103,7 @@
       "public_name": "nr_dl_prs_delay_cfo_profile",
       "qualified_name": "integrations.sionna.nr_dl_prs_delay_cfo_profile",
       "source": "integrations/sionna/nr_prs.py",
-      "definition_line": 995,
+      "definition_line": 994,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -9121,7 +9123,7 @@
       "public_name": "nr_dl_prs_matched_delay_profile",
       "qualified_name": "integrations.sionna.nr_dl_prs_matched_delay_profile",
       "source": "integrations/sionna/nr_prs.py",
-      "definition_line": 919,
+      "definition_line": 918,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -9226,11 +9228,11 @@
       "public_name": "nr_low_papr_sequence_type1",
       "qualified_name": "integrations.sionna.nr_low_papr_sequence_type1",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 760,
+      "definition_line": 750,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1063
+          "line": 1057
         }
       ],
       "direct_test_references": [
@@ -9772,11 +9774,11 @@
       "public_name": "nr_srs_aperiodic_resource_schedule",
       "qualified_name": "integrations.sionna.nr_srs_aperiodic_resource_schedule",
       "source": "integrations/sionna/srs/srs_bwp_schedules.py",
-      "definition_line": 516,
+      "definition_line": 515,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
-          "line": 632
+          "line": 629
         },
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
@@ -9801,7 +9803,7 @@
       "public_name": "nr_srs_aperiodic_resource_set_schedules",
       "qualified_name": "integrations.sionna.nr_srs_aperiodic_resource_set_schedules",
       "source": "integrations/sionna/srs/srs_bwp_schedules.py",
-      "definition_line": 566,
+      "definition_line": 564,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -9829,7 +9831,7 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
-          "line": 541
+          "line": 539
         }
       ],
       "direct_test_references": [],
@@ -9841,11 +9843,11 @@
       "public_name": "nr_srs_cyclic_shift_hopping_offset",
       "qualified_name": "integrations.sionna.nr_srs_cyclic_shift_hopping_offset",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 147,
+      "definition_line": 145,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 251
+          "line": 248
         }
       ],
       "direct_test_references": [
@@ -9882,11 +9884,11 @@
       "public_name": "nr_srs_cyclic_shift_hopping_offsets",
       "qualified_name": "integrations.sionna.nr_srs_cyclic_shift_hopping_offsets",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 218,
+      "definition_line": 215,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 578
+          "line": 576
         }
       ],
       "direct_test_references": [
@@ -9907,7 +9909,7 @@
       "public_name": "nr_srs_dci_0_3_field_widths_from_configuration",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_field_widths_from_configuration",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 469,
+      "definition_line": 465,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -10047,11 +10049,11 @@
       "public_name": "nr_srs_dci_0_3_frequency_assignment_widths",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_frequency_assignment_widths",
       "source": "integrations/sionna/srs/srs_constants/dci_0_3.py",
-      "definition_line": 659,
+      "definition_line": 658,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 650
+          "line": 646
         }
       ],
       "direct_test_references": [],
@@ -10128,7 +10130,7 @@
       "public_name": "nr_srs_dci_0_3_request_list_index_from_bits",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_request_list_index_from_bits",
       "source": "integrations/sionna/srs/srs_constants/dci_0_3.py",
-      "definition_line": 267,
+      "definition_line": 266,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_dci_multicell.py",
@@ -10144,7 +10146,7 @@
       "public_name": "nr_srs_dci_0_3_request_list_index_from_layout",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_request_list_index_from_layout",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 428,
+      "definition_line": 424,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -10168,11 +10170,11 @@
       "public_name": "nr_srs_dci_0_3_scheduled_cell_ids",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_scheduled_cell_ids",
       "source": "integrations/sionna/srs/srs_constants/dci_0_3.py",
-      "definition_line": 139,
+      "definition_line": 138,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 598
+          "line": 594
         },
         {
           "path": "integrations/sionna/srs/srs_dci_multicell.py",
@@ -10188,11 +10190,11 @@
       "public_name": "nr_srs_dci_0_3_ul_bwp_selection",
       "qualified_name": "integrations.sionna.nr_srs_dci_0_3_ul_bwp_selection",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 496,
+      "definition_line": 488,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 642
+          "line": 638
         },
         {
           "path": "integrations/sionna/srs/srs_dci_multicell.py",
@@ -10233,7 +10235,7 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 507
+          "line": 505
         }
       ],
       "direct_test_references": [
@@ -10302,15 +10304,15 @@
       "public_name": "nr_srs_frequency_position_indices",
       "qualified_name": "integrations.sionna.nr_srs_frequency_position_indices",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 157,
+      "definition_line": 153,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 352
+          "line": 349
         },
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 411
+          "line": 410
         }
       ],
       "direct_test_references": [
@@ -10335,11 +10337,11 @@
       "public_name": "nr_srs_group_hopping_index",
       "qualified_name": "integrations.sionna.nr_srs_group_hopping_index",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 683,
+      "definition_line": 675,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1113
+          "line": 1106
         }
       ],
       "direct_test_references": [
@@ -10364,11 +10366,11 @@
       "public_name": "nr_srs_hopped_sequence_type1",
       "qualified_name": "integrations.sionna.nr_srs_hopped_sequence_type1",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 1074,
+      "definition_line": 1068,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 609
+          "line": 607
         }
       ],
       "direct_test_references": [
@@ -10450,7 +10452,7 @@
       "public_name": "nr_srs_multicell_request_resource_set_ids",
       "qualified_name": "integrations.sionna.nr_srs_multicell_request_resource_set_ids",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 947,
+      "definition_line": 943,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
@@ -10479,7 +10481,7 @@
       "public_name": "nr_srs_multiport_ls_channel_estimate",
       "qualified_name": "integrations.sionna.nr_srs_multiport_ls_channel_estimate",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 1002,
+      "definition_line": 989,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -10539,7 +10541,7 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
-          "line": 493
+          "line": 492
         }
       ],
       "direct_test_references": [
@@ -10560,7 +10562,7 @@
       "public_name": "nr_srs_periodic_resource_set_schedule",
       "qualified_name": "integrations.sionna.nr_srs_periodic_resource_set_schedule",
       "source": "integrations/sionna/srs/srs_bwp_schedules.py",
-      "definition_line": 375,
+      "definition_line": 374,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_dci_multicell.py",
@@ -10622,11 +10624,11 @@
       "public_name": "nr_srs_periodicity_and_offset_slots",
       "qualified_name": "integrations.sionna.nr_srs_periodicity_and_offset_slots",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 340,
+      "definition_line": 334,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 478
+          "line": 476
         }
       ],
       "direct_test_references": [
@@ -10651,7 +10653,7 @@
       "public_name": "nr_srs_port_configuration_from_rrc",
       "qualified_name": "integrations.sionna.nr_srs_port_configuration_from_rrc",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 53,
+      "definition_line": 52,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -10687,11 +10689,11 @@
       "public_name": "nr_srs_port_cyclic_shift_indices",
       "qualified_name": "integrations.sionna.nr_srs_port_cyclic_shift_indices",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 93,
+      "definition_line": 92,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
-          "line": 672
+          "line": 668
         }
       ],
       "direct_test_references": [
@@ -10716,11 +10718,11 @@
       "public_name": "nr_srs_port_sequences_type1",
       "qualified_name": "integrations.sionna.nr_srs_port_sequences_type1",
       "source": "integrations/sionna/srs/srs_resource_schedules.py",
-      "definition_line": 627,
+      "definition_line": 625,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
-          "line": 678
+          "line": 674
         }
       ],
       "direct_test_references": [
@@ -10753,15 +10755,15 @@
       "public_name": "nr_srs_port_symbol_activity",
       "qualified_name": "integrations.sionna.nr_srs_port_symbol_activity",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 89,
+      "definition_line": 87,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1309
+          "line": 1300
         },
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1381
+          "line": 1371
         }
       ],
       "direct_test_references": [
@@ -10786,15 +10788,15 @@
       "public_name": "nr_srs_positioning_symbol_offset",
       "qualified_name": "integrations.sionna.nr_srs_positioning_symbol_offset",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 124,
+      "definition_line": 121,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1193
+          "line": 1185
         },
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 769
+          "line": 765
         }
       ],
       "direct_test_references": [
@@ -10815,15 +10817,15 @@
       "public_name": "nr_srs_resource_frequency_allocations",
       "qualified_name": "integrations.sionna.nr_srs_resource_frequency_allocations",
       "source": "integrations/sionna/srs/srs_resource_schedules.py",
-      "definition_line": 439,
+      "definition_line": 438,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
-          "line": 347
+          "line": 346
         },
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
-          "line": 547
+          "line": 545
         }
       ],
       "direct_test_references": [
@@ -10852,11 +10854,11 @@
       "public_name": "nr_srs_resource_sequences_type1",
       "qualified_name": "integrations.sionna.nr_srs_resource_sequences_type1",
       "source": "integrations/sionna/srs/srs_resource_schedules.py",
-      "definition_line": 522,
+      "definition_line": 520,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 673
+          "line": 670
         }
       ],
       "direct_test_references": [
@@ -10903,7 +10905,7 @@
       "public_name": "nr_srs_scheduled_port_sequences_type1",
       "qualified_name": "integrations.sionna.nr_srs_scheduled_port_sequences_type1",
       "source": "integrations/sionna/srs/srs_bwp_schedules.py",
-      "definition_line": 646,
+      "definition_line": 643,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -10919,11 +10921,11 @@
       "public_name": "nr_srs_sequence_hopping_index",
       "qualified_name": "integrations.sionna.nr_srs_sequence_hopping_index",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 721,
+      "definition_line": 712,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1123
+          "line": 1116
         }
       ],
       "direct_test_references": [
@@ -10948,11 +10950,11 @@
       "public_name": "nr_srs_sequence_type1",
       "qualified_name": "integrations.sionna.nr_srs_sequence_type1",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 1046,
+      "definition_line": 1041,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1133
+          "line": 1126
         }
       ],
       "direct_test_references": [
@@ -10992,7 +10994,7 @@
       "public_name": "nr_srs_single_port_ls_channel_estimate",
       "qualified_name": "integrations.sionna.nr_srs_single_port_ls_channel_estimate",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 961,
+      "definition_line": 949,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -11044,11 +11046,11 @@
       "public_name": "nr_srs_transmission_counter",
       "qualified_name": "integrations.sionna.nr_srs_transmission_counter",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 228,
+      "definition_line": 223,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 490
+          "line": 488
         }
       ],
       "direct_test_references": [
@@ -11097,15 +11099,15 @@
       "public_name": "nr_srs_triggered_resource_set_ids",
       "qualified_name": "integrations.sionna.nr_srs_triggered_resource_set_ids",
       "source": "integrations/sionna/srs/srs_lookups.py",
-      "definition_line": 382,
+      "definition_line": 375,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_bwp_schedules.py",
-          "line": 586
+          "line": 583
         },
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1032
+          "line": 1027
         }
       ],
       "direct_test_references": [
@@ -11166,11 +11168,11 @@
       "public_name": "nr_srs_type1_bandwidth_configuration",
       "qualified_name": "integrations.sionna.nr_srs_type1_bandwidth_configuration",
       "source": "integrations/sionna/srs/srs_configuration.py",
-      "definition_line": 391,
+      "definition_line": 388,
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 390
+          "line": 389
         }
       ],
       "direct_test_references": [
@@ -11526,7 +11528,7 @@
       "public_name": "report_gnb_rx_tx_time_difference",
       "qualified_name": "integrations.sionna.report_gnb_rx_tx_time_difference",
       "source": "integrations/sionna/srs_measurements.py",
-      "definition_line": 662,
+      "definition_line": 658,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -11542,7 +11544,7 @@
       "public_name": "report_ul_aoa",
       "qualified_name": "integrations.sionna.report_ul_aoa",
       "source": "integrations/sionna/srs_measurements.py",
-      "definition_line": 706,
+      "definition_line": 701,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -11565,7 +11567,7 @@
       "public_name": "report_ul_rtoa",
       "qualified_name": "integrations.sionna.report_ul_rtoa",
       "source": "integrations/sionna/srs_measurements.py",
-      "definition_line": 605,
+      "definition_line": 602,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -11585,7 +11587,7 @@
       "public_name": "report_ul_srs_rsrpp",
       "qualified_name": "integrations.sionna.report_ul_srs_rsrpp",
       "source": "integrations/sionna/srs_measurements.py",
-      "definition_line": 771,
+      "definition_line": 765,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -11615,7 +11617,7 @@
       "public_name": "report_ul_srs_tdct_tdcp",
       "qualified_name": "integrations.sionna.report_ul_srs_tdct_tdcp",
       "source": "integrations/sionna/srs_measurements.py",
-      "definition_line": 930,
+      "definition_line": 924,
       "direct_production_references": [],
       "direct_test_references": [
         {
@@ -11951,15 +11953,15 @@
       "direct_production_references": [
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 119
+          "line": 117
         },
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 181
+          "line": 178
         },
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 412
+          "line": 408
         },
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
@@ -11967,19 +11969,19 @@
         },
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 299
+          "line": 296
         },
         {
           "path": "integrations/sionna/srs/srs_configuration.py",
-          "line": 1068
+          "line": 1062
         },
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 659
+          "line": 656
         },
         {
           "path": "integrations/sionna/srs/srs_resource_schedules.py",
-          "line": 603
+          "line": 601
         }
       ],
       "direct_test_references": [
