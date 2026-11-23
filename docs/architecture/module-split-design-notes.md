@@ -120,3 +120,9 @@ commit.
 - `evaluation/joint_evidence_run_manifest.py`: facade (132 lines), digest `fcbd0a189bc78a6d422f15ff344b232952302838c59c073c827c0812d92a3ce3`; previous `92b065d5978cd4f783ac05de4576965c15540cc55165900f38bc8664617f9d63`; base `c44ab0d3ee9e5ad196ca4dfd715f5b120c8c563ec30133c2bf732d257b18f26b`. Package `evaluation/run_manifest/`: `constants`, `common`, `sources`, `signatures`, `contracts`, `build`, `verify`, `cli`; the `__main__` guard stays in the facade.
 - Roster coverage: the facade paths keep the V1, V2 and V4 rosters unchanged. The new submodules are not in any roster, so signed evidence no longer hashes them. This is the narrowed binding the owner chose.
 - Verifier change: the source-file check in `evaluation/run_manifest/verify.py` accepts a recorded digest that is rebound to the current digest (`artifacts/rebinding.py: recorded_digest_resolves`). The recorded size belongs to the superseded bytes and is not compared for rebound entries.
+
+### Implemented split: acquisition package (narrowed binding)
+
+- `evaluation/acquisition_package.py`: facade, digest `05e11caeb31a8bb17d3333ab6152592b8ef4881336d8283c4c9e92e58d76e185`; previous `0a8db8921fe180f2bdaaec0adb20de957944f79ccddd5daf6440dacf2c7159ae`; base `07bb9da6c12b86503218f8c087dfd430e4f2363987c4a9c56d1c86fcca056db3` (`evaluation/g3_acquisition_package.py`). It is in the V1, V2 and V4 rosters; the facade path keeps the rosters unchanged.
+- Package `evaluation/acquisition/`: `constants`, `noise`, `canonical`, `files`, `index`, `verify` (the verifier is about 1,400 lines, under the limit).
+- The submodules are outside the signed roster, the same narrowed binding as above.
