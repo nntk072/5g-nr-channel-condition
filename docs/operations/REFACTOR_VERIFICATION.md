@@ -13,7 +13,7 @@ Logs are kept in the ignored state root
 | lint | `./tools/check lint` | 0 | ruff check passed; `758 files already formatted` |
 | typecheck | `./tools/check typecheck` | 0 | `Success: no issues found in 394 source files` |
 | test | `./tools/check test` | 0 | `3697 passed, 223 skipped` (241.98 s), no torch installed |
-| neural | `./tools/check neural` | 1 | `3697 passed, 223 skipped`; coverage `71.10%`, below the `75%` threshold. The `.venv` has no torch, so torch-dependent tests skip and coverage is lower. See the torch run below. |
+| neural | `./tools/check neural` | 0 | After installing CPU torch 2.11.0 into `.venv` (the version CI pins): `3924 passed, 170 skipped`; coverage `76%`, above the 75% threshold (`uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu`). The earlier run without torch failed at 71.10%; that result is superseded. |
 | build | `./tools/check build` | 0 | wheel `5g_nr_channel_condition-0.2.0` built; `import-smoke-ok` |
 | agent | `./tools/check agent` | 0 | `180 passed` |
 
@@ -28,6 +28,7 @@ environment (torch 2.14.1+cu126):
 Classification of the 18 failures:
 
 - **Fixed by this step (1):** `tests/test_experiments/test_ordered_impairments_receiver.py::test_independent_snr_curve_retains_each_condition_input_across_snr`. Cause: the test stubbed `_recompute_waveform_diagnostics` on the package, but the audit calls it from `independent.py` and `waveform.py`. The test now stubs both modules. The 18-test rerun reports it as passed.
+- **Plot test (`test_plot_rt_urban43_spatial_holdout_3d.py`):** the retained audit records the scene path of the machine that produced it. `scripts/plot_rt_urban43_spatial_holdout_3d.py` now maps a recorded absolute path onto this checkout when that path does not exist. The retained JSON is unchanged. The test passes in the torch environment (`1 passed`) and skips in `.venv`, where matplotlib is absent.
 - **Rerun on the current tree (17 tests):** `17 failed, 1 passed in 22.04s`. The 17 are the same tests that fail on the pre-refactor tree (see next section), plus the plot test.
 - **Pre-refactor check:** the same 9 test files run on the `016168e` extract give `16 failed, 113 passed`. The failing set is identical to the current nine-file failures. `tests/test_scripts/test_plot_rt_urban43_spatial_holdout_3d.py` also fails on the `016168e` extract. It reads a hard-coded `/home/nguyenl37/...` path recorded in a retained audit, so it is an environment failure, not a refactor failure.
 
@@ -73,7 +74,7 @@ Retained evidence keeps its recorded digests. Changes that retained evidence bin
 
 ## Remaining gaps
 
-- The neural gate fails locally on coverage because torch is not in `.venv`. It passes the 75% threshold in the torch environment (80%), but that run also has the 17 pre-existing failures above.
+- The `neural` gate now passes in `.venv` (torch CPU 2.11.0). The `test` gate result above predates the torch install; the `neural` run covers the full suite and supersedes it.
 - The native baseline's pass and skip counts are not recorded (see above).
 - Stale links in frozen text (35) and protected authorities (3 documents) are unchanged, by rule.
 - Items deferred in step 3 and step 4 need owner decisions before they can be done.

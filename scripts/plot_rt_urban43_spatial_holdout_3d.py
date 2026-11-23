@@ -32,6 +32,25 @@ def _read_obj(path: Path) -> tuple[np.ndarray, list[list[int]]]:
     return np.asarray(vertices, dtype=np.float64), faces
 
 
+def _current_scene_path(recorded: str, repo_root: Path) -> Path:
+    """Map a path recorded in retained evidence onto this checkout.
+
+    The audit records the absolute scene path of the machine that produced it. If that
+    path does not exist here, the part after the repository directory name is taken
+    relative to ``repo_root``. The retained audit file itself is not edited.
+    """
+    path = Path(recorded)
+    if not path.is_absolute():
+        return repo_root / path
+    if path.exists():
+        return path
+    parts = path.parts
+    if "5g-nr-channel-condition" in parts:
+        index = parts.index("5g-nr-channel-condition")
+        return repo_root.joinpath(*parts[index + 1 :])
+    return path
+
+
 def make_figure(audit_path: Path, output_prefix: Path, repo_root: Path) -> dict[str, Any]:
     """Render the audited 120-link sample over all 16 Urban43 building meshes."""
     audit = json.loads(audit_path.read_text(encoding="utf-8"))
@@ -40,9 +59,7 @@ def make_figure(audit_path: Path, output_prefix: Path, repo_root: Path) -> dict[
     records = audit["records"]
     if len(records) != 120 or any(not row.get("matches") for row in records):
         raise ValueError("expected 120 audited records with independently verified labels")
-    scene_path = Path(audit["scene"]["xml_path"])
-    if not scene_path.is_absolute():
-        scene_path = repo_root / scene_path
+    scene_path = _current_scene_path(audit["scene"]["xml_path"], repo_root)
     manifest_path = scene_path.with_suffix(".manifest.json")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     buildings = [
