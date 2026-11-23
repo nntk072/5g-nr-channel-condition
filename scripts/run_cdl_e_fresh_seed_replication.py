@@ -24,7 +24,11 @@ from evaluation.cdl_covariance.four_element import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "docs/research/CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md"
+# Identity of the frozen protocol as its contract names it. The file moved; the identity did not.
+PROTOCOL_IDENTITY = "G4_CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md"
 SEED_AUDIT = ROOT / "docs/research/CDL_E_FRESH_SEED_AUDIT_2026-11-12.json"
+# Identity of the seed-audit file as its frozen contract names it.
+SEED_AUDIT_IDENTITY = "docs/research/G4_CDL_E_FRESH_SEED_AUDIT_2026-11-12.json"
 SCHEMA = ROOT / "datasets/schema/cdl-e-covariance-replication.v1.schema.json"
 NATIVE_TEST = ROOT / "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py"
 EVALUATOR = Path(__file__).resolve().parents[1] / "evaluation/cdl_covariance/four_element.py"
@@ -167,7 +171,7 @@ def _report(
         torch_cuda_build = "unavailable"
     return {
         "schema": "loslab.g4_cdl_e_covariance_replication.v1",
-        "protocol": PROTOCOL.name,
+        "protocol": PROTOCOL_IDENTITY,
         "date": dt.datetime.now(dt.timezone.utc).date().isoformat(),
         "status": status,
         "error": error,
@@ -189,7 +193,7 @@ def _report(
             "maximum_half_width": 0.05,
         },
         "seed_audit": {
-            "path": SEED_AUDIT.relative_to(ROOT).as_posix(),
+            "path": SEED_AUDIT_IDENTITY,
             "sha256": preregistration_digests["seed_audit_sha256"],
             "status": audit["status"],
             "scanned_file_count": audit["scanned_file_count"],

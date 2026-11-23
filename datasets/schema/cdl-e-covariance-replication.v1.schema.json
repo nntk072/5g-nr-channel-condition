@@ -11,7 +11,7 @@
   ],
   "properties": {
     "schema": {"const": "loslab.g4_cdl_e_covariance_replication.v1"},
-    "protocol": {"const": "CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md"},
+    "protocol": {"const": "G4_CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md"},
     "date": {"type": "string", "format": "date"},
     "status": {"enum": ["PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE", "FAIL", "INCOMPLETE"]},
     "error": {"type": ["string", "null"]},
@@ -47,7 +47,7 @@
       "additionalProperties": false,
       "required": ["path", "sha256", "status", "scanned_file_count", "global_exclusivity_established"],
       "properties": {
-        "path": {"const": "docs/research/CDL_E_FRESH_SEED_AUDIT_2026-11-12.json"},
+        "path": {"const": "docs/research/G4_CDL_E_FRESH_SEED_AUDIT_2026-11-12.json"},
         "sha256": {"pattern": "^[0-9a-f]{64}$"},
         "status": {"const": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"},
         "scanned_file_count": {"const": 2302},

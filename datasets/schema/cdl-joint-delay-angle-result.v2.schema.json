@@ -15,7 +15,7 @@
       "type": "object", "additionalProperties": false,
       "required": ["path", "sha256", "status", "scanned_file_count"],
       "properties": {
-        "path": { "const": "cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json" },
+        "path": { "const": "g4-cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json" },
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "status": { "const": "CLEAR_WITHIN_SCANNED_JSON_CORPUS" },
         "scanned_file_count": { "type": "integer", "minimum": 1 }
@@ -58,7 +58,7 @@
           "type": "object", "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": { "const": "cdl-joint-delay-angle-v5-20261027.log" },
+            "path": { "const": "g4-cdl-joint-delay-angle-v5-20261027.log" },
             "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
           }
         }

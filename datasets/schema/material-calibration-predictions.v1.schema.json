@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:loslab:schema:g3-material-calibration-predictions.v1",
   "title": "LoSLab G3 material calibration predictions v1",
-  "description": "Structural schema for the frozen evaluator input. Cross-record consistency, canonical hash verification, semantic numeric checks, and scoring criteria are enforced by evaluation/material_calibration.py, not this schema.",
+  "description": "Structural schema for the frozen evaluator input. Cross-record consistency, canonical hash verification, semantic numeric checks, and scoring criteria are enforced by evaluation/g3_material_calibration.py, not this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": [

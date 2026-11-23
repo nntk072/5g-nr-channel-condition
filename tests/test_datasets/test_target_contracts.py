@@ -6,6 +6,7 @@ import datasets.targets as target_contracts
 import jsonschema
 import numpy as np
 import pytest
+from artifacts.rebinding import current_repo_path
 from datasets.nr import NRChannelRecord, NRObservation
 from datasets.targets import (
     CensoringInterval,
@@ -41,8 +42,16 @@ def test_target_family_inventory_covers_every_recognized_contract() -> None:
         assert row["shape"]
         assert row["policy"]
         assert row["consumers"]
-        assert all((repository / path).is_file() for path in row["stored_contracts"])
-        assert all((repository / path).is_file() for path in row["evidence"].split("; "))
+        # The matrix is a frozen record. Paths it names may have moved; they resolve
+        # through the recorded moves in docs/reference/digest-rebindings.json.
+        assert all(
+            (repository / current_repo_path(path, repository)).is_file()
+            for path in row["stored_contracts"]
+        )
+        assert all(
+            (repository / current_repo_path(path, repository)).is_file()
+            for path in row["evidence"].split("; ")
+        )
         if "NR writers" in row["policy"]:
             assert row["version"] in nr_store._AXIS_AMBIGUOUS_NR_TARGET_VERSIONS
 

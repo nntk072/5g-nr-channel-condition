@@ -15,7 +15,7 @@
       "type": "object", "additionalProperties": false,
       "required": ["path", "sha256", "status", "scanned_file_count"],
       "properties": {
-        "path": {"const": "CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json"},
+        "path": {"const": "G4_CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json"},
         "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "status": {"const": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"},
         "scanned_file_count": {"const": 2276}
@@ -59,10 +59,10 @@
         "schema_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "reference_sha256": {
           "type": "object", "additionalProperties": false,
-          "required": ["CDL_TAP_ANGLE_REFERENCE_2026-10-26.json", "CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"],
+          "required": ["G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json", "G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"],
           "properties": {
-            "CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-            "CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
           }
         }
       }
