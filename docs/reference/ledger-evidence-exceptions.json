@@ -1,0 +1,39 @@
+{
+  "schema": "nr.ledger_evidence_exceptions.v1",
+  "note": "Paths cited by the frozen requirement ledger that are not files in the tree and are not resolved by the recorded moves or the package rule. Each entry names the reason and the replacement modules, which the validator checks exist.",
+  "entries": [
+    {
+      "path": "docs/research/MASTER_RESEARCH_PLAN.md",
+      "reason": "Removed from the tree by the topic-document split. It is archived at tag docs/master-research-plan-archive.",
+      "replaced_by": []
+    },
+    {
+      "path": "tests/test_experiments/test_runner.py",
+      "reason": "Split by concept into three test modules.",
+      "replaced_by": [
+        "tests/test_experiments/test_experiment_runner_labels.py",
+        "tests/test_experiments/test_experiment_runner_feature_routing.py",
+        "tests/test_experiments/test_experiment_runner_split_and_artifacts.py"
+      ]
+    },
+    {
+      "path": "tests/test_integrations/test_nr_pusch_native.py",
+      "reason": "Split by concept into three test modules.",
+      "replaced_by": [
+        "tests/test_integrations/test_nr_pusch_channel_estimation.py",
+        "tests/test_integrations/test_nr_pusch_dmrs_layout.py",
+        "tests/test_integrations/test_nr_pusch_decode_and_allocation.py"
+      ]
+    },
+    {
+      "path": "tests/test_scripts/test_audit_channel_split_lineage.py",
+      "reason": "Split by concept into five test modules.",
+      "replaced_by": [
+        "tests/test_scripts/test_audit_channel_split_legacy_migration.py",
+        "tests/test_scripts/test_audit_channel_split_child_rosters.py",
+        "tests/test_scripts/test_audit_channel_split_cli_and_report.py",
+        "tests/test_scripts/test_audit_channel_split_dataset_registry.py"
+      ]
+    }
+  ]
+}
