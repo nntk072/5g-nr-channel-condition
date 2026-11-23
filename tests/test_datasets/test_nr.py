@@ -744,7 +744,7 @@ def test_nr_geometric_visibility_v2_scalar_roundtrips_in_schema_v5(tmp_path):
     assert restored.target_definitions["geometric_los"] == definition
 
 
-def test_nr_standardized_profile_proxy_v1_roundtrips_fixed_singleton_schema_v5(tmp_path):
+def test_nr_standardized_profile_proxy_roundtrips_fixed_singleton_schema_v5(tmp_path):
     record = make_single_record(
         "standardized-profile-proxy-v1",
         targets={"profile_los_proxy": np.asarray([1], dtype=np.uint8)},

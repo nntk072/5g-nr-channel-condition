@@ -259,7 +259,7 @@ def test_axis_bound_cfr_target_must_match_episode_subcarrier_grid(tmp_path, vers
     np.testing.assert_array_equal(restored.targets[0].values, matching_values)
 
 
-def test_legacy_v1_target_definition_cannot_be_republished_as_target_v2(tmp_path):
+def test_legacy_target_definition_cannot_be_republished_as_target_v2(tmp_path):
     bundle = _bundle()
     legacy_definition = migrate_legacy_target_definition(
         {

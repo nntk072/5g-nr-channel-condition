@@ -366,7 +366,7 @@ def test_episode_bundle_roundtrips_split_bound_direct_path_ablation(tmp_path):
     jsonschema.Draft202012Validator(schema).validate(manifest)
 
 
-def test_episode_metadata_schema_covers_lineage_and_legacy_v1():
+def test_episode_metadata_schema_covers_lineage_and_legacy_payloads():
     jsonschema = pytest.importorskip("jsonschema")
     episode = replace(
         _dynamic_episode(),
