@@ -31,7 +31,7 @@ SEED_AUDIT = (
     / "docs/research/CDL_PATTERNED_ROTATED_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
 )
 REFERENCE = ROOT / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
-EVALUATION = ROOT / "evaluation/cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance.py"
+EVALUATION = ROOT / "evaluation/cdl_covariance/patterned_rotated_dual_tx_rx.py"
 MODELS = tuple("ABCDE")
 PATTERNS = ("38.901", "38.901-handheld")
 PATTERN_PAIRS = tuple(

@@ -6,7 +6,7 @@ import cmath
 import math
 from typing import Sequence
 
-from evaluation.cdl_rotated_dual_tx_rx_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.rotated_dual_tx_rx import (
     _C0_MPS,
     _decode_dual_vh_port,
     _diffuse_directions,

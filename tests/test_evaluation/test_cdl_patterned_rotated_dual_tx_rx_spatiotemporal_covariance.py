@@ -5,12 +5,12 @@ from __future__ import annotations
 import math
 
 import pytest
-from evaluation.cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.patterned_rotated_dual_tx_rx import (
     _local_axes,
     _pattern_power,
     cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_reference,
 )
-from evaluation.cdl_rotated_dual_tx_rx_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.rotated_dual_tx_rx import (
     cdl_rotated_dual_tx_rx_spatiotemporal_covariance_reference,
 )
 

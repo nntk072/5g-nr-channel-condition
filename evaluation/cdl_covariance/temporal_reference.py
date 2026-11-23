@@ -5,36 +5,15 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from pathlib import Path
 from typing import Any
 
-_REFERENCE_PATH = (
-    Path(__file__).resolve().parents[1] / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+from .shared import (
+    _RAY_ANGLE_OFFSETS,
+    _REFERENCE_PATH,
+    _REFERENCE_SHA256,
 )
-_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+
 _SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
-_RAY_ANGLE_OFFSETS = (
-    0.0447,
-    -0.0447,
-    0.1413,
-    -0.1413,
-    0.2492,
-    -0.2492,
-    0.3715,
-    -0.3715,
-    0.5129,
-    -0.5129,
-    0.6797,
-    -0.6797,
-    0.8844,
-    -0.8844,
-    1.1481,
-    -1.1481,
-    1.5195,
-    -1.5195,
-    2.1551,
-    -2.1551,
-)
 
 
 def _finite_real(value: Any, *, label: str) -> float:

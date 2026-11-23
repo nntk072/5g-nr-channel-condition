@@ -19,7 +19,7 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
 from datasets.standardized_specs import FIXED_TDL_DOPPLER_CASES  # noqa: E402
-from evaluation.cdl_temporal_reference import (  # noqa: E402
+from evaluation.cdl_covariance.temporal_reference import (  # noqa: E402
     cdl_nlos_temporal_correlation_reference,
 )
 from evaluation.tdl_covariance_reference import (  # noqa: E402

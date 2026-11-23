@@ -5,14 +5,14 @@ import math
 from pathlib import Path
 
 import pytest
-from evaluation.cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.joint_tx_rx import (
+    cdl_joint_tx_rx_spatiotemporal_covariance_reference,
+)
+from evaluation.cdl_covariance.joint_tx_rx_dual_pol import (
     cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_reference,
 )
-from evaluation.cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.joint_tx_rx_dual_tx_rx import (
     cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_reference,
-)
-from evaluation.cdl_joint_tx_rx_spatiotemporal_covariance import (
-    cdl_joint_tx_rx_spatiotemporal_covariance_reference,
 )
 
 _REFERENCE_PATH = (

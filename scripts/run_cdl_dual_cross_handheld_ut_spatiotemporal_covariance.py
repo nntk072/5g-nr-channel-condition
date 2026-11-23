@@ -31,7 +31,7 @@ SEED_AUDIT = (
     / "docs/research/CDL_PHYSICAL_DUAL_CROSS_HANDHELD_UT_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
 )
 REFERENCE = ROOT / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
-EVALUATION = ROOT / "evaluation/cdl_handheld_ut_spatiotemporal_covariance.py"
+EVALUATION = ROOT / "evaluation/cdl_covariance/handheld_ut.py"
 ADAPTER = ROOT / "integrations/sionna/cdl.py"
 MODELS = tuple("ABCDE")
 ROSTERS = ("tr38901-4", "tr38901")

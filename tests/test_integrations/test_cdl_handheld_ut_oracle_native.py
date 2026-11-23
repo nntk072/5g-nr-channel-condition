@@ -6,13 +6,13 @@ import math
 from dataclasses import asdict
 
 import pytest
-from evaluation.cdl_handheld_ut_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.handheld_ut import (
     handheld_ut_dual_geometry,
     handheld_ut_port_field_gcs,
     handheld_ut_single_v_field_gcs,
     handheld_ut_single_v_geometry,
 )
-from evaluation.cdl_rotated_dual_tx_rx_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.rotated_dual_tx_rx import (
     _unit_direction,
     _vh_basis,
 )

@@ -24,7 +24,7 @@ SEED_AUDIT = ROOT / (
     "docs/research/CDL_LARGER_DUAL_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-10.json"
 )
 REFERENCE = ROOT / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
-EVALUATION = ROOT / "evaluation/cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance.py"
+EVALUATION = ROOT / "evaluation/cdl_covariance/joint_tx_rx_dual_tx_rx.py"
 PORT_ORDER_TEST = ROOT / "tests/test_integrations/test_cdl_dual_vh_port_order_native.py"
 MODELS = tuple("ABCDE")
 TOPOLOGIES = ((4, 2), (2, 4), (3, 3))

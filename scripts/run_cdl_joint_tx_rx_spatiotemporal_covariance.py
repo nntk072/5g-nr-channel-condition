@@ -20,7 +20,7 @@ SEED_AUDIT = (
     ROOT / "docs/research/CDL_JOINT_TX_RX_SPATIOTEMPORAL_COVARIANCE_SEED_AUDIT_2026-11-09.json"
 )
 REFERENCE = ROOT / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
-EVALUATION = ROOT / "evaluation/cdl_joint_tx_rx_spatiotemporal_covariance.py"
+EVALUATION = ROOT / "evaluation/cdl_covariance/joint_tx_rx.py"
 MODELS = tuple("ABCDE")
 SEED_START = 2_811_000
 CASE_COUNT = 5

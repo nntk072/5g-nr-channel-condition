@@ -5,7 +5,7 @@ import json
 import jsonschema
 import numpy as np
 import pytest
-from evaluation.cdl_four_element_covariance import (
+from evaluation.cdl_covariance.four_element import (
     audit_cdl_spatial_covariance_claims,
     cdl_spatial_covariance_claims,
     cdl_spatial_covariance_reference,

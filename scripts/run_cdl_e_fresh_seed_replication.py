@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import jsonschema
-from evaluation.cdl_four_element_covariance import (
+from evaluation.cdl_covariance.four_element import (
     audit_cdl_spatial_covariance_claims,
     cdl_spatial_covariance_claims,
     cdl_spatial_covariance_reference,
@@ -27,7 +27,7 @@ PROTOCOL = ROOT / "docs/research/CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-1
 SEED_AUDIT = ROOT / "docs/research/CDL_E_FRESH_SEED_AUDIT_2026-11-12.json"
 SCHEMA = ROOT / "datasets/schema/cdl-e-covariance-replication.v1.schema.json"
 NATIVE_TEST = ROOT / "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py"
-EVALUATOR = Path(__file__).resolve().parents[1] / "evaluation/cdl_four_element_covariance.py"
+EVALUATOR = Path(__file__).resolve().parents[1] / "evaluation/cdl_covariance/four_element.py"
 RESERVED_SEED = 2_823_000
 DRAW_COUNT = 8_192
 PROFILE_TABLE_SHA256 = "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480"

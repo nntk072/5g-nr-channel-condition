@@ -6,10 +6,10 @@ import cmath
 import math
 from typing import Sequence
 
-from evaluation.cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.patterned_rotated_dual_tx_rx import (
     _local_axes,
 )
-from evaluation.cdl_rotated_dual_tx_rx_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.rotated_dual_tx_rx import (
     _C0_MPS,
     _diffuse_directions,
     _dot,

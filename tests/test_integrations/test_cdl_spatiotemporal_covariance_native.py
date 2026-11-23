@@ -10,7 +10,7 @@ from statistics import NormalDist
 from typing import Any
 
 import pytest
-from evaluation.cdl_spatiotemporal_covariance import cdl_spatiotemporal_covariance_reference
+from evaluation.cdl_covariance.spatiotemporal import cdl_spatiotemporal_covariance_reference
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")

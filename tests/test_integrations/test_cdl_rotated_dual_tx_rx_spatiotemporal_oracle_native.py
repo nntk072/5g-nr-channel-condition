@@ -7,7 +7,7 @@ from dataclasses import asdict
 from typing import Any
 
 import pytest
-from evaluation.cdl_rotated_dual_tx_rx_spatiotemporal_covariance import (
+from evaluation.cdl_covariance.rotated_dual_tx_rx import (
     _local_y_unit_vector,
     _unit_direction,
     _vh_basis,
