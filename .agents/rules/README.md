@@ -11,3 +11,4 @@ Read `core-execution.md` for all implementation work. Add the task-specific rule
 - `qualification-gates.md` for G0-G8, G5, G3, and D1 boundaries.
 - `security.md` for provider, subprocess, secret, and path safety.
 - `git-permissions.md` for source-control mutations.
+- [waiting-on-work.md](waiting-on-work.md): do not block the session while waiting for background jobs.
