@@ -279,7 +279,20 @@ def generate_tdl_frequency_response(
         sionna_version = sionna_phy_version()
     except PackageNotFoundError:
         sionna_version = "unknown"
+    # Sionna's ``k_factor`` divides the LOS power by the first tap's mean power. The fixed
+    # profile references define K as the LOS power over the sum of all diffuse tap powers.
+    # Both are reported; ``k_factor_linear`` keeps Sionna's convention.
     k_factor_linear = float(tdl.k_factor.detach().cpu()) if tdl.los else None
+    # The public ``mean_powers`` folds the LOS power into tap 0 and normalises the total to
+    # one. The diffuse-sum K needs the unnormalised diffuse taps, so ``_mean_powers`` is used.
+    # Sionna 2.2 is pinned by the version gate; a different Sionna version must re-check it.
+    k_factor_diffuse_sum_linear = (
+        k_factor_linear
+        * float(torch.real(tdl._mean_powers[0]).detach().cpu())
+        / float(torch.real(tdl._mean_powers).detach().cpu().sum())
+        if k_factor_linear is not None
+        else None
+    )
     metadata: dict[str, Any] = {
         "sionna_version": sionna_version,
         "precision": precision,
@@ -299,6 +312,7 @@ def generate_tdl_frequency_response(
         "nominal_tap_delays_s": tdl.delays.detach().cpu().tolist(),
         "mean_tap_powers": tdl.mean_powers.detach().cpu().tolist(),
         "k_factor_linear": k_factor_linear,
+        "k_factor_diffuse_sum_linear": k_factor_diffuse_sum_linear,
         "los_angle_of_arrival_rad": los_angle_of_arrival_rad,
         "geometric_los_label": None,
         "geometric_los_label_provided": False,

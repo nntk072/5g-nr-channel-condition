@@ -135,3 +135,23 @@ The co-channel PUSCH and reciprocity tests pass in both trees now.
 - **Skipped (reported as skipped, not passed):** native tests need `sionna.rt`, Mitsuba and CUDA. CUDA is hidden in this environment, so CUDA-only cases are skipped.
 - **Still failing:** CDL dual-pol `[A|B|C]` and LOS K-factor `[D10|D30]`, in both trees.
 - **Digests:** see `docs/reference/refactor-digest-changes.tsv` for every changed path, and `docs/reference/digest-rebindings.json` for the rebinding entries.
+
+## Update: K-factor definition and CDL root cause (factual, after the decisions above)
+
+- **LOS K-factor (resolved as a definition, not as a value):** `integrations/sionna/tdl.py`
+  now reports `k_factor_diffuse_sum_linear` = LOS power / sum of all diffuse tap powers.
+  For D10 this is 9.0224 dB and for D30 9.0014 dB, matching the pinned reference. The
+  existing `k_factor_linear` keeps Sionna's convention (LOS over the first tap's mean
+  power, 12.20 dB for D10) and its stored meaning is unchanged. The reference test now
+  checks the diffuse-sum field, and it also checks that Sionna's value is larger. The
+  diffuse-sum value reads the unnormalised tap powers from Sionna's private
+  `_mean_powers`, so it depends on the pinned Sionna 2.2 version.
+  `test_tdl_los_k_factor_reference_native.py` passes (3 of 3). The TDL, standardized and
+  dataset tests also pass.
+- **CDL dual-pol `[A|B|C]` (root cause located, not resolved):** comparing the empirical
+  covariance with the reference, the magnitudes of the off-diagonal entries agree (about
+  0.46 for entry (0,1)), but the imaginary parts have opposite signs. The mismatch is a
+  complex-conjugate convention in the element phase term. The reference uses
+  `exp(-jπ·sinZoA·sinAoA)`; the native CDL output has the opposite phase sign. Which sign
+  TR 38.901 specifies is a convention decision, and changing either the reference or the
+  native generator would change a scientific definition. Neither has been changed.

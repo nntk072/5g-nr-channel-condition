@@ -85,9 +85,15 @@ def test_fixed_tdl_reported_los_k_factor_matches_component_reference(
         device="cpu",
     )
 
-    actual_linear = result.metadata["k_factor_linear"]
+    # The reference defines K as LOS power over the sum of all diffuse tap powers. The
+    # adapter reports that value as ``k_factor_diffuse_sum_linear``; ``k_factor_linear``
+    # keeps Sionna's first-tap convention and is checked separately below.
+    actual_linear = result.metadata["k_factor_diffuse_sum_linear"]
     assert isinstance(actual_linear, (float, int)) and actual_linear > 0.0
     actual_db = 10 * math.log10(actual_linear)
     assert abs(actual_db - expected["k_factor_db"]) <= reference["rounding_tolerance_db"]
+    sionna_linear = result.metadata["k_factor_linear"]
+    first_tap_db = 10 * math.log10(sionna_linear)
+    assert first_tap_db > actual_db
     assert result.metadata["profile_los_component"] is True
     assert result.metadata["fixed_profile_spec_version"] == reference["version"]
