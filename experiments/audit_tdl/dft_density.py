@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from experiments.audit_tdl_c_dmrs_density import ROOT, audit_report
+from experiments.audit_tdl.c_dmrs_density import ROOT, audit_report
 
 PROTOCOL = Path("docs/research/TDL_C_SIGNED_LAG_DFT_CONFIRMATORY_PROTOCOL_2026-10-24.md")
 DEFAULT_REPORT = Path("docs/research/results/tdl-c-signed-lag-dft-confirm-20261024.json")

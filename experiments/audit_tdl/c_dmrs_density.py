@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 from pathlib import Path
@@ -12,12 +11,13 @@ from typing import Any
 
 from artifacts.rebinding import current_repo_path, recorded_digest_matches
 
+from experiments.audit_tdl.hashing import _canonical_sha256, _sha256
 from experiments.independent_channel_receiver import (
     clopper_pearson_upper_bound,
     cluster_bootstrap_interval,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_REPORT = Path("docs/research/results/tdl-c-dmrs-density-confirm-20261024.json")
 PROTOCOL = Path("docs/research/TDL_C_DMRS_DENSITY_CONFIRMATORY_PROTOCOL_2026-10-24.md")
 EXPECTED_SEEDS = list(range(933_001, 933_065))
@@ -34,16 +34,6 @@ EXPECTED_SOURCE_PATHS = {
     "evaluation/statistics.py",
     PROTOCOL.as_posix(),
 }
-
-
-def _sha256(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def _canonical_sha256(value: Any) -> str:
-    return _sha256(
-        json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
-    )
 
 
 def _wilson_interval(successes: int, trials: int) -> tuple[float, float]:

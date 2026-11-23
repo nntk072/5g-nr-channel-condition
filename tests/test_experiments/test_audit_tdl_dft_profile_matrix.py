@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from experiments.audit_tdl_dft_profile_matrix import (
+from experiments.audit_tdl.dft_profile_matrix import (
     DEFAULT_REPORT,
     audit_family_report,
 )

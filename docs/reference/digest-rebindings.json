@@ -2611,6 +2611,26 @@
     {
       "old_path": "docs/architecture/naming-exceptions.md",
       "new_path": "docs/architecture/NAMING_EXCEPTIONS.md"
+    },
+    {
+      "old_path": "experiments/audit_tdl_c_dmrs_density.py",
+      "new_path": "experiments/audit_tdl/c_dmrs_density.py"
+    },
+    {
+      "old_path": "experiments/audit_tdl_dft_density.py",
+      "new_path": "experiments/audit_tdl/dft_density.py"
+    },
+    {
+      "old_path": "experiments/audit_tdl_dft_profile_matrix.py",
+      "new_path": "experiments/audit_tdl/dft_profile_matrix.py"
+    },
+    {
+      "old_path": "experiments/audit_tdl_dmrs_density_development.py",
+      "new_path": "experiments/audit_tdl/dmrs_density_development.py"
+    },
+    {
+      "old_path": "experiments/audit_tdl_profile_matrix.py",
+      "new_path": "experiments/audit_tdl/profile_matrix.py"
     }
   ],
   "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",
@@ -4772,6 +4792,18 @@
       "old_sha256": "786a45b4a1f9145645d239120b915e895d5a9a63f61d007e951ee96f19dd3101",
       "new_path": "experiments/ordered_impairments_receiver.py",
       "new_sha256": "2e9f96621bc3be1cb1c97b2ce71873afa1adf001cbad56b1fb6530ff45190a34"
+    },
+    {
+      "old_path": "experiments/audit_g5_tdl_dmrs_density_development.py",
+      "old_sha256": "156d5617393f208644bd9fc79d7e5a3076e1a90a568d05a1d9db0f7d4069b7b7",
+      "new_path": "experiments/audit_tdl/dmrs_density_development.py",
+      "new_sha256": "2a2b7454d0796db1ef9d2eef1cdbfd57dc05219181ee1ba5be9208449c43da90"
+    },
+    {
+      "old_path": "experiments/audit_tdl_dmrs_density_development.py",
+      "old_sha256": "fb2fd52ddc75ba2336ee705ef45339b5f8f01193ac896a11f79c05b85108062a",
+      "new_path": "experiments/audit_tdl/dmrs_density_development.py",
+      "new_sha256": "2a2b7454d0796db1ef9d2eef1cdbfd57dc05219181ee1ba5be9208449c43da90"
     }
   ]
 }

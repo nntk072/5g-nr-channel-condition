@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from experiments import audit_tdl_dmrs_density_development as audit
+from experiments.audit_tdl import dmrs_density_development as audit
 
 
 def _fake_result(

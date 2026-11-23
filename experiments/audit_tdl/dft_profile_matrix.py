@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from pathlib import Path
 from typing import Any
 
 from artifacts.rebinding import current_repo_path
 
-from experiments.audit_tdl_c_dmrs_density import ROOT, _canonical_sha256
-from experiments.audit_tdl_dft_density import EXPECTED_ESTIMATOR, audit_dft_report
+from experiments.audit_tdl.c_dmrs_density import ROOT
+from experiments.audit_tdl.dft_density import EXPECTED_ESTIMATOR, audit_dft_report
+from experiments.audit_tdl.hashing import _canonical_sha256, _sha256
 
 PROTOCOL = Path("docs/research/TDL_AE_SIGNED_LAG_DFT_FAMILY_CONFIRMATORY_PROTOCOL_2026-10-24.md")
 DEFAULT_REPORT = Path("docs/research/results/tdl-ae-signed-lag-dft-family-confirm-20261024.json")
@@ -38,10 +38,6 @@ EXPECTED_CLAIMS = (
     "mobile_bler_reduction_position_0_minus_3",
     "mobile_goodput_increase_position_3_minus_0_bits_per_slot",
 )
-
-
-def _sha256(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
 
 
 def audit_family_report(report: dict[str, Any], *, root: Path = ROOT) -> dict[str, Any]:

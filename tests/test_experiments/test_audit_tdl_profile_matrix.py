@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 
-from experiments.audit_tdl_profile_matrix import (
+from experiments.audit_tdl.profile_matrix import (
     ALPHA,
     BOOTSTRAP_REPLICATES,
     _bootstrap_interval,

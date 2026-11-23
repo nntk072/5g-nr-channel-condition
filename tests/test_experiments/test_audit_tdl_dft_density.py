@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from experiments.audit_tdl_dft_density import DEFAULT_REPORT, audit_dft_report
+from experiments.audit_tdl.dft_density import DEFAULT_REPORT, audit_dft_report
 
 
 def _saved_report() -> dict:

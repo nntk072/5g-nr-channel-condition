@@ -7,19 +7,19 @@ G5 confirmatory protocol, establish physical validity, or qualify a receiver.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from pathlib import Path
 from typing import Any
 
 from evaluation.statistics import paired_cluster_binary_error_comparison
 
+from experiments.audit_tdl.hashing import _canonical_sha256, _sha256
 from experiments.link_curves import run_tdl_pusch_time_bler_curve
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = Path("docs/research/results/tdl-cpu-dmrs-density-development-20261024.json")
 SOURCE_FILES = (
-    "experiments/audit_tdl_dmrs_density_development.py",
+    "experiments/audit_tdl/dmrs_density_development.py",
     "experiments/link_curves.py",
     "integrations/sionna/tdl_pusch.py",
     "integrations/sionna/nr_pusch.py",
@@ -33,16 +33,6 @@ CARRIER_FREQUENCY_HZ = 3.5e9
 SPEED_MPS = 120.0 / 3.6
 N_SIZE_BWP = 12
 SCS_KHZ = 30
-
-
-def _sha256(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def _canonical_sha256(value: Any) -> str:
-    return _sha256(
-        json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
-    )
 
 
 def _point(result: dict[str, Any]) -> dict[str, Any]:

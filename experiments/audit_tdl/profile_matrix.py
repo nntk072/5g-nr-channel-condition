@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import random
@@ -13,7 +12,9 @@ from typing import Any
 from artifacts.rebinding import current_repo_path, recorded_digest_matches
 from scipy.stats import beta
 
-ROOT = Path(__file__).resolve().parents[1]
+from experiments.audit_tdl.hashing import _canonical_sha256, _sha256
+
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_REPORT = Path("docs/research/results/tdl-ae-dmrs-density-family-confirm-20261024.json")
 PROTOCOL = Path("docs/research/TDL_AE_DMRS_DENSITY_FAMILY_CONFIRMATORY_PROTOCOL_2026-10-24.md")
 REPLICATION_REPORT = Path(
@@ -45,15 +46,6 @@ SOURCE_PATHS = {
     PROTOCOL.as_posix(),
 }
 CONDITIONS = ("static_position_0", "mobile_position_0", "mobile_position_3")
-
-
-def _sha256(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def _canonical_sha256(value: Any) -> str:
-    raw = json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
-    return _sha256(raw.encode())
 
 
 def _same_number(actual: Any, expected: float) -> bool:
