@@ -1,19 +1,26 @@
 # experiments.audit_ordered_impairments_result
 
-audit_head split by concept.
+Audit of ordered-impairment result files, split by concept.
 
 ## Purpose
 
-This package is one module split into concept modules. It keeps the public names of the original module, so callers import from `experiments.audit_ordered_impairments_result` unchanged.
+The audit is organised by concept: constants, hashing, preregistration checks, evidence-file reads, numeric references, waveform recomputation, replay, and the two audit entry points. Callers import from `experiments.audit_ordered_impairments_result`; the names are re-exported from `__init__.py`.
 
 ## Modules
 
 | Module | Contents |
 | --- | --- |
-| `__main__.py` | Command-line entry point for audit_head |
-| `file.py` | Band file of audit_head |
-| `independent.py` | Band independent of audit_head |
-| `waveform.py` | Band waveform of audit_head |
+| `__init__.py` | Public re-exports |
+| `__main__.py` | Command-line entry point |
+| `constants.py` | Schema identifiers, byte budgets, frozen lookup tables |
+| `hashing.py` | Canonical JSON and SHA-256 helpers |
+| `preregistration.py` | Preregistration order, reviewer signature, execution-context checks |
+| `evidence_files.py` | Bounded evidence reads and preflight checks |
+| `references.py` | Closed-form references and finite-number helpers |
+| `waveform.py` | Waveform diagnostic recomputation and cluster bootstrap |
+| `replay.py` | Deterministic replay of a recorded experiment |
+| `independent.py` | Independent-channel and SNR-curve audit checks |
+| `file.py` | Audit of one result file and the command-line interface |
 
 ## Public API (40 names)
 

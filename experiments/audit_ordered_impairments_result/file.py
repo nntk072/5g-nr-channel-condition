@@ -1,4 +1,4 @@
-"""Band file of audit_head."""
+"""Command-line audit of one ordered-impairment result file."""
 
 from __future__ import annotations
 
@@ -11,18 +11,24 @@ from typing import Any
 
 from artifacts.rebinding import recorded_digest_matches, resolve_recorded_path
 
+from .constants import (
+    _MAX_RESULT_BYTES,
+    _MAX_WAVEFORM_EVIDENCE_BYTES,
+    REPOSITORY_ROOT,
+)
+from .evidence_files import (
+    _read_bounded_evidence_file,
+)
+from .hashing import (
+    _reject_constant,
+    _unique_object,
+)
 from .independent import (
     _audit_independent_snr_curve,
     _audit_result,
 )
-from .waveform import (
-    _MAX_RESULT_BYTES,
-    _MAX_WAVEFORM_EVIDENCE_BYTES,
-    REPOSITORY_ROOT,
-    _read_bounded_evidence_file,
-    _reject_constant,
+from .replay import (
     _replay_experiment,
-    _unique_object,
 )
 
 

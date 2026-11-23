@@ -1,4 +1,4 @@
-"""Band independent of audit_head."""
+"""Audit of independent-channel and SNR-curve ordered-impairment results."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ from experiments.acceptance import (
     _verify_reviewer_policy,
 )
 
-from .waveform import (
+from .constants import (
     _BLOCK_BOUND_REPORT_SCHEMAS,
     _CFO_CHANNEL_TAIL_SCHEMAS,
     _CUDA_CURVE_BASE_VERSIONS,
@@ -33,20 +33,30 @@ from .waveform import (
     _RESULT_SCHEMA,
     _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
     REPOSITORY_ROOT,
-    _canonical_json_bytes,
-    _cluster_bootstrap_interval,
+)
+from .evidence_files import (
     _curve_report_schema_status,
-    _declared_preregistration_order_matches,
     _estimator_source_checks,
+)
+from .hashing import (
+    _canonical_json_bytes,
+    _sha256,
+)
+from .preregistration import (
+    _declared_preregistration_order_matches,
     _execution_context_matches,
     _inference_seed_roster_consistent,
+    _is_sha256,
+    _verify_preregistration_signature,
+)
+from .references import (
     _is_finite_nonnegative,
     _is_finite_number,
-    _is_sha256,
-    _recompute_waveform_diagnostics,
     _same_float,
-    _sha256,
-    _verify_preregistration_signature,
+)
+from .waveform import (
+    _cluster_bootstrap_interval,
+    _recompute_waveform_diagnostics,
 )
 
 

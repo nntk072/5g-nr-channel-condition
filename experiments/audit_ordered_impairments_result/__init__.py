@@ -1,5 +1,5 @@
 # ruff: noqa: F401
-"""audit_head split by concept."""
+"""Audit entry points for ordered-impairment result files."""
 
 import argparse
 import hashlib
@@ -33,15 +33,7 @@ from experiments.acceptance import (
     validate_preregistration_order,
 )
 
-from .file import (
-    audit_result_file,
-    main,
-)
-from .independent import (
-    _audit_independent_snr_curve,
-    _audit_result,
-)
-from .waveform import (
+from .constants import (
     _BLOCK_BOUND_REPORT_SCHEMAS,
     _CFO_CHANNEL_TAIL_SCHEMAS,
     _CUDA_CURVE_BASE_VERSIONS,
@@ -55,29 +47,49 @@ from .waveform import (
     _RESULT_SCHEMA,
     _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
     REPOSITORY_ROOT,
-    _canonical_json_bytes,
-    _cluster_bootstrap_interval,
+)
+from .evidence_files import (
     _curve_report_schema_status,
-    _declared_preregistration_order_matches,
     _estimator_source_checks,
+    _preflight_waveform_archive,
+    _read_bounded_evidence_file,
+)
+from .file import (
+    audit_result_file,
+    main,
+)
+from .hashing import (
+    _canonical_json_bytes,
+    _reject_constant,
+    _sha256,
+    _unique_object,
+)
+from .independent import (
+    _audit_independent_snr_curve,
+    _audit_result,
+)
+from .preregistration import (
+    _declared_preregistration_order_matches,
     _execution_context_matches,
     _inference_seed_roster_consistent,
+    _is_sha256,
+    _verify_preregistration_signature,
+)
+from .references import (
     _iq_imbalance_reference,
     _is_finite_nonnegative,
     _is_finite_number,
-    _is_sha256,
     _path_sum_reference,
     _positive_integer_delay_reference,
-    _preflight_waveform_archive,
-    _read_bounded_evidence_file,
-    _recompute_waveform_diagnostics,
-    _reject_constant,
+    _same_float,
+)
+from .replay import (
     _replay_experiment,
     _run_receiver_probe,
-    _same_float,
-    _sha256,
-    _unique_object,
-    _verify_preregistration_signature,
+)
+from .waveform import (
+    _cluster_bootstrap_interval,
+    _recompute_waveform_diagnostics,
 )
 
 __all__ = [

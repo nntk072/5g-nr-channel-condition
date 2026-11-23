@@ -420,7 +420,7 @@ def test_curve_auditor_reverifies_signed_preregistration_identity(
             "allowed_signers_sha256": "2" * 64,
         }
 
-    monkeypatch.setattr(curve_auditor.waveform, "verify_openssh_signature_for_bytes", verify)
+    monkeypatch.setattr(curve_auditor.preregistration, "verify_openssh_signature_for_bytes", verify)
     signature_path = tmp_path / "contract.sig"
     allowed_signers_path = tmp_path / "allowed_signers"
 
