@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema", "run_id", "qualification_status", "input", "artifact", "evaluator_sources", "evaluator_source_bundle_sha256"],
   "properties": {
-    "schema": {"const": "loslab.joint_evidence_run_manifest.v2"},
+    "schema": {"const": "loslab.g3_joint_evidence_run_manifest.v2"},
     "run_id": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$"},
     "qualification_status": {"const": "NOT_QUALIFIED"},
     "input": {"$ref": "#/$defs/file"},

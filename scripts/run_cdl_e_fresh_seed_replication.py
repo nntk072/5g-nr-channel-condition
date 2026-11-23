@@ -81,7 +81,7 @@ def _verify_preregistration() -> tuple[dict[str, Any], dict[str, Any]]:
         raise ValueError("protocol bytes differ from the preregistered digest")
     audit = json.loads(audit_bytes)
     if (
-        audit.get("schema") != "loslab.g4_seed_roster_collision_audit.v2"
+        audit.get("schema") != "loslab.seed_roster_collision_audit.v2"
         or audit.get("status") != "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
         or audit.get("reserved_seeds") != [RESERVED_SEED]
         or audit.get("collisions")

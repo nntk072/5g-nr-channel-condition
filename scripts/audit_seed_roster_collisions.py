@@ -330,7 +330,7 @@ def audit_seed_roster_collisions(roots: list[Path], reserved_seeds: list[int]) -
         raise ValueError("no .json or .json.gz result files were found under the supplied roots")
 
     return {
-        "schema": "loslab.g4_seed_roster_collision_audit.v2",
+        "schema": "loslab.seed_roster_collision_audit.v2",
         "status": (
             "INCOMPLETE_SCAN"
             if incomplete_files

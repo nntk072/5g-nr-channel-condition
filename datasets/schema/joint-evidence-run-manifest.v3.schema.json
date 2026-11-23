@@ -16,7 +16,7 @@
     "evaluator_source_bundle_sha256"
   ],
   "properties": {
-    "schema": { "const": "loslab.joint_evidence_run_manifest.v3" },
+    "schema": { "const": "loslab.g3_joint_evidence_run_manifest.v3" },
     "run_id": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$" },
     "qualification_status": { "const": "NOT_QUALIFIED" },
     "runtime_identity": { "$ref": "#/$defs/runtimeIdentity" },

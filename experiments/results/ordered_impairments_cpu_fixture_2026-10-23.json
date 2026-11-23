@@ -236,7 +236,7 @@
         "payload_bit_errors": 71982
       }
     },
-    "schema": "umcd.ordered_impairments_receiver.v1",
+    "schema": "umcd.g5_ordered_impairments_receiver.v1",
     "scope": "one static synthetic two-tap channel, 6-RB/30-kHz CPU PUSCH, known Wiener oscillator model; conditional receiver check, not deployment BLER",
     "timing_error_samples_by_block": [
       0,
@@ -453,7 +453,7 @@
         ],
         "waveform_awgn_complex_variance": 0.001
       },
-      "experiment_schema": "umcd.ordered_impairments_receiver.v1"
+      "experiment_schema": "umcd.g5_ordered_impairments_receiver.v1"
     },
     "protocol_sha256": "fec877b573de36f4cda396d6435683bc0cdfda1c6088896be63888ad2433af02",
     "runtime": {

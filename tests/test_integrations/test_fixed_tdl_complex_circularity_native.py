@@ -92,7 +92,7 @@ def _verify_seed_audit() -> None:
     audit = json.loads(payload)
     expected_seeds = [_SEED_START + index for index in range(len(_MODELS))]
     if (
-        audit.get("schema") != "loslab.g4_seed_roster_collision_audit.v2"
+        audit.get("schema") != "loslab.seed_roster_collision_audit.v2"
         or audit.get("status") != "CLEAR_WITHIN_SCANNED_JSON_CORPUS"
         or audit.get("reserved_seeds") != expected_seeds
         or audit.get("scanned_file_count", 0) < 1
