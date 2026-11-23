@@ -51,7 +51,7 @@ files, and frozen protocols refer to them by name.
 ## Verification
 
 - `tools/check` runs the gates. CI runs the same commands; see
-  [Continuous integration](ci.md).
+  the continuous-integration workflow in `.github/workflows/ci.yml`.
 - `tests/architecture` checks the package-boundary and structure rules,
   including the absence of runtime import cycles and a README in every package.
 - Retained evidence is verified against recorded digests. Renames and moves are

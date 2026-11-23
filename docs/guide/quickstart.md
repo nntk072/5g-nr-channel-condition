@@ -1,7 +1,7 @@
 # Quickstart
 
 This page shows how to set up the environment and run the repository gates. The
-gates are the same commands CI runs; see [Continuous integration](../architecture/ci.md).
+gates are the same commands CI runs.
 
 ## Set up the environment
 

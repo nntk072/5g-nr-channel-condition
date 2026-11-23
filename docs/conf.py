@@ -36,12 +36,22 @@ exclude_patterns = [
     "_build",
     "Thumbs.db",
     ".DS_Store",
-    # Frozen research protocols and evidence notes stay in the repository and
-    # are linked from the research index; they are not site pages.
+    # Developer-only material is not part of the user documentation site:
+    # research protocols and evidence notes, agent operations, refactor
+    # records, and internal audits stay in the repository.
     "research/**",
     "thesis/**",
+    "operations/**",
     "README.md",
     "**/README.md",
+    "architecture/ci.md",
+    "architecture/baseline.md",
+    "architecture/refactor-plan.md",
+    "architecture/module-split-design-notes.md",
+    "architecture/naming-exceptions.md",
+    "architecture/model-input-route-inventory.md",
+    "reference/helper-wiring-matrix.md",
+    "reference/target-family-producer-consumer-matrix.md",
 ]
 
 myst_heading_anchors = 3
