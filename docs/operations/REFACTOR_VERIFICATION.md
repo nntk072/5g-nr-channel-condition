@@ -1,7 +1,7 @@
 # Production-structure refactor: verification record
 
 This record covers the production-structure refactor from the evidence base
-`016168e` to the tree at `7681f9a`. It states what was done, what is deferred and
+`016168e` to the tree at `abe83c7`. It states what was done, what is deferred and
 why, every gate result as logged, the torch and native results, and the changed
 digests. Scientific status is unchanged: E04 remains engineering DONE and
 scientific NOT_QUALIFIED.
@@ -9,7 +9,7 @@ scientific NOT_QUALIFIED.
 Path note: the goal named `docs/operations/REFACTOR_VERIFICATION.md` and
 `docs/architecture/NAMING_EXCEPTIONS.md`. Both use those exact names.
 
-## Gate results on `7681f9a`
+## Gate results on `abe83c7`
 
 Commands are `./tools/check <gate>`. Lines are copied from the gate logs.
 
@@ -19,11 +19,11 @@ Commands are `./tools/check <gate>`. Lines are copied from the gate logs.
 | `lint` | `All checks passed!`; `838 files already formatted`; exit 0 |
 | `typecheck` | `Success: no issues found in 444 source files`; exit 0 |
 | `architecture` | `tests/architecture`: 9 passed; exit 0 |
-| `agent` | `180 passed in 8.31s`; exit 0 |
+| `agent` | `180 passed in 8.09s`; exit 0 |
 | `docs` | Sphinx build with warnings as errors; exit 0 |
 | `build` | `Successfully built dist/5g_nr_channel_condition-0.2.0-py3-none-any.whl`; `import-smoke-ok`; exit 0 |
-| `test` | `3921 passed, 172 skipped, 1 warning in 270.29s (0:04:30)`; exit 0 |
-| `neural` | `Required test coverage of 75% reached. Total coverage: 75.88%`; `3921 passed, 172 skipped, 1 warning in 545.50s (0:09:05)`; exit 0 |
+| `test` | `3921 passed, 172 skipped, 1 warning in 270.78s (0:04:30)`; exit 0 |
+| `neural` | `Required test coverage of 75% reached. Total coverage: 75.88%`; `3921 passed, 172 skipped, 1 warning in 539.77s (0:08:59)`; exit 0 |
 
 Skipped tests are reported as skipped, not as passes. The 172 skips in `test` and
 `neural` are optional tests whose dependency or device is absent in CI (Sionna
@@ -37,7 +37,7 @@ Command: `DRJIT_LIBLLVM_PATH=<LLVM 18 library> /home/l2nguyen/agent-final-2026-1
 The LLVM path is required: without it the `conftest.py` import of Mitsuba fails at
 configuration.
 
-- Result on `7681f9a`: `3996 passed, 4 skipped, 1272 deselected, 1 warning in 306.24s (0:05:06)`; exit 0.
+- Result on `abe83c7`: `3996 passed, 4 skipped, 1272 deselected, 1 warning in 295.53s (0:04:55)`; exit 0.
 - Skipped: `test_network_receiver.py:81` (CUDA unavailable); `test_observable_multipath.py:186` (CUDA unavailable); two in `test_classical.py` (xgboost not installed).
 - The 1272 deselected tests are the native tests, which run in the native section.
 
@@ -47,7 +47,7 @@ Command: `DRJIT_LIBLLVM_PATH=<LLVM 18 library> python -m pytest -m native_sionna
 
 | Tree | Passed | Failed | Skipped | Deselected | Duration |
 | --- | --- | --- | --- | --- | --- |
-| Current, `7681f9a` | 1223 | 6 | 43 | 4000 | 1541.48s (0:25:41) |
+| Current, `abe83c7` | 1223 | 6 | 43 | 4000 | 1486.65s (0:24:46) |
 | Base `016168e` | 1215 | 14 | 43 | 3997 | earlier base run |
 
 The base row is the count from the earlier base run. The saved base log in
@@ -88,7 +88,7 @@ The two CDL cases and the RT case are scientific acceptance or claim questions. 
    - Digest-bound, narrowed binding (owner decision, option 2): `experiments/ordered_impairments_receiver.py` (`fccf1dc`); `evaluation/sample_size_planning.py` (`evaluation/sample_size/`); `evaluation/joint_evidence_run_manifest.py` (`evaluation/run_manifest/`); `evaluation/acquisition_package.py` (`evaluation/acquisition/`); `receivers/nr/pusch.py` (`receivers/nr/pusch_core/`). The facades keep the paths the rosters and tools name. The new submodules are outside the signed evaluator rosters and outside the digests the audit tools name. The verifier's source check accepts a rebound digest (`artifacts/rebinding.py: recorded_digest_resolves`).
    - `NRPUSCHConfig` and `NRChannelEstimate` stay defined in the PUSCH facade: their module path is part of the audited model-input identity.
    - Test modules over 1,500 lines were split by concept (SRS, UMCD, lineage, joint evidence, runner, native PUSCH); the total test-case counts match the original files.
-   - Roster coverage is narrowed: signed roster evidence does not hash the submodules. A roster-protocol change would be needed for full coverage; that was not chosen.
+   - Roster coverage: the narrowed binding was first chosen, then closed for new evidence by protocol v5 (owner-approved). `datasets/schema/joint-evidence-run-manifest.v5.schema.json` pins `evaluator_sources` at 63 entries: the 41 V4 entries plus 22 files from the split packages. The builder writes v5 manifests when a runtime inventory is included. The V4 schema and roster are unchanged, so earlier v4 manifests keep their 41-entry roster and still verify; only the v4 evidence keeps the narrowed binding.
 5. **Documentation.** Non-research documents are under `guide/`, `architecture/`, `operations/` and `reference/`; `docs/README.md` is the generated index. `scripts/fix_doc_links.py --check` reports `0 link problem(s); 0 in editable documents`. The owner approved a frozen-text edit for link targets: 10 frozen documents changed in link text only, each with a rebinding entry from its base digest. Known stale references remain in frozen text: `docs/research/EXECUTION_QUEUE.md`, `docs/research/IMPLEMENTATION_BACKLOG.md` and `docs/research/REQUIREMENT_LEDGER.json` name the deleted crosswalk builder and test (item 9 below).
 6. **Topic documents.** `docs/research/PLAN_ARCHITECTURE.md`, `PLAN_DATA_GENERATION.md`, `PLAN_RECEIVERS_AND_TARGETS.md`, `PLAN_QUALIFICATION_GATES.md` and `PLAN_OPEN_QUESTIONS.md` are generated by `scripts/build_research_topics.py` from the archived plan at tag `docs/master-research-plan-archive`, with each copied line verbatim in the archive. The tag was not edited; the plan is not in the tree.
 7. **Package list.** `config/packages.toml` defines the package list once. `tools/sync_packages.py` derives the setuptools, ruff, mypy and coverage settings. `tools/check` is the single CI source.
@@ -117,13 +117,15 @@ protocol names, the CDL-E seed-audit names) keep their values.
 
 ## Changed digests
 
-Every changed path, with its old and new SHA-256 (base `016168e` to `7681f9a`), is in
-`docs/reference/refactor-digest-changes.tsv`: 874 rows (541 renames, 176 additions,
+Every changed path, with its old and new SHA-256 (base `016168e` to `abe83c7`), is in
+`docs/reference/refactor-digest-changes.tsv`: 875 rows (541 renames, 177 additions,
 86 deletions, 71 modifications). Rebinding entries are appended only. Counts in
 `docs/reference/digest-rebindings.json`: `file_moves` 658, `pin_rebindings` 116,
 `source_digest_rebindings` 262.
 
 Key changes (old → new):
+
+- Protocol v5 (new, not a change to an existing file): `datasets/schema/joint-evidence-run-manifest.v5.schema.json`, digest `7411d406e2c5ec9d340dc0c7b95afddb1e2e31a8593943a528cbe4e21caef16f`. Roster `V5_EVALUATOR_SOURCE_PATHS` in `evaluation/run_manifest/constants.py`, digest `55ea618f48273d61b2e67c973ce23945355e70fca3edc70a33853438357831d2`. Verifier `evaluation/run_manifest/verify.py`, digest `97e158792859536cb5ef24df321a0cfad2d87ae1c1c11f13e9989d4f4fd49de5`. Builder `evaluation/run_manifest/build.py`, digest `c3ae1ca5271a9705e860e36e9eaf48969873282f534b21d7a51a26b8c469d076`. The V4 schema is unchanged (base bytes).
 
 - Master plan `docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md`: `3285eb1398ee83ea4d79b4b0116478ceed9d1374537fe2d3510a3c65a7585da2` → `e1e6fb8435da71e5df073f9b6888d02f4fc7dea07aac3a5756737803a2075241`.
 - Receiver facade `experiments/ordered_impairments_receiver.py` (base `experiments/g5_ordered_impairments_receiver.py`): `d6c5b9791e30f10e9efbc07a9e0409fe89ef618c7eabe06ffd49151e0640309a` → `2e9f96621bc3be1cb1c97b2ce71873afa1adf001cbad56b1fb6530ff45190a34`.
@@ -137,4 +139,4 @@ Key changes (old → new):
 
 ## Commits since `016168e`
 
-`git log --oneline 016168e..7681f9a` lists the refactor commits, newest first, from `7681f9a` (crosswalk deletion) through `db791f8` (audit types and READMEs), `cea9a87` (PUSCH split), `034e1b9` (PUSCH rebinding), `761960b` (acquisition split), `e9d486a` (acquisition rebinding), `7d4369f` (sample and run-manifest split), `9e29b07` (their rebindings), `f5b0c94` (frozen link repair), `2cf656f` (digest-bound decision note), `7c541cd` (TDL merge), `9e2fd90` (naming pass).
+Newest first, from `abe83c7` (V5 design note) through `113f5cb` (protocol v5), `d91ad93` (native diagnosis), `7681f9a` (crosswalk deletion), and the earlier refactor commits. `git log --oneline 016168e..abe83c7` lists them all.
