@@ -19,7 +19,7 @@ import numpy as np
 from evaluation.joint_acceptance import (
     MATERIAL_CLAIMS,
     family_alpha_for_claim,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 from evaluation.numeric import finite_real_array
 
@@ -193,7 +193,7 @@ def _cluster_bootstrap_intervals(
     return report
 
 
-def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
+def evaluate_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
     """Score pre-frozen, group-held-out predictions against documented G3.03 margins.
 
     The input must contain a complete test-group manifest. Test rows must cover
@@ -596,7 +596,7 @@ def evaluate_g3_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         simultaneous_comparisons = len(expected_strata) * len(MATERIAL_CLAIMS)
         family_reference = None
     else:
-        normalized_family = validate_g3_joint_acceptance_family(family_payload)
+        normalized_family = validate_joint_acceptance_family(family_payload)
         _, simultaneous_comparisons = family_alpha_for_claim(
             normalized_family,
             evaluator="material_calibration",
@@ -823,7 +823,7 @@ def main() -> None:
     payload = json.loads(args.input.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("input JSON root must be an object")
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
     report["prediction_input_sha256"] = hashlib.sha256(args.input.read_bytes()).hexdigest()
     encoded = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.output is None:

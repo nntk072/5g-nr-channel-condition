@@ -11,7 +11,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from evaluation.signed_attestation import verify_g3_signed_attestation_set  # noqa: E402
+from evaluation.signed_attestation import verify_signed_attestation_set  # noqa: E402
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -32,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
-        report = verify_g3_signed_attestation_set(
+        report = verify_signed_attestation_set(
             args.package,
             args.attestations,
             args.allowed_signers,

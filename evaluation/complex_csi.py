@@ -30,7 +30,7 @@ from scipy.stats import beta
 
 from evaluation.joint_acceptance import (
     family_alpha_for_claim,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 
 COMPLEX_CSI_MEDIAN_LIMIT = 0.01
@@ -243,7 +243,7 @@ def evaluate_complex_csi(
         per_claim_alpha = familywise_alpha / familywise_claim_count
         family_reference = None
     else:
-        normalized_family = validate_g3_joint_acceptance_family(joint_acceptance_family)
+        normalized_family = validate_joint_acceptance_family(joint_acceptance_family)
         per_claim_alpha, familywise_claim_count = family_alpha_for_claim(
             normalized_family,
             evaluator="complex_csi",

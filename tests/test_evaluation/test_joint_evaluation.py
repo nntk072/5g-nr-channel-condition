@@ -6,15 +6,15 @@ from typing import Any, cast
 import numpy as np
 import pytest
 from evaluation.joint_acceptance import (
-    build_g3_joint_acceptance_family_v3,
-    build_g3_joint_acceptance_family_v4,
+    build_joint_acceptance_family_v3,
+    build_joint_acceptance_family_v4,
 )
 
 from evaluation import joint_evaluation as joint
 
 
 def _inputs() -> dict[str, object]:
-    family = build_g3_joint_acceptance_family_v4(
+    family = build_joint_acceptance_family_v4(
         family_id="preregistered-g3-family",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("scene-a", "LOS")],
@@ -143,14 +143,14 @@ def test_joint_bundle_recomputes_and_binds_all_five_v4_branches(monkeypatch) -> 
 
         return run
 
-    monkeypatch.setattr(joint, "evaluate_g3_material_calibration", fake_material)
+    monkeypatch.setattr(joint, "evaluate_material_calibration", fake_material)
     monkeypatch.setattr(joint, "evaluate_complex_csi", fake_branch("csi"))
     monkeypatch.setattr(joint, "evaluate_propagation_metrics", fake_branch("propagation"))
     monkeypatch.setattr(joint, "evaluate_receiver_impact", fake_branch("receiver"))
     monkeypatch.setattr(joint, "evaluate_path_equivalence_roster", fake_branch("path"))
 
     payload = _inputs()
-    bundle = joint.evaluate_g3_joint_evidence(payload)
+    bundle = joint.evaluate_joint_evidence(payload)
 
     assert bundle["qualification_status"] == "NOT_QUALIFIED"
     assert set(bundle["branch_inputs_sha256"]) == {
@@ -173,7 +173,7 @@ def test_joint_bundle_recomputes_and_binds_all_five_v4_branches(monkeypatch) -> 
     assert bundle["numerical_criterion_rollup"]["status"] == "UNRESOLVED_NUMERICAL_CRITERIA"
     assert bundle["numerical_criterion_rollup"]["qualification_status"] == "NOT_QUALIFIED"
 
-    verified = joint.verify_g3_joint_evidence_bundle(payload, bundle)
+    verified = joint.verify_joint_evidence_bundle(payload, bundle)
     assert verified["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
     assert verified["qualification_status"] == "NOT_QUALIFIED"
 
@@ -195,7 +195,7 @@ def test_joint_evaluator_rejects_type_substituted_material_family() -> None:
     payload["material_calibration"]["payload"]["joint_acceptance_family"] = family
 
     with pytest.raises(ValueError, match="material calibration input must embed"):
-        joint.evaluate_g3_joint_evidence(payload)
+        joint.evaluate_joint_evidence(payload)
 
 
 def test_joint_numerical_criterion_rollup_uses_only_explicit_existing_outcomes() -> None:
@@ -337,7 +337,7 @@ def test_joint_bundle_v5_routes_raw_paths_to_path_recomputation(monkeypatch) -> 
     }
     monkeypatch.setattr(
         joint,
-        "evaluate_g3_material_calibration",
+        "evaluate_material_calibration",
         lambda payload: {"status": "MATERIAL_DIAGNOSTIC"},
     )
     monkeypatch.setattr(
@@ -362,7 +362,7 @@ def test_joint_bundle_v5_routes_raw_paths_to_path_recomputation(monkeypatch) -> 
 def test_joint_bundle_rejects_tampered_scorer_output(monkeypatch) -> None:
     monkeypatch.setattr(
         joint,
-        "evaluate_g3_material_calibration",
+        "evaluate_material_calibration",
         lambda payload: {"status": "MATERIAL_PILOT_ONLY"},
     )
     for name in (
@@ -373,18 +373,18 @@ def test_joint_bundle_rejects_tampered_scorer_output(monkeypatch) -> None:
     ):
         monkeypatch.setattr(joint, name, lambda **kwargs: {"status": "NUMERICAL_ONLY"})
     payload = _inputs()
-    bundle = joint.evaluate_g3_joint_evidence(payload)
+    bundle = joint.evaluate_joint_evidence(payload)
     tampered = deepcopy(bundle)
     tampered["evaluations"]["complex_csi"]["status"] = "PASS"
 
     with pytest.raises(ValueError, match="deterministic recomputation"):
-        joint.verify_g3_joint_evidence_bundle(payload, tampered)
+        joint.verify_joint_evidence_bundle(payload, tampered)
 
 
 def test_joint_bundle_input_digest_changes_with_complex_cfr_bytes(monkeypatch) -> None:
     monkeypatch.setattr(
         joint,
-        "evaluate_g3_material_calibration",
+        "evaluate_material_calibration",
         lambda payload: {"status": "MATERIAL_PILOT_ONLY"},
     )
     for name in (
@@ -398,8 +398,8 @@ def test_joint_bundle_input_digest_changes_with_complex_cfr_bytes(monkeypatch) -
     second = _inputs()
     second["complex_csi"]["records"][0]["candidate_cfr"][0] = 2.0 + 0.0j
 
-    first_bundle = joint.evaluate_g3_joint_evidence(first)
-    second_bundle = joint.evaluate_g3_joint_evidence(second)
+    first_bundle = joint.evaluate_joint_evidence(first)
+    second_bundle = joint.evaluate_joint_evidence(second)
 
     assert (
         first_bundle["branch_inputs_sha256"]["complex_csi"]
@@ -410,7 +410,7 @@ def test_joint_bundle_input_digest_changes_with_complex_cfr_bytes(monkeypatch) -
 def test_joint_complex_csi_route_replays_phase_view_contracts(monkeypatch) -> None:
     monkeypatch.setattr(
         joint,
-        "evaluate_g3_material_calibration",
+        "evaluate_material_calibration",
         lambda payload: {"status": "MATERIAL_DIAGNOSTIC"},
     )
     monkeypatch.setattr(
@@ -481,7 +481,7 @@ def test_joint_bundle_rejects_malformed_or_mixed_inputs(mutation, message) -> No
     mutation(payload)
 
     with pytest.raises(ValueError, match=message):
-        joint.evaluate_g3_joint_evidence(payload)
+        joint.evaluate_joint_evidence(payload)
 
 
 @pytest.mark.parametrize(
@@ -527,13 +527,13 @@ def test_joint_bundle_rejects_branch_roster_drift_before_scoring(
         ],
     }
     family_arguments.update(family_change)
-    family = build_g3_joint_acceptance_family_v4(**family_arguments)
+    family = build_joint_acceptance_family_v4(**family_arguments)
     payload["joint_acceptance_family"] = family
     payload["material_calibration"]["payload"]["joint_acceptance_family"] = family
     payload[branch].update(input_change)
 
     with pytest.raises(ValueError, match="roster must match across scene-based branches"):
-        joint.evaluate_g3_joint_evidence(payload)
+        joint.evaluate_joint_evidence(payload)
 
 
 @pytest.mark.parametrize(
@@ -544,7 +544,7 @@ def test_joint_bundle_rejects_observed_episode_drift_before_scoring(branch) -> N
     payload[branch]["records"][0]["episode_id"] = "episode-unregistered"
 
     with pytest.raises(ValueError, match="observed episode roster differs"):
-        joint.evaluate_g3_joint_evidence(payload)
+        joint.evaluate_joint_evidence(payload)
 
 
 @pytest.mark.parametrize(
@@ -560,24 +560,24 @@ def test_joint_bundle_rejects_unbound_receiver_configuration(mutation) -> None:
     payload["receiver_impact"]["records"][0].update(mutation)
 
     with pytest.raises(ValueError, match="not bound to the configuration named"):
-        joint.evaluate_g3_joint_evidence(payload)
+        joint.evaluate_joint_evidence(payload)
 
 
 def test_joint_bundle_rejects_nonfinite_array_evidence(monkeypatch: pytest.MonkeyPatch) -> None:
     payload = _inputs()
     monkeypatch.setattr(
         joint,
-        "evaluate_g3_material_calibration",
+        "evaluate_material_calibration",
         lambda _material_payload: {"status": "MATERIAL_PILOT_ONLY"},
     )
     payload["complex_csi"]["records"][0]["candidate_cfr"] = np.asarray([np.nan + 0.0j])
     with pytest.raises(ValueError, match="finite values"):
-        joint.evaluate_g3_joint_evidence(payload)
+        joint.evaluate_joint_evidence(payload)
 
 
 def test_joint_bundle_rejects_family_v3_even_when_its_digest_is_valid() -> None:
     payload = _inputs()
-    family_v3 = build_g3_joint_acceptance_family_v3(
+    family_v3 = build_joint_acceptance_family_v3(
         family_id="legacy-family",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("scene-a", "LOS")],
@@ -588,7 +588,7 @@ def test_joint_bundle_rejects_family_v3_even_when_its_digest_is_valid() -> None:
     payload["material_calibration"]["payload"]["joint_acceptance_family"] = family_v3
 
     with pytest.raises(ValueError, match="requires acceptance family v4"):
-        joint.evaluate_g3_joint_evidence(payload)
+        joint.evaluate_joint_evidence(payload)
 
 
 def test_canonical_digest_preserves_scalar_array_shape_and_rejects_object_arrays() -> None:

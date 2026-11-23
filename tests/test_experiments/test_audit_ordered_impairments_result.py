@@ -19,7 +19,7 @@ from experiments.audit_ordered_impairments_result import (
     _audit_result,
     _canonical_json_bytes,
     _estimator_source_checks,
-    _g5_declared_preregistration_order_matches,
+    _declared_preregistration_order_matches,
     _preflight_waveform_archive,
     _read_bounded_evidence_file,
     _recompute_waveform_diagnostics,
@@ -127,11 +127,11 @@ def test_v10_declared_preregistration_order_is_recomputed_by_auditor() -> None:
         "timestamp_authority": "not_established_by_this_verifier",
     }
 
-    assert _g5_declared_preregistration_order_matches(criteria, signature)
+    assert _declared_preregistration_order_matches(criteria, signature)
     signature["receiver_run_started_utc"] = "2026-10-24T09:00:00Z"
-    assert not _g5_declared_preregistration_order_matches(criteria, signature)
+    assert not _declared_preregistration_order_matches(criteria, signature)
     signature["receiver_run_started_utc"] = "2026-10-25T09:00:00Z"
-    assert not _g5_declared_preregistration_order_matches(criteria, signature)
+    assert not _declared_preregistration_order_matches(criteria, signature)
 
 
 def _current_source_bound_result() -> tuple[dict[str, Any], bytes]:

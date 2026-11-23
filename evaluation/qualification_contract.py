@@ -19,7 +19,7 @@ from evaluation.complex_csi import (
 from evaluation.complex_csi import (
     MIN_INDEPENDENT_CLUSTERS_PER_STRATUM as MIN_CSI_CLUSTERS,
 )
-from evaluation.joint_acceptance import validate_g3_joint_acceptance_family
+from evaluation.joint_acceptance import validate_joint_acceptance_family
 from evaluation.material_calibration import MIN_INDEPENDENT_MEASUREMENT_UNITS
 from evaluation.propagation_metrics import (
     MIN_INDEPENDENT_CLUSTERS_PER_STRATUM as MIN_PROPAGATION_CLUSTERS,
@@ -27,7 +27,7 @@ from evaluation.propagation_metrics import (
 from evaluation.receiver_impact import (
     MIN_INDEPENDENT_CLUSTERS_PER_STRATUM as MIN_RECEIVER_CLUSTERS,
 )
-from evaluation.sample_size_planning import verify_g3_joint_sample_size_design
+from evaluation.sample_size_planning import verify_joint_sample_size_design
 
 SCHEMA = "loslab.g3_qualification_run_contract.v2"
 SCHEMA_V3 = "loslab.g3_qualification_run_contract.v3"
@@ -142,7 +142,7 @@ def _string_list(value: Any, name: str, *, nonempty: bool = True) -> list[str]:
     return items
 
 
-def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, Any]:
+def build_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, Any]:
     """Validate and freeze all design inputs required before a G3 run starts.
 
     The source identity fields must come from the caller's repository/runtime
@@ -163,7 +163,7 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
         raise ValueError(
             "run_id must be 3–64 lowercase letters, digits, dots, underscores, or hyphens"
         )
-    family = validate_g3_joint_acceptance_family(spec["joint_acceptance_family"])
+    family = validate_joint_acceptance_family(spec["joint_acceptance_family"])
     if family.get("schema") != "loslab.g3_joint_acceptance_family.v4":
         raise ValueError("G3 qualification contract requires acceptance-family v4")
 
@@ -468,7 +468,7 @@ def build_g3_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, An
 def _validate_sample_size_design_binding(
     base_contract: Mapping[str, Any], design: Mapping[str, Any]
 ) -> dict[str, Any]:
-    verification = verify_g3_joint_sample_size_design(design)
+    verification = verify_joint_sample_size_design(design)
     if verification["complete_precision_powered_g3_design"] is not True:
         raise ValueError("G3 contract v3 requires a complete precision- and power-based design")
     family = base_contract["joint_acceptance_family"]
@@ -502,7 +502,7 @@ def _validate_sample_size_design_binding(
     return dict(design)
 
 
-def build_g3_qualification_run_contract_v3(spec: Mapping[str, Any]) -> dict[str, Any]:
+def build_qualification_run_contract_v3(spec: Mapping[str, Any]) -> dict[str, Any]:
     """Build a qualification contract bound to a complete joint sample-size design.
 
     V2 remains available for historical diagnostic receipts. V3 is the only
@@ -518,7 +518,7 @@ def build_g3_qualification_run_contract_v3(spec: Mapping[str, Any]) -> dict[str,
             f"extra={sorted(set(spec) - expected_fields)}"
         )
     base_spec = {key: value for key, value in spec.items() if key in _SPEC_FIELDS}
-    base_contract = build_g3_qualification_run_contract(base_spec)
+    base_contract = build_qualification_run_contract(base_spec)
     design = _validate_sample_size_design_binding(base_contract, spec["sample_size_design"])
     contract = {key: value for key, value in base_contract.items() if key != "contract_sha256"}
     contract["schema"] = SCHEMA_V3
@@ -528,7 +528,7 @@ def build_g3_qualification_run_contract_v3(spec: Mapping[str, Any]) -> dict[str,
     return contract
 
 
-def build_g3_qualification_run_contract_v4(spec: Mapping[str, Any]) -> dict[str, Any]:
+def build_qualification_run_contract_v4(spec: Mapping[str, Any]) -> dict[str, Any]:
     """Freeze every geometry and receiver-relevance input used by raw path scoring.
 
     V2 and v3 contracts remain readable for historical diagnostic replay. V4
@@ -581,7 +581,7 @@ def build_g3_qualification_run_contract_v4(spec: Mapping[str, Any]) -> dict[str,
     base_spec["path_matching"] = {
         key: path_matching[key] for key in sorted(_PATH_MATCHING_BASE_FIELDS)
     }
-    contract = build_g3_qualification_run_contract_v3(base_spec)
+    contract = build_qualification_run_contract_v3(base_spec)
     contract = {key: value for key, value in contract.items() if key != "contract_sha256"}
     contract["schema"] = SCHEMA_V4
     if effective_bandwidth_hz is not None:
@@ -593,7 +593,7 @@ def build_g3_qualification_run_contract_v4(spec: Mapping[str, Any]) -> dict[str,
     return contract
 
 
-def verify_g3_qualification_run_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
+def verify_qualification_run_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
     """Recompute a frozen contract and report integrity without qualifying it."""
     if not isinstance(contract, Mapping):
         raise TypeError("contract must be an object")
@@ -659,11 +659,11 @@ def verify_g3_qualification_run_contract(contract: Mapping[str, Any]) -> dict[st
             raise ValueError("sample_size_design_sha256 differs from embedded design")
         spec["sample_size_design"] = dict(design)
         if schema == SCHEMA_V4:
-            rebuilt = build_g3_qualification_run_contract_v4(spec)
+            rebuilt = build_qualification_run_contract_v4(spec)
         else:
-            rebuilt = build_g3_qualification_run_contract_v3(spec)
+            rebuilt = build_qualification_run_contract_v3(spec)
     else:
-        rebuilt = build_g3_qualification_run_contract(spec)
+        rebuilt = build_qualification_run_contract(spec)
     if rebuilt != dict(contract):
         raise ValueError("G3 qualification contract differs from deterministic reconstruction")
     return {

@@ -6,17 +6,17 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-from evaluation.joint_acceptance import build_g3_joint_acceptance_family_v4
+from evaluation.joint_acceptance import build_joint_acceptance_family_v4
 from evaluation.qualification_contract import (
-    build_g3_qualification_run_contract,
-    build_g3_qualification_run_contract_v3,
-    build_g3_qualification_run_contract_v4,
-    verify_g3_qualification_run_contract,
+    build_qualification_run_contract,
+    build_qualification_run_contract_v3,
+    build_qualification_run_contract_v4,
+    verify_qualification_run_contract,
 )
 
 
 def _spec() -> dict[str, object]:
-    family = build_g3_joint_acceptance_family_v4(
+    family = build_joint_acceptance_family_v4(
         family_id="g3-frozen-run-family",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("site-a", "LOS")],
@@ -189,15 +189,15 @@ def _redigest_design(design: dict[str, object]) -> None:
     design["design_sha256"] = hashlib.sha256(canonical).hexdigest()
 
 
-def test_g3_qualification_contract_freezes_configs_and_sampling_design() -> None:
-    contract = build_g3_qualification_run_contract(_spec())
+def test_qualification_contract_freezes_configs_and_sampling_design() -> None:
+    contract = build_qualification_run_contract(_spec())
 
     assert contract["qualification_status"] == "NOT_QUALIFIED"
     assert contract["candidate"]["configuration_sha256"]
     assert contract["challenger"]["configuration_sha256"]
     assert contract["sampling"]["episode_ids"] == ["episode-01"]
     assert contract["finite_solver_caps_are_ground_truth"] is False
-    assert verify_g3_qualification_run_contract(contract)["status"] == (
+    assert verify_qualification_run_contract(contract)["status"] == (
         "PASS_CONTRACT_INTEGRITY_NOT_QUALIFIED"
     )
 
@@ -218,23 +218,23 @@ def test_g3_qualification_contract_freezes_configs_and_sampling_design() -> None
         ),
     ],
 )
-def test_g3_qualification_contract_rejects_padded_identity_aliases(mutate) -> None:
+def test_qualification_contract_rejects_padded_identity_aliases(mutate) -> None:
     spec = deepcopy(_spec())
     mutate(spec)
 
     with pytest.raises(ValueError, match="canonical|nonempty|roster"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
-def test_g3_qualification_contract_v3_binds_complete_design_and_digest() -> None:
+def test_qualification_contract_v3_binds_complete_design_and_digest() -> None:
     spec = _spec()
     spec["sample_size_design"] = _complete_design(spec)
 
-    contract = build_g3_qualification_run_contract_v3(spec)
+    contract = build_qualification_run_contract_v3(spec)
 
     assert contract["schema"] == "loslab.g3_qualification_run_contract.v3"
     assert contract["sample_size_design_sha256"] == contract["sample_size_design"]["design_sha256"]
-    assert verify_g3_qualification_run_contract(contract)["status"] == (
+    assert verify_qualification_run_contract(contract)["status"] == (
         "PASS_CONTRACT_INTEGRITY_NOT_QUALIFIED"
     )
     jsonschema = pytest.importorskip("jsonschema")
@@ -246,16 +246,16 @@ def test_g3_qualification_contract_v3_binds_complete_design_and_digest() -> None
     jsonschema.Draft202012Validator(schema).validate(contract)
 
 
-def test_g3_qualification_contract_v3_rejects_a_count_below_evaluator_floor() -> None:
+def test_qualification_contract_v3_rejects_a_count_below_evaluator_floor() -> None:
     spec = _spec()
     spec["sample_size_design"] = _complete_design(spec)
     spec["sampling"]["planned_units_by_stratum"]["complex_csi"][0]["planned_units"] = 1
 
     with pytest.raises(ValueError, match="must be at least 2; this is an evaluator/pilot floor"):
-        build_g3_qualification_run_contract_v3(spec)
+        build_qualification_run_contract_v3(spec)
 
 
-def test_g3_qualification_contract_v3_rejects_incomplete_design() -> None:
+def test_qualification_contract_v3_rejects_incomplete_design() -> None:
     spec = _spec()
     design = _complete_design(spec)
     design["component_designs_claim_complete_powered_design"] = False
@@ -270,10 +270,10 @@ def test_g3_qualification_contract_v3_rejects_incomplete_design() -> None:
             "component powered-design claim is inconsistent"
         ),
     ):
-        build_g3_qualification_run_contract_v3(spec)
+        build_qualification_run_contract_v3(spec)
 
 
-def test_g3_qualification_contract_v4_freezes_raw_path_analysis_configuration() -> None:
+def test_qualification_contract_v4_freezes_raw_path_analysis_configuration() -> None:
     spec = _spec()
     spec["task_scope"]["effective_bandwidth_hz"] = 20e6
     spec["path_matching"].update(
@@ -287,12 +287,12 @@ def test_g3_qualification_contract_v4_freezes_raw_path_analysis_configuration() 
     )
     spec["sample_size_design"] = _complete_design(spec)
 
-    contract = build_g3_qualification_run_contract_v4(spec)
+    contract = build_qualification_run_contract_v4(spec)
 
     assert contract["schema"] == "loslab.g3_qualification_run_contract.v4"
     assert contract["path_matching"]["vertex_tolerance_m"] == 0.02
     assert contract["path_matching"]["direction_tolerance_rad"] == 0.05
-    assert verify_g3_qualification_run_contract(contract)["status"] == (
+    assert verify_qualification_run_contract(contract)["status"] == (
         "PASS_CONTRACT_INTEGRITY_NOT_QUALIFIED"
     )
     jsonschema = pytest.importorskip("jsonschema")
@@ -315,7 +315,7 @@ def test_g3_qualification_contract_v4_freezes_raw_path_analysis_configuration() 
         ("noise_power_per_re_w", float("inf")),
     ],
 )
-def test_g3_qualification_contract_v4_rejects_invalid_raw_path_settings(field, value):
+def test_qualification_contract_v4_rejects_invalid_raw_path_settings(field, value):
     spec = _spec()
     spec["task_scope"]["effective_bandwidth_hz"] = 20e6
     spec["path_matching"].update(
@@ -331,10 +331,10 @@ def test_g3_qualification_contract_v4_rejects_invalid_raw_path_settings(field, v
     spec["sample_size_design"] = _complete_design(spec)
 
     with pytest.raises(ValueError):
-        build_g3_qualification_run_contract_v4(spec)
+        build_qualification_run_contract_v4(spec)
 
 
-def test_g3_qualification_contract_v4_requires_positive_effective_bandwidth():
+def test_qualification_contract_v4_requires_positive_effective_bandwidth():
     spec = _spec()
     spec["task_scope"]["effective_bandwidth_hz"] = 20e6
     spec["task_scope"]["effective_bandwidth_hz"] = 0.0
@@ -350,60 +350,60 @@ def test_g3_qualification_contract_v4_requires_positive_effective_bandwidth():
     spec["sample_size_design"] = _complete_design(spec)
 
     with pytest.raises(ValueError, match="task_scope.effective_bandwidth_hz"):
-        build_g3_qualification_run_contract_v4(spec)
+        build_qualification_run_contract_v4(spec)
 
 
-def test_g3_qualification_contract_rejects_sampling_roster_drift() -> None:
+def test_qualification_contract_rejects_sampling_roster_drift() -> None:
     spec = _spec()
     spec["sampling"]["episode_ids"] = ["episode-02"]
 
     with pytest.raises(ValueError, match="exactly match"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
-def test_g3_qualification_contract_rejects_task_scope_that_omits_family_scenario() -> None:
+def test_qualification_contract_rejects_task_scope_that_omits_family_scenario() -> None:
     spec = _spec()
     spec["task_scope"]["scenario_ids"] = ["different-site"]
 
     with pytest.raises(ValueError, match="cover every acceptance-family scenario"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
-def test_g3_qualification_contract_rejects_missing_link_budget_term() -> None:
+def test_qualification_contract_rejects_missing_link_budget_term() -> None:
     spec = _spec()
     del spec["link_budget_noise"]["noise_figure_db"]
 
     with pytest.raises(ValueError, match="exactly the declared fields"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
-def test_g3_qualification_contract_rejects_finite_cap_as_ground_truth() -> None:
-    contract = build_g3_qualification_run_contract(_spec())
+def test_qualification_contract_rejects_finite_cap_as_ground_truth() -> None:
+    contract = build_qualification_run_contract(_spec())
     tampered = deepcopy(contract)
     tampered["finite_solver_caps_are_ground_truth"] = True
 
     with pytest.raises(ValueError, match="digest"):
-        verify_g3_qualification_run_contract(tampered)
+        verify_qualification_run_contract(tampered)
 
 
 @pytest.mark.parametrize("field", ["delay_tolerance_s", "minimum_bidirectional_coverage"])
-def test_g3_qualification_contract_rejects_nonfinite_matching_limits(field: str) -> None:
+def test_qualification_contract_rejects_nonfinite_matching_limits(field: str) -> None:
     spec = _spec()
     spec["path_matching"][field] = float("inf")
 
     with pytest.raises(ValueError, match="NaN|Infinity|Out of range"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
 @pytest.mark.parametrize("coverage", [0.90, 0.99, 1.0])
-def test_g3_qualification_contract_rejects_path_coverage_drift_from_family(
+def test_qualification_contract_rejects_path_coverage_drift_from_family(
     coverage: float,
 ) -> None:
     spec = _spec()
     spec["path_matching"]["minimum_bidirectional_coverage"] = coverage
 
     with pytest.raises(ValueError, match="must match the acceptance-family criterion"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
 @pytest.mark.parametrize(
@@ -415,7 +415,7 @@ def test_g3_qualification_contract_rejects_path_coverage_drift_from_family(
         ("receiver_impact", 19, 20),
     ],
 )
-def test_g3_qualification_contract_rejects_per_stratum_evaluator_floor(
+def test_qualification_contract_rejects_per_stratum_evaluator_floor(
     branch: str, count: int, minimum: int
 ) -> None:
     spec = _spec()
@@ -423,29 +423,29 @@ def test_g3_qualification_contract_rejects_per_stratum_evaluator_floor(
     spec["sampling"]["planned_units_by_stratum"][branch][0]["planned_units"] = count
 
     with pytest.raises(ValueError, match=f"at least {minimum}"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
-def test_g3_qualification_contract_rejects_per_stratum_count_total_mismatch() -> None:
+def test_qualification_contract_rejects_per_stratum_count_total_mismatch() -> None:
     spec = _spec()
     spec["sampling"]["planned_units_by_stratum"]["receiver_impact"][0]["planned_units"] = 101
 
     with pytest.raises(ValueError, match="must equal the sum of its per-stratum counts"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
-def test_g3_qualification_contract_rejects_missing_acceptance_stratum_count() -> None:
+def test_qualification_contract_rejects_missing_acceptance_stratum_count() -> None:
     spec = _spec()
     spec["sampling"]["planned_units_by_stratum"]["complex_csi"] = []
 
     with pytest.raises(ValueError, match="must be a nonempty roster"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)
 
 
-def test_g3_qualification_contract_binds_one_path_unit_per_frozen_episode() -> None:
+def test_qualification_contract_binds_one_path_unit_per_frozen_episode() -> None:
     spec = _spec()
     spec["sampling"]["planned_units_by_branch"]["path_equivalence"] = 2
     spec["sampling"]["planned_units_by_stratum"]["path_equivalence"][0]["planned_units"] = 2
 
     with pytest.raises(ValueError, match="exactly one per frozen episode"):
-        build_g3_qualification_run_contract(spec)
+        build_qualification_run_contract(spec)

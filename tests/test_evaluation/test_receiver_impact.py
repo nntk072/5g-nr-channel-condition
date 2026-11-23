@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from evaluation.joint_acceptance import build_g3_joint_acceptance_family_v3
+from evaluation.joint_acceptance import build_joint_acceptance_family_v3
 from evaluation.receiver_impact import evaluate_receiver_impact
 
 
@@ -295,7 +295,7 @@ def test_receiver_scorer_rejects_coercible_record_snr(record_snr: object) -> Non
 
 
 def test_receiver_intervals_join_the_shared_v3_family() -> None:
-    family = build_g3_joint_acceptance_family_v3(
+    family = build_joint_acceptance_family_v3(
         family_id="g3-v3-test",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("family-a", "LOS")],
@@ -329,7 +329,7 @@ def test_receiver_intervals_join_the_shared_v3_family() -> None:
 
 
 def test_receiver_scorer_rejects_shared_family_with_different_strata() -> None:
-    family = build_g3_joint_acceptance_family_v3(
+    family = build_joint_acceptance_family_v3(
         family_id="g3-v3-test",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("family-a", "LOS")],

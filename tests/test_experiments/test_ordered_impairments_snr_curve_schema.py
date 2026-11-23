@@ -283,7 +283,7 @@ def test_signed_snr_acceptance_contract_binds_exact_canonical_bytes(
         }
 
     monkeypatch.setattr(acceptance, "verify_openssh_signature_for_bytes", verify)
-    loaded, identity = acceptance.load_g5_snr_acceptance_contract(
+    loaded, identity = acceptance.load_snr_acceptance_contract(
         contract_path,
         signature_path=signature_path,
         trusted_allowed_signers_path=allowed_signers_path,
@@ -316,7 +316,7 @@ def test_signed_snr_acceptance_contract_rejects_noncanonical_bytes(
     )
 
     with pytest.raises(ValueError, match="canonical sorted compact JSON"):
-        acceptance.load_g5_snr_acceptance_contract(
+        acceptance.load_snr_acceptance_contract(
             contract_path,
             signature_path=signature_path,
             trusted_allowed_signers_path=allowed_signers_path,
@@ -424,7 +424,7 @@ def test_curve_auditor_reverifies_signed_preregistration_identity(
     signature_path = tmp_path / "contract.sig"
     allowed_signers_path = tmp_path / "allowed_signers"
 
-    assert curve_auditor._verify_g5_preregistration_signature(
+    assert curve_auditor._verify_preregistration_signature(
         contract,
         signature_record,
         signature_path=signature_path,
@@ -435,7 +435,7 @@ def test_curve_auditor_reverifies_signed_preregistration_identity(
     assert observed["namespace"] == "umcd-g5-snr-acceptance-v1"
 
     signature_record["trusted_allowed_signers_sha256"] = "3" * 64
-    assert not curve_auditor._verify_g5_preregistration_signature(
+    assert not curve_auditor._verify_preregistration_signature(
         contract,
         signature_record,
         signature_path=signature_path,

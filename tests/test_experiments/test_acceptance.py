@@ -9,17 +9,17 @@ from pathlib import Path
 
 import pytest
 from experiments.acceptance import (
-    G5_SNR_CURVE_BOOTSTRAP_DRAWS,
-    G5_SNR_CURVE_BOOTSTRAP_SEED,
-    G5_SNR_CURVE_INFERENCE_METHOD,
-    G5_SNR_CURVE_INFERENCE_UNIT,
-    G5_SNR_CURVE_PAIRED_CONTRAST,
-    G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
-    evaluate_g5_snr_curve_acceptance,
-    freeze_g5_snr_acceptance_criteria,
-    g5_snr_execution_context_from_config,
-    load_g5_snr_acceptance_contract,
-    validate_g5_preregistration_order,
+    SNR_CURVE_BOOTSTRAP_DRAWS,
+    SNR_CURVE_BOOTSTRAP_SEED,
+    SNR_CURVE_INFERENCE_METHOD,
+    SNR_CURVE_INFERENCE_UNIT,
+    SNR_CURVE_PAIRED_CONTRAST,
+    SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+    evaluate_snr_curve_acceptance,
+    freeze_snr_acceptance_criteria,
+    snr_execution_context_from_config,
+    load_snr_acceptance_contract,
+    validate_preregistration_order,
 )
 
 
@@ -45,7 +45,7 @@ def _timestamped_criteria() -> dict[str, object]:
 
 def _execution_bound_criteria() -> dict[str, object]:
     criteria = _timestamped_criteria()
-    criteria["schema"] = G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA
+    criteria["schema"] = SNR_EXECUTION_ACCEPTANCE_SCHEMA
     context = {
         "receiver_configuration": {"receiver": "fixture"},
         "decoder_configuration": {"decoder": "fixture"},
@@ -78,7 +78,7 @@ def test_execution_context_from_point_config_binds_receiver_decoder_and_waveform
         "rx_iq_phase_imbalance_rad": 0.0,
     }
 
-    context = g5_snr_execution_context_from_config(config)
+    context = snr_execution_context_from_config(config)
 
     assert context["receiver_configuration"] == config["receiver_configuration"]
     assert context["decoder_configuration"] == config["decoder_configuration"]
@@ -91,9 +91,9 @@ def test_execution_context_from_point_config_binds_receiver_decoder_and_waveform
 
 def test_execution_context_from_point_config_rejects_missing_or_noncanonical_fields() -> None:
     with pytest.raises(ValueError, match="missing frozen execution-context fields"):
-        g5_snr_execution_context_from_config({})
+        snr_execution_context_from_config({})
     with pytest.raises(ValueError, match="canonical JSON"):
-        g5_snr_execution_context_from_config(
+        snr_execution_context_from_config(
             {
                 "receiver_configuration": {"value": float("nan")},
                 "decoder_configuration": {},
@@ -116,7 +116,7 @@ def test_execution_context_from_point_config_rejects_missing_or_noncanonical_fie
 
 
 def _freeze(criteria: dict[str, object] | None = None) -> dict[str, object]:
-    result = freeze_g5_snr_acceptance_criteria(
+    result = freeze_snr_acceptance_criteria(
         _criteria() if criteria is None else criteria,
         snr_values=(0.0, 5.0),
         channel_seeds=tuple(range(100, 120)),
@@ -140,12 +140,12 @@ def _inference(
         "status": "available",
         "cluster_count": cluster_count,
         "channel_seeds": list(range(100, 100 + cluster_count)),
-        "unit": G5_SNR_CURVE_INFERENCE_UNIT,
-        "bootstrap_seed": G5_SNR_CURVE_BOOTSTRAP_SEED,
-        "bootstrap_draws": G5_SNR_CURVE_BOOTSTRAP_DRAWS,
+        "unit": SNR_CURVE_INFERENCE_UNIT,
+        "bootstrap_seed": SNR_CURVE_BOOTSTRAP_SEED,
+        "bootstrap_draws": SNR_CURVE_BOOTSTRAP_DRAWS,
         "family_size": len(snr_values) * 4,
-        "method": G5_SNR_CURVE_INFERENCE_METHOD,
-        "paired_contrast_definition": G5_SNR_CURVE_PAIRED_CONTRAST,
+        "method": SNR_CURVE_INFERENCE_METHOD,
+        "paired_contrast_definition": SNR_CURVE_PAIRED_CONTRAST,
         "simultaneous_radius": 0.05,
         "by_condition": {
             condition: [
@@ -165,7 +165,7 @@ def _inference(
     }
 
 
-def test_g5_acceptance_freezes_contract_without_receiver_dependency() -> None:
+def test_acceptance_freezes_contract_without_receiver_dependency() -> None:
     criteria = _criteria()
     frozen = _freeze(criteria)
 
@@ -173,9 +173,9 @@ def test_g5_acceptance_freezes_contract_without_receiver_dependency() -> None:
     assert _freeze(frozen) == frozen
 
 
-def test_g5_timestamped_acceptance_contract_freezes_declared_preregistration_time() -> None:
+def test_timestamped_acceptance_contract_freezes_declared_preregistration_time() -> None:
     criteria = _timestamped_criteria()
-    frozen = freeze_g5_snr_acceptance_criteria(
+    frozen = freeze_snr_acceptance_criteria(
         criteria,
         snr_values=(0.0, 5.0),
         channel_seeds=tuple(range(100, 120)),
@@ -184,7 +184,7 @@ def test_g5_timestamped_acceptance_contract_freezes_declared_preregistration_tim
     )
 
     assert frozen == criteria
-    assert validate_g5_preregistration_order(
+    assert validate_preregistration_order(
         frozen, receiver_run_started_utc="2026-10-26T09:00:00Z"
     ) == {
         "declared_temporal_order_status": "preregistration_precedes_receiver_run",
@@ -194,10 +194,10 @@ def test_g5_timestamped_acceptance_contract_freezes_declared_preregistration_tim
     }
 
 
-def test_g5_execution_bound_contract_freezes_receiver_decoder_and_waveform() -> None:
+def test_execution_bound_contract_freezes_receiver_decoder_and_waveform() -> None:
     criteria = _execution_bound_criteria()
     context = criteria["execution_context"]
-    frozen = freeze_g5_snr_acceptance_criteria(
+    frozen = freeze_snr_acceptance_criteria(
         criteria,
         snr_values=(0.0, 5.0),
         channel_seeds=tuple(range(100, 120)),
@@ -208,7 +208,7 @@ def test_g5_execution_bound_contract_freezes_receiver_decoder_and_waveform() -> 
 
     assert frozen == criteria
     with pytest.raises(ValueError, match="execution context differs"):
-        freeze_g5_snr_acceptance_criteria(
+        freeze_snr_acceptance_criteria(
             criteria,
             snr_values=(0.0, 5.0),
             channel_seeds=tuple(range(100, 120)),
@@ -218,7 +218,7 @@ def test_g5_execution_bound_contract_freezes_receiver_decoder_and_waveform() -> 
         )
 
 
-def test_g5_execution_bound_contract_rejects_modified_context_digest() -> None:
+def test_execution_bound_contract_rejects_modified_context_digest() -> None:
     criteria = _execution_bound_criteria()
     criteria["execution_context"]["receiver_configuration"] = {"receiver": "changed"}
 
@@ -226,7 +226,7 @@ def test_g5_execution_bound_contract_rejects_modified_context_digest() -> None:
         _freeze(criteria)
 
 
-def test_g5_execution_bound_acceptance_schema_requires_exact_context() -> None:
+def test_execution_bound_acceptance_schema_requires_exact_context() -> None:
     jsonschema = pytest.importorskip("jsonschema")
     schema_path = (
         Path(__file__).resolve().parents[2]
@@ -248,24 +248,24 @@ def test_execution_bound_contract_requires_reviewer_policy_before_load(tmp_path:
     contract_path.write_text(json.dumps(_execution_bound_criteria()), encoding="utf-8")
 
     with pytest.raises(ValueError, match="v3 requires independent reviewer-policy admission"):
-        load_g5_snr_acceptance_contract(contract_path)
+        load_snr_acceptance_contract(contract_path)
 
 
 @pytest.mark.parametrize(
     "receiver_run_started_utc",
     ("2026-10-25T09:00:00Z", "2026-10-24T09:00:00Z", "not-a-time"),
 )
-def test_g5_timestamped_acceptance_rejects_nonprior_or_invalid_run_time(
+def test_timestamped_acceptance_rejects_nonprior_or_invalid_run_time(
     receiver_run_started_utc: str,
 ) -> None:
     with pytest.raises(ValueError, match="must precede|valid ISO-8601|ending in Z"):
-        validate_g5_preregistration_order(
+        validate_preregistration_order(
             _timestamped_criteria(), receiver_run_started_utc=receiver_run_started_utc
         )
 
 
 @pytest.mark.parametrize("preregistered_utc", ("2026-10-25T09:00:00+00:00", "bad"))
-def test_g5_timestamped_acceptance_requires_canonical_utc_timestamp(
+def test_timestamped_acceptance_requires_canonical_utc_timestamp(
     preregistered_utc: str,
 ) -> None:
     criteria = _timestamped_criteria()
@@ -307,7 +307,7 @@ def test_signed_v2_contract_admission_binds_timestamp_before_receiver_import(
     allowed_signers_path.write_bytes(b"allowed signers fixture")
 
     with pytest.raises(ValueError, match="v2 requires a verified signature"):
-        load_g5_snr_acceptance_contract(contract_path)
+        load_snr_acceptance_contract(contract_path)
 
     observed: dict[str, object] = {}
 
@@ -334,7 +334,7 @@ def test_signed_v2_contract_admission_binds_timestamp_before_receiver_import(
         }
 
     monkeypatch.setattr("experiments.acceptance.verify_openssh_signature_for_bytes", verify)
-    loaded, identity = load_g5_snr_acceptance_contract(
+    loaded, identity = load_snr_acceptance_contract(
         contract_path,
         signature_path=signature_path,
         trusted_allowed_signers_path=allowed_signers_path,
@@ -350,7 +350,7 @@ def test_signed_v2_contract_admission_binds_timestamp_before_receiver_import(
 
 
 @pytest.mark.parametrize("alias_kind", ["symlink", "hardlink"])
-def test_g5_contract_loader_rejects_file_aliases(tmp_path: Path, alias_kind: str) -> None:
+def test_contract_loader_rejects_file_aliases(tmp_path: Path, alias_kind: str) -> None:
     contract_path = tmp_path / "contract.json"
     contract_path.write_text(
         json.dumps(_criteria(), sort_keys=True, separators=(",", ":")), encoding="utf-8"
@@ -364,7 +364,7 @@ def test_g5_contract_loader_rejects_file_aliases(tmp_path: Path, alias_kind: str
         expected = "single-link regular file"
 
     with pytest.raises(ValueError, match=expected):
-        load_g5_snr_acceptance_contract(alias_path)
+        load_snr_acceptance_contract(alias_path)
 
 
 def test_timestamped_acceptance_contract_verifies_real_openssh_signature(
@@ -411,7 +411,7 @@ def test_timestamped_acceptance_contract_verifies_real_openssh_signature(
     )
     signature_path = Path(f"{contract_path}.sig")
 
-    loaded, identity = load_g5_snr_acceptance_contract(
+    loaded, identity = load_snr_acceptance_contract(
         contract_path,
         signature_path=signature_path,
         trusted_allowed_signers_path=allowed_signers_path,
@@ -430,7 +430,7 @@ def test_timestamped_acceptance_contract_verifies_real_openssh_signature(
         json.dumps(altered, sort_keys=True, separators=(",", ":")), encoding="utf-8"
     )
     with pytest.raises(ValueError, match="signature is invalid"):
-        load_g5_snr_acceptance_contract(
+        load_snr_acceptance_contract(
             contract_path,
             signature_path=signature_path,
             trusted_allowed_signers_path=allowed_signers_path,
@@ -518,7 +518,7 @@ def test_reviewer_policy_requires_distinct_signed_custody_and_authorizes_reviewe
         capture_output=True,
     )
 
-    _, identity = load_g5_snr_acceptance_contract(
+    _, identity = load_snr_acceptance_contract(
         contract_path,
         signature_path=Path(f"{contract_path}.sig"),
         trusted_allowed_signers_path=acceptance_keyring,
@@ -535,7 +535,7 @@ def test_reviewer_policy_requires_distinct_signed_custody_and_authorizes_reviewe
     shared_keyring = tmp_path / "shared.allowed_signers"
     shared_keyring.write_bytes(acceptance_keyring.read_bytes() + policy_keyring.read_bytes())
     with pytest.raises(ValueError, match="keyring must differ"):
-        load_g5_snr_acceptance_contract(
+        load_snr_acceptance_contract(
             contract_path,
             signature_path=Path(f"{contract_path}.sig"),
             trusted_allowed_signers_path=shared_keyring,
@@ -559,7 +559,7 @@ def test_reviewer_policy_requires_distinct_signed_custody_and_authorizes_reviewe
         ("maximum_corrected_macro_bler", [10**400, 0.05], "finite real values"),
     ),
 )
-def test_g5_acceptance_rejects_contract_drift_and_nonfinite_values(
+def test_acceptance_rejects_contract_drift_and_nonfinite_values(
     field: str, value: object, message: str
 ) -> None:
     criteria = deepcopy(_criteria())
@@ -580,7 +580,7 @@ def test_g5_acceptance_rejects_contract_drift_and_nonfinite_values(
         ),
     ),
 )
-def test_g5_acceptance_bounds_direct_contracts_before_snapshot(
+def test_acceptance_bounds_direct_contracts_before_snapshot(
     field: str, value: object, message: str
 ) -> None:
     criteria = deepcopy(_criteria())
@@ -599,26 +599,26 @@ def test_g5_acceptance_bounds_direct_contracts_before_snapshot(
         ("minimum_uncorrected_minus_corrected_macro_bler", [-0.1, 0.01], "in \\[0, 1\\]"),
     ),
 )
-def test_g5_acceptance_scorer_revalidates_contract_before_deciding(
+def test_acceptance_scorer_revalidates_contract_before_deciding(
     field: str, value: object, message: str
 ) -> None:
     criteria = deepcopy(_criteria())
     criteria[field] = value
 
     with pytest.raises(ValueError, match=message):
-        evaluate_g5_snr_curve_acceptance(criteria, curve_inference=_inference())
+        evaluate_snr_curve_acceptance(criteria, curve_inference=_inference())
 
 
-def test_g5_acceptance_requires_pointwise_simultaneous_bounds_to_pass() -> None:
-    result = evaluate_g5_snr_curve_acceptance(_freeze(), curve_inference=_inference())
+def test_acceptance_requires_pointwise_simultaneous_bounds_to_pass() -> None:
+    result = evaluate_snr_curve_acceptance(_freeze(), curve_inference=_inference())
 
     assert result["status"] == "PASS"
     assert result["pass"] is True
     assert len(result["point_decisions"]) == 2
 
 
-def test_g5_acceptance_fails_when_either_bound_misses_at_one_snr() -> None:
-    result = evaluate_g5_snr_curve_acceptance(
+def test_acceptance_fails_when_either_bound_misses_at_one_snr() -> None:
+    result = evaluate_snr_curve_acceptance(
         _freeze(),
         curve_inference=_inference(
             corrected=([0.02, 0.06], [0.01, 0.051]),
@@ -631,8 +631,8 @@ def test_g5_acceptance_fails_when_either_bound_misses_at_one_snr() -> None:
     assert result["point_decisions"][1]["pass"] is False
 
 
-def test_g5_acceptance_stays_not_evaluable_below_frozen_cluster_floor() -> None:
-    result = evaluate_g5_snr_curve_acceptance(
+def test_acceptance_stays_not_evaluable_below_frozen_cluster_floor() -> None:
+    result = evaluate_snr_curve_acceptance(
         _freeze(), curve_inference=_inference(cluster_count=19)
     )
 
@@ -641,20 +641,20 @@ def test_g5_acceptance_stays_not_evaluable_below_frozen_cluster_floor() -> None:
     assert result["point_decisions"] == []
 
 
-def test_g5_acceptance_requires_inference_to_cover_exact_frozen_seed_roster() -> None:
+def test_acceptance_requires_inference_to_cover_exact_frozen_seed_roster() -> None:
     criteria = _criteria()
     criteria["channel_seeds"] = list(range(100, 121))
 
     with pytest.raises(ValueError, match="cluster count does not match the frozen seed roster"):
-        evaluate_g5_snr_curve_acceptance(criteria, curve_inference=_inference())
+        evaluate_snr_curve_acceptance(criteria, curve_inference=_inference())
 
 
-def test_g5_acceptance_rejects_same_count_with_different_frozen_seed_ids() -> None:
+def test_acceptance_rejects_same_count_with_different_frozen_seed_ids() -> None:
     inference = _inference()
     inference["channel_seeds"] = list(range(200, 220))
 
     with pytest.raises(ValueError, match="channel seeds do not match"):
-        evaluate_g5_snr_curve_acceptance(_freeze(), curve_inference=inference)
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
 
 
 @pytest.mark.parametrize(
@@ -665,15 +665,15 @@ def test_g5_acceptance_rejects_same_count_with_different_frozen_seed_ids() -> No
         (lambda inference: inference.__setitem__("simultaneous_radius", float("nan")), "radius"),
     ),
 )
-def test_g5_acceptance_rejects_inference_metadata_drift(change, message: str) -> None:
+def test_acceptance_rejects_inference_metadata_drift(change, message: str) -> None:
     inference = _inference()
     change(inference)
 
     with pytest.raises(ValueError, match=message):
-        evaluate_g5_snr_curve_acceptance(_freeze(), curve_inference=inference)
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
 
 
-def test_g5_acceptance_does_not_treat_boolean_snr_as_numeric_one() -> None:
+def test_acceptance_does_not_treat_boolean_snr_as_numeric_one() -> None:
     criteria = _criteria()
     criteria["snr_db"] = [1.0]
     criteria["maximum_corrected_macro_bler"] = [0.1]
@@ -687,7 +687,7 @@ def test_g5_acceptance_does_not_treat_boolean_snr_as_numeric_one() -> None:
     inference["by_paired_contrast"] = [dict(inference["by_paired_contrast"][0], snr_db=True)]
 
     with pytest.raises(ValueError, match="SNR ordering differs"):
-        evaluate_g5_snr_curve_acceptance(criteria, curve_inference=inference)
+        evaluate_snr_curve_acceptance(criteria, curve_inference=inference)
 
 
 @pytest.mark.parametrize(
@@ -701,9 +701,9 @@ def test_g5_acceptance_does_not_treat_boolean_snr_as_numeric_one() -> None:
         [0.0, 1.1],
     ),
 )
-def test_g5_acceptance_rejects_malformed_interval_endpoints(interval: list[object]) -> None:
+def test_acceptance_rejects_malformed_interval_endpoints(interval: list[object]) -> None:
     inference = _inference()
     inference["by_condition"]["corrected"][0]["simultaneous_95_percent_interval"] = interval
 
     with pytest.raises(ValueError, match="finite numbers|reversed or out of domain"):
-        evaluate_g5_snr_curve_acceptance(_freeze(), curve_inference=inference)
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)

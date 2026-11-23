@@ -11,13 +11,13 @@ from pathlib import Path
 
 import pytest
 from evaluation.joint_acceptance import (
-    build_g3_joint_acceptance_family,
-    build_g3_joint_acceptance_family_v3,
+    build_joint_acceptance_family,
+    build_joint_acceptance_family_v3,
 )
 from evaluation.material_calibration import (
     SCHEMA,
     SPLIT_MANIFEST_SCHEMA,
-    evaluate_g3_material_calibration,
+    evaluate_material_calibration,
 )
 from evaluation.material_calibration import (
     main as material_calibration_main,
@@ -313,11 +313,11 @@ def test_schema_leaves_semantic_threshold_hash_and_join_checks_to_evaluator(muta
 
     assert validator.is_valid(payload)
     with pytest.raises(ValueError):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 def test_synthetic_fixture_meets_numeric_contract_but_never_qualifies_scene():
-    report = evaluate_g3_material_calibration(_payload())
+    report = evaluate_material_calibration(_payload())
 
     assert report["numerical_margins_pass_all_reported_strata"] is True
     assert report["pilot_margins_pass_all_reported_strata"] is False
@@ -378,7 +378,7 @@ def test_material_and_polarization_are_evaluated_as_separate_strata():
     split_manifest["expected_strata"] = deepcopy(expected_strata)
     _refresh_split_manifest_hash(payload)
 
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
 
     assert {
         (row["material_id"], row["polarization"], row["incidence_stratum_id"])
@@ -429,7 +429,7 @@ def test_invalid_or_incomplete_evidence_fails_closed(mutate, message):
     mutate(payload)
 
     with pytest.raises(ValueError, match=message):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 @pytest.mark.parametrize(
@@ -449,7 +449,7 @@ def test_split_manifest_rejects_malformed_or_duplicate_expected_strata(entry, me
     _refresh_split_manifest_hash(payload)
 
     with pytest.raises(ValueError, match=message):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 def test_angular_distribution_mismatch_fails_angular_margin():
@@ -463,7 +463,7 @@ def test_angular_distribution_mismatch_fails_angular_margin():
             [0.0, 0.0, 0.0, 1.0],
         ]
 
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
 
     assert report["strata"][0]["maximum_angular_cdf_ks"] > 0.10
     assert report["strata"][0]["checks"]["maximum_angular_cdf_ks"] is False
@@ -482,7 +482,7 @@ def test_each_incidence_angle_stratum_must_pass_independently():
                 [0.0, 0.0, 0.0, 1.0],
             ]
 
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
     by_angle = {row["incidence_stratum_id"]: row for row in report["strata"]}
 
     assert by_angle["angle-20deg"]["checks"]["maximum_angular_cdf_ks"] is True
@@ -504,7 +504,7 @@ def test_coverage_width_and_power_error_margins_are_independently_reported():
         } or not row["sample_id"].endswith("-sample-0"):
             row["prediction_interval_95_db"] = [measured - 1.0, measured + 5.0]
 
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
     checks = report["strata"][0]["checks"]
 
     assert checks["median_absolute_power_error_db"] is False
@@ -520,17 +520,17 @@ def test_mixed_angular_grid_and_invalid_powers_are_rejected():
     rows[1]["measured_angular_power_per_bin_w"] = [[1.0, 2.0], [1.0, 2.0]]
 
     with pytest.raises(ValueError, match="shape must match theta/phi"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
     rows[1]["measured_angular_power_per_bin_w"] = [[1.0, 2.0, 1.0, 2.0] for _ in range(3)]
     rows[1]["angular_coordinate_frame_id"] = "other-frame"
     with pytest.raises(ValueError, match="angular grid or coordinate frame varies"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
     rows[1]["angular_coordinate_frame_id"] = "lab-frame-v1"
     rows[1]["measured_angular_power_per_bin_w"] = [[-1.0, 2.0, 1.0, 2.0] for _ in range(3)]
     with pytest.raises(ValueError, match="measured_angular_power_per_bin_w must contain"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 @pytest.mark.parametrize("invalid_value", ["1.0", True, 1.0 + 0.0j])
@@ -549,7 +549,7 @@ def test_material_evaluator_rejects_coercible_angular_values(field, invalid_valu
     rows[0][field][0][0] = invalid_value
 
     with pytest.raises(ValueError, match=f"{field} values must be a finite real number"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 def test_integrated_angular_power_is_scored_on_a_complete_validated_grid():
@@ -571,14 +571,14 @@ def test_integrated_angular_power_is_scored_on_a_complete_validated_grid():
             measured_angular_power_per_bin_w=[[1.0], [3.0]],
             predicted_angular_power_per_bin_w=[[1.0], [6.0]],
         )
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
     assert report["schema"] == "loslab.g3_material_calibration_evaluation.v2"
     assert report["angular_pattern_contract"]["distance"].startswith("supremum absolute difference")
     assert report["strata"][0]["maximum_angular_cdf_ks"] == pytest.approx(3.0 / 28.0)
 
     row["solid_angle_sr"] = [[1.0], [1.0]]
     with pytest.raises(ValueError, match="solid_angle_sr does not match"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 def test_missing_or_incomplete_angular_measurements_are_unscorable():
@@ -587,17 +587,17 @@ def test_missing_or_incomplete_angular_measurements_are_unscorable():
     assert isinstance(rows, list)
     rows[0]["missing_angular_bin_indices"] = [[0, 0]]
     with pytest.raises(ValueError, match="missing bins are unresolved"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
     rows[0]["missing_angular_bin_indices"] = []
     rows[0]["phi_edges_deg"][-1] = 179.0
     with pytest.raises(ValueError, match=r"must cover zenith \[0, 180\]"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 def test_bootstrap_counts_independent_groups_not_repeated_rows():
     payload = _payload()
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
     stratum = next(row for row in report["strata"] if row["incidence_stratum_id"] == "angle-20deg")
     rows = payload["test_predictions"]
     assert isinstance(rows, list)
@@ -621,7 +621,7 @@ def test_bootstrap_counts_independent_groups_not_repeated_rows():
     split_first_group["sample_ids"].append("extra-independent-looking-row")
     _refresh_split_manifest_hash(payload)
 
-    repeated_report = evaluate_g3_material_calibration(payload)
+    repeated_report = evaluate_material_calibration(payload)
     repeated_stratum = next(
         row for row in repeated_report["strata"] if row["incidence_stratum_id"] == "angle-20deg"
     )
@@ -656,7 +656,7 @@ def test_single_held_out_group_is_reported_as_uncertainty_unassessable():
     encoded = json.dumps(split_manifest, sort_keys=True, separators=(",", ":"))
     payload["full_split_manifest_sha256"] = hashlib.sha256(encoded.encode()).hexdigest()
 
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
     angle_20 = next(row for row in report["strata"] if row["incidence_stratum_id"] == "angle-20deg")
     bootstrap = angle_20["measurement_unit_bootstrap_uncertainty"]
 
@@ -681,11 +681,11 @@ def test_full_split_manifest_must_include_every_declared_test_group():
     payload["full_split_manifest_sha256"] = hashlib.sha256(encoded.encode()).hexdigest()
 
     with pytest.raises(ValueError, match="exactly match all test groups"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 def test_assessable_bootstrap_uses_familywise_bonferroni_intervals():
-    report = evaluate_g3_material_calibration(_assessable_payload())
+    report = evaluate_material_calibration(_assessable_payload())
 
     assert report["cluster_bootstrap"]["all_reported_strata_bootstrap_computable"] is True
     assert report["cluster_bootstrap"]["familywise_confidence_level"] == 0.95
@@ -712,7 +712,7 @@ def test_material_intervals_use_shared_material_csi_propagation_and_receiver_cla
     payload = _assessable_payload()
     expected_strata = payload["expected_strata"]
     assert isinstance(expected_strata, list)
-    family = build_g3_joint_acceptance_family_v3(
+    family = build_joint_acceptance_family_v3(
         family_id="g3-protocol-2026-01",
         material_expected_strata=[
             (item["material_id"], item["polarization"], item["incidence_stratum_id"])
@@ -726,7 +726,7 @@ def test_material_intervals_use_shared_material_csi_propagation_and_receiver_cla
 
     validator = _material_calibration_payload_validator()
     assert validator.is_valid(payload)
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
 
     assert family["claim_count"] == 26
     assert report["cluster_bootstrap"]["simultaneous_comparison_count"] == 26
@@ -743,7 +743,7 @@ def test_material_intervals_use_shared_material_csi_propagation_and_receiver_cla
 
 def test_material_evaluator_rejects_tampered_or_mismatched_joint_family():
     payload = _payload()
-    family = build_g3_joint_acceptance_family(
+    family = build_joint_acceptance_family(
         family_id="g3-protocol-2026-01",
         material_expected_strata=[
             ("concrete-a", "V", "angle-20deg"),
@@ -753,16 +753,16 @@ def test_material_evaluator_rejects_tampered_or_mismatched_joint_family():
     )
     payload["joint_acceptance_family"] = {**family, "claim_count": family["claim_count"] + 1}
     with pytest.raises(ValueError, match="fields or canonical SHA-256 are inconsistent"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
     payload["joint_acceptance_family"] = family
     family["material_expected_strata"] = [["concrete-a", "V", "angle-20deg"]]
     with pytest.raises(ValueError, match="fields or canonical SHA-256 are inconsistent"):
-        evaluate_g3_material_calibration(payload)
+        evaluate_material_calibration(payload)
 
 
 def test_assessable_bootstrap_rejects_coverage_below_frozen_margin():
-    report = evaluate_g3_material_calibration(_assessable_payload(failing_coverage=True))
+    report = evaluate_material_calibration(_assessable_payload(failing_coverage=True))
     angle_20 = next(row for row in report["strata"] if row["incidence_stratum_id"] == "angle-20deg")
 
     assert (
@@ -818,7 +818,7 @@ def test_large_favorable_unit_cannot_hide_a_failing_independent_unit():
         split_group["sample_ids"] = list(sample_ids)
     _refresh_split_manifest_hash(payload)
 
-    report = evaluate_g3_material_calibration(payload)
+    report = evaluate_material_calibration(payload)
     angle_20 = next(row for row in report["strata"] if row["incidence_stratum_id"] == "angle-20deg")
 
     assert angle_20["test_sample_count"] == 103

@@ -13,8 +13,8 @@ from evaluation.signed_attestation import (
     SCHEMA,
     SIGNATURE_NAMESPACE,
     TRUST_POLICY_SCHEMA,
-    verify_g3_signed_attestation,
-    verify_g3_signed_attestation_set,
+    verify_signed_attestation,
+    verify_signed_attestation_set,
 )
 
 _VERIFIER_HELPERS = Path(__file__).with_name("test_acquisition_package_verifier.py")
@@ -201,10 +201,10 @@ def _make_signed_set(
     return package_path, envelopes, allowed_signers, policy_path
 
 
-def test_g3_signed_attestation_binds_exact_package_and_subject_file(tmp_path: Path) -> None:
+def test_signed_attestation_binds_exact_package_and_subject_file(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
 
-    report = verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+    report = verify_signed_attestation(package, envelope, signature, trusted, policy)
 
     split_manifest_entry = next(
         item
@@ -262,7 +262,7 @@ def test_split_preregistration_must_precede_declared_held_out_acquisition(
         ValueError,
         match="signed_utc must precede every declared held-out acquisition",
     ):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
 def test_split_preregistration_signature_must_include_bound_split_manifest(
@@ -309,63 +309,63 @@ def test_split_preregistration_signature_must_include_bound_split_manifest(
     )
 
     with pytest.raises(ValueError, match="must sign the evaluator-bound split manifest"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_supports_legacy_v02_package(tmp_path: Path) -> None:
+def test_signed_attestation_supports_legacy_v02_package(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(
         tmp_path, schema_version="g3.03-acquisition-package.v0.2"
     )
 
-    report = verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+    report = verify_signed_attestation(package, envelope, signature, trusted, policy)
 
     assert report["signature_status"] == "verified"
     assert report["package_consistency_status"] == "consistent_proposal_only"
 
 
-def test_g3_signed_attestation_supports_v04_csi_noise_evidence_package(
+def test_signed_attestation_supports_v04_csi_noise_evidence_package(
     tmp_path: Path,
 ) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(
         tmp_path, schema_version="g3.03-acquisition-package.v0.4"
     )
 
-    report = verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+    report = verify_signed_attestation(package, envelope, signature, trusted, policy)
 
     assert report["signature_status"] == "verified"
     assert report["package_consistency_status"] == "consistent_proposal_only"
     assert report["qualification_status"] == "NOT_QUALIFIED"
 
 
-def test_g3_signed_attestation_rejects_package_byte_change(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_package_byte_change(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     package.write_bytes(package.read_bytes() + b" ")
 
     with pytest.raises(ValueError, match="package_sha256 does not match exact package bytes"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_rejects_subject_digest_mismatch(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_subject_digest_mismatch(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     document = json.loads(envelope.read_bytes())
     document["subject_files"][0]["sha256"] = "0" * 64
     envelope.write_bytes(_canonical_bytes(document))
 
     with pytest.raises(ValueError, match="differs from package inventory"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_rejects_tampered_signed_bytes(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_tampered_signed_bytes(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     document = json.loads(envelope.read_bytes())
     document["signed_utc"] = "2025-12-31T09:31:00Z"
     envelope.write_bytes(_canonical_bytes(document))
 
     with pytest.raises(ValueError, match="signature is invalid or signer is not trusted"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_rejects_untrusted_principal(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_untrusted_principal(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     public_key = subprocess.run(
         [shutil.which("ssh-keygen") or "ssh-keygen", "-y", "-f", str(tmp_path / "reviewer_key")],
@@ -379,49 +379,49 @@ def test_g3_signed_attestation_rejects_untrusted_principal(tmp_path: Path) -> No
     )
 
     with pytest.raises(ValueError, match="signature is invalid or signer is not trusted"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_rejects_unauthorized_role(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_unauthorized_role(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     trust = json.loads(policy.read_bytes())
     trust["signers"][0]["allowed_signer_roles"] = ["unrelated role"]
     policy.write_bytes(_canonical_bytes(trust))
 
     with pytest.raises(ValueError, match="signer role is not authorized"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_rejects_unauthorized_organization(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_unauthorized_organization(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     trust = json.loads(policy.read_bytes())
     trust["signers"][0]["organization"] = "Different institution"
     policy.write_bytes(_canonical_bytes(trust))
 
     with pytest.raises(ValueError, match="organization is not authorized"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_rejects_unauthorized_attestation_type(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_unauthorized_attestation_type(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     trust = json.loads(policy.read_bytes())
     trust["signers"][0]["allowed_attestation_types"] = ["physical_independence"]
     policy.write_bytes(_canonical_bytes(trust))
 
     with pytest.raises(ValueError, match="attestation type is not authorized"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_rejects_hardlinked_signature(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_hardlinked_signature(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     alias = tmp_path / "signature-copy.sig"
     alias.hardlink_to(signature)
 
     with pytest.raises(ValueError, match="single-link regular file"):
-        verify_g3_signed_attestation(package, envelope, alias, trusted, policy)
+        verify_signed_attestation(package, envelope, alias, trusted, policy)
 
 
-def test_g3_signed_attestation_rejects_inconsistent_package_inventory(tmp_path: Path) -> None:
+def test_signed_attestation_rejects_inconsistent_package_inventory(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     document = json.loads(package.read_bytes())
     manifest_entry = next(
@@ -430,13 +430,13 @@ def test_g3_signed_attestation_rejects_inconsistent_package_inventory(tmp_path: 
     (tmp_path / manifest_entry["path"]).write_bytes(b"changed bytes\n")
 
     with pytest.raises(ValueError, match="fails the proposal-package consistency verifier"):
-        verify_g3_signed_attestation(package, envelope, signature, trusted, policy)
+        verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
-def test_g3_signed_attestation_set_verifies_every_package_record(tmp_path: Path) -> None:
+def test_signed_attestation_set_verifies_every_package_record(tmp_path: Path) -> None:
     package, envelopes, trusted, policy = _make_signed_set(tmp_path)
 
-    report = verify_g3_signed_attestation_set(package, envelopes, trusted, policy)
+    report = verify_signed_attestation_set(package, envelopes, trusted, policy)
 
     assert report["signature_status"] == "all_declared_attestations_verified"
     assert report["attestation_count"] == 5
@@ -445,12 +445,12 @@ def test_g3_signed_attestation_set_verifies_every_package_record(tmp_path: Path)
     assert "signer independence requires external review" in report["limitations"][1]
 
 
-def test_g3_signed_attestation_set_supports_v04_package(tmp_path: Path) -> None:
+def test_signed_attestation_set_supports_v04_package(tmp_path: Path) -> None:
     package, envelopes, trusted, policy = _make_signed_set(
         tmp_path, schema_version="g3.03-acquisition-package.v0.4"
     )
 
-    report = verify_g3_signed_attestation_set(package, envelopes, trusted, policy)
+    report = verify_signed_attestation_set(package, envelopes, trusted, policy)
 
     assert report["signature_status"] == "all_declared_attestations_verified"
     assert report["attestation_count"] == 5
@@ -458,12 +458,12 @@ def test_g3_signed_attestation_set_supports_v04_package(tmp_path: Path) -> None:
     assert report["qualification_status"] == "NOT_QUALIFIED"
 
 
-def test_g3_signed_attestation_set_can_require_complete_qualification_types(
+def test_signed_attestation_set_can_require_complete_qualification_types(
     tmp_path: Path,
 ) -> None:
     package, envelopes, trusted, policy = _make_signed_set(tmp_path)
 
-    report = verify_g3_signed_attestation_set(
+    report = verify_signed_attestation_set(
         package,
         envelopes,
         trusted,
@@ -476,7 +476,7 @@ def test_g3_signed_attestation_set_can_require_complete_qualification_types(
     assert report["qualification_status"] == "NOT_QUALIFIED"
 
 
-def test_g3_signed_attestation_set_strict_mode_rejects_missing_scientific_review(
+def test_signed_attestation_set_strict_mode_rejects_missing_scientific_review(
     tmp_path: Path,
 ) -> None:
     package, envelopes, trusted, policy = _make_signed_set(
@@ -486,7 +486,7 @@ def test_g3_signed_attestation_set_strict_mode_rejects_missing_scientific_review
     )
 
     with pytest.raises(ValueError, match="missing types: scientific_review"):
-        verify_g3_signed_attestation_set(
+        verify_signed_attestation_set(
             package,
             envelopes,
             trusted,
@@ -494,19 +494,19 @@ def test_g3_signed_attestation_set_strict_mode_rejects_missing_scientific_review
             require_complete_qualification_attestations=True,
         )
 
-    compatible_report = verify_g3_signed_attestation_set(package, envelopes, trusted, policy)
+    compatible_report = verify_signed_attestation_set(package, envelopes, trusted, policy)
     assert (
         compatible_report["qualification_attestation_coverage_status"] == "incomplete_type_roster"
     )
 
 
-def test_g3_signed_attestation_set_strict_mode_requires_strict_boolean(
+def test_signed_attestation_set_strict_mode_requires_strict_boolean(
     tmp_path: Path,
 ) -> None:
     package, envelopes, trusted, policy = _make_signed_set(tmp_path)
 
     with pytest.raises(TypeError, match="must be Boolean"):
-        verify_g3_signed_attestation_set(
+        verify_signed_attestation_set(
             package,
             envelopes,
             trusted,
@@ -515,15 +515,15 @@ def test_g3_signed_attestation_set_strict_mode_requires_strict_boolean(
         )
 
 
-def test_g3_signed_attestation_set_rejects_missing_package_record(tmp_path: Path) -> None:
+def test_signed_attestation_set_rejects_missing_package_record(tmp_path: Path) -> None:
     package, envelopes, trusted, policy = _make_signed_set(tmp_path)
 
     with pytest.raises(ValueError, match="does not cover package records"):
-        verify_g3_signed_attestation_set(package, envelopes[:-1], trusted, policy)
+        verify_signed_attestation_set(package, envelopes[:-1], trusted, policy)
 
 
-def test_g3_signed_attestation_set_rejects_duplicate_envelope_path(tmp_path: Path) -> None:
+def test_signed_attestation_set_rejects_duplicate_envelope_path(tmp_path: Path) -> None:
     package, envelopes, trusted, policy = _make_signed_set(tmp_path)
 
     with pytest.raises(ValueError, match="envelope paths must be unique"):
-        verify_g3_signed_attestation_set(package, [*envelopes, envelopes[0]], trusted, policy)
+        verify_signed_attestation_set(package, [*envelopes, envelopes[0]], trusted, policy)

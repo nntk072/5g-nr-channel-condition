@@ -12,15 +12,15 @@ from artifacts.rebinding import recorded_digest_matches
 from scipy.stats import beta
 
 from experiments.acceptance import (
-    G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
-    G5_SNR_CURVE_BOOTSTRAP_DRAWS,
-    G5_SNR_CURVE_BOOTSTRAP_SEED,
-    G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
-    G5_SNR_REVIEWER_POLICY_PURPOSE,
-    G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
-    G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-    MIN_G5_INDEPENDENT_ACCEPTANCE_CHANNELS,
-    _verify_g5_reviewer_policy,
+    SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
+    SNR_CURVE_BOOTSTRAP_DRAWS,
+    SNR_CURVE_BOOTSTRAP_SEED,
+    SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+    SNR_REVIEWER_POLICY_PURPOSE,
+    SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
+    SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+    MIN_INDEPENDENT_ACCEPTANCE_CHANNELS,
+    _verify_reviewer_policy,
 )
 
 from .waveform import (
@@ -28,7 +28,7 @@ from .waveform import (
     _CFO_CHANNEL_TAIL_SCHEMAS,
     _CUDA_CURVE_BASE_VERSIONS,
     _CUDA_DEVICE_REPORT_SCHEMAS,
-    _G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
+    _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
     _HEX,
     _PER_CHANNEL_WAVEFORM_DIAGNOSTIC_SCHEMAS,
     _RESULT_SCHEMA,
@@ -37,8 +37,8 @@ from .waveform import (
     _cluster_bootstrap_interval,
     _curve_report_schema_status,
     _estimator_source_checks,
-    _g5_declared_preregistration_order_matches,
-    _g5_execution_context_matches,
+    _declared_preregistration_order_matches,
+    _execution_context_matches,
     _inference_seed_roster_consistent,
     _is_finite_nonnegative,
     _is_finite_number,
@@ -46,7 +46,7 @@ from .waveform import (
     _recompute_waveform_diagnostics,
     _same_float,
     _sha256,
-    _verify_g5_preregistration_signature,
+    _verify_preregistration_signature,
 )
 
 
@@ -1060,8 +1060,8 @@ def _audit_independent_snr_curve(
             and seed_roster_consistent
             and curve_inference.get("family_size")
             == len(snr_grid) * (len(conditions) + int(has_paired_contrast))
-            and curve_inference.get("bootstrap_seed") == G5_SNR_CURVE_BOOTSTRAP_SEED
-            and curve_inference.get("bootstrap_draws") == G5_SNR_CURVE_BOOTSTRAP_DRAWS
+            and curve_inference.get("bootstrap_seed") == SNR_CURVE_BOOTSTRAP_SEED
+            and curve_inference.get("bootstrap_draws") == SNR_CURVE_BOOTSTRAP_DRAWS
             and curve_inference.get("unit")
             == "independent synthetic channel; transport blocks are nested"
             and curve_inference.get("method") == expected_inference_method
@@ -1105,14 +1105,14 @@ def _audit_independent_snr_curve(
                                 sum(vector) / blocks
                             )
                 observed = rates.mean(axis=2)
-                rng = np.random.default_rng(G5_SNR_CURVE_BOOTSTRAP_SEED)
+                rng = np.random.default_rng(SNR_CURVE_BOOTSTRAP_SEED)
                 bootstrap_batches: list[np.ndarray] = []
                 for start in range(
-                    0, G5_SNR_CURVE_BOOTSTRAP_DRAWS, G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE
+                    0, SNR_CURVE_BOOTSTRAP_DRAWS, SNR_CURVE_BOOTSTRAP_BATCH_SIZE
                 ):
                     batch_size = min(
-                        G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
-                        G5_SNR_CURVE_BOOTSTRAP_DRAWS - start,
+                        SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
+                        SNR_CURVE_BOOTSTRAP_DRAWS - start,
                     )
                     sampled = rng.integers(0, len(seeds), size=(batch_size, len(seeds)))
                     sampled_means = rates[:, :, sampled].mean(axis=-1)
@@ -1123,13 +1123,13 @@ def _audit_independent_snr_curve(
                     paired_improvement_rates = rates[:, 1, :] - rates[:, 2, :]
                     observed_paired_improvement = paired_improvement_rates.mean(axis=1)
                     paired_bootstrap_batches: list[np.ndarray] = []
-                    rng = np.random.default_rng(G5_SNR_CURVE_BOOTSTRAP_SEED)
+                    rng = np.random.default_rng(SNR_CURVE_BOOTSTRAP_SEED)
                     for start in range(
-                        0, G5_SNR_CURVE_BOOTSTRAP_DRAWS, G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE
+                        0, SNR_CURVE_BOOTSTRAP_DRAWS, SNR_CURVE_BOOTSTRAP_BATCH_SIZE
                     ):
                         batch_size = min(
-                            G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
-                            G5_SNR_CURVE_BOOTSTRAP_DRAWS - start,
+                            SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
+                            SNR_CURVE_BOOTSTRAP_DRAWS - start,
                         )
                         sampled = rng.integers(0, len(seeds), size=(batch_size, len(seeds)))
                         sampled_improvements = paired_improvement_rates[:, sampled].mean(axis=-1)
@@ -1156,8 +1156,8 @@ def _audit_independent_snr_curve(
                         ordered = np.sort(bootstrap[:, snr_index, condition_index])
                         expected_intervals = {
                             "pointwise_95_percent_interval": [
-                                float(ordered[math.floor(0.025 * G5_SNR_CURVE_BOOTSTRAP_DRAWS)]),
-                                float(ordered[math.ceil(0.975 * G5_SNR_CURVE_BOOTSTRAP_DRAWS) - 1]),
+                                float(ordered[math.floor(0.025 * SNR_CURVE_BOOTSTRAP_DRAWS)]),
+                                float(ordered[math.ceil(0.975 * SNR_CURVE_BOOTSTRAP_DRAWS) - 1]),
                             ],
                             "simultaneous_95_percent_interval": [
                                 max(
@@ -1205,10 +1205,10 @@ def _audit_independent_snr_curve(
                             expected_intervals = {
                                 "pointwise_95_percent_interval": [
                                     float(
-                                        ordered[math.floor(0.025 * G5_SNR_CURVE_BOOTSTRAP_DRAWS)]
+                                        ordered[math.floor(0.025 * SNR_CURVE_BOOTSTRAP_DRAWS)]
                                     ),
                                     float(
-                                        ordered[math.ceil(0.975 * G5_SNR_CURVE_BOOTSTRAP_DRAWS) - 1]
+                                        ordered[math.ceil(0.975 * SNR_CURVE_BOOTSTRAP_DRAWS) - 1]
                                     ),
                                 ],
                                 "simultaneous_95_percent_interval": [
@@ -1264,11 +1264,11 @@ def _audit_independent_snr_curve(
                 "minimum_uncorrected_minus_corrected_macro_bler",
             }
             timestamped_contract = frozen_contract.get("schema") in {
-                G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-                G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+                SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+                SNR_EXECUTION_ACCEPTANCE_SCHEMA,
             }
             execution_bound_contract = (
-                frozen_contract.get("schema") == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA
+                frozen_contract.get("schema") == SNR_EXECUTION_ACCEPTANCE_SCHEMA
             )
             expected_contract_keys = base_contract_keys | (
                 {"preregistered_utc"} if timestamped_contract else set()
@@ -1280,8 +1280,8 @@ def _audit_independent_snr_curve(
                 and frozen_contract.get("schema")
                 in {
                     "umcd.g5_ordered_impairments_snr_acceptance.v1",
-                    G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-                    G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+                    SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+                    SNR_EXECUTION_ACCEPTANCE_SCHEMA,
                 }
                 and timestamped_contract
                 == (
@@ -1307,7 +1307,7 @@ def _audit_independent_snr_curve(
                 and frozen_contract.get("blocks_per_channel") == blocks
                 and isinstance(frozen_contract.get("minimum_independent_channels"), int)
                 and not isinstance(frozen_contract.get("minimum_independent_channels"), bool)
-                and MIN_G5_INDEPENDENT_ACCEPTANCE_CHANNELS
+                and MIN_INDEPENDENT_ACCEPTANCE_CHANNELS
                 <= frozen_contract["minimum_independent_channels"]
                 <= len(seeds)
                 and isinstance(frozen_contract.get("maximum_corrected_macro_bler"), list)
@@ -1327,7 +1327,7 @@ def _audit_independent_snr_curve(
                 == "independent synthetic channel; transport blocks are nested"
             )
             if execution_bound_contract:
-                contract_consistent &= _g5_execution_context_matches(frozen_contract, points)
+                contract_consistent &= _execution_context_matches(frozen_contract, points)
             if curve_schema in {
                 "umcd.g5_ordered_impairments_independent_channels_snr_curve.v6",
                 "umcd.g5_ordered_impairments_independent_channels_snr_curve.v8",
@@ -1352,7 +1352,7 @@ def _audit_independent_snr_curve(
                     and isinstance(signature, dict)
                     and isinstance(frozen_contract, dict)
                 ):
-                    signature_reverified = _verify_g5_preregistration_signature(
+                    signature_reverified = _verify_preregistration_signature(
                         frozen_contract,
                         signature,
                         signature_path=acceptance_signature_path,
@@ -1366,13 +1366,13 @@ def _audit_independent_snr_curve(
                 "umcd.g5_ordered_impairments_independent_channels_snr_curve.v25",
             }:
                 signature = frozen_acceptance.get("preregistration_signature")
-                temporal_order_consistent = _g5_declared_preregistration_order_matches(
+                temporal_order_consistent = _declared_preregistration_order_matches(
                     frozen_contract, signature
                 )
                 contract_consistent &= (
                     isinstance(signature, dict)
                     and signature.get("status") == "verified_before_receiver_run"
-                    and signature.get("namespace") == _G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE
+                    and signature.get("namespace") == _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE
                     and isinstance(signature.get("signer_id"), str)
                     and bool(signature["signer_id"].strip())
                     and signature.get("contract_payload_sha256")
@@ -1389,7 +1389,7 @@ def _audit_independent_snr_curve(
                     and isinstance(signature, dict)
                     and isinstance(frozen_contract, dict)
                 ):
-                    signature_reverified = _verify_g5_preregistration_signature(
+                    signature_reverified = _verify_preregistration_signature(
                         frozen_contract,
                         signature,
                         signature_path=acceptance_signature_path,
@@ -1415,9 +1415,9 @@ def _audit_independent_snr_curve(
                         == signature_dict.get("signer_id")
                         and "independent_reviewer"
                         in str(policy_identity.get("reviewer_roles", "")).split(",")
-                        and policy_identity.get("purpose") == G5_SNR_REVIEWER_POLICY_PURPOSE
+                        and policy_identity.get("purpose") == SNR_REVIEWER_POLICY_PURPOSE
                         and policy_identity.get("signature_namespace")
-                        == G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE
+                        == SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE
                         and policy_identity.get("custodian_principal")
                         != signature_dict.get("signer_id")
                         and policy_identity.get("trust_file_custody")
@@ -1432,7 +1432,7 @@ def _audit_independent_snr_curve(
                         and isinstance(signature, dict)
                     ):
                         try:
-                            verified_policy = _verify_g5_reviewer_policy(
+                            verified_policy = _verify_reviewer_policy(
                                 reviewer_policy_path,
                                 reviewer_policy_signature_path,
                                 trusted_reviewer_allowed_signers_path,

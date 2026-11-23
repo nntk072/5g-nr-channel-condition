@@ -34,7 +34,7 @@ from evaluation.joint_acceptance import (
     PROPAGATION_CLAIMS,
     RECEIVER_IMPACT_CLAIMS,
     family_alpha_for_claim,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 
 # Mirrored from the G3.03 evaluator's frozen project-defined margins. Kept
@@ -53,7 +53,7 @@ _QUANTILE_TARGETS: dict[str, tuple[float, float]] = {
     "median_prediction_interval_width_db": (0.50, MAX_MEDIAN_INTERVAL_WIDTH_DB),
 }
 _COMPARISONS_PER_STRATUM = 5
-_ALL_G3_CLAIMS_PER_STRATUM = _COMPARISONS_PER_STRATUM + 1
+_ALL_CLAIMS_PER_STRATUM = _COMPARISONS_PER_STRATUM + 1
 _COMPLEX_CSI_FAILURE_LIMIT = 0.05
 _COMPLEX_CSI_P95_LIMIT = 0.05
 _PROPAGATION_METRICS = (
@@ -300,7 +300,7 @@ def plan_g3_independent_acquisition_units(
     if not MIN_INTERVAL_COVERAGE < coverage_target < MAX_INTERVAL_COVERAGE:
         raise ValueError("planned_interval_coverage must be strictly inside G3.03 margins")
 
-    comparison_count = stratum_count * _ALL_G3_CLAIMS_PER_STRATUM
+    comparison_count = stratum_count * _ALL_CLAIMS_PER_STRATUM
     alpha_per_comparison = alpha / comparison_count
     beta_per_comparison = beta / comparison_count
 
@@ -487,7 +487,7 @@ def plan_g3_independent_acquisition_units(
         "familywise_power_target": power,
         "complex_csi_cluster_failure_plan": complex_csi_failure_plan,
         "distributional_metrics_per_stratum": _COMPARISONS_PER_STRATUM,
-        "all_claims_per_stratum": _ALL_G3_CLAIMS_PER_STRATUM,
+        "all_claims_per_stratum": _ALL_CLAIMS_PER_STRATUM,
         "bonferroni_comparison_count": comparison_count,
         "per_comparison_alpha": alpha_per_comparison,
         "per_comparison_beta": beta_per_comparison,
@@ -535,7 +535,7 @@ def plan_g3_independent_acquisition_units(
     }
 
 
-def plan_g3_joint_independent_units(
+def plan_joint_independent_units(
     *,
     joint_acceptance_family: dict[str, Any],
     planned_quantile_pass_probabilities: Mapping[str, float],
@@ -557,7 +557,7 @@ def plan_g3_joint_independent_units(
     evaluator-aligned receiver assurance is supplied by its nested-bootstrap
     planner. No single combined sample-size claim is made.
     """
-    family = validate_g3_joint_acceptance_family(joint_acceptance_family)
+    family = validate_joint_acceptance_family(joint_acceptance_family)
     material_strata = family["material_expected_strata"]
     csi_strata = family["complex_csi_expected_strata"]
     propagation_strata = family.get("propagation_expected_strata", [])
@@ -890,7 +890,7 @@ def compose_g3_joint_sample_size_design(
     never upgrades scenario-conditional planning to qualification or reports
     a single combined G3 sample size.
     """
-    family = validate_g3_joint_acceptance_family(joint_acceptance_family)
+    family = validate_joint_acceptance_family(joint_acceptance_family)
     target_joint = _probability(target_joint_g3_assurance, "target_joint_g3_assurance")
     if family.get("schema") != FAMILY_SCHEMA_V4:
         raise ValueError("joint design composition requires acceptance-family v4")
@@ -1347,7 +1347,7 @@ def compose_g3_joint_sample_size_design(
     return result
 
 
-def verify_g3_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]:
+def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]:
     """Verify composition-artifact integrity while preserving non-admission status."""
     if not isinstance(design, Mapping):
         raise TypeError("G3 joint sample-size design must be an object")
@@ -1578,7 +1578,7 @@ def verify_g3_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, A
     }
 
 
-def plan_g3_complex_csi_bootstrap_assurance(
+def plan_complex_csi_bootstrap_assurance(
     *,
     joint_acceptance_family: dict[str, Any],
     assumed_iid_scenarios_by_stratum: Mapping[tuple[str, str], Mapping[str, Any]],
@@ -1599,7 +1599,7 @@ def plan_g3_complex_csi_bootstrap_assurance(
     Sampling remains conditional on the caller's finite-support assumptions and
     this function can never qualify a scene family or dataset.
     """
-    family = validate_g3_joint_acceptance_family(joint_acceptance_family)
+    family = validate_joint_acceptance_family(joint_acceptance_family)
     expected_strata = {
         (str(item[0]), str(item[1])) for item in family["complex_csi_expected_strata"]
     }
@@ -1915,7 +1915,7 @@ def _bootstrap_acceptance_checks(
     }
 
 
-def _validate_g3_assumption_scenarios(
+def _validate_assumption_scenarios(
     scenarios: Mapping[str, Mapping[str, Any]],
 ) -> tuple[dict[str, tuple[np.ndarray, np.ndarray]], str]:
     if not isinstance(scenarios, Mapping) or not scenarios:
@@ -2009,7 +2009,7 @@ def _validate_g3_assumption_scenarios(
     return validated, digest
 
 
-def plan_g3_bootstrap_assurance(
+def plan_bootstrap_assurance(
     *,
     assumed_iid_scenarios_by_stratum: Mapping[str, Mapping[str, Any]],
     candidate_units_per_stratum: Sequence[int],
@@ -2043,7 +2043,7 @@ def plan_g3_bootstrap_assurance(
     binds every named scenario stratum to the exact frozen material roster for
     downstream joint-design composition.
     """
-    validated, scenario_digest = _validate_g3_assumption_scenarios(assumed_iid_scenarios_by_stratum)
+    validated, scenario_digest = _validate_assumption_scenarios(assumed_iid_scenarios_by_stratum)
     family_identity: dict[str, str] | None = None
     normalized_roster: dict[str, list[str]] | None = None
     if (joint_acceptance_family is None) != (stratum_roster_by_id is None):
@@ -2051,7 +2051,7 @@ def plan_g3_bootstrap_assurance(
             "joint_acceptance_family and stratum_roster_by_id must be supplied together"
         )
     if joint_acceptance_family is not None and stratum_roster_by_id is not None:
-        family = validate_g3_joint_acceptance_family(dict(joint_acceptance_family))
+        family = validate_joint_acceptance_family(dict(joint_acceptance_family))
         expected = {tuple(row) for row in family["material_expected_strata"]}
         if set(stratum_roster_by_id) != set(validated):
             raise ValueError("material stratum roster IDs must match the scenario strata")

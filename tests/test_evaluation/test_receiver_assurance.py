@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from evaluation.joint_acceptance import build_g3_joint_acceptance_family_v3
-from evaluation.receiver_assurance import plan_g3_receiver_impact_bootstrap_assurance
+from evaluation.joint_acceptance import build_joint_acceptance_family_v3
+from evaluation.receiver_assurance import plan_receiver_impact_bootstrap_assurance
 
 
 def _family() -> dict[str, Any]:
-    return build_g3_joint_acceptance_family_v3(
+    return build_joint_acceptance_family_v3(
         family_id="receiver-assurance-test",
         material_expected_strata=[("concrete", "V", "0-30deg")],
         complex_csi_expected_strata=[("urban", "LOS")],
@@ -53,7 +53,7 @@ def _plan(**overrides: Any) -> dict[str, Any]:
         "seed": 77,
     }
     values.update(overrides)
-    return plan_g3_receiver_impact_bootstrap_assurance(**values)
+    return plan_receiver_impact_bootstrap_assurance(**values)
 
 
 def test_receiver_assurance_uses_shared_family_and_never_qualifies() -> None:

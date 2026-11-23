@@ -5,7 +5,7 @@ import json
 
 import pytest
 from experiments.audit_ordered_impairments_result import (
-    _g5_execution_context_matches,
+    _execution_context_matches,
     _inference_seed_roster_consistent,
 )
 
@@ -104,12 +104,12 @@ def _execution_bound_fixture() -> tuple[dict[str, object], list[dict[str, object
 def test_v3_audit_binds_the_digest_and_each_point_execution_context() -> None:
     contract, points = _execution_bound_fixture()
 
-    assert _g5_execution_context_matches(contract, points)
+    assert _execution_context_matches(contract, points)
 
     altered_point = json.loads(json.dumps(points))
     altered_point[0]["experiment"]["config"]["cfo_hz"] = 251.0
-    assert not _g5_execution_context_matches(contract, altered_point)
+    assert not _execution_context_matches(contract, altered_point)
 
     altered_contract = json.loads(json.dumps(contract))
     altered_contract["execution_context_sha256"] = "0" * 64
-    assert not _g5_execution_context_matches(altered_contract, points)
+    assert not _execution_context_matches(altered_contract, points)

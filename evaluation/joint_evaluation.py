@@ -18,9 +18,9 @@ import numpy as np
 from evaluation.complex_csi import evaluate_complex_csi
 from evaluation.joint_acceptance import (
     FAMILY_SCHEMA_V4,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
-from evaluation.material_calibration import evaluate_g3_material_calibration
+from evaluation.material_calibration import evaluate_material_calibration
 from evaluation.path_equivalence_assurance import evaluate_path_equivalence_roster
 from evaluation.propagation_metrics import evaluate_propagation_metrics
 from evaluation.receiver_impact import evaluate_receiver_impact
@@ -536,7 +536,7 @@ def _recompute(
             f"{_INPUT_SCHEMA_V3!r}, {_INPUT_SCHEMA_V4!r}, {_INPUT_SCHEMA_V5!r}, "
             f"or {_INPUT_SCHEMA_V6!r}"
         )
-    family = validate_g3_joint_acceptance_family(payload["joint_acceptance_family"])
+    family = validate_joint_acceptance_family(payload["joint_acceptance_family"])
     if family["schema"] != FAMILY_SCHEMA_V4:
         raise ValueError("G3 joint evaluator bundle requires acceptance family v4")
 
@@ -570,7 +570,7 @@ def _recompute(
             in {_INPUT_SCHEMA_V4, _INPUT_SCHEMA_V5, _INPUT_SCHEMA_V6},
         )
     outputs = {
-        "material_calibration": evaluate_g3_material_calibration(material_input),
+        "material_calibration": evaluate_material_calibration(material_input),
         "complex_csi": evaluate_complex_csi(**csi_input),
         "propagation_metrics": evaluate_propagation_metrics(**propagation_input),
         "receiver_impact": evaluate_receiver_impact(**receiver_input),
@@ -606,7 +606,7 @@ def _recompute(
     }
 
 
-def evaluate_g3_joint_evidence(
+def evaluate_joint_evidence(
     payload: dict[str, Any], *, coefficient_relative_tolerance: float | None = None
 ) -> dict[str, Any]:
     """Run all five G3 numerical evaluators under one hash-bound family v4."""
@@ -614,7 +614,7 @@ def evaluate_g3_joint_evidence(
     return _recompute(payload, coefficient_relative_tolerance=coefficient_relative_tolerance)
 
 
-def verify_g3_joint_evidence_bundle(
+def verify_joint_evidence_bundle(
     payload: dict[str, Any],
     bundle: dict[str, Any],
     *,

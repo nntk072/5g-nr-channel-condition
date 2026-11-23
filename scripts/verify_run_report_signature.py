@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from evaluation.joint_evidence_run_manifest import (
-    verify_g3_joint_evidence_run_report_signature,
+    verify_joint_evidence_run_report_signature,
 )
 
 
@@ -30,7 +30,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
-        receipt = verify_g3_joint_evidence_run_report_signature(
+        receipt = verify_joint_evidence_run_report_signature(
             args.report,
             args.signature,
             args.trusted_allowed_signers,

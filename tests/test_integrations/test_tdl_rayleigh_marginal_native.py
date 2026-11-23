@@ -56,7 +56,7 @@ def _load_reference(path: Path, expected_digest: str) -> dict[str, Any]:
     return result
 
 
-def test_g4_tdl_rayleigh_marginal_contract_binds_normative_tables_and_rosters() -> None:
+def test_tdl_rayleigh_marginal_contract_binds_normative_tables_and_rosters() -> None:
     scalable = _load_reference(_SCALABLE_REFERENCE, _SCALABLE_REFERENCE_SHA256)
     fixed = _load_reference(_FIXED_REFERENCE, _FIXED_REFERENCE_SHA256)
     assert scalable["source_sha256"] == _SCALABLE_SOURCE_SHA256

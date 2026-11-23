@@ -21,7 +21,7 @@ import numpy as np
 from evaluation.joint_acceptance import (
     FAMILY_SCHEMA_V4,
     PATH_COVERAGE_LIMIT,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 
 _COVERAGE_LIMIT = PATH_COVERAGE_LIMIT
@@ -442,7 +442,7 @@ def evaluate_path_equivalence_roster(
 
     family_reference = None
     if joint_acceptance_family is not None:
-        family = validate_g3_joint_acceptance_family(joint_acceptance_family)
+        family = validate_joint_acceptance_family(joint_acceptance_family)
         if family["schema"] != FAMILY_SCHEMA_V4:
             raise ValueError("path-equivalence roster requires joint acceptance family v4")
         declared = {tuple(item) for item in family["path_equivalence_expected_scenarios"]}

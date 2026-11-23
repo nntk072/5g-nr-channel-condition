@@ -14,25 +14,25 @@ from typing import Any
 from evaluation.signed_attestation import verify_openssh_signature_for_bytes
 
 # Structural minimum only; task-specific power/precision must be planned separately.
-MIN_G5_INDEPENDENT_ACCEPTANCE_CHANNELS = 20
-MAX_G5_INDEPENDENT_ACCEPTANCE_TRANSPORT_BLOCKS = 16_384
-MAX_G5_INDEPENDENT_ACCEPTANCE_SNR_POINTS = 64
-G5_SNR_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v1"
-G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v2"
-G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v3"
-G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE = "umcd-g5-snr-acceptance-v1"
-G5_SNR_REVIEWER_POLICY_SCHEMA = "umcd.g5_snr_reviewer_policy.v1"
-G5_SNR_REVIEWER_POLICY_PURPOSE = "g5_ordered_impairments_snr_preregistration"
-G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE = "umcd-g5-snr-reviewer-policy-v1"
-G5_SNR_CURVE_BOOTSTRAP_SEED = 75_013
-G5_SNR_CURVE_BOOTSTRAP_DRAWS = 4_096
-G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE = 64
-G5_SNR_CURVE_INFERENCE_UNIT = "independent synthetic channel; transport blocks are nested"
-G5_SNR_CURVE_INFERENCE_METHOD = (
+MIN_INDEPENDENT_ACCEPTANCE_CHANNELS = 20
+MAX_INDEPENDENT_ACCEPTANCE_TRANSPORT_BLOCKS = 16_384
+MAX_INDEPENDENT_ACCEPTANCE_SNR_POINTS = 64
+SNR_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v1"
+SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v2"
+SNR_EXECUTION_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v3"
+SNR_ACCEPTANCE_SIGNATURE_NAMESPACE = "umcd-g5-snr-acceptance-v1"
+SNR_REVIEWER_POLICY_SCHEMA = "umcd.g5_snr_reviewer_policy.v1"
+SNR_REVIEWER_POLICY_PURPOSE = "g5_ordered_impairments_snr_preregistration"
+SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE = "umcd-g5-snr-reviewer-policy-v1"
+SNR_CURVE_BOOTSTRAP_SEED = 75_013
+SNR_CURVE_BOOTSTRAP_DRAWS = 4_096
+SNR_CURVE_BOOTSTRAP_BATCH_SIZE = 64
+SNR_CURVE_INFERENCE_UNIT = "independent synthetic channel; transport blocks are nested"
+SNR_CURVE_INFERENCE_METHOD = (
     "channel-cluster percentile intervals with simultaneous max-deviation band "
     "over conditions and paired correction effects"
 )
-G5_SNR_CURVE_PAIRED_CONTRAST = (
+SNR_CURVE_PAIRED_CONTRAST = (
     "uncorrected macro-BLER minus corrected macro-BLER; positive values favor correction"
 )
 
@@ -43,7 +43,7 @@ def _canonical_json_bytes(value: Any) -> bytes:
     ).encode("utf-8")
 
 
-def g5_snr_execution_context_from_config(config: dict[str, Any]) -> dict[str, Any]:
+def snr_execution_context_from_config(config: dict[str, Any]) -> dict[str, Any]:
     """Select canonical receiver, decoder and waveform identity from a point report."""
     fields = (
         "receiver_configuration",
@@ -81,7 +81,7 @@ def g5_snr_execution_context_from_config(config: dict[str, Any]) -> dict[str, An
         raise ValueError("G5 execution context must contain canonical JSON values") from error
 
 
-def load_g5_snr_acceptance_contract(
+def load_snr_acceptance_contract(
     path: str | Path,
     *,
     signature_path: str | Path | None = None,
@@ -122,7 +122,7 @@ def load_g5_snr_acceptance_contract(
         )
     if any(value is not None for value in policy_options) and not all(supplied_signature_options):
         raise ValueError("G5 reviewer policy admission requires a signed acceptance contract")
-    payload = _read_g5_bounded_single_link_bytes(path, label="acceptance contract")
+    payload = _read_bounded_single_link_bytes(path, label="acceptance contract")
 
     def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         result: dict[str, Any] = {}
@@ -138,15 +138,15 @@ def load_g5_snr_acceptance_contract(
         raise ValueError("acceptance contract must be valid UTF-8 JSON") from error
     if not isinstance(value, dict):
         raise ValueError("acceptance contract root must be an object")
-    if value.get("schema") == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA and not all(
+    if value.get("schema") == SNR_EXECUTION_ACCEPTANCE_SCHEMA and not all(
         item is not None for item in policy_options
     ):
         raise ValueError("acceptance contract v3 requires independent reviewer-policy admission")
     if (
         value.get("schema")
         in {
-            G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-            G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+            SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+            SNR_EXECUTION_ACCEPTANCE_SCHEMA,
         }
         and signature_path is None
     ):
@@ -167,7 +167,7 @@ def load_g5_snr_acceptance_contract(
             signature_path,
             trusted_allowed_signers_path,
             signer_id=signer_id,
-            namespace=G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
+            namespace=SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
         )
         signature_identity = {
             "status": "verified_before_receiver_run",
@@ -179,14 +179,14 @@ def load_g5_snr_acceptance_contract(
             "trust_file_custody": "not_established_by_this_verifier",
         }
         if value.get("schema") in {
-            G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-            G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+            SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+            SNR_EXECUTION_ACCEPTANCE_SCHEMA,
         }:
             signature_identity["preregistered_utc"] = value.get("preregistered_utc")
         if reviewer_policy_path is not None:
             if value.get("schema") not in {
-                G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-                G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+                SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+                SNR_EXECUTION_ACCEPTANCE_SCHEMA,
             }:
                 raise ValueError(
                     "G5 reviewer-role policy admission requires timestamped contract v2 or v3"
@@ -194,7 +194,7 @@ def load_g5_snr_acceptance_contract(
             assert reviewer_policy_signature_path is not None
             assert trusted_reviewer_allowed_signers_path is not None
             assert reviewer_policy_signer_id is not None
-            signature_identity["reviewer_policy"] = _verify_g5_reviewer_policy(
+            signature_identity["reviewer_policy"] = _verify_reviewer_policy(
                 reviewer_policy_path,
                 reviewer_policy_signature_path,
                 trusted_reviewer_allowed_signers_path,
@@ -205,7 +205,7 @@ def load_g5_snr_acceptance_contract(
     return value, signature_identity
 
 
-def _read_g5_bounded_single_link_bytes(path: str | Path, *, label: str) -> bytes:
+def _read_bounded_single_link_bytes(path: str | Path, *, label: str) -> bytes:
     input_path = Path(path)
     if not hasattr(os, "O_NOFOLLOW"):
         raise ValueError("platform lacks safe no-symlink G5 policy opening")
@@ -244,7 +244,7 @@ def _read_g5_bounded_single_link_bytes(path: str | Path, *, label: str) -> bytes
     return payload
 
 
-def _verify_g5_reviewer_policy(
+def _verify_reviewer_policy(
     policy_path: str | Path,
     policy_signature_path: str | Path,
     trusted_allowed_signers_path: str | Path,
@@ -254,7 +254,7 @@ def _verify_g5_reviewer_policy(
     acceptance_allowed_signers_sha256: str,
 ) -> dict[str, str]:
     """Authenticate a separate policy authorizing the acceptance signer as reviewer."""
-    raw = _read_g5_bounded_single_link_bytes(policy_path, label="G5 reviewer policy")
+    raw = _read_bounded_single_link_bytes(policy_path, label="G5 reviewer policy")
 
     def reject_duplicate_policy_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         result: dict[str, Any] = {}
@@ -290,7 +290,7 @@ def _verify_g5_reviewer_policy(
         policy_signature_path,
         trusted_allowed_signers_path,
         signer_id=policy_signer_id,
-        namespace=G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
+        namespace=SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
     )
     if policy_signature["allowed_signers_sha256"] == acceptance_allowed_signers_sha256:
         raise ValueError("G5 reviewer-policy keyring must differ from the acceptance keyring")
@@ -300,7 +300,7 @@ def _verify_g5_reviewer_policy(
     reviewer = authorized[0]
     if (
         "independent_reviewer" not in reviewer["roles"]
-        or G5_SNR_REVIEWER_POLICY_PURPOSE not in reviewer["allowed_purposes"]
+        or SNR_REVIEWER_POLICY_PURPOSE not in reviewer["allowed_purposes"]
     ):
         raise ValueError("G5 acceptance signer is not authorized as an independent reviewer")
     return {
@@ -310,7 +310,7 @@ def _verify_g5_reviewer_policy(
         "reviewer_principal": acceptance_signer_id,
         "reviewer_organization": reviewer["organization"],
         "reviewer_roles": ",".join(sorted(reviewer["roles"])),
-        "purpose": G5_SNR_REVIEWER_POLICY_PURPOSE,
+        "purpose": SNR_REVIEWER_POLICY_PURPOSE,
         "custodian_principal": policy_signature["signer_id"],
         "signature_namespace": policy_signature["namespace"],
         "signature_sha256": policy_signature["signature_sha256"],
@@ -344,7 +344,7 @@ def _parse_utc_timestamp(value: Any, *, field: str) -> datetime:
     return parsed
 
 
-def _validate_g5_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
+def _validate_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
     """Validate the complete task contract independently of a receiver run."""
     if not isinstance(criteria, dict):
         raise TypeError("acceptance_criteria must be an object")
@@ -359,11 +359,11 @@ def _validate_g5_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
         "minimum_uncorrected_minus_corrected_macro_bler",
     }
     schema = criteria.get("schema")
-    if schema == G5_SNR_ACCEPTANCE_SCHEMA:
+    if schema == SNR_ACCEPTANCE_SCHEMA:
         required = base_fields
-    elif schema == G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA:
+    elif schema == SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA:
         required = base_fields | {"preregistered_utc"}
-    elif schema == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA:
+    elif schema == SNR_EXECUTION_ACCEPTANCE_SCHEMA:
         required = base_fields | {
             "preregistered_utc",
             "execution_context",
@@ -380,10 +380,10 @@ def _validate_g5_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
     snr_points = criteria.get("snr_db")
     channel_seeds = criteria.get("channel_seeds")
     blocks_per_channel = criteria.get("blocks_per_channel")
-    if isinstance(snr_points, list) and len(snr_points) > MAX_G5_INDEPENDENT_ACCEPTANCE_SNR_POINTS:
+    if isinstance(snr_points, list) and len(snr_points) > MAX_INDEPENDENT_ACCEPTANCE_SNR_POINTS:
         raise ValueError(
             "acceptance contract SNR grid exceeds the bounded limit of "
-            f"{MAX_G5_INDEPENDENT_ACCEPTANCE_SNR_POINTS} points"
+            f"{MAX_INDEPENDENT_ACCEPTANCE_SNR_POINTS} points"
         )
     if (
         isinstance(snr_points, list)
@@ -393,25 +393,25 @@ def _validate_g5_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
             not isinstance(blocks_per_channel, bool)
             and blocks_per_channel > 0
             and len(channel_seeds)
-            > MAX_G5_INDEPENDENT_ACCEPTANCE_TRANSPORT_BLOCKS
+            > MAX_INDEPENDENT_ACCEPTANCE_TRANSPORT_BLOCKS
             // max(1, len(snr_points))
             // blocks_per_channel
         )
     ):
         raise ValueError(
             "acceptance contract requests more than the bounded limit of "
-            f"{MAX_G5_INDEPENDENT_ACCEPTANCE_TRANSPORT_BLOCKS} transport blocks"
+            f"{MAX_INDEPENDENT_ACCEPTANCE_TRANSPORT_BLOCKS} transport blocks"
         )
     try:
         frozen = json.loads(_canonical_json_bytes(criteria).decode("utf-8"))
     except (TypeError, ValueError, UnicodeDecodeError) as error:
         raise ValueError("acceptance_criteria must contain canonical JSON values") from error
     if schema in {
-        G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-        G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+        SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+        SNR_EXECUTION_ACCEPTANCE_SCHEMA,
     }:
         _parse_utc_timestamp(frozen["preregistered_utc"], field="preregistered_utc")
-    if schema == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA:
+    if schema == SNR_EXECUTION_ACCEPTANCE_SCHEMA:
         context = frozen["execution_context"]
         if not isinstance(context, dict) or set(context) != {
             "receiver_configuration",
@@ -461,11 +461,11 @@ def _validate_g5_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
     if (
         isinstance(minimum_channels, bool)
         or not isinstance(minimum_channels, int)
-        or minimum_channels < MIN_G5_INDEPENDENT_ACCEPTANCE_CHANNELS
+        or minimum_channels < MIN_INDEPENDENT_ACCEPTANCE_CHANNELS
     ):
         raise ValueError(
             "minimum_independent_channels must be an integer of at least "
-            f"{MIN_G5_INDEPENDENT_ACCEPTANCE_CHANNELS}"
+            f"{MIN_INDEPENDENT_ACCEPTANCE_CHANNELS}"
         )
     if minimum_channels > len(contract_seeds):
         raise ValueError("minimum_independent_channels exceeds the frozen channel-seed roster")
@@ -487,7 +487,7 @@ def _validate_g5_snr_acceptance_criteria(criteria: Any) -> dict[str, Any]:
     return frozen
 
 
-def validate_g5_preregistration_order(
+def validate_preregistration_order(
     criteria: dict[str, Any], *, receiver_run_started_utc: str
 ) -> dict[str, str]:
     """Check declared UTC order for a timestamped acceptance contract.
@@ -495,10 +495,10 @@ def validate_g5_preregistration_order(
     The returned status is a consistency check only. Neither this function nor
     an OpenSSH signature establishes trusted timestamp authority or signing time.
     """
-    frozen = _validate_g5_snr_acceptance_criteria(criteria)
+    frozen = _validate_snr_acceptance_criteria(criteria)
     if frozen["schema"] not in {
-        G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-        G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+        SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+        SNR_EXECUTION_ACCEPTANCE_SCHEMA,
     }:
         raise ValueError(
             "signed G5 preregistration requires timestamped acceptance contract v2 or v3"
@@ -517,7 +517,7 @@ def validate_g5_preregistration_order(
     }
 
 
-def freeze_g5_snr_acceptance_criteria(
+def freeze_snr_acceptance_criteria(
     criteria: dict[str, Any] | None,
     *,
     snr_values: tuple[float, ...],
@@ -533,11 +533,11 @@ def freeze_g5_snr_acceptance_criteria(
         declared_snr = criteria.get("snr_db")
         if (
             isinstance(declared_snr, list)
-            and len(declared_snr) > MAX_G5_INDEPENDENT_ACCEPTANCE_SNR_POINTS
+            and len(declared_snr) > MAX_INDEPENDENT_ACCEPTANCE_SNR_POINTS
         ):
             raise ValueError(
                 "acceptance contract SNR grid exceeds the bounded limit of "
-                f"{MAX_G5_INDEPENDENT_ACCEPTANCE_SNR_POINTS} points"
+                f"{MAX_INDEPENDENT_ACCEPTANCE_SNR_POINTS} points"
             )
         if (
             isinstance(declared_snr, list)
@@ -545,7 +545,7 @@ def freeze_g5_snr_acceptance_criteria(
             and tuple(float(value) for value in declared_snr) != snr_values
         ):
             raise ValueError("acceptance contract SNR grid must exactly match the requested curve")
-    frozen = _validate_g5_snr_acceptance_criteria(criteria)
+    frozen = _validate_snr_acceptance_criteria(criteria)
     contract_snr = tuple(float(value) for value in frozen["snr_db"])
     if contract_snr != snr_values:
         raise ValueError("acceptance contract SNR grid must exactly match the requested curve")
@@ -555,7 +555,7 @@ def freeze_g5_snr_acceptance_criteria(
         raise ValueError("acceptance contract channel seeds must exactly match the requested curve")
     if frozen["blocks_per_channel"] != blocks_per_channel:
         raise ValueError("acceptance contract block count does not match the requested curve")
-    if frozen["schema"] == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA:
+    if frozen["schema"] == SNR_EXECUTION_ACCEPTANCE_SCHEMA:
         if execution_context is None:
             raise ValueError("acceptance contract v3 requires a preflight execution context")
         if frozen["execution_context"] != execution_context:
@@ -563,14 +563,14 @@ def freeze_g5_snr_acceptance_criteria(
     return frozen
 
 
-def evaluate_g5_snr_curve_acceptance(
+def evaluate_snr_curve_acceptance(
     criteria: dict[str, Any],
     *,
     curve_inference: dict[str, Any],
     preregistration_signature: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Apply frozen thresholds to simultaneous independent-channel intervals."""
-    criteria = _validate_g5_snr_acceptance_criteria(criteria)
+    criteria = _validate_snr_acceptance_criteria(criteria)
     if not isinstance(curve_inference, dict):
         raise TypeError("curve_inference must be an object")
 
@@ -618,7 +618,7 @@ def evaluate_g5_snr_curve_acceptance(
         "criteria_sha256": digest,
         "confidence_level": 0.95,
         "interval_scope": "simultaneous across all three conditions and paired improvements",
-        "decision_unit": G5_SNR_CURVE_INFERENCE_UNIT,
+        "decision_unit": SNR_CURVE_INFERENCE_UNIT,
     }
     if preregistration_signature is not None:
         frozen_record["preregistration_signature"] = preregistration_signature
@@ -653,12 +653,12 @@ def evaluate_g5_snr_curve_acceptance(
         raise ValueError("curve inference channel seeds do not match the frozen seed roster")
     expected_family_size = len(criteria["snr_db"]) * 4
     if (
-        curve_inference.get("unit") != G5_SNR_CURVE_INFERENCE_UNIT
-        or curve_inference.get("bootstrap_seed") != G5_SNR_CURVE_BOOTSTRAP_SEED
-        or curve_inference.get("bootstrap_draws") != G5_SNR_CURVE_BOOTSTRAP_DRAWS
+        curve_inference.get("unit") != SNR_CURVE_INFERENCE_UNIT
+        or curve_inference.get("bootstrap_seed") != SNR_CURVE_BOOTSTRAP_SEED
+        or curve_inference.get("bootstrap_draws") != SNR_CURVE_BOOTSTRAP_DRAWS
         or curve_inference.get("family_size") != expected_family_size
-        or curve_inference.get("method") != G5_SNR_CURVE_INFERENCE_METHOD
-        or curve_inference.get("paired_contrast_definition") != G5_SNR_CURVE_PAIRED_CONTRAST
+        or curve_inference.get("method") != SNR_CURVE_INFERENCE_METHOD
+        or curve_inference.get("paired_contrast_definition") != SNR_CURVE_PAIRED_CONTRAST
     ):
         raise ValueError("curve inference metadata does not match the frozen G5 method")
     simultaneous_radius = curve_inference.get("simultaneous_radius")

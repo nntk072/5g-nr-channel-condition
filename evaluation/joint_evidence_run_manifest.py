@@ -26,10 +26,10 @@ from evaluation.joint_evidence_artifact import (
     MAX_ARTIFACT_BYTES,
     MAX_INPUT_BYTES,
     _write_new_artifact,
-    verify_g3_joint_evidence_bytes,
+    verify_joint_evidence_bytes,
 )
-from evaluation.qualification_contract import verify_g3_qualification_run_contract
-from evaluation.sample_size_planning import verify_g3_joint_sample_size_design
+from evaluation.qualification_contract import verify_qualification_run_contract
+from evaluation.sample_size_planning import verify_joint_sample_size_design
 from evaluation.signed_attestation import verify_openssh_signature_for_bytes
 
 V1_SCHEMA_RELATIVE_PATH = "datasets/schema/joint-evidence-run-manifest.v1.schema.json"
@@ -53,9 +53,9 @@ INPUT_SCHEMA_V6_RELATIVE_PATH = "datasets/schema/joint-evaluator-input.v6.schema
 PATH_DIAGNOSTIC_SCHEMA_V2_RELATIVE_PATH = (
     "datasets/schema/path-equivalence-roster-diagnostic.v2.schema.json"
 )
-G3_RUN_MANIFEST_SIGNATURE_NAMESPACE = "loslab-g3-joint-run-manifest-v1@github.com"
-G3_SIGNER_POLICY_SIGNATURE_NAMESPACE = "loslab-g3-run-manifest-policy-v1@github.com"
-G3_RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE = (
+RUN_MANIFEST_SIGNATURE_NAMESPACE = "loslab-g3-joint-run-manifest-v1@github.com"
+SIGNER_POLICY_SIGNATURE_NAMESPACE = "loslab-g3-run-manifest-policy-v1@github.com"
+RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE = (
     "loslab-g3-joint-run-verification-report-v1@github.com"
 )
 ARTIFACT_SCHEMA_V1_RELATIVE_PATH = "datasets/schema/joint-evaluator-artifact.v1.schema.json"
@@ -474,7 +474,7 @@ def _verify_qualification_contract_bindings(
     require_powered_design: bool = False,
     require_raw_path_criteria: bool = False,
 ) -> str:
-    verification = verify_g3_qualification_run_contract(contract)
+    verification = verify_qualification_run_contract(contract)
     contract_schema = contract.get("schema")
     if require_powered_design:
         if contract_schema not in {
@@ -484,7 +484,7 @@ def _verify_qualification_contract_bindings(
             raise ValueError(
                 "new contract-bound G3 evaluation requires qualification contract v3 or v4"
             )
-        design_verification = verify_g3_joint_sample_size_design(contract["sample_size_design"])
+        design_verification = verify_joint_sample_size_design(contract["sample_size_design"])
         if design_verification["complete_precision_powered_g3_design"] is not True:
             raise ValueError("contract-bound G3 evaluation requires a complete powered design")
     if require_raw_path_criteria and contract_schema != ("loslab.g3_qualification_run_contract.v4"):
@@ -648,7 +648,7 @@ def _verify_qualification_contract_bindings(
     return str(verification["contract_sha256"])
 
 
-def g3_evaluator_source_bundle_identity(
+def evaluator_source_bundle_identity(
     *,
     source_root: str | Path | None = None,
     include_runtime_inventory: bool = False,
@@ -692,7 +692,7 @@ def g3_evaluator_source_bundle_identity(
     }
 
 
-def build_g3_joint_evidence_run_manifest(
+def build_joint_evidence_run_manifest(
     run_id: str,
     input_path: str | Path,
     artifact_path: str | Path,
@@ -851,7 +851,7 @@ def build_g3_joint_evidence_run_manifest(
     if qualification_contract is not None:
         if not isinstance(qualification_contract, dict):
             raise TypeError("qualification_contract must be an object")
-        verify_g3_qualification_run_contract(qualification_contract)
+        verify_qualification_run_contract(qualification_contract)
         if qualification_contract["run_id"] != run_id:
             raise ValueError("qualification contract run_id differs from run receipt")
         manifest["qualification_contract"] = qualification_contract
@@ -997,7 +997,7 @@ def verify_g3_joint_evidence_run_manifest(
                 signature_path,
                 trusted_allowed_signers_path,
                 signer_id=signer_id,
-                namespace=G3_RUN_MANIFEST_SIGNATURE_NAMESPACE,
+                namespace=RUN_MANIFEST_SIGNATURE_NAMESPACE,
             )
             report.update(
                 {
@@ -1023,7 +1023,7 @@ def verify_g3_joint_evidence_run_manifest(
                         trusted_signer_policy_signature_path,
                         trusted_policy_allowed_signers_path,
                         signer_id=policy_signer_id,
-                        namespace=G3_SIGNER_POLICY_SIGNATURE_NAMESPACE,
+                        namespace=SIGNER_POLICY_SIGNATURE_NAMESPACE,
                     )
                     _require_independent_signer_policy_custody(
                         signature_identity, policy_signature_identity
@@ -1160,7 +1160,7 @@ def verify_g3_joint_evidence_run_manifest(
                 qualification_schema_path,
                 "G3 qualification contract",
             )
-            qualification_contract_sha256 = verify_g3_qualification_run_contract(
+            qualification_contract_sha256 = verify_qualification_run_contract(
                 qualification_contract
             )["contract_sha256"]
         if not manifest_raw.endswith(b"\n") or manifest_raw != (
@@ -1372,7 +1372,7 @@ def verify_g3_joint_evidence_run_manifest(
             and qualification_contract.get("schema") == "loslab.g3_qualification_run_contract.v4"
             else None
         )
-        replay = verify_g3_joint_evidence_bytes(
+        replay = verify_joint_evidence_bytes(
             captured["input"],
             captured["artifact"],
             coefficient_relative_tolerance=coefficient_tolerance,
@@ -1395,7 +1395,7 @@ def verify_g3_joint_evidence_run_manifest(
     return report
 
 
-def verify_g3_joint_evidence_run_report_signature(
+def verify_joint_evidence_run_report_signature(
     report_path: str | Path,
     signature_path: str | Path,
     trusted_allowed_signers_path: str | Path,
@@ -1420,7 +1420,7 @@ def verify_g3_joint_evidence_run_report_signature(
         signature_path,
         trusted_allowed_signers_path,
         signer_id=signer_id,
-        namespace=G3_RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE,
+        namespace=RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE,
     )
     schema_path = (
         Path(__file__).resolve().parents[1]
@@ -1589,7 +1589,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             print(
                 json.dumps(
-                    g3_evaluator_source_bundle_identity(
+                    evaluator_source_bundle_identity(
                         source_root=args.source_root,
                         include_runtime_inventory=args.include_runtime_inventory_sources,
                     )
@@ -1636,7 +1636,7 @@ def main(argv: list[str] | None = None) -> int:
         ):
             parser.error("manifest creation requires --input, --artifact, and --output only")
         try:
-            value = build_g3_joint_evidence_run_manifest(
+            value = build_joint_evidence_run_manifest(
                 args.create_run_id,
                 args.input,
                 args.artifact,

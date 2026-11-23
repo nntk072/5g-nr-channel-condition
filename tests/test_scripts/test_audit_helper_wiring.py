@@ -39,10 +39,10 @@ def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
     assert receiver_reader["direct_production_references"] == []
     assert receiver_reader["direct_test_references"]
 
-    g3_bundle_verifier = by_name["evaluation.verify_g3_joint_evidence_bundle"]
+    bundle_verifier = by_name["evaluation.verify_joint_evidence_bundle"]
     assert any(
         item["path"] == "tests/test_evaluation/test_joint_evaluation.py"
-        for item in g3_bundle_verifier["direct_test_references"]
+        for item in bundle_verifier["direct_test_references"]
     )
 
     planned_internal = {

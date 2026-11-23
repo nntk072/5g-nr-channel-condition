@@ -8,8 +8,8 @@ import numpy as np
 import pytest
 from evaluation.complex_csi import evaluate_complex_csi, symmetric_complex_csi_error
 from evaluation.joint_acceptance import (
-    build_g3_joint_acceptance_family,
-    build_g3_joint_acceptance_family_v3,
+    build_joint_acceptance_family,
+    build_joint_acceptance_family_v3,
 )
 from scipy.stats import beta
 
@@ -243,7 +243,7 @@ def test_complex_csi_familywise_bounds_cover_all_expected_strata() -> None:
 def test_complex_csi_uses_the_same_joint_family_as_material_calibration() -> None:
     same = np.ones(2, dtype=np.complex128)
     records = [_record(f"cluster-{index}", "episode", same, same) for index in range(3)]
-    family = build_g3_joint_acceptance_family_v3(
+    family = build_joint_acceptance_family_v3(
         family_id="g3-protocol-2026-01",
         material_expected_strata=[("concrete-a", "V", "angle-20deg")],
         complex_csi_expected_strata=[("scene-family-a", "LOS")],
@@ -273,7 +273,7 @@ def test_complex_csi_uses_the_same_joint_family_as_material_calibration() -> Non
 
 def test_complex_csi_rejects_strata_that_do_not_match_joint_family() -> None:
     same = np.ones(2, dtype=np.complex128)
-    family = build_g3_joint_acceptance_family(
+    family = build_joint_acceptance_family(
         family_id="g3-protocol-2026-01",
         material_expected_strata=[("concrete-a", "V", "angle-20deg")],
         complex_csi_expected_strata=[("scene-family-a", "LOS")],

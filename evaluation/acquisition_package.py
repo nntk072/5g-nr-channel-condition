@@ -14,7 +14,7 @@ from typing import Any, cast
 
 from evaluation.joint_acceptance import (
     family_alpha_for_claim,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 
 _SCHEMA_ROOT = Path(__file__).resolve().parents[1] / "datasets/schema"
@@ -1214,7 +1214,7 @@ def verify_acquisition_package(
             errors.append("v0.3 scorer input requires the shared joint G3 acceptance family")
         if "joint_acceptance_family" in input_doc:
             try:
-                family = validate_g3_joint_acceptance_family(input_doc["joint_acceptance_family"])
+                family = validate_joint_acceptance_family(input_doc["joint_acceptance_family"])
                 family_alpha_for_claim(
                     family,
                     evaluator="material_calibration",
@@ -1299,9 +1299,9 @@ def verify_acquisition_package(
             and scorer_digest is not None
         ):
             try:
-                from evaluation.material_calibration import evaluate_g3_material_calibration
+                from evaluation.material_calibration import evaluate_material_calibration
 
-                recomputed = evaluate_g3_material_calibration(input_doc)
+                recomputed = evaluate_material_calibration(input_doc)
                 recomputed["prediction_input_sha256"] = scorer_digest
                 if _canonical_json(output_doc) != _canonical_json(recomputed):
                     errors.append(

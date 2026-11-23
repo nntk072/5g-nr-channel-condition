@@ -8,7 +8,7 @@ from typing import Any
 
 import jsonschema
 import pytest
-from evaluation.joint_acceptance import build_g3_joint_acceptance_family_v4
+from evaluation.joint_acceptance import build_joint_acceptance_family_v4
 from evaluation.path_equivalence_assurance import evaluate_path_equivalence_roster
 
 
@@ -423,7 +423,7 @@ def test_roster_rejects_missing_or_malformed_matched_class_deltas(
 
 def test_roster_verifies_and_reports_joint_family_reference() -> None:
     expected = [("site-family-a", "LOS", "episode-1")]
-    family = build_g3_joint_acceptance_family_v4(
+    family = build_joint_acceptance_family_v4(
         family_id="g3-v4",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("site-family-a", "LOS")],
@@ -445,7 +445,7 @@ def test_roster_verifies_and_reports_joint_family_reference() -> None:
 
 def test_roster_rejects_a_joint_family_with_a_different_path_roster() -> None:
     expected = [("site-family-a", "LOS", "episode-1")]
-    family = build_g3_joint_acceptance_family_v4(
+    family = build_joint_acceptance_family_v4(
         family_id="g3-v4",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("site-family-a", "LOS")],

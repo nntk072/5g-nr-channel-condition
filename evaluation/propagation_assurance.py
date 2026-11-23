@@ -13,7 +13,7 @@ from scipy.stats import beta
 
 from evaluation.joint_acceptance import (
     family_alpha_for_claim,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 from evaluation.propagation_metrics import evaluate_propagation_metrics
 
@@ -175,7 +175,7 @@ def _validate_episode(
     return {"metrics": normalized}
 
 
-def plan_g3_propagation_bootstrap_assurance(
+def plan_propagation_bootstrap_assurance(
     *,
     joint_acceptance_family: dict[str, Any],
     assumed_iid_scenarios_by_stratum: Mapping[tuple[str, str, str], Mapping[str, Any]],
@@ -195,7 +195,7 @@ def plan_g3_propagation_bootstrap_assurance(
     Monte Carlo lower bounds and a union bound control finite assurance
     simulation uncertainty across strata and searched candidate counts.
     """
-    family = validate_g3_joint_acceptance_family(joint_acceptance_family)
+    family = validate_joint_acceptance_family(joint_acceptance_family)
     if family["schema"] not in {
         "loslab.g3_joint_acceptance_family.v2",
         "loslab.g3_joint_acceptance_family.v3",

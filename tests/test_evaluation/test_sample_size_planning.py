@@ -11,10 +11,10 @@ from typing import Any
 import numpy as np
 import pytest
 from evaluation.joint_acceptance import (
-    build_g3_joint_acceptance_family,
-    build_g3_joint_acceptance_family_v2,
-    build_g3_joint_acceptance_family_v3,
-    build_g3_joint_acceptance_family_v4,
+    build_joint_acceptance_family,
+    build_joint_acceptance_family_v2,
+    build_joint_acceptance_family_v3,
+    build_joint_acceptance_family_v4,
 )
 from evaluation.material_calibration import (
     MAX_INTERVAL_COVERAGE as EVALUATOR_MAX_INTERVAL_COVERAGE,
@@ -48,11 +48,11 @@ from evaluation.sample_size_planning import (
     _required_bounded_mean_units,
     _required_quantile_units,
     compose_g3_joint_sample_size_design,
-    plan_g3_bootstrap_assurance,
-    plan_g3_complex_csi_bootstrap_assurance,
+    plan_bootstrap_assurance,
+    plan_complex_csi_bootstrap_assurance,
     plan_g3_independent_acquisition_units,
-    plan_g3_joint_independent_units,
-    verify_g3_joint_sample_size_design,
+    plan_joint_independent_units,
+    verify_joint_sample_size_design,
 )
 from scipy.stats import binom
 
@@ -88,16 +88,16 @@ def _bootstrap_scenario(atoms: list[dict[str, float]]) -> dict[str, Any]:
     return {"assumed_unit_summaries": atoms, "probabilities": [0.5, 0.5]}
 
 
-def _joint_g3_family() -> dict[str, Any]:
-    return build_g3_joint_acceptance_family(
+def _joint_family() -> dict[str, Any]:
+    return build_joint_acceptance_family(
         family_id="planning-test",
         material_expected_strata=[("brick", "V", "normal")],
         complex_csi_expected_strata=[("urban", "LOS")],
     )
 
 
-def _joint_g3_family_v2() -> dict[str, Any]:
-    return build_g3_joint_acceptance_family_v2(
+def _joint_family_v2() -> dict[str, Any]:
+    return build_joint_acceptance_family_v2(
         family_id="planning-test-v2",
         material_expected_strata=[("brick", "V", "normal")],
         complex_csi_expected_strata=[("urban", "LOS")],
@@ -128,7 +128,7 @@ def _joint_v2_plan(family: dict[str, Any]) -> dict[str, Any]:
         "arrival_angular_spread_deg",
         "departure_angular_spread_deg",
     }
-    return plan_g3_joint_independent_units(
+    return plan_joint_independent_units(
         joint_acceptance_family=family,
         planned_quantile_pass_probabilities=_assumptions(),
         planned_interval_coverage=0.95,
@@ -214,7 +214,7 @@ def test_bootstrap_assurance_is_scenario_conditional_and_never_qualifies() -> No
         "brick-H-0-30": _bootstrap_scenario(_bootstrap_atoms()),
         "concrete-V-30-60": _bootstrap_scenario(_bootstrap_atoms()),
     }
-    result = plan_g3_bootstrap_assurance(
+    result = plan_bootstrap_assurance(
         assumed_iid_scenarios_by_stratum=scenarios,
         candidate_units_per_stratum=[20, 30],
         bootstrap_replicates=1_000,
@@ -237,7 +237,7 @@ def test_bootstrap_assurance_is_scenario_conditional_and_never_qualifies() -> No
     )
     assert (
         result["scenario_distribution_sha256"]
-        == plan_g3_bootstrap_assurance(
+        == plan_bootstrap_assurance(
             assumed_iid_scenarios_by_stratum=scenarios,
             candidate_units_per_stratum=[20, 30],
             bootstrap_replicates=1_000,
@@ -251,7 +251,7 @@ def test_bootstrap_assurance_is_scenario_conditional_and_never_qualifies() -> No
 def test_complex_csi_bootstrap_assurance_matches_joint_family_and_exact_cluster_rule() -> None:
     scenarios = {("urban", "LOS"): _csi_bootstrap_scenario(median=0.005, p95=0.02, failed=False)}
     kwargs: dict[str, Any] = {
-        "joint_acceptance_family": _joint_g3_family(),
+        "joint_acceptance_family": _joint_family(),
         "assumed_iid_scenarios_by_stratum": scenarios,
         "candidate_clusters_per_stratum": [20, 120],
         "bootstrap_replicates": 1_000,
@@ -259,7 +259,7 @@ def test_complex_csi_bootstrap_assurance_matches_joint_family_and_exact_cluster_
         "target_assurance": 0.80,
         "seed": 701,
     }
-    result = plan_g3_complex_csi_bootstrap_assurance(**kwargs)
+    result = plan_complex_csi_bootstrap_assurance(**kwargs)
 
     assert result["schema"] == "loslab.g3_complex_csi_bootstrap_assurance_planning.v1"
     assert result["qualification_status"] == "NOT_QUALIFIED"
@@ -274,14 +274,14 @@ def test_complex_csi_bootstrap_assurance_matches_joint_family_and_exact_cluster_
     assert result["sampling_units_are_scene_clusters"] is True
     assert (
         result["scenario_sha256"]
-        == plan_g3_complex_csi_bootstrap_assurance(**kwargs)["scenario_sha256"]
+        == plan_complex_csi_bootstrap_assurance(**kwargs)["scenario_sha256"]
     )
 
 
 def test_complex_csi_bootstrap_assurance_rejects_missing_joint_family_strata() -> None:
     with pytest.raises(ValueError, match="exactly match the joint-family strata"):
-        plan_g3_complex_csi_bootstrap_assurance(
-            joint_acceptance_family=_joint_g3_family(),
+        plan_complex_csi_bootstrap_assurance(
+            joint_acceptance_family=_joint_family(),
             assumed_iid_scenarios_by_stratum={},
             candidate_clusters_per_stratum=[20],
         )
@@ -290,7 +290,7 @@ def test_complex_csi_bootstrap_assurance_rejects_missing_joint_family_strata() -
 def test_bootstrap_assurance_does_not_select_a_design_for_failing_assumptions() -> None:
     failing_atoms = _bootstrap_atoms()
     failing_atoms[1] = {**failing_atoms[1], "p95_absolute_power_error_db": 4.0}
-    result = plan_g3_bootstrap_assurance(
+    result = plan_bootstrap_assurance(
         assumed_iid_scenarios_by_stratum={"brick-H-0-30": _bootstrap_scenario(failing_atoms)},
         candidate_units_per_stratum=[20],
         bootstrap_replicates=1_000,
@@ -381,7 +381,7 @@ def test_bootstrap_assurance_rejects_invalid_design_inputs(
     scenarios: dict[str, dict[str, Any]], counts: list[int], error: str
 ) -> None:
     with pytest.raises(ValueError, match=error):
-        plan_g3_bootstrap_assurance(
+        plan_bootstrap_assurance(
             assumed_iid_scenarios_by_stratum=scenarios,
             candidate_units_per_stratum=counts,
         )
@@ -569,7 +569,7 @@ def test_exact_binomial_design_is_minimal_for_preregistered_power() -> None:
 
 
 def test_v2_joint_planner_designs_separate_propagation_strata_under_shared_alpha_power():
-    family = _joint_g3_family_v2()
+    family = _joint_family_v2()
 
     report = _joint_v2_plan(family)
 
@@ -595,9 +595,9 @@ def test_v2_joint_planner_designs_separate_propagation_strata_under_shared_alpha
 
 
 def test_v2_joint_planner_requires_all_propagation_assumptions():
-    family = _joint_g3_family_v2()
+    family = _joint_family_v2()
     with pytest.raises(ValueError, match="requires propagation p95-pass and cluster-failure"):
-        plan_g3_joint_independent_units(
+        plan_joint_independent_units(
             joint_acceptance_family=family,
             planned_quantile_pass_probabilities=_assumptions(),
             planned_interval_coverage=0.95,
@@ -608,7 +608,7 @@ def test_v2_joint_planner_requires_all_propagation_assumptions():
 
 
 def test_v2_joint_planner_rejects_unfavorable_propagation_assumptions():
-    family = _joint_g3_family_v2()
+    family = _joint_family_v2()
     metrics = {
         "first_arrival_delay_s",
         "rms_delay_spread_s",
@@ -616,7 +616,7 @@ def test_v2_joint_planner_rejects_unfavorable_propagation_assumptions():
         "departure_angular_spread_deg",
     }
     with pytest.raises(ValueError, match="planned pass probability must exceed"):
-        plan_g3_joint_independent_units(
+        plan_joint_independent_units(
             joint_acceptance_family=family,
             planned_quantile_pass_probabilities=_assumptions(),
             planned_interval_coverage=0.95,
@@ -632,7 +632,7 @@ def test_v2_joint_planner_rejects_unfavorable_propagation_assumptions():
 
 
 def test_joint_planner_counts_v3_receiver_claims_without_claiming_complete_design():
-    family = build_g3_joint_acceptance_family_v3(
+    family = build_joint_acceptance_family_v3(
         family_id="planning-test-v3",
         material_expected_strata=[("brick", "V", "normal")],
         complex_csi_expected_strata=[("urban", "LOS")],
@@ -646,7 +646,7 @@ def test_joint_planner_counts_v3_receiver_claims_without_claiming_complete_desig
         "arrival_angular_spread_deg",
         "departure_angular_spread_deg",
     }
-    result = plan_g3_joint_independent_units(
+    result = plan_joint_independent_units(
         joint_acceptance_family=family,
         planned_quantile_pass_probabilities=_assumptions(),
         planned_interval_coverage=0.95,
@@ -664,7 +664,7 @@ def test_joint_planner_counts_v3_receiver_claims_without_claiming_complete_desig
 
 
 def test_joint_planner_accepts_v4_path_roster_without_counting_path_episodes_as_claims():
-    family = build_g3_joint_acceptance_family_v4(
+    family = build_joint_acceptance_family_v4(
         family_id="planning-test-v4",
         material_expected_strata=[("brick", "V", "normal")],
         complex_csi_expected_strata=[("urban", "LOS")],
@@ -682,7 +682,7 @@ def test_joint_planner_accepts_v4_path_roster_without_counting_path_episodes_as_
         "departure_angular_spread_deg",
     }
 
-    result = plan_g3_joint_independent_units(
+    result = plan_joint_independent_units(
         joint_acceptance_family=family,
         planned_quantile_pass_probabilities=_assumptions(),
         planned_interval_coverage=0.95,
@@ -704,7 +704,7 @@ def test_joint_planner_accepts_v4_path_roster_without_counting_path_episodes_as_
 
 
 def test_joint_design_composer_aligns_branch_counts_without_claiming_qualification():
-    family = build_g3_joint_acceptance_family_v4(
+    family = build_joint_acceptance_family_v4(
         family_id="composition-v4",
         material_expected_strata=[("brick", "V", "normal")],
         complex_csi_expected_strata=[("urban", "LOS")],
@@ -844,7 +844,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
     jsonschema = pytest.importorskip("jsonschema")
     jsonschema.Draft202012Validator.check_schema(schema)
     jsonschema.Draft202012Validator(schema).validate(result)
-    verification = verify_g3_joint_sample_size_design(result)
+    verification = verify_joint_sample_size_design(result)
     assert verification["status"] == "PASS_DESIGN_INTEGRITY_NOT_QUALIFIED"
     assert verification["admission_possible"] is False
 
@@ -861,7 +861,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
         ).encode("utf-8")
     ).hexdigest()
     with pytest.raises(ValueError, match="joint G3 assurance bound is inconsistent"):
-        verify_g3_joint_sample_size_design(tampered_bound)
+        verify_joint_sample_size_design(tampered_bound)
 
     tampered = dict(result)
     tampered["admission_possible"] = True
@@ -876,7 +876,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
         ).encode("utf-8")
     ).hexdigest()
     with pytest.raises(ValueError, match="non-qualification contract"):
-        verify_g3_joint_sample_size_design(tampered)
+        verify_joint_sample_size_design(tampered)
 
     tampered_component_claim = dict(result)
     tampered_component_claim["component_designs_claim_complete_powered_design"] = False
@@ -891,11 +891,11 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
         ).encode("utf-8")
     ).hexdigest()
     with pytest.raises(ValueError, match="component powered-design claim is inconsistent"):
-        verify_g3_joint_sample_size_design(tampered_component_claim)
+        verify_joint_sample_size_design(tampered_component_claim)
 
 
 def test_joint_design_composer_rejects_assurance_plan_from_another_family():
-    family = build_g3_joint_acceptance_family_v4(
+    family = build_joint_acceptance_family_v4(
         family_id="composition-v4",
         material_expected_strata=[("brick", "V", "normal")],
         complex_csi_expected_strata=[("urban", "LOS")],

@@ -13,7 +13,7 @@ import numpy as np
 from evaluation.joint_acceptance import (
     FAMILYWISE_ALPHA,
     family_alpha_for_claim,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 from evaluation.numeric import finite_real_number, finite_real_vector
 
@@ -133,7 +133,7 @@ def evaluate_receiver_impact(
             "and SNR@10% shift intervals for every expected stratum"
         )
     else:
-        normalized_family = validate_g3_joint_acceptance_family(joint_acceptance_family)
+        normalized_family = validate_joint_acceptance_family(joint_acceptance_family)
         per_claim_alpha, familywise_claim_count = family_alpha_for_claim(
             normalized_family,
             evaluator="receiver_impact",

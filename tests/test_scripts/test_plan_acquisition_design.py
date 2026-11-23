@@ -10,10 +10,10 @@ from typing import Any
 import jsonschema
 import pytest
 from evaluation.joint_acceptance import (
-    build_g3_joint_acceptance_family,
-    build_g3_joint_acceptance_family_v2,
-    build_g3_joint_acceptance_family_v3,
-    build_g3_joint_acceptance_family_v4,
+    build_joint_acceptance_family,
+    build_joint_acceptance_family_v2,
+    build_joint_acceptance_family_v3,
+    build_joint_acceptance_family_v4,
 )
 from scripts.plan_acquisition_design import _complete_design_status, main
 
@@ -46,7 +46,7 @@ def _build_v5_synthetic_configuration() -> dict[str, Any]:
         (item["material_id"], item["polarization"], item["incidence_stratum_id"])
         for item in configuration["expected_strata"]
     ]
-    family = build_g3_joint_acceptance_family_v4(
+    family = build_joint_acceptance_family_v4(
         family_id="synthetic-v5-acquisition-design-example",
         material_expected_strata=material_strata,
         complex_csi_expected_strata=[("urban", "LOS")],
@@ -226,7 +226,7 @@ def test_v4_schema_and_cli_report_evaluator_aligned_receiver_assurance(
         (item["material_id"], item["polarization"], item["incidence_stratum_id"])
         for item in configuration["expected_strata"]
     ]
-    configuration["joint_acceptance_family"] = build_g3_joint_acceptance_family_v3(
+    configuration["joint_acceptance_family"] = build_joint_acceptance_family_v3(
         family_id="v4-cli-test",
         material_expected_strata=material_strata,
         complex_csi_expected_strata=[("urban", "LOS")],
@@ -305,7 +305,7 @@ def test_cli_plans_v2_propagation_claims_with_shared_alpha_and_keeps_assurance_o
 ) -> None:
     configuration = json.loads(EXAMPLE.read_text(encoding="utf-8"))
     v1 = configuration["joint_acceptance_family"]
-    family = build_g3_joint_acceptance_family_v2(
+    family = build_joint_acceptance_family_v2(
         family_id="v2-planning-protocol",
         material_expected_strata=[tuple(item) for item in v1["material_expected_strata"]],
         complex_csi_expected_strata=[tuple(item) for item in v1["complex_csi_expected_strata"]],
@@ -519,7 +519,7 @@ def test_cli_rejects_joint_family_roster_that_differs_from_material_design(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     configuration = json.loads(EXAMPLE.read_text(encoding="utf-8"))
-    configuration["joint_acceptance_family"] = build_g3_joint_acceptance_family(
+    configuration["joint_acceptance_family"] = build_joint_acceptance_family(
         family_id="different-protocol",
         material_expected_strata=[("omitted-material", "V", "incidence-x")],
         complex_csi_expected_strata=[("example-site", "LOS"), ("example-site", "NLOS")],
@@ -554,7 +554,7 @@ def test_v5_schema_and_planner_accept_joint_family_v4(
 ) -> None:
     configuration = _build_v5_synthetic_configuration()
     family_v3 = configuration["joint_acceptance_family"]
-    configuration["joint_acceptance_family"] = build_g3_joint_acceptance_family_v4(
+    configuration["joint_acceptance_family"] = build_joint_acceptance_family_v4(
         family_id=family_v3["family_id"],
         material_expected_strata=[tuple(item) for item in family_v3["material_expected_strata"]],
         complex_csi_expected_strata=[
@@ -588,7 +588,7 @@ def test_v5_planner_rejects_family_v3_without_path_episode_census(
 ) -> None:
     configuration = _build_v5_synthetic_configuration()
     family_v4 = configuration["joint_acceptance_family"]
-    configuration["joint_acceptance_family"] = build_g3_joint_acceptance_family_v3(
+    configuration["joint_acceptance_family"] = build_joint_acceptance_family_v3(
         family_id=family_v4["family_id"],
         material_expected_strata=[tuple(row) for row in family_v4["material_expected_strata"]],
         complex_csi_expected_strata=[

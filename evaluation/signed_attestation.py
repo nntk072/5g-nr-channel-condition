@@ -597,7 +597,7 @@ def verify_openssh_signature_for_bytes(
     }
 
 
-def verify_g3_signed_attestation(
+def verify_signed_attestation(
     package_path: str | Path,
     attestation_path: str | Path,
     signature_path: str | Path,
@@ -615,7 +615,7 @@ def verify_g3_signed_attestation(
     return _verify_one_attestation(context, attestation_path, signature_path)
 
 
-def verify_g3_signed_attestation_set(
+def verify_signed_attestation_set(
     package_path: str | Path,
     attestation_paths: Sequence[str | Path],
     trusted_allowed_signers_path: str | Path,
@@ -720,7 +720,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--signer-policy", required=True, type=Path)
     args = parser.parse_args(argv)
     try:
-        report = verify_g3_signed_attestation(
+        report = verify_signed_attestation(
             args.package,
             args.attestation,
             args.signature,

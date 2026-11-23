@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 from evaluation.joint_acceptance import (
-    build_g3_joint_acceptance_family_v2,
-    build_g3_joint_acceptance_family_v3,
+    build_joint_acceptance_family_v2,
+    build_joint_acceptance_family_v3,
 )
 from evaluation.propagation_metrics import evaluate_propagation_metrics
 
@@ -129,7 +129,7 @@ def test_familywise_roster_counts_all_metrics_and_expected_strata() -> None:
 
 def test_propagation_scorer_uses_shared_material_csi_receiver_and_delay_angular_family():
     records = [_row(f"cluster-{index}", "episode-0") for index in range(120)]
-    family = build_g3_joint_acceptance_family_v3(
+    family = build_joint_acceptance_family_v3(
         family_id="protocol-v3",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("family-a", "LOS")],
@@ -150,7 +150,7 @@ def test_propagation_scorer_uses_shared_material_csi_receiver_and_delay_angular_
 
 
 def test_propagation_scorer_rejects_strata_outside_shared_family():
-    family = build_g3_joint_acceptance_family_v2(
+    family = build_joint_acceptance_family_v2(
         family_id="protocol-v2",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("family-a", "LOS")],

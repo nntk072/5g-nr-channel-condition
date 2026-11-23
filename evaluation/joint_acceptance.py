@@ -82,7 +82,7 @@ def _stratum_keys(value: Any, *, kind: str) -> list[tuple[str, ...]]:
     return sorted(result)
 
 
-def build_g3_joint_acceptance_family(
+def build_joint_acceptance_family(
     *,
     family_id: str,
     material_expected_strata: list[tuple[str, str, str]],
@@ -130,7 +130,7 @@ def build_g3_joint_acceptance_family(
     return family
 
 
-def build_g3_joint_acceptance_family_v2(
+def build_joint_acceptance_family_v2(
     *,
     family_id: str,
     material_expected_strata: list[tuple[str, str, str]],
@@ -193,7 +193,7 @@ def build_g3_joint_acceptance_family_v2(
     return family
 
 
-def build_g3_joint_acceptance_family_v3(
+def build_joint_acceptance_family_v3(
     *,
     family_id: str,
     material_expected_strata: list[tuple[str, str, str]],
@@ -202,7 +202,7 @@ def build_g3_joint_acceptance_family_v3(
     receiver_impact_expected_strata: list[tuple[str, str]],
 ) -> dict[str, Any]:
     """Build a family joining material, CSI, propagation, and receiver intervals."""
-    base = build_g3_joint_acceptance_family_v2(
+    base = build_joint_acceptance_family_v2(
         family_id=family_id,
         material_expected_strata=material_expected_strata,
         complex_csi_expected_strata=complex_csi_expected_strata,
@@ -246,7 +246,7 @@ def build_g3_joint_acceptance_family_v3(
     return family
 
 
-def build_g3_joint_acceptance_family_v4(
+def build_joint_acceptance_family_v4(
     *,
     family_id: str,
     material_expected_strata: list[tuple[str, str, str]],
@@ -264,7 +264,7 @@ def build_g3_joint_acceptance_family_v4(
     """
     if not isinstance(path_equivalence_expected_scenarios, (list, tuple)):
         raise ValueError("path-equivalence expected scenarios must be a nonempty list")
-    base = build_g3_joint_acceptance_family_v3(
+    base = build_joint_acceptance_family_v3(
         family_id=family_id,
         material_expected_strata=material_expected_strata,
         complex_csi_expected_strata=complex_csi_expected_strata,
@@ -302,7 +302,7 @@ def build_g3_joint_acceptance_family_v4(
     return family
 
 
-def validate_g3_joint_acceptance_family(value: Any) -> dict[str, Any]:
+def validate_joint_acceptance_family(value: Any) -> dict[str, Any]:
     """Rebuild and verify a serialized family declaration and its digest."""
     if not isinstance(value, dict):
         raise ValueError("joint_acceptance_family must be an object")
@@ -310,7 +310,7 @@ def validate_g3_joint_acceptance_family(value: Any) -> dict[str, Any]:
     material = value.get("material_expected_strata")
     complex_csi = value.get("complex_csi_expected_strata")
     if value.get("schema") == FAMILY_SCHEMA:
-        rebuilt = build_g3_joint_acceptance_family(
+        rebuilt = build_joint_acceptance_family(
             family_id=family_id,
             material_expected_strata=cast(
                 list[tuple[str, str, str]], _stratum_keys(material, kind="material")
@@ -320,7 +320,7 @@ def validate_g3_joint_acceptance_family(value: Any) -> dict[str, Any]:
             ),
         )
     elif value.get("schema") == FAMILY_SCHEMA_V2:
-        rebuilt = build_g3_joint_acceptance_family_v2(
+        rebuilt = build_joint_acceptance_family_v2(
             family_id=family_id,
             material_expected_strata=cast(
                 list[tuple[str, str, str]], _stratum_keys(material, kind="material")
@@ -334,7 +334,7 @@ def validate_g3_joint_acceptance_family(value: Any) -> dict[str, Any]:
             ),
         )
     elif value.get("schema") == FAMILY_SCHEMA_V3:
-        rebuilt = build_g3_joint_acceptance_family_v3(
+        rebuilt = build_joint_acceptance_family_v3(
             family_id=family_id,
             material_expected_strata=cast(
                 list[tuple[str, str, str]], _stratum_keys(material, kind="material")
@@ -352,7 +352,7 @@ def validate_g3_joint_acceptance_family(value: Any) -> dict[str, Any]:
             ),
         )
     elif value.get("schema") == FAMILY_SCHEMA_V4:
-        rebuilt = build_g3_joint_acceptance_family_v4(
+        rebuilt = build_joint_acceptance_family_v4(
             family_id=family_id,
             material_expected_strata=cast(
                 list[tuple[str, str, str]], _stratum_keys(material, kind="material")
@@ -386,7 +386,7 @@ def family_alpha_for_claim(
     value: Any, *, evaluator: str, expected_strata: Any
 ) -> tuple[float, int]:
     """Return the shared per-claim alpha after checking evaluator roster coverage."""
-    family = validate_g3_joint_acceptance_family(value)
+    family = validate_joint_acceptance_family(value)
     if evaluator == "material_calibration":
         observed = _stratum_keys(expected_strata, kind="material")
         declared = _stratum_keys(family["material_expected_strata"], kind="material")

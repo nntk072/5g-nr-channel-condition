@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from evaluation.joint_evaluation import (
-    evaluate_g3_joint_evidence,
+    evaluate_joint_evidence,
 )
 
 ARTIFACT_SCHEMA = "loslab.g3_joint_evaluator_artifact.v2"
@@ -159,7 +159,7 @@ def _canonical_json_bytes(value: Any) -> bytes:
     ).encode("utf-8")
 
 
-def _evaluate_g3_joint_evidence_bytes(
+def _evaluate_joint_evidence_bytes(
     raw: bytes, *, coefficient_relative_tolerance: float | None = None
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     parsed = _parse_json(raw, label="G3 joint input")
@@ -169,7 +169,7 @@ def _evaluate_g3_joint_evidence_bytes(
     if _canonical_json_bytes(payload) != raw:
         raise ValueError("G3 joint input must use canonical JSON bytes")
     bundle = _json_tree(
-        evaluate_g3_joint_evidence(
+        evaluate_joint_evidence(
             payload, coefficient_relative_tolerance=coefficient_relative_tolerance
         )
     )
@@ -184,18 +184,18 @@ def _evaluate_g3_joint_evidence_bytes(
     return payload, report
 
 
-def evaluate_g3_joint_evidence_file(
+def evaluate_joint_evidence_file(
     input_path: str | Path, *, coefficient_relative_tolerance: float | None = None
 ) -> dict[str, Any]:
     """Recompute all five scorers and bind the report to exact source bytes."""
     raw = _read_regular_file(Path(input_path), limit=MAX_INPUT_BYTES, label="G3 joint input")
-    _, report = _evaluate_g3_joint_evidence_bytes(
+    _, report = _evaluate_joint_evidence_bytes(
         raw, coefficient_relative_tolerance=coefficient_relative_tolerance
     )
     return report
 
 
-def run_g3_frozen_qualification_evaluation(
+def run_frozen_qualification_evaluation(
     input_path: str | Path,
     qualification_contract_path: str | Path,
     artifact_path: str | Path,
@@ -263,8 +263,8 @@ def run_g3_frozen_qualification_evaluation(
             "G3 qualification contract violates schema: "
             + "; ".join(error.message for error in schema_errors[:10])
         )
-    contract_result = run_manifest.verify_g3_qualification_run_contract(contract)
-    source_identity = run_manifest.g3_evaluator_source_bundle_identity(source_root=source_dir)
+    contract_result = run_manifest.verify_qualification_run_contract(contract)
+    source_identity = run_manifest.evaluator_source_bundle_identity(source_root=source_dir)
     if (
         contract["source_identity"]["source_bundle_sha256"]
         != source_identity["evaluator_source_bundle_sha256"]
@@ -295,11 +295,11 @@ def run_g3_frozen_qualification_evaluation(
         if contract["schema"] == "loslab.g3_qualification_run_contract.v4"
         else None
     )
-    _, report = _evaluate_g3_joint_evidence_bytes(
+    _, report = _evaluate_joint_evidence_bytes(
         input_raw, coefficient_relative_tolerance=coefficient_tolerance
     )
     _write_new_artifact(artifact_file, report)
-    manifest = run_manifest.build_g3_joint_evidence_run_manifest(
+    manifest = run_manifest.build_joint_evidence_run_manifest(
         contract["run_id"],
         input_file,
         artifact_file,
@@ -328,7 +328,7 @@ def run_g3_frozen_qualification_evaluation(
     }
 
 
-def verify_g3_joint_evidence_file(
+def verify_joint_evidence_file(
     input_path: str | Path,
     artifact_path: str | Path,
     *,
@@ -339,14 +339,14 @@ def verify_g3_joint_evidence_file(
         Path(artifact_path), limit=MAX_ARTIFACT_BYTES, label="G3 joint artifact"
     )
     input_raw = _read_regular_file(Path(input_path), limit=MAX_INPUT_BYTES, label="G3 joint input")
-    return verify_g3_joint_evidence_bytes(
+    return verify_joint_evidence_bytes(
         input_raw,
         artifact_raw,
         coefficient_relative_tolerance=coefficient_relative_tolerance,
     )
 
 
-def verify_g3_joint_evidence_bytes(
+def verify_joint_evidence_bytes(
     input_raw: bytes,
     artifact_raw: bytes,
     *,
@@ -369,7 +369,7 @@ def verify_g3_joint_evidence_bytes(
         raise ValueError("G3 joint artifact fields do not match the v2 contract")
     if _canonical_json_bytes(artifact) != artifact_raw:
         raise ValueError("G3 joint artifact must use canonical JSON bytes")
-    _, expected = _evaluate_g3_joint_evidence_bytes(
+    _, expected = _evaluate_joint_evidence_bytes(
         input_raw, coefficient_relative_tolerance=coefficient_relative_tolerance
     )
     if artifact.get("schema") == LEGACY_ARTIFACT_SCHEMA:
@@ -420,7 +420,7 @@ def main(argv: list[str] | None = None) -> int:
                 parser.error(
                     "evaluate-preregistered requires --qualification-contract and --run-manifest"
                 )
-            report = run_g3_frozen_qualification_evaluation(
+            report = run_frozen_qualification_evaluation(
                 args.input,
                 args.qualification_contract,
                 args.artifact,
@@ -431,11 +431,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.qualification_contract is not None or args.run_manifest is not None:
             parser.error("contract-bound options require evaluate-preregistered")
         elif args.action == "evaluate":
-            report = evaluate_g3_joint_evidence_file(args.input)
+            report = evaluate_joint_evidence_file(args.input)
             _write_new_artifact(args.artifact, report)
             print(json.dumps({key: report[key] for key in ("schema", "status", "bundle_sha256")}))
         else:
-            report = verify_g3_joint_evidence_file(args.input, args.artifact)
+            report = verify_joint_evidence_file(args.input, args.artifact)
             print(json.dumps(report, sort_keys=True))
     except (OSError, TypeError, ValueError, RuntimeError) as error:
         print(f"G3 joint evidence artifact error: {error}", file=sys.stderr)

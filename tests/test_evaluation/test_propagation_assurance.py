@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from evaluation.joint_acceptance import build_g3_joint_acceptance_family_v3
-from evaluation.propagation_assurance import plan_g3_propagation_bootstrap_assurance
+from evaluation.joint_acceptance import build_joint_acceptance_family_v3
+from evaluation.propagation_assurance import plan_propagation_bootstrap_assurance
 
 _STRATUM = ("urban", "LOS", "total")
 _METRICS = (
@@ -20,7 +20,7 @@ _METRICS = (
 def _family(
     propagation_strata: list[tuple[str, str, str]] | None = None,
 ) -> dict[str, Any]:
-    return build_g3_joint_acceptance_family_v3(
+    return build_joint_acceptance_family_v3(
         family_id="propagation-assurance-test",
         material_expected_strata=[("concrete", "V", "0-30deg")],
         complex_csi_expected_strata=[("urban", "LOS")],
@@ -83,7 +83,7 @@ def _plan(**overrides: Any) -> dict[str, Any]:
         "seed": 91,
     }
     values.update(overrides)
-    return plan_g3_propagation_bootstrap_assurance(**values)
+    return plan_propagation_bootstrap_assurance(**values)
 
 
 def test_propagation_assurance_uses_shared_evaluator_and_never_qualifies() -> None:

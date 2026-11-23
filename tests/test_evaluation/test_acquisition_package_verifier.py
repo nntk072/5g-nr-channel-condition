@@ -12,10 +12,10 @@ from typing import Any
 import numpy as np
 from evaluation.acquisition_package import verify_acquisition_package
 from evaluation.joint_acceptance import (
-    build_g3_joint_acceptance_family,
-    build_g3_joint_acceptance_family_v3,
+    build_joint_acceptance_family,
+    build_joint_acceptance_family_v3,
 )
-from evaluation.material_calibration import evaluate_g3_material_calibration
+from evaluation.material_calibration import evaluate_material_calibration
 
 PACKAGE_HELPERS = Path(__file__).parents[1] / "test_datasets/test_acquisition_package_v0_2.py"
 _package_factory = runpy.run_path(str(PACKAGE_HELPERS))["_package"]
@@ -154,7 +154,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
         "test_predictions": [prediction],
     }
     if schema_version in V03_PLUS:
-        scorer_input["joint_acceptance_family"] = build_g3_joint_acceptance_family(
+        scorer_input["joint_acceptance_family"] = build_joint_acceptance_family(
             family_id="synthetic-package-family",
             material_expected_strata=[
                 (stratum["material_id"], stratum["polarization"], stratum["incidence_stratum_id"])
@@ -163,7 +163,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
         )
     input_bytes = (json.dumps(scorer_input, sort_keys=True, separators=(",", ":")) + "\n").encode()
     if input_schema == "loslab.g3_material_calibration_predictions.v2":
-        output = evaluate_g3_material_calibration(scorer_input)
+        output = evaluate_material_calibration(scorer_input)
         output["prediction_input_sha256"] = hashlib.sha256(input_bytes).hexdigest()
     else:
         # v0.2 is a legacy structural fixture; there is no current v1 scorer
@@ -927,7 +927,7 @@ def test_v03_verifier_checks_joint_family_material_roster_against_input(tmp_path
     entry = next(item for item in package["files"] if item["file_id"] == scorer_id)
     scorer_path = tmp_path / entry["path"]
     scorer = json.loads(scorer_path.read_text(encoding="utf-8"))
-    scorer["joint_acceptance_family"] = build_g3_joint_acceptance_family(
+    scorer["joint_acceptance_family"] = build_joint_acceptance_family(
         family_id="mismatched-synthetic-family",
         material_expected_strata=[("other-material", "V", "other-incidence")],
         complex_csi_expected_strata=[("scene-family-a", "LOS")],
@@ -948,7 +948,7 @@ def test_v03_verifier_accepts_v3_family_binding_receiver_claims(tmp_path: Path):
     entry = next(item for item in package["files"] if item["file_id"] == scorer_id)
     scorer_path = tmp_path / entry["path"]
     scorer = json.loads(scorer_path.read_text(encoding="utf-8"))
-    scorer["joint_acceptance_family"] = build_g3_joint_acceptance_family_v3(
+    scorer["joint_acceptance_family"] = build_joint_acceptance_family_v3(
         family_id="synthetic-v3-family",
         material_expected_strata=[("material.example.1", "V", "incidence.example.1")],
         complex_csi_expected_strata=[("scene-family-a", "LOS")],
@@ -961,7 +961,7 @@ def test_v03_verifier_accepts_v3_family_binding_receiver_claims(tmp_path: Path):
         scorer_bytes
     ).hexdigest()
     output_id = package["evaluator_binding"]["evaluator_output"]["file_id"]
-    output = evaluate_g3_material_calibration(scorer)
+    output = evaluate_material_calibration(scorer)
     output["prediction_input_sha256"] = hashlib.sha256(scorer_bytes).hexdigest()
     _put(
         tmp_path,

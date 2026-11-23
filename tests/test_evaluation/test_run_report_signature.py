@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 from evaluation.joint_evidence_run_manifest import (
-    G3_RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE,
-    verify_g3_joint_evidence_run_report_signature,
+    RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE,
+    verify_joint_evidence_run_report_signature,
 )
 
 
@@ -33,7 +33,7 @@ def _signed_report(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
     signer = "reviewer@example.org"
     allowed_signers = tmp_path / "allowed_signers"
     allowed_signers.write_text(
-        f'{signer} namespaces="{G3_RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE}" {public_key}\n',
+        f'{signer} namespaces="{RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE}" {public_key}\n',
         encoding="utf-8",
     )
     report_schema = (
@@ -68,7 +68,7 @@ def _signed_report(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
             "-f",
             str(key_path),
             "-n",
-            G3_RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE,
+            RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE,
             str(report_path),
         ],
         check=True,
@@ -80,7 +80,7 @@ def _signed_report(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
 def test_verifies_exact_report_bytes_and_emits_nonqualifying_receipt(tmp_path: Path) -> None:
     report, signature, allowed_signers, _ = _signed_report(tmp_path)
 
-    receipt = verify_g3_joint_evidence_run_report_signature(
+    receipt = verify_joint_evidence_run_report_signature(
         report, signature, allowed_signers, signer_id="reviewer@example.org"
     )
 
@@ -88,7 +88,7 @@ def test_verifies_exact_report_bytes_and_emits_nonqualifying_receipt(tmp_path: P
     assert receipt["qualification_status"] == "NOT_QUALIFIED"
     assert receipt["run_id"] == "fixture.run"
     assert receipt["signed_report_sha256"] == hashlib.sha256(report.read_bytes()).hexdigest()
-    assert receipt["signature_namespace"] == G3_RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE
+    assert receipt["signature_namespace"] == RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE
 
 
 def test_rejects_report_bytes_changed_after_signature(tmp_path: Path) -> None:
@@ -96,7 +96,7 @@ def test_rejects_report_bytes_changed_after_signature(tmp_path: Path) -> None:
     report.write_bytes(report.read_bytes() + b" ")
 
     with pytest.raises(ValueError, match="signature is invalid"):
-        verify_g3_joint_evidence_run_report_signature(
+        verify_joint_evidence_run_report_signature(
             report, signature, allowed_signers, signer_id="reviewer@example.org"
         )
 

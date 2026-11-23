@@ -21,21 +21,21 @@ from evaluation.joint_acceptance import (  # noqa: E402
     FAMILY_SCHEMA_V2,
     FAMILY_SCHEMA_V3,
     FAMILY_SCHEMA_V4,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 from evaluation.propagation_assurance import (  # noqa: E402
-    plan_g3_propagation_bootstrap_assurance,
+    plan_propagation_bootstrap_assurance,
 )
 from evaluation.receiver_assurance import (  # noqa: E402
-    plan_g3_receiver_impact_bootstrap_assurance,
+    plan_receiver_impact_bootstrap_assurance,
 )
 from evaluation.sample_size_planning import (  # noqa: E402
     MIN_INDEPENDENT_MEASUREMENT_UNITS,
     compose_g3_joint_sample_size_design,
-    plan_g3_bootstrap_assurance,
-    plan_g3_complex_csi_bootstrap_assurance,
-    plan_g3_joint_independent_units,
-    verify_g3_joint_sample_size_design,
+    plan_bootstrap_assurance,
+    plan_complex_csi_bootstrap_assurance,
+    plan_joint_independent_units,
+    verify_joint_sample_size_design,
 )
 
 _CONFIG_VERSION_V3 = "loslab.g3_acquisition_design_assumptions.v3"
@@ -304,7 +304,7 @@ def _validate_config(
         seen_keys.add(key)
         strata.append({field: stratum[field] for field in sorted(_STRATUM_FIELDS)})
 
-    family = validate_g3_joint_acceptance_family(root["joint_acceptance_family"])
+    family = validate_joint_acceptance_family(root["joint_acceptance_family"])
     if version == _CONFIG_VERSION_V3 and family["schema"] == FAMILY_SCHEMA_V3:
         raise ValueError(
             "acquisition-design v3 inputs support joint-family v1/v2 only; use input v4"
@@ -703,7 +703,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             propagation_bootstrap,
             family,
         ) = _validate_config(config)
-        independent = plan_g3_joint_independent_units(
+        independent = plan_joint_independent_units(
             joint_acceptance_family=family,
             planned_quantile_pass_probabilities=assumptions["planned_quantile_pass_probabilities"],
             planned_interval_coverage=assumptions["planned_interval_coverage"],
@@ -726,7 +726,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         bootstrap_report = None
         if bootstrap is not None:
-            bootstrap_report = plan_g3_bootstrap_assurance(
+            bootstrap_report = plan_bootstrap_assurance(
                 **bootstrap,
                 joint_acceptance_family=family,
                 stratum_roster_by_id={
@@ -742,19 +742,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         csi_bootstrap_report = None
         if csi_bootstrap is not None:
-            csi_bootstrap_report = plan_g3_complex_csi_bootstrap_assurance(
+            csi_bootstrap_report = plan_complex_csi_bootstrap_assurance(
                 joint_acceptance_family=family,
                 **csi_bootstrap,
             )
         receiver_bootstrap_report = None
         if receiver_bootstrap is not None:
-            receiver_bootstrap_report = plan_g3_receiver_impact_bootstrap_assurance(
+            receiver_bootstrap_report = plan_receiver_impact_bootstrap_assurance(
                 joint_acceptance_family=family,
                 **receiver_bootstrap,
             )
         propagation_bootstrap_report = None
         if propagation_bootstrap is not None:
-            propagation_bootstrap_report = plan_g3_propagation_bootstrap_assurance(
+            propagation_bootstrap_report = plan_propagation_bootstrap_assurance(
                 joint_acceptance_family=family,
                 **propagation_bootstrap,
             )
@@ -800,7 +800,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             composition_schema = json.loads(composition_schema_path.read_text(encoding="utf-8"))
             jsonschema.Draft202012Validator(composition_schema).validate(joint_design_composition)
-            verify_g3_joint_sample_size_design(joint_design_composition)
+            verify_joint_sample_size_design(joint_design_composition)
         schema_path = (
             REPOSITORY_ROOT
             / "datasets/schema"

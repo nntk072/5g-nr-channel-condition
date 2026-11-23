@@ -54,27 +54,27 @@ from receivers.nr import NRPUSCHConfig
 from scipy.stats import beta as beta_distribution
 
 from experiments.acceptance import (
-    G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
-    G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
-    G5_SNR_CURVE_BOOTSTRAP_DRAWS,
-    G5_SNR_CURVE_BOOTSTRAP_SEED,
-    G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
-    G5_SNR_REVIEWER_POLICY_PURPOSE,
-    G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
-    G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-    validate_g5_preregistration_order,
+    SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
+    SNR_CURVE_BOOTSTRAP_BATCH_SIZE,
+    SNR_CURVE_BOOTSTRAP_DRAWS,
+    SNR_CURVE_BOOTSTRAP_SEED,
+    SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+    SNR_REVIEWER_POLICY_PURPOSE,
+    SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
+    SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+    validate_preregistration_order,
 )
 from experiments.acceptance import (
-    evaluate_g5_snr_curve_acceptance as _evaluate_independent_snr_curve_acceptance,
+    evaluate_snr_curve_acceptance as _evaluate_independent_snr_curve_acceptance,
 )
 from experiments.acceptance import (
-    freeze_g5_snr_acceptance_criteria as _freeze_independent_snr_acceptance_criteria,
+    freeze_snr_acceptance_criteria as _freeze_independent_snr_acceptance_criteria,
 )
 from experiments.acceptance import (
-    g5_snr_execution_context_from_config as _g5_snr_execution_context_from_config,
+    snr_execution_context_from_config as _snr_execution_context_from_config,
 )
 from experiments.acceptance import (
-    load_g5_snr_acceptance_contract as _load_snr_acceptance_contract,
+    load_snr_acceptance_contract as _load_snr_acceptance_contract,
 )
 
 SCHEMA = "umcd.g5_ordered_impairments_receiver.v2"
@@ -109,11 +109,11 @@ MAX_REFERENCE_BLER = 0.01
 MAX_IMPAIRED_BLER = 0.10
 INDEPENDENT_CHANNEL_SEEDS = tuple(range(74_001, 74_065))
 INDEPENDENT_CHANNEL_BOOTSTRAP_SEED = 74_999
-INDEPENDENT_SNR_CURVE_BOOTSTRAP_SEED = G5_SNR_CURVE_BOOTSTRAP_SEED
-INDEPENDENT_SNR_CURVE_BOOTSTRAP_DRAWS = G5_SNR_CURVE_BOOTSTRAP_DRAWS
+INDEPENDENT_SNR_CURVE_BOOTSTRAP_SEED = SNR_CURVE_BOOTSTRAP_SEED
+INDEPENDENT_SNR_CURVE_BOOTSTRAP_DRAWS = SNR_CURVE_BOOTSTRAP_DRAWS
 INDEPENDENT_CHANNEL_BOOTSTRAP_DRAWS = 20_000
-_MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS = 16_384
-_MAX_G5_INDEPENDENT_SNR_POINTS = 64
+_MAX_INDEPENDENT_TRANSPORT_BLOCKS = 16_384
+_MAX_INDEPENDENT_SNR_POINTS = 64
 _MAX_WAVEFORM_EVIDENCE_BYTES = 512 * 1024 * 1024
 _MAX_WAVEFORM_EVIDENCE_UNCOMPRESSED_BYTES = 1024 * 1024 * 1024
 _MAX_WAVEFORM_NPZ_MEMBERS = 32
@@ -821,11 +821,11 @@ def _run_independent_ordered_impairment_probe(
     if not np.isfinite(noise_variance_float32) or noise_variance_float32 <= 0:
         raise ValueError("noise_variance must be representable as finite positive float32")
     requested_transport_blocks = len(channel_seeds) * blocks_per_channel
-    if requested_transport_blocks > _MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS:
+    if requested_transport_blocks > _MAX_INDEPENDENT_TRANSPORT_BLOCKS:
         raise ValueError(
             "independent-channel probe requests "
             f"{requested_transport_blocks} transport blocks, exceeding the bounded limit of "
-            f"{_MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS}"
+            f"{_MAX_INDEPENDENT_TRANSPORT_BLOCKS}"
         )
 
     config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
@@ -1381,7 +1381,7 @@ def run_independent_ordered_impairment_probe(
         torch.set_num_threads(original_torch_threads)
 
 
-def _g5_snr_execution_context(channel_estimator: str, device: str) -> dict[str, Any]:
+def _snr_execution_context(channel_estimator: str, device: str) -> dict[str, Any]:
     """Construct the exact receiver/decoder/waveform identity before trials."""
     config = NRPUSCHConfig(n_size_bwp=6, subcarrier_spacing_khz=30)
     receiver = SionnaPUSCHLSReceiver(config, device=device)
@@ -1392,7 +1392,7 @@ def _g5_snr_execution_context(channel_estimator: str, device: str) -> dict[str, 
     max_echo_delay = min(6, cp_length - 1)
     if max_echo_delay < 2:
         raise RuntimeError("cyclic prefix is too short for the declared channel family")
-    return _g5_snr_execution_context_from_config(
+    return _snr_execution_context_from_config(
         {
             "receiver_configuration": receiver.metadata,
             "decoder_configuration": {
@@ -1453,10 +1453,10 @@ def run_independent_ordered_impairment_snr_curve(
         raise TypeError("snr_db must be a bounded sequence of real scalars")
     if isinstance(snr_db, np.ndarray) and snr_db.ndim != 1:
         raise ValueError("snr_db array must be one-dimensional")
-    if len(snr_db) > _MAX_G5_INDEPENDENT_SNR_POINTS:
+    if len(snr_db) > _MAX_INDEPENDENT_SNR_POINTS:
         raise ValueError(
             f"independent-channel SNR curve has {len(snr_db)} points, exceeding the "
-            f"bounded limit of {_MAX_G5_INDEPENDENT_SNR_POINTS}"
+            f"bounded limit of {_MAX_INDEPENDENT_SNR_POINTS}"
         )
     if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in snr_db):
         raise TypeError("snr_db values must be real scalars")
@@ -1473,14 +1473,14 @@ def run_independent_ordered_impairment_snr_curve(
         raise TypeError("channel_seeds must be a bounded sequence of integers")
     if not channel_seeds:
         raise ValueError("channel_seeds must be nonempty and unique")
-    if len(channel_seeds) > _MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS // (
+    if len(channel_seeds) > _MAX_INDEPENDENT_TRANSPORT_BLOCKS // (
         len(snr_values) * blocks_per_channel
     ):
         requested = len(snr_values) * len(channel_seeds) * blocks_per_channel
         raise ValueError(
             "independent-channel SNR curve requests "
             f"{requested} transport blocks, exceeding the bounded limit of "
-            f"{_MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS}"
+            f"{_MAX_INDEPENDENT_TRANSPORT_BLOCKS}"
         )
     if any(
         isinstance(seed, bool) or not isinstance(seed, int) or seed < 0 for seed in channel_seeds
@@ -1493,9 +1493,9 @@ def run_independent_ordered_impairment_snr_curve(
     if channel_estimator not in {"sionna_default_ls", "finite_delay_dft"}:
         raise ValueError("channel_estimator must be sionna_default_ls or finite_delay_dft")
     execution_context = (
-        _g5_snr_execution_context(channel_estimator, device)
+        _snr_execution_context(channel_estimator, device)
         if isinstance(acceptance_criteria, dict)
-        and acceptance_criteria.get("schema") == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA
+        and acceptance_criteria.get("schema") == SNR_EXECUTION_ACCEPTANCE_SCHEMA
         else None
     )
     frozen_acceptance = _freeze_independent_snr_acceptance_criteria(
@@ -1511,7 +1511,7 @@ def run_independent_ordered_impairment_snr_curve(
     if (
         frozen_acceptance is not None
         and frozen_acceptance.get("schema")
-        in {G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA, G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA}
+        in {SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA, SNR_EXECUTION_ACCEPTANCE_SCHEMA}
         and preregistration_signature is None
     ):
         raise ValueError("timestamped acceptance contract v2/v3 requires a verified signature")
@@ -1528,8 +1528,8 @@ def run_independent_ordered_impairment_snr_curve(
             "trust_file_custody",
         }
         if frozen_acceptance is not None and frozen_acceptance.get("schema") in {
-            G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-            G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+            SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+            SNR_EXECUTION_ACCEPTANCE_SCHEMA,
         }:
             required_signature_fields.add("preregistered_utc")
         reviewer_policy_identity = (
@@ -1543,7 +1543,7 @@ def run_independent_ordered_impairment_snr_curve(
             not isinstance(preregistration_signature, dict)
             or set(preregistration_signature) != required_signature_fields
             or preregistration_signature.get("status") != "verified_before_receiver_run"
-            or preregistration_signature.get("namespace") != G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE
+            or preregistration_signature.get("namespace") != SNR_ACCEPTANCE_SIGNATURE_NAMESPACE
             or not isinstance(preregistration_signature.get("signer_id"), str)
             or not preregistration_signature["signer_id"].strip()
             or preregistration_signature.get("contract_payload_sha256")
@@ -1580,7 +1580,7 @@ def run_independent_ordered_impairment_snr_curve(
             }
             if (
                 frozen_acceptance.get("schema")
-                not in {G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA, G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA}
+                not in {SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA, SNR_EXECUTION_ACCEPTANCE_SCHEMA}
                 or not isinstance(reviewer_policy_identity, dict)
                 or set(reviewer_policy_identity) != expected_policy_fields
                 or reviewer_policy_identity.get("status") != "verified"
@@ -1588,9 +1588,9 @@ def run_independent_ordered_impairment_snr_curve(
                 != preregistration_signature.get("signer_id")
                 or "independent_reviewer"
                 not in str(reviewer_policy_identity.get("reviewer_roles", "")).split(",")
-                or reviewer_policy_identity.get("purpose") != G5_SNR_REVIEWER_POLICY_PURPOSE
+                or reviewer_policy_identity.get("purpose") != SNR_REVIEWER_POLICY_PURPOSE
                 or reviewer_policy_identity.get("signature_namespace")
-                != G5_SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE
+                != SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE
                 or reviewer_policy_identity.get("custodian_principal")
                 == preregistration_signature.get("signer_id")
                 or reviewer_policy_identity.get("trust_file_custody")
@@ -1613,8 +1613,8 @@ def run_independent_ordered_impairment_snr_curve(
         assert isinstance(frozen_acceptance, dict)
         assert isinstance(preregistration_signature, dict)
         if frozen_acceptance.get("schema") in {
-            G5_SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
-            G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA,
+            SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
+            SNR_EXECUTION_ACCEPTANCE_SCHEMA,
         }:
             if preregistration_signature.get("preregistered_utc") != frozen_acceptance.get(
                 "preregistered_utc"
@@ -1622,7 +1622,7 @@ def run_independent_ordered_impairment_snr_curve(
                 raise ValueError(
                     "preregistration signature timestamp differs from the frozen contract"
                 )
-            preregistration_order = validate_g5_preregistration_order(
+            preregistration_order = validate_preregistration_order(
                 frozen_acceptance, receiver_run_started_utc=receiver_run_started_utc
             )
             preregistration_signature = {
@@ -1632,7 +1632,7 @@ def run_independent_ordered_impairment_snr_curve(
     cpu_curve_schema_version = (
         17
         if frozen_acceptance is not None
-        and frozen_acceptance.get("schema") == G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA
+        and frozen_acceptance.get("schema") == SNR_EXECUTION_ACCEPTANCE_SCHEMA
         else 11
         if isinstance(preregistration_signature, dict)
         and "reviewer_policy" in preregistration_signature
@@ -1657,11 +1657,11 @@ def run_independent_ordered_impairment_snr_curve(
         if evidence_path.exists() or evidence_path.is_symlink():
             raise FileExistsError(f"refusing to overwrite waveform evidence: {evidence_path}")
     requested_transport_blocks = len(snr_values) * len(channel_seeds) * blocks_per_channel
-    if requested_transport_blocks > _MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS:
+    if requested_transport_blocks > _MAX_INDEPENDENT_TRANSPORT_BLOCKS:
         raise ValueError(
             "independent-channel SNR curve requests "
             f"{requested_transport_blocks} transport blocks, exceeding the bounded limit of "
-            f"{_MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS}"
+            f"{_MAX_INDEPENDENT_TRANSPORT_BLOCKS}"
         )
 
     variances: list[float] = []
@@ -1713,8 +1713,8 @@ def run_independent_ordered_impairment_snr_curve(
                 raise ValueError("SNR point report has no configuration object")
             if (
                 frozen_acceptance is not None
-                and frozen_acceptance.get("schema") == (G5_SNR_EXECUTION_ACCEPTANCE_SCHEMA)
-                and _g5_snr_execution_context_from_config(config)
+                and frozen_acceptance.get("schema") == (SNR_EXECUTION_ACCEPTANCE_SCHEMA)
+                and _snr_execution_context_from_config(config)
                 != frozen_acceptance.get("execution_context")
             ):
                 raise ValueError(
@@ -1846,8 +1846,8 @@ def run_independent_ordered_impairment_snr_curve(
             ),
             "transport_blocks_per_snr_point": len(channel_seeds) * blocks_per_channel,
             "transport_blocks_across_curve": requested_transport_blocks,
-            "maximum_transport_blocks_across_curve": _MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS,
-            "maximum_snr_points": _MAX_G5_INDEPENDENT_SNR_POINTS,
+            "maximum_transport_blocks_across_curve": _MAX_INDEPENDENT_TRANSPORT_BLOCKS,
+            "maximum_snr_points": _MAX_INDEPENDENT_SNR_POINTS,
             **({"execution_device": device} if device != "cpu" else {}),
             "waveform_evidence": evidence_manifest,
         },
@@ -1929,7 +1929,7 @@ def _independent_snr_curve_cluster_inference(
     rng = np.random.default_rng(seed)
     batches: list[np.ndarray] = []
     paired_improvement_batches: list[np.ndarray] = []
-    batch_size = max(1, min(G5_SNR_CURVE_BOOTSTRAP_BATCH_SIZE, draws))
+    batch_size = max(1, min(SNR_CURVE_BOOTSTRAP_BATCH_SIZE, draws))
     for start in range(0, draws, batch_size):
         size = min(batch_size, draws - start)
         sampled_channels = rng.integers(0, channel_count, size=(size, channel_count))

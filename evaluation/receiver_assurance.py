@@ -20,7 +20,7 @@ from scipy.stats import beta
 
 from evaluation.joint_acceptance import (
     family_alpha_for_claim,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 from evaluation.numeric import finite_real_vector
 from evaluation.receiver_impact import evaluate_receiver_impact
@@ -98,7 +98,7 @@ def _validate_scenarios(
     return result
 
 
-def plan_g3_receiver_impact_bootstrap_assurance(
+def plan_receiver_impact_bootstrap_assurance(
     *,
     joint_acceptance_family: dict[str, Any],
     assumed_iid_scenarios_by_stratum: Mapping[tuple[str, str], Mapping[str, Any]],
@@ -120,7 +120,7 @@ def plan_g3_receiver_impact_bootstrap_assurance(
     are identical to the evaluator. The union bound combines strata; exact
     one-sided binomial lower bounds account for finite Monte Carlo replication.
     """
-    family = validate_g3_joint_acceptance_family(joint_acceptance_family)
+    family = validate_joint_acceptance_family(joint_acceptance_family)
     if family["schema"] not in {
         "loslab.g3_joint_acceptance_family.v3",
         "loslab.g3_joint_acceptance_family.v4",

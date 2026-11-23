@@ -19,7 +19,7 @@ def test_doctor_reports_environment_without_running_simulation(monkeypatch, caps
     assert "rt_backend" not in report
 
 
-def test_g3_path_roster_audit_dispatches_to_packaged_evaluator(monkeypatch, tmp_path) -> None:
+def test_path_roster_audit_dispatches_to_packaged_evaluator(monkeypatch, tmp_path) -> None:
     from evaluation import path_equivalence_roster_cli
 
     input_path = tmp_path / "roster.json"

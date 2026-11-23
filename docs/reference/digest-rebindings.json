@@ -4223,6 +4223,13 @@
       "new_sha256": "7398285cdb1beeeb8c0829d141d0c606c3e2b22fbe3881fdf93a682f461c2013",
       "old_path": "tests/test_experiments/test_g5_time_varying_multipath_receiver.py",
       "old_sha256": "086b6b4768ac83d56ec94e4a219e2e1555b0eeaae38f6d5dfc1e7c89683a177c"
+    },
+    {
+      "new_path": "tests/test_integrations/test_tdl_rayleigh_marginal_native.py",
+      "new_sha256": "bc54333a64aae2ea388aa276d234c3c34a31e6a0ff14c45610a214837aba110e",
+      "old_path": "tests/test_integrations/test_tdl_rayleigh_marginal_native.py",
+      "old_sha256": "e79903ac4bec37740728988e302d619e01dd6d4eea7b199da187dfbf70ad9c87",
+      "reason": "owner-authorized identifier rename (2026-11-23): phase tokens removed from test names; the previously recorded digest chain ends at e44e441f3c6d337e7875d635f176642b971827fd7d17056fee724f76ac8c89ee"
     }
   ]
 }

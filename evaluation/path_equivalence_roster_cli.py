@@ -12,7 +12,7 @@ from typing import Any
 
 from evaluation.joint_acceptance import (
     FAMILY_SCHEMA_V4,
-    validate_g3_joint_acceptance_family,
+    validate_joint_acceptance_family,
 )
 from evaluation.path_equivalence_assurance import (
     evaluate_path_equivalence_roster,
@@ -86,7 +86,7 @@ def _read_input(path: Path) -> dict[str, Any]:
         raise ValueError("input must contain exactly schema, joint_acceptance_family, and records")
     if value.get("schema") != _INPUT_SCHEMA:
         raise ValueError(f"input schema must be {_INPUT_SCHEMA}")
-    family = validate_g3_joint_acceptance_family(value.get("joint_acceptance_family"))
+    family = validate_joint_acceptance_family(value.get("joint_acceptance_family"))
     if family["schema"] != FAMILY_SCHEMA_V4:
         raise ValueError("path-roster CLI requires a joint-acceptance family v4")
     records = value.get("records")

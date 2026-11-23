@@ -16,11 +16,11 @@ pytest.importorskip("sionna")
 import experiments.audit_ordered_impairments_result as audit_module  # noqa: E402
 import experiments.ordered_impairments_receiver as experiment  # noqa: E402
 from experiments.acceptance import (  # noqa: E402
-    G5_SNR_CURVE_BOOTSTRAP_DRAWS,
-    G5_SNR_CURVE_BOOTSTRAP_SEED,
-    G5_SNR_CURVE_INFERENCE_METHOD,
-    G5_SNR_CURVE_INFERENCE_UNIT,
-    G5_SNR_CURVE_PAIRED_CONTRAST,
+    SNR_CURVE_BOOTSTRAP_DRAWS,
+    SNR_CURVE_BOOTSTRAP_SEED,
+    SNR_CURVE_INFERENCE_METHOD,
+    SNR_CURVE_INFERENCE_UNIT,
+    SNR_CURVE_PAIRED_CONTRAST,
 )
 from experiments.audit_ordered_impairments_result import (  # noqa: E402
     _recompute_waveform_diagnostics,
@@ -332,12 +332,12 @@ def test_snr_acceptance_rejects_malformed_simultaneous_intervals(
         "status": "available",
         "cluster_count": 20,
         "channel_seeds": list(range(17, 37)),
-        "unit": G5_SNR_CURVE_INFERENCE_UNIT,
-        "bootstrap_seed": G5_SNR_CURVE_BOOTSTRAP_SEED,
-        "bootstrap_draws": G5_SNR_CURVE_BOOTSTRAP_DRAWS,
+        "unit": SNR_CURVE_INFERENCE_UNIT,
+        "bootstrap_seed": SNR_CURVE_BOOTSTRAP_SEED,
+        "bootstrap_draws": SNR_CURVE_BOOTSTRAP_DRAWS,
         "family_size": 4,
-        "method": G5_SNR_CURVE_INFERENCE_METHOD,
-        "paired_contrast_definition": G5_SNR_CURVE_PAIRED_CONTRAST,
+        "method": SNR_CURVE_INFERENCE_METHOD,
+        "paired_contrast_definition": SNR_CURVE_PAIRED_CONTRAST,
         "simultaneous_radius": 0.05,
         "by_condition": {
             condition: [{"snr_db": 0.0, "simultaneous_95_percent_interval": interval}]
@@ -988,7 +988,7 @@ def test_independent_ordered_impairment_probe_rejects_duplicate_channels():
 def test_independent_ordered_impairment_probe_bounds_total_work_before_receiver_setup(
     monkeypatch,
 ):
-    monkeypatch.setattr(experiment, "_MAX_G5_INDEPENDENT_TRANSPORT_BLOCKS", 3)
+    monkeypatch.setattr(experiment, "_MAX_INDEPENDENT_TRANSPORT_BLOCKS", 3)
     monkeypatch.setattr(
         experiment,
         "SionnaPUSCHLSReceiver",

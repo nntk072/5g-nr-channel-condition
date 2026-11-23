@@ -18,7 +18,7 @@ import numpy as np
 from evaluation.signed_attestation import verify_openssh_signature_for_bytes
 
 from experiments.acceptance import (
-    validate_g5_preregistration_order,
+    validate_preregistration_order,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -27,7 +27,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _RESULT_SCHEMA = "umcd.g5_ordered_impairments_result.v2"
 
 
-_G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE = "umcd-g5-snr-acceptance-v1"
+_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE = "umcd-g5-snr-acceptance-v1"
 
 
 _BLOCK_BOUND_REPORT_SCHEMAS = {
@@ -122,7 +122,7 @@ def _inference_seed_roster_consistent(
     )
 
 
-def _g5_declared_preregistration_order_matches(criteria: Any, signature: Any) -> bool:
+def _declared_preregistration_order_matches(criteria: Any, signature: Any) -> bool:
     """Check v2 declared UTC chronology without claiming trusted timestamp proof."""
     if not isinstance(criteria, dict) or not isinstance(signature, dict):
         return False
@@ -130,7 +130,7 @@ def _g5_declared_preregistration_order_matches(criteria: Any, signature: Any) ->
     if not isinstance(receiver_run_started_utc, str):
         return False
     try:
-        expected = validate_g5_preregistration_order(
+        expected = validate_preregistration_order(
             criteria, receiver_run_started_utc=receiver_run_started_utc
         )
     except (TypeError, ValueError):
@@ -140,7 +140,7 @@ def _g5_declared_preregistration_order_matches(criteria: Any, signature: Any) ->
     )
 
 
-def _g5_execution_context_matches(contract: Any, points: Any) -> bool:
+def _execution_context_matches(contract: Any, points: Any) -> bool:
     """Check a v3 context digest and exact receiver/waveform identity at every point."""
     if not isinstance(contract, dict) or not isinstance(points, list):
         return False
@@ -201,7 +201,7 @@ def _is_sha256(value: Any) -> bool:
     )
 
 
-def _verify_g5_preregistration_signature(
+def _verify_preregistration_signature(
     contract: dict[str, Any],
     signature_record: dict[str, Any],
     *,
@@ -211,7 +211,7 @@ def _verify_g5_preregistration_signature(
     payload = _canonical_json_bytes(contract)
     if (
         signature_record.get("status") != "verified_before_receiver_run"
-        or signature_record.get("namespace") != _G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE
+        or signature_record.get("namespace") != _SNR_ACCEPTANCE_SIGNATURE_NAMESPACE
         or not isinstance(signature_record.get("signer_id"), str)
         or not signature_record["signer_id"].strip()
         or signature_record.get("contract_payload_sha256") != _sha256(payload)
@@ -226,7 +226,7 @@ def _verify_g5_preregistration_signature(
             signature_path,
             trusted_allowed_signers_path,
             signer_id=signature_record["signer_id"],
-            namespace=_G5_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
+            namespace=_SNR_ACCEPTANCE_SIGNATURE_NAMESPACE,
         )
     except (OSError, RuntimeError, TypeError, ValueError):
         return False
