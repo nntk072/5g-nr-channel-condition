@@ -58,7 +58,7 @@ def _valid_report() -> dict[str, Any]:
         "run_date": "2026-11-01",
         "status": "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE",
         "seed_collision_audit": {
-            "path": "CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json",
+            "path": "G4_CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json",
             "sha256": "a" * 64,
             "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS",
             "scanned_file_count": 2276,
@@ -84,8 +84,8 @@ def _valid_report() -> dict[str, Any]:
             "protocol_sha256": "a" * 64,
             "schema_sha256": "a" * 64,
             "reference_sha256": {
-                "CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": "a" * 64,
-                "CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json": "a" * 64,
+                "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": "a" * 64,
+                "G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json": "a" * 64,
             },
         },
         "outcome": {

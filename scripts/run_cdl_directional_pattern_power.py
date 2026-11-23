@@ -22,6 +22,13 @@ ROOT = Path(__file__).resolve().parents[1]
 TEST = ROOT / "tests/test_integrations/test_cdl_antenna_pattern_power_native.py"
 PROTOCOL = ROOT / "docs/research/CDL_DIRECTIONAL_PATTERN_VECTOR_FIELD_PROTOCOL_2026-11-01.md"
 SEED_AUDIT = ROOT / "docs/research/CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json"
+# Identity of the seed-audit file as its frozen contract names it. The file moved; the identity did not.
+SEED_AUDIT_IDENTITY = "G4_CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json"
+# Identities of the reference files as the frozen result schema names them.
+_REFERENCE_IDENTITY = {
+    "CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
+    "CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json": "G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json",
+}
 SCHEMA_PATH = ROOT / "datasets/schema/cdl-directional-pattern-power-result.v1.schema.json"
 REFERENCE_PATHS = (
     ROOT / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json",
@@ -255,7 +262,7 @@ def _build_report(
         "run_date": dt.datetime.now(dt.timezone.utc).date().isoformat(),
         "status": "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE" if passed else "FAILED_OR_INCOMPLETE",
         "seed_collision_audit": {
-            "path": SEED_AUDIT.name,
+            "path": SEED_AUDIT_IDENTITY,
             "sha256": _sha256(SEED_AUDIT),
             "status": "CLEAR_WITHIN_SCANNED_JSON_CORPUS",
             "scanned_file_count": 2276,
@@ -287,7 +294,9 @@ def _build_report(
             "test_source_sha256": _sha256(TEST),
             "protocol_sha256": _sha256(PROTOCOL),
             "schema_sha256": _sha256(SCHEMA_PATH),
-            "reference_sha256": {path.name: _sha256(path) for path in REFERENCE_PATHS},
+            "reference_sha256": {
+                _REFERENCE_IDENTITY[path.name]: _sha256(path) for path in REFERENCE_PATHS
+            },
         },
         "outcome": {
             "pytest_exit_code": pytest_exit_code,
