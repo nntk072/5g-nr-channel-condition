@@ -56,7 +56,7 @@
     "docs/research/EXECUTION_QUEUE.md": "8a49c5c6a75973c0aeaf5ab93cd46ff99f4b1feff46b2a1074011d893838d7b7",
     "docs/research/IMPLEMENTATION_BACKLOG.md": "45282b0ce4128421f9a289b0d5cbb23727ff58978ec0ef423bc5ad2fe0305bcb",
     "docs/research/MASTER_RESEARCH_PLAN.md": "f30d8f567f97443aec722eabc459843aa4e5821f7574ce67080ab99747c5de93",
-    "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "7fb79e4eaf19e1bbd1ac4d95c07d7e132fe6dc8e0fc4891f21b9fe3ce226fda3",
+    "docs/research/UNIFIED_MULTIPATH_SUPERDATASET_MASTER_PLAN_2026-10-22.md": "e1e6fb8435da71e5df073f9b6888d02f4fc7dea07aac3a5756737803a2075241",
     "docs/research/schema/helper-wiring-inventory.v1.schema.json": "cbf3f4f5d3f5711d5d0bd208060e90543cbfba890ca718228f7be2befd0a170f",
     "evaluation/caez_forecast.py": "43a1f1d284c28ba12c8bc8265ef5d9e6aba15ef109a4c7f8e884718e1984c61e",
     "evaluation/class_support.py": "8c0e4836b3771a5895ff155ce7568acc1d2c7a366ef7a0a701043286c58fd23f",
@@ -93,9 +93,7 @@
     "experiments/independent_channel_receiver.py": "694ca9eaf1bd15364e0e9d58bed26234052eea0be55e3c20e16d7793ad25ef3a",
     "experiments/link_curves.py": "01a97663b6c9566fe0e60199c5e77a6a5c3c421e26133012a8e058b725dbe16a",
     "experiments/observable_multipath.py": "39a9008ee9d3d7ca4467be0a5310b9ce03ea48dfdb98b1431fd2197b91a24d2c",
-    "experiments/ordered_impairments/independent_probe.py": "483150e5fb2189417fc2c10d9edaa97436ef6116a312d267025404a341965b31",
-    "experiments/ordered_impairments/paired_probe.py": "608bb84b20a22c8017fce594f347bde0fee7f41a3627026b627589c58e283639",
-    "experiments/ordered_impairments/signal_models.py": "e99d8731f89f0c5c44fa257b81e885697e1ea625406d04f44e99da7c432b6e6d",
+    "experiments/ordered_impairments_receiver.py": "786a45b4a1f9145645d239120b915e895d5a9a63f61d007e951ee96f19dd3101",
     "experiments/profile_holdout.py": "33dec583942a07cb5bc0fee759636f735a72f2420415ce1382b758c8ec304d7a",
     "experiments/qualify_delay_domain_dft.py": "3f041902955257c04e5c91839e0ee2906d3e0b84a2433fa7791a75162e70e1ea",
     "experiments/qualify_tdl_c_dmrs_density.py": "4d6b18aeeab2bb778f7f8b76bebb10dac215924dfd697b2d1d461078227a4cdd",
@@ -184,7 +182,7 @@
     "scripts/plan_acquisition_design.py": "40515c7308bd8957e1c8a49b3a9b0fdc0e98a04f03c004c051e65da605525964",
     "scripts/render_rt_endpoint_positions.py": "7fc16121d551402f042cdccaeca206b0a541172796c3c0d6ddf7d54ad2faae18",
     "scripts/render_rt_path_qa.py": "9a46318f58d860819b7d41ee89afbb89fa0ecd425c33ae01268dcf050ece0339",
-    "scripts/run_cdl_e_fresh_seed_replication.py": "462da0fbcc0ae784b2587b07095dae04603786d424ea8d4446b1574f7bfbd80c",
+    "scripts/run_cdl_e_fresh_seed_replication.py": "61b230c3c1009db66ff7f928aa2920fba6d9b9f3cc4106148e43f4c803a4c9ad",
     "scripts/run_observable_multipath_experiment.py": "ade85753c92f35f8337a893aa89c24689e657c161a298fe9fd3202e9b016ed33",
     "scripts/run_profile_proxy_dataset.py": "7e569af9db6b7463eecb592380e3e67f5d2dcdd0eb9c5b8e6ea7befd1cecfeaf",
     "scripts/run_rt_solver_convergence.py": "df0da07a637aa177178ceaa1cb765d46e59ea96aa2d3b8ccfe79fb29175bc66c",
@@ -321,7 +319,7 @@
     "tests/test_integrations/test_ssb_waveform_config_native.py": "abb06cd5cda4ea97ae0c27dc0567db5f562725d883c081b69908d31ca30ade4f",
     "tests/test_integrations/test_standardized_generation_native.py": "5c83f09544bb98b9f6b2d2563c567673b43a739809b0cfb1b4961c9c648165f9",
     "tests/test_integrations/test_standardized_pusch_native.py": "3da1f5ad91aa5a489c8ae3f416f81f18d1a5024296942d0e6319932b674d6f47",
-    "tests/test_integrations/test_statistical_confidence_native.py": "d5e4179c03564ac1a33799378e0db8ed2bc21dcaec137876a3403a79e82b9b67",
+    "tests/test_integrations/test_statistical_confidence_native.py": "cc8bd5248cda88f3c8905489de9a3a81ac9e17d4d33eaf70fc05fb09e2d15147",
     "tests/test_integrations/test_tdl_adapter_contract.py": "88d9a583247c2177b22edc7d17a84582db0b095d5b27a597bef652d3823f5451",
     "tests/test_integrations/test_tdl_contract.py": "e36a4c76f0122414b24e2951e60376bf0729775675b41d55aefcba827d068a7a",
     "tests/test_integrations/test_tdl_distribution_native.py": "4385e4b0af100050a7d036b6d15b8631fb8c89748cdd72bfee1e93d853a107d2",
@@ -6933,40 +6931,40 @@
       "definition_line": 475,
       "direct_production_references": [
         {
-          "path": "experiments/ordered_impairments/independent_probe.py",
-          "line": 325
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 380
         },
         {
-          "path": "experiments/ordered_impairments/independent_probe.py",
-          "line": 364
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 538
         },
         {
-          "path": "experiments/ordered_impairments/independent_probe.py",
-          "line": 366
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 959
         },
         {
-          "path": "experiments/ordered_impairments/independent_probe.py",
-          "line": 385
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 554
         },
         {
-          "path": "experiments/ordered_impairments/paired_probe.py",
-          "line": 182
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 557
         },
         {
-          "path": "experiments/ordered_impairments/paired_probe.py",
-          "line": 198
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 584
         },
         {
-          "path": "experiments/ordered_impairments/paired_probe.py",
-          "line": 201
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 998
         },
         {
-          "path": "experiments/ordered_impairments/paired_probe.py",
-          "line": 228
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 1000
         },
         {
-          "path": "experiments/ordered_impairments/signal_models.py",
-          "line": 108
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 1019
         },
         {
           "path": "integrations/sionna/standardized_pusch.py",
@@ -7133,24 +7131,24 @@
       "definition_line": 80,
       "direct_production_references": [
         {
-          "path": "experiments/ordered_impairments/independent_probe.py",
-          "line": 317
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 373
         },
         {
-          "path": "experiments/ordered_impairments/independent_probe.py",
-          "line": 399
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 530
         },
         {
-          "path": "experiments/ordered_impairments/paired_probe.py",
-          "line": 174
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 595
         },
         {
-          "path": "experiments/ordered_impairments/paired_probe.py",
-          "line": 239
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 951
         },
         {
-          "path": "experiments/ordered_impairments/signal_models.py",
-          "line": 101
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 1033
         },
         {
           "path": "integrations/sionna/standardized_pusch.py",
@@ -7270,24 +7268,24 @@
           "line": 184
         },
         {
-          "path": "experiments/ordered_impairments/independent_probe.py",
-          "line": 310
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 366
         },
         {
-          "path": "experiments/ordered_impairments/independent_probe.py",
-          "line": 356
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 523
         },
         {
-          "path": "experiments/ordered_impairments/paired_probe.py",
-          "line": 167
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 546
         },
         {
-          "path": "experiments/ordered_impairments/paired_probe.py",
-          "line": 190
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 944
         },
         {
-          "path": "experiments/ordered_impairments/signal_models.py",
-          "line": 94
+          "path": "experiments/ordered_impairments_receiver.py",
+          "line": 990
         },
         {
           "path": "experiments/qualify_delay_domain_dft.py",
@@ -7768,7 +7766,7 @@
         },
         {
           "path": "scripts/run_cdl_e_fresh_seed_replication.py",
-          "line": 111
+          "line": 115
         }
       ],
       "direct_test_references": [

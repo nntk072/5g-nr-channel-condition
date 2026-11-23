@@ -24,15 +24,14 @@ No tracked retained result, config, or schema names these modules or their base 
 
 ## Digest-bound splits
 
-### `experiments/ordered_impairments_receiver.py` (split, design note written after the split)
+### `experiments/ordered_impairments_receiver.py` (split reverted; deferred until approved)
 
 - Base path: `experiments/g5_ordered_impairments_receiver.py`.
 - Base digest: `d6c5b9791e30f10e9efbc07a9e0409fe89ef618c7eabe06ffd49151e0640309a`.
-- Now, facade at the original path: `2e9f96621bc3be1cb1c97b2ce71873afa1adf001cbad56b1fb6530ff45190a34`.
+- Current digest (single file, restored to its pre-split form): `experiments/ordered_impairments_receiver.py`.
 - Not in any evaluator roster. Eleven retained results name the path, and their recorded source digest (`95f130de…`) matches no tracked version of the file.
-- Split: commit `846af03`, into `experiments/ordered_impairments/`. The facade keeps the entry points, the CLI and the result writer.
-- **Deviation:** the goal asked for this note and the rebinding entries before the split. The split was made first, and no rebinding entries were added. The base digest has no equivalent in the new bytes, so a rebinding would assert an equivalence that does not exist.
-- Provenance: new results record `provenance.implementation_sha256`, a map from each module to its digest, so the implementation is bound for new results. Results written before this change bind only the facade file.
+- History: the split was committed as `846af03` (into `experiments/ordered_impairments/`) with a facade at the original path, and `1a3b8ea` added `provenance.implementation_sha256`. Both were made before this note and before any rebinding entry, which breaks the ordering rule. The split was therefore reverted to the pre-split file and test (restored from `25ff349`), and it stays deferred.
+- To proceed: approve the split, record a rebinding entry for the superseded digest, then reapply `846af03` and `1a3b8ea`. A rebinding records supersession, not equivalence.
 
 ### `evaluation/sample_size_planning.py` (deferred)
 
