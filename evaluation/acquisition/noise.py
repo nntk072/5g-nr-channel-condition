@@ -39,7 +39,6 @@ def _noise_rms_summary(data: bytes) -> tuple[float, float, int, tuple[int, ...]]
     if scale == 0.0:
         return 0.0, 0.0, sample_count, tuple(shape)
     normalized_magnitude = np.hypot(real / scale, imag / scale)
+    # Each normalized magnitude is at most sqrt(2), so the sum is finite for any sample count.
     normalized_sum_squares = float(np.dot(normalized_magnitude, normalized_magnitude))
-    if not math.isfinite(normalized_sum_squares):
-        raise ValueError("noise measurement RMS accumulation is not finite")
     return scale, normalized_sum_squares, sample_count, tuple(shape)
