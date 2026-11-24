@@ -269,6 +269,125 @@ def test_dci_0_3_bwp_field_is_absent_when_only_initial_bwps_are_configured() -> 
     assert result.selected_bwp_id_by_cell == (("cell-3", 0), ("cell-9", 0))
 
 
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        pytest.param(
+            {"scheduled_cell_ids": "cell-3"}, TypeError, "ordered sequence", id="cells-type"
+        ),
+        pytest.param({"scheduled_cell_ids": ()}, ValueError, "nonempty cell IDs", id="cells-empty"),
+        pytest.param(
+            {"scheduled_cell_ids": ("cell-3", "")},
+            ValueError,
+            "nonempty cell IDs",
+            id="cell-empty-id",
+        ),
+        pytest.param(
+            {"scheduled_cell_ids": ("cell-3", "cell-3")},
+            ValueError,
+            "must be unique",
+            id="cell-duplicate",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": ()},
+            TypeError,
+            "must be a mapping",
+            id="configured-map-type",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": {"other": (0, 1)}},
+            ValueError,
+            "keys must exactly match",
+            id="configured-keys",
+        ),
+        pytest.param(
+            {"active_ul_bwp_id_by_cell": {"other": 0}},
+            ValueError,
+            "keys must exactly match",
+            id="active-keys",
+        ),
+        pytest.param(
+            {"supports_active_bwp_change": 1}, TypeError, "must be a boolean", id="supports-type"
+        ),
+        pytest.param(
+            {"initial_bwp_id": True},
+            TypeError,
+            "initial_bwp_id must be an integer",
+            id="initial-bool",
+        ),
+        pytest.param(
+            {"initial_bwp_id": 5}, ValueError, "initial_bwp_id must be in", id="initial-range"
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": {"cell-3": "01"}},
+            TypeError,
+            "ordered sequence",
+            id="bwp-sequence",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": {"cell-3": ()}},
+            ValueError,
+            "must lie in",
+            id="bwp-empty",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": {"cell-3": (True,)}},
+            ValueError,
+            "must lie in",
+            id="bwp-bool",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": {"cell-3": (0, 0)}},
+            ValueError,
+            "must be unique",
+            id="bwp-duplicate",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": {"cell-3": (1, 2)}},
+            ValueError,
+            "include initial BWP",
+            id="initial-missing",
+        ),
+        pytest.param(
+            {"active_ul_bwp_id_by_cell": {"cell-3": True}},
+            ValueError,
+            "active UL BWP",
+            id="active-bool",
+        ),
+        pytest.param(
+            {"bwp_indicator": None}, TypeError, "decoded integer codepoint", id="indicator-missing"
+        ),
+        pytest.param(
+            {"bwp_indicator": True}, TypeError, "decoded integer codepoint", id="indicator-bool"
+        ),
+        pytest.param({"bwp_indicator": 4}, ValueError, "does not fit", id="indicator-range"),
+    ],
+)
+def test_dci_0_3_bwp_selection_rejects_invalid_configurations(changes, error, message) -> None:
+    arguments = {
+        "scheduled_cell_ids": ("cell-3",),
+        "configured_ul_bwp_ids_by_cell": {"cell-3": (0, 1)},
+        "active_ul_bwp_id_by_cell": {"cell-3": 0},
+        "bwp_indicator": 0,
+    }
+    arguments.update(changes)
+
+    with pytest.raises(error, match=message):
+        nr_srs_dci_0_3_ul_bwp_selection(**arguments)
+
+
+def test_dci_0_3_mixed_single_and_multi_bwp_cells_use_per_cell_outcomes() -> None:
+    result = nr_srs_dci_0_3_ul_bwp_selection(
+        ("cell-a", "cell-b"),
+        {"cell-a": (0,), "cell-b": (0, 1)},
+        {"cell-a": 0, "cell-b": 0},
+        bwp_indicator=0,
+    )
+
+    assert result.selected_bwp_id_by_cell == (("cell-a", 0), ("cell-b", 0))
+    assert result.outcome_by_cell == (("cell-a", "single_bwp"), ("cell-b", "selected_by_indicator"))
+
+
 def test_dci_0_3_bwp_selection_drives_resource_sets_and_offset_roster() -> None:
     def resource_set(
         resource_set_id: int,
