@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 from integrations.sionna.srs.srs_configuration import (
     nr_srs_cyclic_shift_hopping_offset,
+    nr_srs_cyclic_shift_hopping_offsets,
     nr_srs_port_cyclic_shift_indices,
     nr_srs_transmission_comb_from_rrc,
 )
@@ -146,6 +147,7 @@ def test_port_cyclic_shifts_reject_malformed_inputs(kwargs, error, message) -> N
             "hopping_finer_granularity must be a boolean",
             id="granularity",
         ),
+        pytest.param({"slot_index": True}, "slot_index must be an integer", id="slot-type"),
     ],
 )
 def test_cyclic_shift_hopping_offset_rejects_invalid_slot_or_identity(kwargs, message) -> None:
@@ -206,8 +208,6 @@ def test_cyclic_shift_hopping_offset_validates_subset_configuration(kwargs, erro
 
 
 def test_cyclic_shift_hopping_offsets_cover_symbol_count_and_slot_extent_guards() -> None:
-    from integrations.sionna.srs.srs_configuration import nr_srs_cyclic_shift_hopping_offsets
-
     arguments = {
         "transmission_comb": 2,
         "cyclic_shift_hopping_id": 42,
@@ -224,3 +224,7 @@ def test_cyclic_shift_hopping_offsets_cover_symbol_count_and_slot_extent_guards(
         nr_srs_cyclic_shift_hopping_offsets(**{**arguments, "srs_symbol_count": 3})
     with pytest.raises(ValueError, match="extend past the slot"):
         nr_srs_cyclic_shift_hopping_offsets(**{**arguments, "srs_symbol_count": 4})
+    with pytest.raises(TypeError, match="start_symbol_index must be an integer"):
+        nr_srs_cyclic_shift_hopping_offsets(**{**arguments, "start_symbol_index": True})
+    with pytest.raises(ValueError, match="slot symbol coordinates are invalid"):
+        nr_srs_cyclic_shift_hopping_offsets(**{**arguments, "slot_symbol_count": 13})
