@@ -7,6 +7,33 @@ from integrations.sionna.srs import (
     nr_srs_dci_0_3_frequency_assignment_widths,
     nr_srs_dci_0_3_request_list_index_from_layout,
 )
+from integrations.sionna.srs.srs_constants.dci_0_3 import _DCI_0_3_FIELD_ORDER
+
+
+def test_dci_0_3_decoder_rejects_malformed_bit_rosters_and_resource_overflow() -> None:
+    zero_widths = dict.fromkeys(_DCI_0_3_FIELD_ORDER, 0)
+    invalid_cases = (
+        ("not-bits", zero_widths, TypeError, "sequence of decoded bits"),
+        ((), None, TypeError, "field_widths_bits must be a mapping"),
+        ((), {**zero_widths, 7: 0}, TypeError, "field names must be strings"),
+        ((), {**zero_widths, "not_a_field": 0}, ValueError, "roster mismatch"),
+        ((), {**zero_widths, "srs_request": True}, TypeError, "must be an integer"),
+        ((), {**zero_widths, "srs_request": -1}, ValueError, "must be in"),
+        ((), {**zero_widths, "srs_request": 513}, ValueError, "must be in"),
+        (
+            (),
+            {**zero_widths, **dict.fromkeys(_DCI_0_3_FIELD_ORDER[:9], 512)},
+            ValueError,
+            "exceeds the 4096-bit resource bound",
+        ),
+        ((1,), {**zero_widths, "srs_request": 2}, ValueError, "shorter than the declared"),
+        ((1,), zero_widths, ValueError, "nonzero trailing bits"),
+        ((2,), {**zero_widths, "srs_request": 1}, ValueError, r"payload_bits\[0\]"),
+    )
+
+    for payload, widths, error, message in invalid_cases:
+        with pytest.raises(error, match=message):
+            nr_dci_0_3_field_values_from_layout(payload, field_widths_bits=widths)
 
 
 def test_dci_0_3_layout_parser_decodes_complete_field_roster_msb_first() -> None:
