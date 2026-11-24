@@ -11,7 +11,6 @@ import numpy as np
 
 from .srs_constants import (
     _SRS_BANDWIDTH_TABLE,
-    _SRS_COMB_SIZES,
     _SRS_SYMBOL_COUNTS,
     NRSRSMultiportResourceGrid,
     NRSRSPositioningMultiportResourceGrid,
@@ -1191,8 +1190,6 @@ def map_nr_srs_positioning_resource(
     )
     if start_position_offset < srs_symbol_count - 1 or start_position_offset >= slot_symbol_count:
         raise ValueError("start_position_offset must fit the SRS symbols in the slot")
-    if comb_size not in _SRS_COMB_SIZES:
-        raise ValueError("comb_size must be 2, 4, or 8")
     if not 0 <= comb_offset < comb_size:
         raise ValueError("comb_offset must be in [0, comb_size)")
     if frequency_start_subcarrier < 0:
