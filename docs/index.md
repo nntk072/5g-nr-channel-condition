@@ -47,5 +47,6 @@ reference/scene-family-registry
 reference/cli
 reference/schemas
 architecture/coverage-policy
+architecture/module-size
 api/index
 ```
