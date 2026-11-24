@@ -869,6 +869,162 @@ def test_srs_request_rejects_duplicate_resource_set_ids() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("codepoint", "resource_sets", "kwargs", "error", "message"),
+    [
+        pytest.param(
+            1, [], {"supplementary_uplink": 1}, TypeError, "supplementary_uplink", id="sul-flag"
+        ),
+        pytest.param(
+            1,
+            [],
+            {"dci_format": "0_2"},
+            ValueError,
+            "requires configured srs_request_mode",
+            id="mode-missing",
+        ),
+        pytest.param(
+            1,
+            [],
+            {"dci_format": "0_2", "srs_request_mode": True},
+            ValueError,
+            "requires configured srs_request_mode",
+            id="mode-bool",
+        ),
+        pytest.param(
+            1,
+            [],
+            {"dci_format": "0_2", "srs_request_mode": 3},
+            ValueError,
+            "srs_request_mode must be 1 or 2",
+            id="mode-out-of-range",
+        ),
+        pytest.param(
+            1,
+            [],
+            {"srs_request_mode": 1},
+            ValueError,
+            "applies only to DCI 0_2/1_2",
+            id="mode-on-0_1",
+        ),
+        pytest.param(True, [], {}, TypeError, "codepoint must be an integer", id="codepoint-bool"),
+        pytest.param(4, [], {}, ValueError, "2-bit SRS request field", id="codepoint-out-of-range"),
+        pytest.param(
+            1, "sets", {}, TypeError, "resource_sets must be a sequence", id="sets-string"
+        ),
+        pytest.param(
+            1, [None], {}, TypeError, r"resource_sets\[0\] must be a mapping", id="set-mapping"
+        ),
+        pytest.param(
+            1,
+            [{"resource_set_id": True}],
+            {},
+            TypeError,
+            "resource_set_id must be an integer",
+            id="set-id-bool",
+        ),
+        pytest.param(
+            1,
+            [{"resource_set_id": 1, "resource_type": "other"}],
+            {},
+            ValueError,
+            "resource_type is unsupported",
+            id="resource-type",
+        ),
+        pytest.param(
+            1,
+            [{"resource_set_id": 1, "resource_type": "aperiodic", "aperiodic_trigger": 1}],
+            {"supplementary_uplink": True},
+            ValueError,
+            "ul_carrier must identify",
+            id="sul-carrier-required",
+        ),
+        pytest.param(
+            1,
+            [
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "ul_carrier": "other",
+                }
+            ],
+            {},
+            ValueError,
+            "ul_carrier is invalid",
+            id="carrier-invalid",
+        ),
+        pytest.param(
+            1,
+            [{"resource_set_id": 1, "resource_type": "aperiodic", "aperiodic_trigger": True}],
+            {},
+            TypeError,
+            "aperiodic_trigger must be an integer",
+            id="trigger-bool",
+        ),
+        pytest.param(
+            1,
+            [{"resource_set_id": 1, "resource_type": "aperiodic", "aperiodic_trigger": 4}],
+            {},
+            ValueError,
+            "aperiodic_trigger must be in",
+            id="trigger-range",
+        ),
+        pytest.param(
+            1,
+            [
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "aperiodic_trigger_list": "2",
+                }
+            ],
+            {},
+            TypeError,
+            "trigger_list must be a sequence",
+            id="trigger-list-string",
+        ),
+        pytest.param(
+            1,
+            [
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "aperiodic_trigger_list": [True],
+                }
+            ],
+            {},
+            TypeError,
+            "trigger-list entries must be integers",
+            id="trigger-list-bool",
+        ),
+        pytest.param(
+            1,
+            [
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "aperiodic_trigger_list": [0],
+                }
+            ],
+            {},
+            ValueError,
+            "trigger-list entries must be in",
+            id="trigger-list-range",
+        ),
+    ],
+)
+def test_srs_request_rejects_invalid_codepoints_and_resource_set_contracts(
+    codepoint, resource_sets, kwargs, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        options = {"dci_format": "0_1", **kwargs}
+        nr_srs_triggered_resource_set_ids(codepoint, resource_sets, **options)
+
+
 def test_srs_request_composes_selection_and_resource_set_schedules() -> None:
     result = nr_srs_aperiodic_resource_set_schedules(
         50,
