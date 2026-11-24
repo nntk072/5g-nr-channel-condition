@@ -106,6 +106,7 @@ jobs:
     name: Neural and boosted baseline tests (Python 3.12)
     needs: lock
     runs-on: ubuntu-latest
+    timeout-minutes: 150
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -126,7 +127,21 @@ jobs:
         run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
 
       - name: Run neural and boosted tests with coverage
-        run: ./tools/check neural
+        shell: bash
+        run: |
+          set -o pipefail
+          ./tools/check neural 2>&1 | tee neural-test-output.txt
+
+      - name: Keep neural test output and coverage data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: neural-test-output
+          path: |
+            neural-test-output.txt
+            .coverage*
+          if-no-files-found: warn
+          retention-days: 14
 
   architecture:
     name: Architecture and coverage policy
