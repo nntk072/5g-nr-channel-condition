@@ -21,7 +21,6 @@ def load_packages(path: Path = SOURCE) -> dict[str, list[str]]:
     data = tomllib.loads(path.read_text(encoding="utf-8"))["packages"]
     return {
         "names": list(data["names"]),
-        "coverage_exclude": list(data["coverage_exclude"]),
         "test_roots": list(data["test_roots"]),
     }
 
@@ -33,7 +32,7 @@ def _array(items: list[str], indent: str) -> str:
 
 def render(text: str, packages: dict[str, list[str]]) -> str:
     names = packages["names"]
-    coverage = [name for name in names if name not in packages["coverage_exclude"]]
+    coverage = list(names)
 
     def replace_block(source: str, section: str, key: str, value: list[str], inline: bool) -> str:
         header = re.escape(f"[{section}]")

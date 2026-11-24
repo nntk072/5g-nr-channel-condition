@@ -9,7 +9,5 @@ names = [
   "models", "learning", "evaluation", "experiments", "integrations",
   "compute", "scripts",
 ]
-# Packages that are linted and type-checked but are not measured for coverage.
-coverage_exclude = ["scripts"]
 # Directories linted with the packages but not shipped.
 test_roots = ["tests"]
