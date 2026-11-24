@@ -89,7 +89,7 @@ The fixed-seed misses were therefore sampling noise at the original seeds, not a
 
 Option 5, RT oracle claim. The test asserted that the geometric-LOS provenance starts with `independent Mitsuba`, and that its source is `mitsuba_segment_intersection_oracle`. The code states `digest-bound NumPy loaded-scene triangle inventory, cross-checked by Mitsuba segment intersection and depth-zero Sionna PathSolver`, and its source is `numpy_loaded_scene_triangle_inventory`. Both test assertions now state the code's description; the test no longer claims independence.
 
-Caveat recorded for the frozen identity. The identity `umcd.rt-trajectory.geometric-los.v1` in `datasets/targets.py` still carries the semantic `independent Mitsuba segment-intersection geometry oracle`. That wording overstates independence, and the target definition hashes it. Identity strings must stay, so the caveat is recorded here. A new identity version with the accurate semantic is a separate contract change, to be approved later.
+Identity status. The RT trajectory producer writes `umcd.rt-trajectory.geometric-los.v2` (`integrations/sionna/rt_trajectory.py`), whose canonical semantic is "digest-bound NumPy loaded-scene direct-visibility oracle", matching what the code does. The v1 identity `umcd.rt-trajectory.geometric-los.v1` keeps its frozen wording ("independent Mitsuba segment-intersection geometry oracle") only so that older stored data can still be read. New trajectories are not written as v1. The v1 wording overstates independence and is superseded by v2.
 
 The stored target list now expects the visibility target and the derived `rms_delay_spread` target, in code order. The code derives one RMS target per link, and the scenario has one link.
 
