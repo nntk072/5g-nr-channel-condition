@@ -925,6 +925,40 @@ def test_srs_mapper_rejects_sequence_shape_and_type_mismatch() -> None:
         map_nr_srs_resource(np.ones((3, 24), dtype=np.complex128), **common)
 
 
+@pytest.mark.parametrize(
+    ("sequence", "changes", "message"),
+    [
+        (np.ones((2, 2, 12), dtype=np.complex128), {}, r"shape \[occupied REs\]"),
+        (np.full(24, np.nan + 1j, dtype=np.complex128), {}, "only finite values"),
+        (
+            np.ones(24, dtype=np.complex128),
+            {"subcarrier_count": 0},
+            "subcarrier_count must be positive",
+        ),
+        (
+            np.ones(24, dtype=np.complex128),
+            {"frequency_start_subcarrier": -1},
+            "must be nonnegative",
+        ),
+    ],
+)
+def test_srs_mapper_rejects_invalid_grid_coordinates_and_nonfinite_sequences(
+    sequence, changes, message
+) -> None:
+    arguments = {
+        "slot_symbol_count": 14,
+        "subcarrier_count": 48,
+        "start_position_offset": 1,
+        "srs_symbol_count": 1,
+        "comb_size": 2,
+        "comb_offset": 0,
+    }
+    arguments.update(changes)
+
+    with pytest.raises(ValueError, match=message):
+        map_nr_srs_resource(sequence, **arguments)
+
+
 def test_srs_grid_rejects_mask_that_does_not_match_declared_resource() -> None:
     grid = np.zeros((14, 48), dtype=np.complex128)
     mask = np.zeros((14, 48), dtype=np.bool_)
@@ -1106,6 +1140,108 @@ def test_srs_multiport_ls_estimator_marks_rank_deficient_port_signatures() -> No
         "rank_deficient_port_signature"
     }
     assert np.count_nonzero(result.channel_by_rx_port_subcarrier) == 0
+
+
+@pytest.mark.parametrize(
+    ("case", "options", "error", "message"),
+    [
+        ("mapped_type", {}, TypeError, "mapped multiport SRS resource"),
+        ("real_grid", {}, ValueError, "received_grid must be complex"),
+        ("zero_rx", {}, ValueError, "at least one RX antenna"),
+        ("shape", {}, ValueError, "axes must match"),
+        ("nonfinite", {}, ValueError, "only finite values"),
+        (
+            "both_noise_modes",
+            {"noise_variance_by_rx_symbol": np.ones((1, 14))},
+            ValueError,
+            "provide per-RX or per-RX/per-symbol",
+        ),
+        (
+            "missing_noise",
+            {"noise_variance_by_rx_ant": None},
+            ValueError,
+            "per-RX noise variance is required",
+        ),
+        (
+            "complex_noise",
+            {"noise_variance_by_rx_ant": 0.01 + 0.0j},
+            TypeError,
+            "must be real-valued",
+        ),
+        (
+            "noise_shape",
+            {"noise_variance_by_rx_ant": np.ones((1, 2))},
+            ValueError,
+            "scalar or one value per RX",
+        ),
+        ("nonpositive_noise", {"noise_variance_by_rx_ant": 0.0}, ValueError, "finite and positive"),
+        (
+            "unrepresentable_noise",
+            {"noise_variance_by_rx_ant": 1e-320},
+            ValueError,
+            "reciprocals must be representable",
+        ),
+        (
+            "complex_symbol_noise",
+            {"noise_variance_by_rx_symbol": np.ones((1, 14), dtype=np.complex128)},
+            TypeError,
+            "must be real-valued",
+        ),
+        (
+            "symbol_noise_shape",
+            {"noise_variance_by_rx_symbol": np.ones((1, 13))},
+            ValueError,
+            "must have shape",
+        ),
+        (
+            "nonpositive_symbol_noise",
+            {"noise_variance_by_rx_symbol": np.zeros((1, 14))},
+            ValueError,
+            "finite and positive",
+        ),
+        (
+            "unrepresentable_symbol_noise",
+            {"noise_variance_by_rx_symbol": np.full((1, 14), 1e-320)},
+            ValueError,
+            "reciprocals must be representable",
+        ),
+    ],
+)
+def test_multiport_ls_rejects_invalid_received_grids_and_noise_profiles(
+    case, options, error, message
+) -> None:
+    mapped = map_nr_srs_multiport_resource(
+        np.ones((2, 2, 24), dtype=np.complex128),
+        slot_symbol_count=14,
+        subcarrier_count=48,
+        start_position_offset=2,
+        srs_symbol_count=2,
+        comb_size=2,
+        comb_offset=0,
+    )
+    received = np.zeros((1, 14, 48), dtype=np.complex128)
+    if case == "mapped_type":
+        mapped = None
+    elif case == "real_grid":
+        received = np.zeros((1, 14, 48), dtype=np.float64)
+    elif case == "zero_rx":
+        received = np.zeros((0, 14, 48), dtype=np.complex128)
+    elif case == "shape":
+        received = np.zeros((1, 14, 47), dtype=np.complex128)
+    elif case == "nonfinite":
+        received[0, 0, 0] = complex(float("nan"), 0)
+
+    with pytest.raises(error, match=message):
+        kwargs = {"noise_variance_by_rx_ant": 0.01}
+        if case in {
+            "complex_symbol_noise",
+            "symbol_noise_shape",
+            "nonpositive_symbol_noise",
+            "unrepresentable_symbol_noise",
+        }:
+            kwargs["noise_variance_by_rx_ant"] = None
+        kwargs.update(options)
+        nr_srs_multiport_ls_channel_estimate(mapped, received, **kwargs)
 
 
 def test_srs_multiport_ls_estimator_rejects_noise_and_receive_shape_errors() -> None:

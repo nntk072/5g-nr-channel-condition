@@ -58,6 +58,13 @@ def test_symbol_activity_rejects_invalid_port_rosters(
         nr_srs_port_symbol_activity(ports, srs_symbol_count=symbols, ports8_tdm=ports8)
 
 
+def test_standard_port_symbol_activity_covers_every_resource_symbol() -> None:
+    assert nr_srs_port_symbol_activity((1000, 1001), srs_symbol_count=4) == (
+        (True, True, True, True),
+        (True, True, True, True),
+    )
+
+
 @pytest.mark.parametrize(
     ("kwargs", "error", "message"),
     [
@@ -81,11 +88,18 @@ def test_frequency_positions_reject_out_of_range_parameters(kwargs, error, messa
         nr_srs_frequency_position_indices(**arguments)
 
 
+def test_frequency_position_indices_reject_boolean_fields() -> None:
+    with pytest.raises(TypeError, match="c_srs must be an integer"):
+        nr_srs_frequency_position_indices(True, b_srs=0, b_hop=0)
+
+
 def test_positioning_symbol_offset_requires_an_integer_comb_and_known_symbols() -> None:
     with pytest.raises(TypeError, match="transmission_comb must be an integer|must be an integer"):
         nr_srs_positioning_symbol_offset("2", srs_symbol_count=1, resource_symbol_index=0)
     with pytest.raises(ValueError, match="symbol count is unsupported"):
         nr_srs_positioning_symbol_offset(2, srs_symbol_count=3, resource_symbol_index=0)
+    with pytest.raises(ValueError, match="transmission_comb must be 2, 4, or 8"):
+        nr_srs_positioning_symbol_offset(3, srs_symbol_count=1, resource_symbol_index=0)
 
 
 @pytest.mark.parametrize(

@@ -269,6 +269,16 @@ def test_dci_0_3_bwp_field_is_absent_when_only_initial_bwps_are_configured() -> 
     assert result.selected_bwp_id_by_cell == (("cell-3", 0), ("cell-9", 0))
 
 
+def test_dci_0_3_bwp_selection_rejects_indicator_when_field_is_absent() -> None:
+    with pytest.raises(ValueError, match="must be absent when the field has zero bits"):
+        nr_srs_dci_0_3_ul_bwp_selection(
+            ("cell-3",),
+            {"cell-3": (0,)},
+            {"cell-3": 0},
+            bwp_indicator=0,
+        )
+
+
 @pytest.mark.parametrize(
     ("changes", "error", "message"),
     [
@@ -751,6 +761,19 @@ def test_srs_request_selects_all_configured_matching_aperiodic_sets() -> None:
     assert nr_srs_triggered_resource_set_ids(2, resource_sets, dci_format="0_1") == (12,)
     assert nr_srs_triggered_resource_set_ids(3, resource_sets, dci_format="0_1") == (4, 12)
     assert nr_srs_triggered_resource_set_ids(0, resource_sets, dci_format="0_1") == ()
+
+
+def test_srs_request_allows_absent_additional_trigger_list() -> None:
+    resource_sets = [
+        {
+            "resource_set_id": 3,
+            "resource_type": "aperiodic",
+            "aperiodic_trigger": 2,
+            "aperiodic_trigger_list": None,
+        }
+    ]
+
+    assert nr_srs_triggered_resource_set_ids(2, resource_sets, dci_format="0_1") == (3,)
 
 
 @pytest.mark.parametrize("dci_format", ["0_2", "1_2"])

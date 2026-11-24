@@ -171,6 +171,46 @@ def test_positioning_srs_hyper_frame_number_uses_nr_range(hyper_frame_number) ->
 
 
 @pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"numerology": True}, TypeError, "numerology must be an integer"),
+        ({"numerology": 7}, ValueError, "numerology must be between 0 and 6"),
+        (
+            {"hyper_frame_number": True},
+            TypeError,
+            "hyper_frame_number must be a nonnegative integer",
+        ),
+        (
+            {"hyper_frame_number": "0"},
+            TypeError,
+            "hyper_frame_number must be a nonnegative integer",
+        ),
+        ({"hyper_sfn_index": True}, TypeError, "hyper_sfn_index must be 0 or 1"),
+        ({"hyper_sfn_index": 2}, ValueError, "hyper_sfn_index must be 0 or 1"),
+    ],
+)
+def test_positioning_srs_hyper_sfn_fields_reject_invalid_types_and_ranges(
+    changes, error, message
+) -> None:
+    arguments = {
+        "resource_type": "periodic",
+        "srs_symbol_count": 2,
+        "resource_symbol_index": 0,
+        "absolute_slot_index": 0,
+        "periodicity_slots": 10240,
+        "slot_offset": 0,
+        "positioning_resource": True,
+        "numerology": 0,
+        "hyper_frame_number": 0,
+        "hyper_sfn_index": 0,
+    }
+    arguments.update(changes)
+
+    with pytest.raises(error, match=message):
+        nr_srs_transmission_counter(**arguments)
+
+
+@pytest.mark.parametrize(
     ("comb", "symbol_count", "expected"),
     [
         (2, 1, (0,)),
