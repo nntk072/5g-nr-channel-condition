@@ -923,6 +923,8 @@ def _validated_manifest(
         manifest_path, label="episode manifest", max_bytes=max_bytes
     )
     metadata = _parse_json_bytes(manifest_bytes, label="episode manifest")
+    if not isinstance(metadata, dict):
+        raise ValueError("episode manifest must be a JSON object")
     if metadata.get("schema") != "umcd.bundle.v1" or metadata.get("schema_version") != 1:
         raise ValueError("unsupported episode bundle schema")
     manifest_core = {
