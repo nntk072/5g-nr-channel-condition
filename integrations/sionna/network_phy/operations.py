@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from .records import (
     _NETWORK_FRACTIONAL_DELAY_KERNEL_RADIUS,

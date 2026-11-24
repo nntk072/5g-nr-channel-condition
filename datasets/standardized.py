@@ -13,11 +13,12 @@ import json
 import math
 import os
 import tempfile
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
 from types import MappingProxyType
-from typing import Any, Mapping, cast
+from typing import Any, cast
 
 import numpy as np
 
@@ -121,10 +122,12 @@ def validate_standardized_channel_admission(
         raise TypeError("family must use StandardizedFamily")
     try:
         applicability = standardized_profile_applicability(family.value, profile_model)
-    except ValueError:
+    except ValueError as err:
         if family is StandardizedFamily.TDL:
-            raise ValueError(prefix + "TDL profile must be scalable A–E or fixed TS 38.101-4")
-        raise ValueError(prefix + "CDL profile must be one of A–E")
+            raise ValueError(
+                prefix + "TDL profile must be scalable A–E or fixed TS 38.101-4"
+            ) from err
+        raise ValueError(prefix + "CDL profile must be one of A–E") from err
     expected_delay_semantics = applicability.delay_profile_semantics
     if metadata.get("delay_profile_semantics") != expected_delay_semantics:
         raise ValueError(prefix + "delay profile semantics disagree with the admitted profile")

@@ -13,8 +13,8 @@ import importlib.metadata
 import json
 import subprocess
 import sys
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Callable
 
 
 @dataclass(frozen=True, slots=True)

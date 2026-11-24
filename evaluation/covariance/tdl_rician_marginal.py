@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
 from numbers import Real
-from typing import Mapping
 
 import numpy as np
 from numpy.typing import NDArray

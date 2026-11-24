@@ -13,7 +13,7 @@ class RunLayout:
     root: Path
 
     @classmethod
-    def at(cls, root: str | Path) -> "RunLayout":
+    def at(cls, root: str | Path) -> RunLayout:
         return cls(Path(root).expanduser().resolve())
 
     @property

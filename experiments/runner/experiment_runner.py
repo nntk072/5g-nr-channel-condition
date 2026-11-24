@@ -6,9 +6,10 @@ import hashlib
 import json
 import platform
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 from artifacts.layout import RunLayout
@@ -1120,10 +1121,7 @@ def run_experiment(*args: Any, **kwargs: Any) -> dict:
     complete replay contract to transition. Process interruption likewise
     leaves the durable manifest in ``running`` state for explicit recovery.
     """
-    if len(args) >= 2:
-        output = args[1]
-    else:
-        output = kwargs.get("output")
+    output = args[1] if len(args) >= 2 else kwargs.get("output")
     existing_manifest_before = False
     if output is not None:
         output_before = Path(output).expanduser()

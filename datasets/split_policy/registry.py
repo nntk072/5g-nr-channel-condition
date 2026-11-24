@@ -7,11 +7,12 @@ import json
 import math
 import os
 import tempfile
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from numbers import Real
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from .policy import (
     _SPLIT_REGISTRY_V2_FIELDS,
@@ -646,11 +647,11 @@ def freeze_split_policy_registry(path: str | Path, registry: SplitPolicyRegistry
         try:
             os.link(temp_path, destination)
             _fsync_directory(destination.parent)
-        except FileExistsError:
+        except FileExistsError as err:
             if _read_immutable_lock_bytes(destination) != encoded:
                 raise FileExistsError(
                     f"refusing to modify existing split-policy lock: {destination}"
-                )
+                ) from err
     finally:
         if temp_path is not None:
             try:

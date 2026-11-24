@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import cmath
 import math
+from collections.abc import Sequence
 from functools import lru_cache
 from pathlib import Path
-from typing import Sequence
 
 from evaluation.covariance.cdl.shared import (
     _diffuse_directions,

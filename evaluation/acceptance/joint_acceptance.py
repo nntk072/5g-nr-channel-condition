@@ -393,13 +393,16 @@ def family_alpha_for_claim(
     elif evaluator == "complex_csi":
         observed = _stratum_keys(expected_strata, kind="complex_csi")
         declared = _stratum_keys(family["complex_csi_expected_strata"], kind="complex_csi")
-    elif evaluator == "propagation_metrics" and family["schema"] == FAMILY_SCHEMA_V2:
-        observed = _stratum_keys(expected_strata, kind="propagation_metrics")
-        declared = _stratum_keys(family["propagation_expected_strata"], kind="propagation_metrics")
-    elif evaluator == "propagation_metrics" and family["schema"] in {
-        FAMILY_SCHEMA_V3,
-        FAMILY_SCHEMA_V4,
-    }:
+    elif (
+        evaluator == "propagation_metrics"
+        and family["schema"] == FAMILY_SCHEMA_V2
+        or evaluator == "propagation_metrics"
+        and family["schema"]
+        in {
+            FAMILY_SCHEMA_V3,
+            FAMILY_SCHEMA_V4,
+        }
+    ):
         observed = _stratum_keys(expected_strata, kind="propagation_metrics")
         declared = _stratum_keys(family["propagation_expected_strata"], kind="propagation_metrics")
     elif evaluator == "receiver_impact" and family["schema"] in {

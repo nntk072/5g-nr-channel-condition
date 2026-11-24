@@ -11,8 +11,8 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from typing import Mapping
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment

@@ -9,12 +9,13 @@ import math
 import os
 import stat
 import tempfile
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from numbers import Real
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from datasets.independent_splits import make_independent_split
 from datasets.network import NetworkEpisode

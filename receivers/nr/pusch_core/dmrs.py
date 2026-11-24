@@ -5,7 +5,8 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import numpy as np
 
@@ -226,16 +227,15 @@ def build_pusch_intra_slot_hop_dmrs_grid(
         raise ValueError("dmrs_config_type must be 1 or 2")
     if not 0 <= n_cell_id <= 1007:
         raise ValueError("n_cell_id must be in [0, 1007]")
-    if dmrs_n_id is not None:
-        if (
-            not isinstance(dmrs_n_id, tuple)
-            or len(dmrs_n_id) != 2
-            or any(
-                isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 65535
-                for value in dmrs_n_id
-            )
-        ):
-            raise ValueError("dmrs_n_id must be a pair of integers in [0, 65535]")
+    if dmrs_n_id is not None and (
+        not isinstance(dmrs_n_id, tuple)
+        or len(dmrs_n_id) != 2
+        or any(
+            isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 65535
+            for value in dmrs_n_id
+        )
+    ):
+        raise ValueError("dmrs_n_id must be a pair of integers in [0, 65535]")
     if dmrs_n_scid not in {0, 1}:
         raise ValueError("dmrs_n_scid must be 0 or 1")
     if subcarrier_spacing_khz not in {15, 30, 60, 120, 240, 480, 960}:

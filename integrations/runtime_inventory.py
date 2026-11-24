@@ -261,7 +261,7 @@ def _distribution_identity(name: str) -> dict[str, Any]:
     table_files.sort(key=lambda item: item["path"])
     table_payload = json.dumps(table_files, sort_keys=True, separators=(",", ":")).encode()
     return {
-        "name": dist.metadata["Name"] if "Name" in dist.metadata else name,
+        "name": dist.metadata["Name"] if "Name" in dist.metadata else name,  # noqa: SIM401 - PackageMetadata has no typed get()
         "installed": True,
         "version": dist.version,
         "identity_completeness": "COMPLETE" if "RECORD" in identity_files else "INCOMPLETE",

@@ -6,10 +6,10 @@ import hashlib
 import json
 import math
 from bisect import bisect_left, bisect_right
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from numbers import Real
-from typing import Iterable, SupportsFloat
+from typing import SupportsFloat
 
 
 def canonical_time_axis(values: Iterable[object], *, name: str) -> tuple[float, ...]:

@@ -5,11 +5,12 @@ import hashlib
 import json
 import math
 import sys
+from collections.abc import Mapping, Sequence
 from copy import copy
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import numpy as np
 from artifacts.provenance import canonical_hash, package_source_sha256, versions

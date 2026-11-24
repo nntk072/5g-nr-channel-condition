@@ -6,9 +6,10 @@ import hashlib
 import json
 import math
 from collections import Counter
+from collections.abc import Sequence
 from numbers import Real
 from pathlib import PurePosixPath
-from typing import Any, Sequence
+from typing import Any
 
 from datasets.channel import ChannelDataset
 from datasets.rt_split_identity import rt_spatial_split_subject_id

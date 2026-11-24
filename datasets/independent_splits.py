@@ -7,10 +7,11 @@ import json
 import math
 import os
 import tempfile
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -238,9 +239,9 @@ def freeze_split_lock(path: str | Path, split: IndependentSplit) -> str:
             temp_path = temp.name
         # Hard-link publication is atomic and fails if another writer won.
         os.link(temp_path, destination)
-    except FileExistsError:
+    except FileExistsError as err:
         if destination.read_bytes() != encoded:
-            raise FileExistsError(f"refusing to modify existing split lock: {destination}")
+            raise FileExistsError(f"refusing to modify existing split lock: {destination}") from err
     finally:
         if temp_path is not None:
             Path(temp_path).unlink(missing_ok=True)

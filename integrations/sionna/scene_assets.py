@@ -100,12 +100,15 @@ def _asset_references_and_digest(
                     directive = tokens[0].lower()
                     if path.suffix.lower() == ".obj" and directive == "mtllib":
                         references.extend(tokens[1:])
-                    elif path.suffix.lower() == ".mtl" and (
-                        directive.startswith("map_")
-                        or directive in {"bump", "disp", "decal", "norm", "refl"}
+                    elif (
+                        path.suffix.lower() == ".mtl"
+                        and (
+                            directive.startswith("map_")
+                            or directive in {"bump", "disp", "decal", "norm", "refl"}
+                        )
+                        and len(tokens) > 1
                     ):
-                        if len(tokens) > 1:
-                            references.append(tokens[-1])
+                        references.append(tokens[-1])
 
         os.lseek(descriptor, 0, os.SEEK_SET)
         digest = hashlib.sha256()

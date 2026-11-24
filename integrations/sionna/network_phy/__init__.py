@@ -2,8 +2,9 @@
 # ruff: noqa: F401, E402
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any
 
 from .operations import (
     add_independent_receiver_awgn,

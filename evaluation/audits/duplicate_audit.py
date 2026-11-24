@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from numbers import Real
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import numpy as np
 from datasets.independent_splits import IndependentSplit

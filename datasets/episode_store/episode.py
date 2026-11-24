@@ -7,8 +7,9 @@ import os
 import sqlite3
 import stat
 import tempfile
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator, cast
+from typing import Any, cast
 
 import numpy as np
 

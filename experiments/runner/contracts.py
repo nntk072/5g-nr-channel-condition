@@ -7,8 +7,9 @@ import inspect
 import json
 import os
 import stat
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any
 
 import numpy as np
 from artifacts.provenance import (
@@ -631,61 +632,64 @@ def verify_model_input_artifact_contract(
     if _stable_single_link_sha256(model_path) != contract.get("model_sha256"):
         raise ValueError("model bytes do not match the input artifact contract")
     feature_matrix_verified = False
-    if contract_schema in {
-        "loslab.model_input_artifact_contract.v2",
-        "loslab.model_input_artifact_contract.v3",
-        "loslab.model_input_artifact_contract.v4",
-        "loslab.model_input_artifact_contract.v5",
-        "loslab.model_input_artifact_contract.v6",
-        "loslab.model_input_artifact_contract.v7",
-        "loslab.model_input_artifact_contract.v8",
-        "loslab.model_input_artifact_contract.v9",
-        "loslab.model_input_artifact_contract.v10",
-        "loslab.model_input_artifact_contract.v11",
-        "loslab.model_input_artifact_contract.v12",
-        "loslab.model_input_artifact_contract.v13",
-    }:
-        if method_input is not None:
-            matrix = feature["feature_matrix"]
+    if (
+        contract_schema
+        in {
+            "loslab.model_input_artifact_contract.v2",
+            "loslab.model_input_artifact_contract.v3",
+            "loslab.model_input_artifact_contract.v4",
+            "loslab.model_input_artifact_contract.v5",
+            "loslab.model_input_artifact_contract.v6",
+            "loslab.model_input_artifact_contract.v7",
+            "loslab.model_input_artifact_contract.v8",
+            "loslab.model_input_artifact_contract.v9",
+            "loslab.model_input_artifact_contract.v10",
+            "loslab.model_input_artifact_contract.v11",
+            "loslab.model_input_artifact_contract.v12",
+            "loslab.model_input_artifact_contract.v13",
+        }
+        and method_input is not None
+    ):
+        matrix = feature["feature_matrix"]
+        if (
+            not isinstance(method_input, np.ndarray)
+            or method_input.shape[0] != matrix["sample_count"]
+            or list(method_input.shape[1:]) != matrix["shape_per_sample"]
+            or method_input.dtype.str != matrix["dtype"]
+            or _array_sha256(method_input) != matrix["sha256"]
+        ):
+            raise ValueError("model feature matrix differs from its frozen contract")
+        if (
+            partition_indices is None
+            or not {"train", "validation", "test"} <= set(partition_indices)
+            or set(partition_indices) - {"train", "validation", "test", "calibration"}
+        ):
+            raise ValueError("model feature matrix verification requires all split indices")
+        index_arrays = tuple(partition_indices.values())
+        if any(
+            not isinstance(indices, np.ndarray) or indices.ndim != 1 for indices in index_arrays
+        ):
+            raise ValueError("model feature matrix verification indices are malformed")
+        all_indices = np.concatenate(index_arrays)
+        if len(np.unique(all_indices)) != len(all_indices):
+            raise ValueError("model feature matrix verification partitions overlap")
+        for name, indices in partition_indices.items():
             if (
-                not isinstance(method_input, np.ndarray)
-                or method_input.shape[0] != matrix["sample_count"]
-                or list(method_input.shape[1:]) != matrix["shape_per_sample"]
-                or method_input.dtype.str != matrix["dtype"]
-                or _array_sha256(method_input) != matrix["sha256"]
+                not isinstance(indices, np.ndarray)
+                or indices.ndim != 1
+                or not np.issubdtype(indices.dtype, np.integer)
+                or np.issubdtype(indices.dtype, np.bool_)
+                or np.any(indices < 0)
+                or np.any(indices >= len(method_input))
             ):
-                raise ValueError("model feature matrix differs from its frozen contract")
+                raise ValueError(f"{name} feature matrix verification indices are invalid")
+            expected = feature["partition_feature_matrices"][name]
             if (
-                partition_indices is None
-                or not {"train", "validation", "test"} <= set(partition_indices)
-                or set(partition_indices) - {"train", "validation", "test", "calibration"}
+                len(indices) != expected["sample_count"]
+                or _array_sha256(method_input[indices]) != expected["sha256"]
             ):
-                raise ValueError("model feature matrix verification requires all split indices")
-            index_arrays = tuple(partition_indices.values())
-            if any(
-                not isinstance(indices, np.ndarray) or indices.ndim != 1 for indices in index_arrays
-            ):
-                raise ValueError("model feature matrix verification indices are malformed")
-            all_indices = np.concatenate(index_arrays)
-            if len(np.unique(all_indices)) != len(all_indices):
-                raise ValueError("model feature matrix verification partitions overlap")
-            for name, indices in partition_indices.items():
-                if (
-                    not isinstance(indices, np.ndarray)
-                    or indices.ndim != 1
-                    or not np.issubdtype(indices.dtype, np.integer)
-                    or np.issubdtype(indices.dtype, np.bool_)
-                    or np.any(indices < 0)
-                    or np.any(indices >= len(method_input))
-                ):
-                    raise ValueError(f"{name} feature matrix verification indices are invalid")
-                expected = feature["partition_feature_matrices"][name]
-                if (
-                    len(indices) != expected["sample_count"]
-                    or _array_sha256(method_input[indices]) != expected["sha256"]
-                ):
-                    raise ValueError(f"{name} feature matrix differs from its frozen contract")
-            feature_matrix_verified = True
+                raise ValueError(f"{name} feature matrix differs from its frozen contract")
+        feature_matrix_verified = True
     if contract_schema == "loslab.model_input_artifact_contract.v5":
         if method != "label_permuted" or target_values is None:
             raise ValueError("label-permuted contract verification requires its target values")

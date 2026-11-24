@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError
 from numbers import Real
-from typing import Any, Sequence
+from typing import Any
 
 from datasets.standardized_specs import (
     FIXED_TDL_DOPPLER_CASES,

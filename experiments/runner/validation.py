@@ -6,8 +6,9 @@ import hashlib
 import inspect
 import json
 import os
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node

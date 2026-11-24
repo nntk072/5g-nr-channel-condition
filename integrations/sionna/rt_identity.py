@@ -8,8 +8,9 @@ import os
 import platform
 import re
 import subprocess
+from collections.abc import Mapping
 from pathlib import PurePosixPath
-from typing import Any, Mapping
+from typing import Any
 
 from artifacts.provenance import canonical_hash
 from datasets.provenance import UMCDRunProvenance

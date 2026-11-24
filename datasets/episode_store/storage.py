@@ -9,10 +9,11 @@ import os
 import stat
 import tempfile
 import zipfile
+from collections.abc import Iterator
 from dataclasses import asdict, dataclass
 from functools import lru_cache
 from pathlib import Path, PurePosixPath
-from typing import TYPE_CHECKING, Any, Iterator, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import jsonschema
 import numpy as np
@@ -354,14 +355,14 @@ def _publish_immutable(path: Path, payload: bytes) -> None:
             temp_path = stream.name
         try:
             os.link(temp_path, path)
-        except FileExistsError:
+        except FileExistsError as err:
             existing = _stable_file_bytes(
                 path, label="existing immutable episode object", max_bytes=len(payload)
             )
             if existing != payload:
                 raise FileExistsError(
                     "immutable episode object path already contains different bytes"
-                )
+                ) from err
         _fsync_directory(path.parent)
     finally:
         if temp_path is not None:

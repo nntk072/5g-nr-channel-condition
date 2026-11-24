@@ -230,7 +230,7 @@ def test_cluster_binary_error_interval_resamples_whole_groups_deterministically(
     assert result == replicated
     assert result["error_rate"] == pytest.approx(0.5)
     assert result["independent_groups"] == 3
-    assert 0.0 <= result["cluster_bootstrap_ci95"][0]
+    assert result["cluster_bootstrap_ci95"][0] >= 0.0
     assert result["cluster_bootstrap_ci95"][0] < result["cluster_bootstrap_ci95"][1] <= 1.0
     assert result["status"] == "estimated"
 

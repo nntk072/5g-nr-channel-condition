@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import cmath
 import math
+from collections.abc import Sequence
 from functools import lru_cache
 from pathlib import Path
-from typing import Sequence
 
 from evaluation.covariance.cdl.joint_tx_rx import (
     cdl_joint_tx_rx_spatiotemporal_covariance_reference,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import tempfile
@@ -41,10 +42,8 @@ def _write_json_atomic(path: Path, value: Mapping[str, Any]) -> None:
             os.fsync(stream.fileno())
         os.replace(temporary_name, path)
     except BaseException:
-        try:
+        with contextlib.suppress(FileNotFoundError):
             os.unlink(temporary_name)
-        except FileNotFoundError:
-            pass
         raise
 
 

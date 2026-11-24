@@ -8,8 +8,9 @@ import json
 import os
 import stat
 import zipfile
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import numpy as np
 from datasets.channel import ChannelDataset

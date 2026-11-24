@@ -5,10 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from artifacts.provenance import package_source_sha256, versions
@@ -81,7 +82,7 @@ def generate_raytraced(
     direct-only LOS. NLOS must contain at least one observable indirect path.
     """
     execution_started_at = (
-        datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
+        datetime.now(UTC).isoformat(timespec="microseconds").replace("+00:00", "Z")
     )
     command_argv = tuple(sys.argv)
     python_executable = sys.executable

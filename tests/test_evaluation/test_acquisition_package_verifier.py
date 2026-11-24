@@ -233,7 +233,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
     package["evaluator_binding"]["reported_prediction_input_sha256"] = hashlib.sha256(
         input_bytes
     ).hexdigest()
-    for file_id, entry in files.items():
+    for file_id, _entry in files.items():
         if file_id not in {
             split_file_id,
             scorer_file_id,

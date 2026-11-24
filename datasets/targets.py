@@ -729,11 +729,10 @@ class TargetValue:
             self.definition.definition_version in _CANONICAL_FIXED_SINGLETON_SCALAR_TARGET_VERSIONS
             and scalar_contract is not None
             and scalar_contract[3] == "binary_scalar"
-        ):
-            if values.shape != (1,):
-                raise ValueError(
-                    "canonical scalar categorical targets must use the fixed (1,) storage shape"
-                )
+        ) and values.shape != (1,):
+            raise ValueError(
+                "canonical scalar categorical targets must use the fixed (1,) storage shape"
+            )
         if self.definition.value_axes and len(self.definition.value_axes) != values.ndim:
             raise ValueError("target value rank must match its declared value axes")
         object.__setattr__(self, "values", values)

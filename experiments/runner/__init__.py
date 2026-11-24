@@ -10,9 +10,10 @@ import platform
 import stat
 import sys
 import zipfile
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any
 
 import numpy as np
 from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node

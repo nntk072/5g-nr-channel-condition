@@ -5,10 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from importlib.metadata import PackageNotFoundError
 from numbers import Real
-from typing import Any, Sequence
+from typing import Any
 
 from datasets.standardized_specs import (
     cdl_parameter_table_binding_sha256,

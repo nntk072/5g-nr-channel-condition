@@ -199,7 +199,7 @@ def plan_receiver_impact_bootstrap_assurance(
     candidate_reports: list[dict[str, Any]] = []
     for cluster_count in candidates:
         per_stratum_successes = dict.fromkeys(sorted(expected_strata), 0)
-        for study_index in range(assurance_replicates):
+        for _study_index in range(assurance_replicates):
             records: list[dict[str, Any]] = []
             for stratum in sorted(expected_strata):
                 atoms, probabilities = scenarios[stratum]

@@ -9,9 +9,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
-from typing import Sequence
 
 import jsonschema
 from datasets.counterfactual import remove_direct_path_component

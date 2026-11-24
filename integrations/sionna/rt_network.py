@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence, cast
+from typing import Any, cast
 
 import numpy as np
 from artifacts.provenance import atomic_json, canonical_hash
@@ -1158,10 +1159,12 @@ def run_authorized_static_network_episode(
     receipt_path = Path(store_root) / "reports" / "network-rt" / f"{stored.bundle_sha256}.json"
     try:
         atomic_json(receipt_path, receipt, overwrite=False)
-    except FileExistsError:
+    except FileExistsError as err:
         existing = json.loads(receipt_path.read_text(encoding="utf-8"))
         if existing != receipt:
-            raise ValueError("immutable network RT receipt already exists with different content")
+            raise ValueError(
+                "immutable network RT receipt already exists with different content"
+            ) from err
     return StaticNetworkRTGenerationResult(
         status=outcome_status,
         candidate_path_counts_per_source=candidate_counts,

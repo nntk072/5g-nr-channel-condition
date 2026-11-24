@@ -5,9 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Iterator
 from pathlib import Path
 from statistics import NormalDist
-from typing import Any, Iterator
+from typing import Any
 
 import pytest
 

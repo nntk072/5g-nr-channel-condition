@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import math
+from collections.abc import Mapping, Sequence
 from copy import copy
 from dataclasses import asdict, dataclass, replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Protocol, Sequence, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import numpy as np
 from artifacts.provenance import canonical_hash, package_source_sha256, versions
@@ -168,7 +170,8 @@ def generate_standardized(
                     a, tau = call_with_sionna_seed(
                         device,
                         channel_seed,
-                        lambda: cm(
+                        functools.partial(
+                            cm,
                             batch_size=count,
                             num_time_steps=1,
                             sampling_frequency=grid.spacing_hz,
@@ -541,7 +544,7 @@ def _attach_rt_execution_provenance(
             _RT_EXECUTION_PROVENANCE_SCHEMA_PATH.read_bytes()
         ).hexdigest(),
         "started_at_utc": started_at_utc,
-        "completed_at_utc": datetime.now(timezone.utc)
+        "completed_at_utc": datetime.now(UTC)
         .isoformat(timespec="microseconds")
         .replace("+00:00", "Z"),
         "python_executable": python_executable,

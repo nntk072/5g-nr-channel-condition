@@ -13,8 +13,9 @@ import json
 import os
 import re
 import stat
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 _APPROVAL_SCHEMA = "loslab.d1_qualification_approval.v1"
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")

@@ -56,7 +56,7 @@ class ChannelDataset:
     generation_report: dict = field(default_factory=dict)  # dataset-level QA/provenance
     label_semantics: str = "unspecified_legacy"
 
-    def with_split_child_binding(self, child_id: str, child_kind: str) -> "ChannelDataset":
+    def with_split_child_binding(self, child_id: str, child_kind: str) -> ChannelDataset:
         """Return a child artifact whose every row carries one frozen child identity.
 
         All rows must already identify the same ``split_subject_id`` parent.
@@ -155,7 +155,7 @@ class ChannelDataset:
             raise ValueError("label_semantics disagrees with generation_report")
         object.__setattr__(self, "generation_report", report)
 
-    def select(self, indices: np.ndarray) -> "ChannelDataset":
+    def select(self, indices: np.ndarray) -> ChannelDataset:
         ii = np.asarray(indices, dtype=np.int64)
         return ChannelDataset(
             self.h[ii],
@@ -175,7 +175,7 @@ class ChannelDataset:
         )
 
     @classmethod
-    def concatenate(cls, datasets: list["ChannelDataset"]) -> "ChannelDataset":
+    def concatenate(cls, datasets: list[ChannelDataset]) -> ChannelDataset:
         if not datasets:
             raise ValueError("No datasets")
         shapes = {(d.h.shape[1], d.h.shape[2]) for d in datasets}
@@ -227,11 +227,11 @@ class ChannelDataset:
                 os.unlink(tmp)
 
     @classmethod
-    def load(cls, path: str | Path) -> "ChannelDataset":
+    def load(cls, path: str | Path) -> ChannelDataset:
         return cls.load_bytes(Path(path).read_bytes())
 
     @classmethod
-    def load_bytes(cls, payload: bytes) -> "ChannelDataset":
+    def load_bytes(cls, payload: bytes) -> ChannelDataset:
         """Parse exactly the immutable byte sequence used for provenance hashing."""
         with np.load(io.BytesIO(payload), allow_pickle=False) as z:
             metadata = tuple(json.loads(str(z["metadata_json"].item())))

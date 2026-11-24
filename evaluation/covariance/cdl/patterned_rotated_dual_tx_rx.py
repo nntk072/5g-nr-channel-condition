@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import cmath
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 from evaluation.covariance.cdl.rotated_dual_tx_rx import (
     _C0_MPS,

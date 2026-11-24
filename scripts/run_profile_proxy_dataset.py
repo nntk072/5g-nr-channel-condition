@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import argparse
 import math
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 from artifacts.provenance import atomic_json, package_source_sha256, sha256_file, versions

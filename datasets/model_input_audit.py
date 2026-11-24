@@ -190,7 +190,7 @@ def audit_model_input_payload(value: Any) -> Any:
         )
 
     if identity == ("datasets.nr", "NRModelInputs"):
-        config = getattr(value, "receiver_config")
+        config = value.receiver_config
         config_identity = (type(config).__module__, type(config).__qualname__)
         if config_identity != ("receivers.nr.pusch", "NRPUSCHConfig") or not (
             _is_registered_class(config, *config_identity)

@@ -405,11 +405,14 @@ def verify_acquisition_package(
                 )
             sample_file_ids = record.get("file_ids", [])
             calibration_run_file_ids = calibration.get("run_file_ids", [])
-            if isinstance(sample_file_ids, list) and isinstance(calibration_run_file_ids, list):
-                if not set(calibration_run_file_ids).issubset(set(sample_file_ids)):
-                    errors.append(
-                        f"sample {record['sample_id']} does not reference all calibration run evidence files"
-                    )
+            if (
+                isinstance(sample_file_ids, list)
+                and isinstance(calibration_run_file_ids, list)
+                and not set(calibration_run_file_ids).issubset(set(sample_file_ids))
+            ):
+                errors.append(
+                    f"sample {record['sample_id']} does not reference all calibration run evidence files"
+                )
         if package.get("schema_version") in V03_PLUS_SCHEMA_VERSIONS:
             campaign_id = record.get("campaign_id")
             instrument_id = record.get("instrument_id")

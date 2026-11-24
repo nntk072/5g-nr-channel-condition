@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from numbers import Real
-from typing import Sequence
 
 
 def rt_spatial_split_subject_id(

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import math
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from artifacts.provenance import package_source_sha256, versions
 from evaluation.scoring.statistics import (

@@ -6,10 +6,11 @@ import hashlib
 import json
 import os
 import tempfile
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from datasets.independent_splits import make_independent_split
 
@@ -260,9 +261,11 @@ def freeze_episode_split_registry(path: str | Path, registry: EpisodeSplitRegist
             temp_path = stream.name
         try:
             os.link(temp_path, destination)
-        except FileExistsError:
+        except FileExistsError as err:
             if destination.read_bytes() != encoded:
-                raise FileExistsError(f"refusing to modify existing split registry: {destination}")
+                raise FileExistsError(
+                    f"refusing to modify existing split registry: {destination}"
+                ) from err
     finally:
         if temp_path is not None:
             Path(temp_path).unlink(missing_ok=True)

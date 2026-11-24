@@ -621,9 +621,7 @@ def verify_qualification_run_contract(contract: Mapping[str, Any]) -> dict[str, 
         "source_identity",
         "finite_solver_caps_are_ground_truth",
     }
-    if schema == SCHEMA_V3:
-        expected_fields |= {"sample_size_design", "sample_size_design_sha256"}
-    elif schema == SCHEMA_V4:
+    if schema in (SCHEMA_V3, SCHEMA_V4):
         expected_fields |= {"sample_size_design", "sample_size_design_sha256"}
     if set(saved) != expected_fields:
         raise ValueError("G3 qualification contract fields differ from its frozen schema")

@@ -132,11 +132,11 @@ class PhysicalChannelView:
         ):
             raise ValueError("phase_gauge_id must be null or a non-empty canonical string")
         recipe = self.normalization_recipe
-        if self.power_scale is ChannelPowerScale.NORMALIZED or (
-            self.delay_reference is ChannelDelayReference.RELATIVE
-        ):
-            if not isinstance(recipe, str) or not recipe.strip():
-                raise ValueError("normalized channels require an explicit normalization_recipe")
+        if (
+            self.power_scale is ChannelPowerScale.NORMALIZED
+            or (self.delay_reference is ChannelDelayReference.RELATIVE)
+        ) and (not isinstance(recipe, str) or not recipe.strip()):
+            raise ValueError("normalized channels require an explicit normalization_recipe")
         if tuple(self.axes) != ("frame", "rx_port", "tx_port", "subcarrier"):
             raise ValueError("channel axes must use the canonical named-axis order")
         values.setflags(write=False)

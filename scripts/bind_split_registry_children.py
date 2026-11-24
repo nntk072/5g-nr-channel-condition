@@ -10,9 +10,10 @@ import shutil
 import stat
 import sys
 import tempfile
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import jsonschema
 from artifacts.provenance import atomic_json, package_source_sha256, versions
@@ -134,7 +135,7 @@ def bind_registry_children(
         "schema": "umcd.split_registry_child_binding_report.v1",
         "status": "CANDIDATE_NOT_EXTERNALLY_REVIEWED",
         "qualification_status": "NOT_QUALIFIED",
-        "created_utc": datetime.now(timezone.utc).isoformat(),
+        "created_utc": datetime.now(UTC).isoformat(),
         "parent_registry_path": str(registry_path),
         "parent_registry_sha256": hashlib.sha256(registry_bytes).hexdigest(),
         "policy_sha256": registry.policy.to_dict()["policy_sha256"],

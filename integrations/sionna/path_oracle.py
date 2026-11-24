@@ -6,7 +6,8 @@ selected explicitly, while output antenna indices are link-local array ports.
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 from datasets.path_oracle import PathOracleTable, PathSolveStatus
@@ -249,7 +250,7 @@ def sionna_paths_to_oracle_table(
             flat_doppler.append(path_doppler)
             flat_aoa.append(aoa)
             flat_aod.append(aod)
-            valid_interactions = path_interactions.T != int(InteractionType.NONE)
+            valid_interactions = int(InteractionType.NONE) != path_interactions.T
             per_path_interactions = np.count_nonzero(valid_interactions, axis=1)
             interaction_offsets.extend(
                 (np.cumsum(per_path_interactions) + interaction_offsets[-1]).tolist()

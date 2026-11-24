@@ -136,7 +136,9 @@ def fit_sparse_multipath(
         initial_steering = np.exp(-2j * np.pi * f[:, None] * initial_delays[None, :])
         initial_gains = np.linalg.lstsq(initial_steering, measured, rcond=None)[0]
 
-        def residual_vector(parameters: NDArray[np.float64]) -> NDArray[np.float64]:
+        def residual_vector(
+            parameters: NDArray[np.float64], order: int = order
+        ) -> NDArray[np.float64]:
             path_delays = parameters[:order]
             path_gains = parameters[order : 2 * order] + 1j * parameters[2 * order :]
             error = measured - _render(f, path_delays, path_gains)

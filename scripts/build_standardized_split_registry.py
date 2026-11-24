@@ -10,9 +10,10 @@ import shutil
 import stat
 import sys
 import tempfile
-from datetime import datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
-from typing import Any, Sequence
+from typing import Any
 
 import jsonschema
 from artifacts.provenance import atomic_json, package_source_sha256, versions
@@ -159,7 +160,7 @@ def build_standardized_split_registry(
     standardized_runs = [run for run, _ in loaded]
     registry, lineage = make_standardized_run_split_registry(standardized_runs, policy=policy)
     registry_bytes = (json.dumps(registry.to_dict(), indent=2, sort_keys=True) + "\n").encode()
-    created_utc = datetime.now(timezone.utc).isoformat()
+    created_utc = datetime.now(UTC).isoformat()
     runtime_versions = versions()
     source_module_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     report = {

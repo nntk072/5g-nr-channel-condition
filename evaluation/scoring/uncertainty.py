@@ -22,12 +22,14 @@ def _real_vector(value: Sequence[float] | np.ndarray, *, name: str) -> np.ndarra
     raw = np.asarray(value)
     if raw.ndim != 1 or not raw.size:
         raise ValueError(f"{name} must be a nonempty one-dimensional real vector")
-    if raw.dtype.kind not in "iuf":
-        if raw.dtype.kind != "O" or any(
+    if raw.dtype.kind not in "iuf" and (
+        raw.dtype.kind != "O"
+        or any(
             isinstance(item, (bool, np.bool_)) or not isinstance(item, Real)
             for item in raw.tolist()
-        ):
-            raise TypeError(f"{name} must contain real numeric values")
+        )
+    ):
+        raise TypeError(f"{name} must contain real numeric values")
     try:
         result = np.asarray(raw, dtype=np.float64)
     except (TypeError, ValueError, OverflowError) as error:

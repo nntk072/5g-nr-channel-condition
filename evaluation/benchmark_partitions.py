@@ -9,7 +9,8 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import defaultdict
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from datasets.channel import ChannelDataset
 from datasets.split_policy import LeakageNamespace, SplitPolicyRegistry

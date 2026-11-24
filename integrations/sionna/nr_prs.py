@@ -8,9 +8,10 @@ configuration; it does not decode RRC or implement PRS occasion scheduling.
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from numbers import Real
-from typing import Mapping, Sequence, cast
+from typing import cast
 
 import numpy as np
 from numpy.typing import NDArray

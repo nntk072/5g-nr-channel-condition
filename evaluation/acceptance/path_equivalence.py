@@ -300,7 +300,9 @@ def build_path_equivalence_classes(
             ):
                 raise ValueError("aggregate path-class coefficient must be finite")
 
-            def weighted_direction(field: str) -> NDArray[np.float64]:
+            def weighted_direction(
+                field: str, members: list[dict[str, Any]] = members, weights: Any = weights
+            ) -> NDArray[np.float64]:
                 vector = np.average(
                     np.stack([member[field] for member in members]), axis=0, weights=weights
                 )

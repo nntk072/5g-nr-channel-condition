@@ -31,9 +31,9 @@ def _publish_immutable_json(path: Path, value: dict[str, Any]) -> None:
             os.fsync(stream.fileno())
         try:
             os.link(temporary, path)
-        except FileExistsError:
+        except FileExistsError as err:
             if path.read_bytes() != payload:
-                raise ValueError(f"refusing to replace an immutable build report: {path}")
+                raise ValueError(f"refusing to replace an immutable build report: {path}") from err
     finally:
         temporary.unlink(missing_ok=True)
 

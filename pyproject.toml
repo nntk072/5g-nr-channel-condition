@@ -43,8 +43,6 @@ url = "https://download.pytorch.org/whl/cu126"
 explicit = true
 
 [project.scripts]
-loslab-audit-channel-population = "scripts.audit_channel_population:main"
-loslab-audit-odbl-scene-source = "scripts.audit_odbl_scene_source_snapshot:main"
 loslab-pilot = "experiments.pilot_cli:main"
 loslab-runtime-inventory = "integrations.runtime_inventory:main"
 loslab-report-standardized-capabilities = "scripts.report_standardized_capabilities:main"
@@ -53,9 +51,7 @@ loslab-bind-split-registry-children = "scripts.bind_split_registry_children:main
 loslab-pair-stored-frequency-views = "scripts.pair_stored_frequency_views:main"
 loslab-materialize-direct-path-ablation = "scripts.materialize_direct_path_ablation:main"
 loslab-materialize-benchmark-partitions = "scripts.materialize_benchmark_partitions:main"
-loslab-build-result-promotion-manifest = "scripts.build_result_promotion_manifest:main"
-loslab-g3-joint-evidence = "evaluation.joint_evidence_artifact:main"
-loslab-verify-g3-run-report-signature = "scripts.verify_run_report_signature:main"
+loslab-joint-evidence-artifact = "evaluation.joint_evidence_artifact:main"
 loslab-export-public-release = "scripts.export_public_release:main"
 
 [tool.setuptools.packages.find]
@@ -104,7 +100,11 @@ target-version = "py311"
 src = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "scripts"]
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I", "D2", "D3", "D4"]
+select = ["E4", "E7", "E9", "F", "I", "D2", "D3", "D4", "B", "UP", "SIM"]
+# B008: immutable configuration objects used as defaults are deliberate.
+# B009: getattr on duck-typed simulator objects is deliberate (typed attribute access breaks mypy).
+# B905: zip(strict=...) changes behaviour on length mismatch; reviewed per call site.
+ignore = ["B008", "B009", "B905"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
