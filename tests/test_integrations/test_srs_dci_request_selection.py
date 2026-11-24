@@ -988,6 +988,54 @@ def test_srs_multicell_request_list_rejects_invalid_decoded_rosters(
 
 
 @pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"request_list_index": True}, TypeError, "request_list_index must be an integer"),
+        ({"request_list": "bad"}, TypeError, "request_list must be a sequence"),
+        ({"request_list": ()}, ValueError, "at least one configured entry"),
+        ({"request_list_index": 1}, ValueError, "does not select a configured entry"),
+        ({"serving_cell_ids": "cell-a"}, TypeError, "serving_cell_ids must be an ordered sequence"),
+        ({"serving_cell_ids": ()}, ValueError, "nonempty cell identifiers"),
+        ({"serving_cell_ids": ("cell-a", "cell-a")}, ValueError, "must be unique"),
+        (
+            {"scheduled_cell_ids": "cell-a"},
+            TypeError,
+            "scheduled_cell_ids must be an ordered sequence",
+        ),
+        ({"scheduled_cell_ids": ()}, ValueError, "nonempty cell IDs"),
+        ({"scheduled_cell_ids": ("unknown",)}, ValueError, "unique subset of serving_cell_ids"),
+        ({"scheduled_cell_ids": ("cell-b", "cell-a")}, ValueError, "follow serving-cell order"),
+        ({"resource_sets_by_cell": "bad"}, TypeError, "resource_sets_by_cell must be a mapping"),
+        ({"supplementary_uplink_cells": "cell-a"}, TypeError, "must be a sequence"),
+        ({"supplementary_uplink_cells": (1,)}, TypeError, "entries must be strings"),
+        (
+            {"supplementary_uplink_cells": ("cell-a", "cell-a")},
+            ValueError,
+            "unique scheduled cell IDs",
+        ),
+        ({"supplementary_uplink_cells": ("unknown",)}, ValueError, "unique scheduled cell IDs"),
+        (
+            {"request_list": ("bad",)},
+            TypeError,
+            "selected request-list entry must be a per-cell sequence",
+        ),
+    ],
+)
+def test_srs_multicell_request_list_rejects_invalid_selector_inputs(
+    changes, error, message
+) -> None:
+    arguments = {
+        "request_list_index": 0,
+        "request_list": ((0, 0),),
+        "serving_cell_ids": ("cell-a", "cell-b"),
+        "resource_sets_by_cell": {"cell-a": (), "cell-b": ()},
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        nr_srs_multicell_request_resource_set_ids(**arguments)
+
+
+@pytest.mark.parametrize(
     ("kwargs", "error", "message"),
     [
         ({"dci_format": "0_3"}, ValueError, "unsupported DCI format"),
