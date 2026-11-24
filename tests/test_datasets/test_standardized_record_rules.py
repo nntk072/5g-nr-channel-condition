@@ -59,11 +59,27 @@ def test_valid_record_is_accepted_and_frozen() -> None:
 @pytest.mark.parametrize(
     ("overrides", "error", "message"),
     [
-        pytest.param({"sample_id": "  "}, ValueError, "sample_id must be a non-empty string", id="blank-sample"),
-        pytest.param({"run_id": 3}, ValueError, "run_id must be a non-empty string", id="run-not-string"),
-        pytest.param({"sample_index": True}, TypeError, "sample_index must be an integer", id="bool-index"),
-        pytest.param({"sample_index": -1}, ValueError, "sample_index must be nonnegative", id="negative-index"),
-        pytest.param({"family": "tdl"}, TypeError, "family must use StandardizedFamily", id="family-string"),
+        pytest.param(
+            {"sample_id": "  "},
+            ValueError,
+            "sample_id must be a non-empty string",
+            id="blank-sample",
+        ),
+        pytest.param(
+            {"run_id": 3}, ValueError, "run_id must be a non-empty string", id="run-not-string"
+        ),
+        pytest.param(
+            {"sample_index": True}, TypeError, "sample_index must be an integer", id="bool-index"
+        ),
+        pytest.param(
+            {"sample_index": -1},
+            ValueError,
+            "sample_index must be nonnegative",
+            id="negative-index",
+        ),
+        pytest.param(
+            {"family": "tdl"}, TypeError, "family must use StandardizedFamily", id="family-string"
+        ),
         pytest.param(
             {"family": StandardizedFamily.CDL, "profile_model": "Z"},
             ValueError,
@@ -259,7 +275,9 @@ def test_admission_rejects_missing_grid_and_fixed_profile_bandwidth() -> None:
     channel = _channel()
     metadata = copy.deepcopy(channel.metadata)
     metadata["subcarrier_spacing_hz"] = None
-    with pytest.raises(ValueError, match="subcarrier grid and sampled bandwidth metadata are required"):
+    with pytest.raises(
+        ValueError, match="subcarrier grid and sampled bandwidth metadata are required"
+    ):
         validate_standardized_channel_admission(
             StandardizedFamily.TDL, "A", channel.h_path[0], metadata
         )
@@ -283,7 +301,9 @@ def test_adapter_metadata_must_identify_profile_and_match_arrays() -> None:
     from datasets.standardized import standardized_run_from_channel
 
     channel = _channel()
-    stub = SimpleNamespace(**{**vars(channel), "metadata": {**channel.metadata, "profile_model": None}})
+    stub = SimpleNamespace(
+        **{**vars(channel), "metadata": {**channel.metadata, "profile_model": None}}
+    )
     with pytest.raises(ValueError, match="must identify its standardized profile model"):
         standardized_run_from_channel(stub, family=StandardizedFamily.TDL)
 
@@ -295,3 +315,63 @@ def test_adapter_metadata_must_identify_profile_and_match_arrays() -> None:
     )
     with pytest.raises(ValueError, match="adapter batch metadata and CFR array disagree"):
         standardized_run_from_channel(stub, family=StandardizedFamily.TDL)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        pytest.param(
+            {"h_path": np.ones((1, 1, 1, 1, 2, 2), dtype=np.float64)},
+            "must be complex-valued",
+            id="real-h-path",
+        ),
+        pytest.param(
+            {"tau_s": np.zeros((1, 1, 2), dtype=np.complex128)},
+            "must be real-valued",
+            id="complex-delays",
+        ),
+        pytest.param(
+            {"h_path": np.full((1, 1, 1, 1, 2, 2), np.nan, dtype=np.complex128)},
+            "must contain only finite values",
+            id="non-finite-h-path",
+        ),
+    ],
+)
+def test_record_arrays_must_have_the_declared_kind(overrides, message: str) -> None:
+    error = ValueError if "finite" in message else TypeError
+    with pytest.raises(error, match=message):
+        _record(**overrides)
+
+
+def test_zero_power_channel_has_no_relative_snr_noise() -> None:
+    from datasets.standardized import standardized_learning_example_from_record
+
+    zero = _record(
+        h_path=np.zeros((1, 1, 1, 1, 2, 2), dtype=np.complex128),
+        cfr=np.zeros((1, 1, 1, 1, 2, 8), dtype=np.complex128),
+    )
+    with pytest.raises(ValueError, match="zero-power channel"):
+        standardized_learning_example_from_record(zero, snr_db=10.0, seed=1)
+
+
+def test_fixed_profile_accepts_bandwidth_above_the_threshold() -> None:
+    from tests.test_datasets.test_standardized import _metadata
+
+    metadata = _metadata(model="A10", carrier_hz=30e9)
+    metadata["fixed_profile_spec_version"] = "19.2.2"
+    metadata["channel_bandwidth_hz"] = 300e6
+    validate_standardized_channel_admission(
+        StandardizedFamily.TDL, "A10", _channel(model="A10", carrier_hz=30e9).h_path[0], metadata
+    )
+
+
+def test_tdl_parameter_table_source_must_name_the_profile_table() -> None:
+    from tests.test_datasets.test_standardized import _metadata
+
+    metadata = _metadata(model="A")
+    metadata["profile_parameter_table_source"] = "TR 38.901:19.2:TDL-B.json"
+    metadata["profile_parameter_table_sha256"] = "a" * 64
+    with pytest.raises(ValueError, match="parameter table source identity or digest is invalid"):
+        validate_standardized_channel_admission(
+            StandardizedFamily.TDL, "A", _channel().h_path[0], metadata
+        )

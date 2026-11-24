@@ -6,9 +6,8 @@ import dataclasses
 
 import numpy as np
 import pytest
-
-from datasets.nr import NRChannelRecord, NRObservation, TargetDefinition
-from receivers.nr import NRChannelEstimate, NRPUSCHConfig
+from datasets.nr import NRChannelRecord, TargetDefinition
+from receivers.nr import NRChannelEstimate
 from tests.test_datasets.test_nr_observation_mask import _observation
 
 
