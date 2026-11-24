@@ -89,6 +89,178 @@ def test_srs_hopped_multiport_mapper_preserves_per_port_symbols_and_offsets() ->
     assert not mapped.mask.flags.writeable
 
 
+def test_hopped_positioning_mapper_applies_per_symbol_transmission_comb_offsets() -> None:
+    allocation = nr_srs_fixed_frequency_allocation(
+        55, transmission_comb=4, b_srs=3, b_hop=0, n_srs=0
+    )
+    mapped = map_nr_srs_hopped_resource(
+        np.ones(allocation.bandwidth.sequence_length, dtype=np.complex128),
+        frequency_allocations=(allocation,),
+        slot_symbol_count=14,
+        subcarrier_count=512,
+        start_position_offset=3,
+        srs_symbol_count=4,
+        positioning_resource=True,
+    )
+
+    assert mapped.positioning_offsets == (0, 2, 1, 3)
+    first_subcarriers = tuple(indices[0] for indices in mapped.subcarrier_indices_by_symbol)
+    assert first_subcarriers == tuple(
+        allocation.start_subcarrier + offset for offset in mapped.positioning_offsets
+    )
+
+
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"positioning_resource": 1}, TypeError, "positioning_resource must be a boolean"),
+        ({"frequency_allocations": ()}, TypeError, "must contain resolved SRS allocation"),
+        ({"frequency_allocations": (None,)}, TypeError, "must contain resolved SRS allocation"),
+        (
+            {
+                "frequency_allocations": (
+                    nr_srs_fixed_frequency_allocation(
+                        55, transmission_comb=4, b_srs=3, b_hop=1, n_srs=0
+                    ),
+                )
+                * 2
+            },
+            ValueError,
+            "one or one-per-symbol",
+        ),
+        ({"slot_symbol_count": 13}, ValueError, "slot_symbol_count must be 12 or 14"),
+        ({"subcarrier_count": 0}, ValueError, "subcarrier_count must be positive"),
+        ({"srs_symbol_count": 3}, ValueError, "unsupported SRS symbol count"),
+        ({"start_position_offset": 2}, ValueError, "start_position_offset must fit"),
+        ({"beta_srs": 0.0}, ValueError, "beta_srs must be a finite positive"),
+        ({"subcarrier_count": 1}, ValueError, "does not fit inside the subcarrier grid"),
+        (
+            {"sequence": np.ones(24, dtype=np.float64)},
+            TypeError,
+            "sequence must be complex-valued",
+        ),
+        (
+            {"sequence": np.ones((1, 1, 24), dtype=np.complex128)},
+            ValueError,
+            "sequence must have shape",
+        ),
+        (
+            {"sequence": np.ones(23, dtype=np.complex128)},
+            ValueError,
+            "sequence length does not match",
+        ),
+        (
+            {"sequence": np.ones((3, 24), dtype=np.complex128)},
+            ValueError,
+            "exactly srs_symbol_count rows",
+        ),
+        (
+            {"sequence": np.full(24, np.nan + 0j, dtype=np.complex128)},
+            ValueError,
+            "only finite values",
+        ),
+    ],
+)
+def test_hopped_mapper_rejects_invalid_allocations_geometry_and_sequences(
+    changes, error, message
+) -> None:
+    allocation = nr_srs_fixed_frequency_allocation(
+        55, transmission_comb=4, b_srs=3, b_hop=1, n_srs=0
+    )
+    arguments = {
+        "frequency_allocations": (allocation,),
+        "slot_symbol_count": 14,
+        "subcarrier_count": 1024,
+        "start_position_offset": 3,
+        "srs_symbol_count": 4,
+    }
+    sequence = changes.get(
+        "sequence", np.ones(allocation.bandwidth.sequence_length, dtype=np.complex128)
+    )
+    arguments.update({key: value for key, value in changes.items() if key != "sequence"})
+
+    with pytest.raises(error, match=message):
+        map_nr_srs_hopped_resource(sequence, **arguments)
+
+
+def test_hopped_mapper_rejects_allocations_from_different_resource_configurations() -> None:
+    allocations = (
+        nr_srs_fixed_frequency_allocation(55, transmission_comb=4, b_srs=3, b_hop=1, n_srs=0),
+        nr_srs_fixed_frequency_allocation(
+            55,
+            transmission_comb=4,
+            b_srs=3,
+            b_hop=1,
+            frequency_domain_position=1,
+            n_srs=1,
+        ),
+    )
+    with pytest.raises(ValueError, match="share one SRS configuration"):
+        map_nr_srs_hopped_resource(
+            np.ones(allocations[0].bandwidth.sequence_length, dtype=np.complex128),
+            frequency_allocations=allocations,
+            slot_symbol_count=14,
+            subcarrier_count=1024,
+            start_position_offset=1,
+            srs_symbol_count=2,
+        )
+
+
+@pytest.mark.parametrize(
+    ("sequences", "error", "message"),
+    [
+        (np.ones((2, 2, 24)), TypeError, "complex-valued"),
+        (np.ones((2, 2, 24), dtype=np.complex128)[:, :, :23], ValueError, "sequence length"),
+        (np.ones((2, 1, 24), dtype=np.complex128), ValueError, "exactly srs_symbol_count rows"),
+    ],
+)
+def test_hopped_multiport_mapper_rejects_invalid_port_sequences(
+    sequences: np.ndarray, error: type[Exception], message: str
+) -> None:
+    allocation = nr_srs_fixed_frequency_allocation(
+        55, transmission_comb=4, b_srs=3, b_hop=0, n_srs=0
+    )
+    with pytest.raises(error, match=message):
+        map_nr_srs_hopped_multiport_resource(
+            sequences,
+            frequency_allocations=(allocation,),
+            slot_symbol_count=14,
+            subcarrier_count=512,
+            start_position_offset=1,
+            srs_symbol_count=2,
+        )
+
+
+def test_hopped_multiport_mapper_rejects_wrong_sequence_rank() -> None:
+    allocation = nr_srs_fixed_frequency_allocation(
+        55, transmission_comb=4, b_srs=3, b_hop=0, n_srs=0
+    )
+    with pytest.raises(ValueError, match=r"shape \[ports, SRS symbols, occupied REs\]"):
+        map_nr_srs_hopped_multiport_resource(
+            np.ones((2, allocation.bandwidth.sequence_length), dtype=np.complex128),
+            frequency_allocations=(allocation,),
+            slot_symbol_count=14,
+            subcarrier_count=512,
+            start_position_offset=1,
+            srs_symbol_count=2,
+        )
+
+
+def test_hopped_mapper_rejects_noninteger_grid_geometry() -> None:
+    allocation = nr_srs_fixed_frequency_allocation(
+        55, transmission_comb=4, b_srs=3, b_hop=0, n_srs=0
+    )
+    with pytest.raises(TypeError, match="start_position_offset must be an integer"):
+        map_nr_srs_hopped_resource(
+            np.ones(allocation.bandwidth.sequence_length, dtype=np.complex128),
+            frequency_allocations=(allocation,),
+            slot_symbol_count=14,
+            subcarrier_count=512,
+            start_position_offset=1.5,
+            srs_symbol_count=1,
+        )
+
+
 @pytest.mark.parametrize("transmission_comb", [2, 4, 8])
 def test_srs_type1_bandwidth_table_b_srs_zero_matches_all_64_c_srs_rows(
     transmission_comb,
@@ -1334,3 +1506,132 @@ def test_srs_intercell_overlap_audit_rejects_incomparable_grid_contexts() -> Non
     )
     with pytest.raises(ValueError, match="single common grid"):
         audit_nr_srs_intercell_re_overlap([first, second])
+
+
+def test_srs_intercell_overlap_audit_counts_shared_re_and_cross_cell_pairs() -> None:
+    allocation = nr_srs_fixed_frequency_allocation(0, transmission_comb=2, b_srs=0, b_hop=0)
+    context = {
+        "grid_id": "common-grid",
+        "carrier_hz": 3.5e9,
+        "numerology": 0,
+        "subcarrier_spacing_hz": 15_000.0,
+        "target_slot_index": 8,
+        "slot_symbol_count": 14,
+        "start_symbol_index": 13,
+        "srs_symbol_count": 1,
+        "allocations": (allocation,),
+    }
+    occurrences = (
+        NRSRSScheduledResourceOccurrence(
+            cell_id="cell-a", resource_set_id=0, resource_id=0, **context
+        ),
+        NRSRSScheduledResourceOccurrence(
+            cell_id="cell-a", resource_set_id=0, resource_id=1, **context
+        ),
+        NRSRSScheduledResourceOccurrence(
+            cell_id="cell-b", resource_set_id=2, resource_id=0, **context
+        ),
+    )
+
+    result = audit_nr_srs_intercell_re_overlap(occurrences)
+
+    assert result["status"] == "INTERCELL_RE_OVERLAP_DETECTED"
+    assert result["expanded_resource_element_count"] == 3 * allocation.bandwidth.sequence_length
+    assert result["shared_intercell_resource_element_count"] == allocation.bandwidth.sequence_length
+    assert len(result["collision_coordinates"]) == allocation.bandwidth.sequence_length
+    assert [
+        pair["shared_resource_element_count"] for pair in result["pairwise_resource_overlaps"]
+    ] == [allocation.bandwidth.sequence_length] * 2
+
+    disjoint_allocation = nr_srs_fixed_frequency_allocation(
+        0, transmission_comb=2, b_srs=0, b_hop=0, comb_offset=1
+    )
+    disjoint = NRSRSScheduledResourceOccurrence(
+        cell_id="cell-c",
+        resource_set_id=0,
+        resource_id=0,
+        **{**context, "allocations": (disjoint_allocation,)},
+    )
+    no_overlap = audit_nr_srs_intercell_re_overlap((occurrences[0], disjoint))
+    assert no_overlap["status"] == "NO_INTERCELL_RE_OVERLAP"
+    assert no_overlap["pairwise_resource_overlaps"] == []
+
+
+def test_srs_intercell_overlap_audit_bounds_coordinate_details() -> None:
+    allocation = nr_srs_fixed_frequency_allocation(63, transmission_comb=2, b_srs=0, b_hop=0)
+    context = {
+        "resource_set_id": 0,
+        "grid_id": "common-grid",
+        "carrier_hz": 3.5e9,
+        "numerology": 0,
+        "subcarrier_spacing_hz": 15_000.0,
+        "target_slot_index": 8,
+        "slot_symbol_count": 14,
+        "start_symbol_index": 10,
+        "srs_symbol_count": 4,
+        "allocations": (allocation,),
+    }
+    occurrences = (
+        NRSRSScheduledResourceOccurrence(cell_id="cell-a", resource_id=0, **context),
+        NRSRSScheduledResourceOccurrence(cell_id="cell-b", resource_id=0, **context),
+    )
+
+    result = audit_nr_srs_intercell_re_overlap(occurrences)
+
+    assert result["shared_intercell_resource_element_count"] > 1_000
+    assert len(result["collision_coordinates"]) == 1_000
+
+
+def test_srs_intercell_overlap_audit_rejects_bad_rosters_and_work_limits() -> None:
+    allocation = nr_srs_fixed_frequency_allocation(63, transmission_comb=2, b_srs=0, b_hop=0)
+    base = {
+        "cell_id": "cell-0",
+        "resource_set_id": 0,
+        "resource_id": 0,
+        "grid_id": "common-grid",
+        "carrier_hz": 3.5e9,
+        "numerology": 0,
+        "subcarrier_spacing_hz": 15_000.0,
+        "target_slot_index": 8,
+        "slot_symbol_count": 14,
+        "start_symbol_index": 10,
+        "srs_symbol_count": 4,
+        "allocations": (allocation,),
+    }
+    occurrence = NRSRSScheduledResourceOccurrence(**base)
+    with pytest.raises(ValueError, match="must be a sequence"):
+        audit_nr_srs_intercell_re_overlap("not-a-roster")
+    with pytest.raises(ValueError, match="nonempty sequence"):
+        audit_nr_srs_intercell_re_overlap(())
+    with pytest.raises(ValueError, match="identities must be unique"):
+        audit_nr_srs_intercell_re_overlap((occurrence, occurrence))
+
+    many_cells = tuple(
+        NRSRSScheduledResourceOccurrence(
+            **{**base, "cell_id": f"cell-{index}", "resource_id": index}
+        )
+        for index in range(40)
+    )
+    with pytest.raises(ValueError, match="exceeds its resource-element limit"):
+        audit_nr_srs_intercell_re_overlap(many_cells)
+
+
+def test_scheduled_srs_occurrence_rejects_partial_per_symbol_allocations() -> None:
+    allocation = nr_srs_fixed_frequency_allocation(
+        55, transmission_comb=4, b_srs=3, b_hop=1, n_srs=0
+    )
+    with pytest.raises(ValueError, match="shared or provided once per SRS symbol"):
+        NRSRSScheduledResourceOccurrence(
+            cell_id="cell-a",
+            resource_set_id=0,
+            resource_id=0,
+            grid_id="common-grid",
+            carrier_hz=3.5e9,
+            numerology=0,
+            subcarrier_spacing_hz=15_000.0,
+            target_slot_index=8,
+            slot_symbol_count=14,
+            start_symbol_index=8,
+            srs_symbol_count=4,
+            allocations=(allocation, allocation),
+        )

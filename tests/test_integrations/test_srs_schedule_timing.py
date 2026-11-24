@@ -224,6 +224,56 @@ def test_srs_allocation_resolves_rrc_periodicity_choice() -> None:
     assert tuple(item.n_srs for item in allocations) == (2, 3)
 
 
+def test_srs_allocation_rejects_conflicting_periodicity_sources() -> None:
+    with pytest.raises(ValueError, match="supply resolved periodicity or the RRC CHOICE"):
+        nr_srs_resource_frequency_allocations(
+            9,
+            transmission_comb=4,
+            b_srs=3,
+            b_hop=0,
+            srs_symbol_count=2,
+            repetition_factor=1,
+            resource_type="periodic",
+            frequency_domain_position=3,
+            periodicity_slots=4,
+            periodicity_and_offset={"sl4": 1},
+        )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "error", "message"),
+    [
+        (
+            {
+                "resource_type": "aperiodic",
+                "periodicity_and_offset": {"sl4": 1},
+                "periodicity_slots": None,
+            },
+            ValueError,
+            "aperiodic SRS",
+        ),
+        ({"srs_symbol_count": True}, TypeError, "srs_symbol_count must be an integer"),
+        ({"srs_symbol_count": 3}, ValueError, "srs_symbol_count is unsupported"),
+    ],
+)
+def test_srs_frequency_allocation_rejects_invalid_schedule_inputs(kwargs, error, message) -> None:
+    arguments = {
+        "c_srs": 9,
+        "transmission_comb": 4,
+        "b_srs": 3,
+        "b_hop": 0,
+        "srs_symbol_count": 2,
+        "repetition_factor": 1,
+        "resource_type": "periodic",
+        "frequency_domain_position": 3,
+        "absolute_slot_index": 1,
+        "periodicity_slots": 1,
+    }
+    arguments.update(kwargs)
+    with pytest.raises(error, match=message):
+        nr_srs_resource_frequency_allocations(**arguments)
+
+
 def test_periodic_srs_resource_set_composes_resources_with_individual_occasions() -> None:
     allocation = {
         "c_srs": 9,
@@ -1150,4 +1200,76 @@ def test_srs_automatic_cyclic_shift_hopping_rejects_ambiguous_coordinates() -> N
         nr_srs_resource_sequences_type1(
             **explicit_offsets,
             cyclic_shift_hopping_offsets=(0, 8),
+        )
+
+
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"srs_symbol_count": 3}, ValueError, "unsupported SRS symbol count"),
+        ({"srs_symbol_count": True}, TypeError, "srs_symbol_count must be an integer"),
+        ({"slot_symbol_count": 13}, ValueError, "slot_symbol_count must be 12 or 14"),
+        ({"cyclic_shift_hopping_offsets": [0, 1]}, TypeError, "must be a tuple"),
+        ({"cyclic_shift_hopping_offsets": (0,)}, ValueError, "must match the SRS symbol count"),
+        ({"cyclic_shift_hopping_offsets": (0, True)}, TypeError, "must contain integers"),
+    ],
+)
+def test_srs_resource_sequences_reject_invalid_symbol_and_hopping_inputs(
+    changes, error, message
+) -> None:
+    arguments = {
+        "sequence_length": 24,
+        "srs_symbol_count": 2,
+        "sequence_id": 12,
+        "slot_index": 1,
+        "start_symbol_index": 10,
+        "hopping_mode": "neither",
+        "transmission_comb": 2,
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        nr_srs_resource_sequences_type1(**arguments)
+
+
+def test_srs_resource_sequences_require_identity_for_hopping_coordinates() -> None:
+    with pytest.raises(ValueError, match="coordinates require cyclic_shift_hopping_id"):
+        nr_srs_resource_sequences_type1(
+            24,
+            srs_symbol_count=2,
+            sequence_id=12,
+            slot_index=1,
+            start_symbol_index=10,
+            hopping_mode="neither",
+            transmission_comb=2,
+            radio_frame_index=0,
+            slots_per_frame=20,
+        )
+
+
+def test_srs_resource_sequences_require_boolean_finer_granularity_flag() -> None:
+    with pytest.raises(TypeError, match="hopping_finer_granularity must be a boolean"):
+        nr_srs_resource_sequences_type1(
+            24,
+            srs_symbol_count=2,
+            sequence_id=12,
+            slot_index=1,
+            start_symbol_index=10,
+            hopping_mode="neither",
+            transmission_comb=2,
+            hopping_finer_granularity=1,
+        )
+
+
+def test_srs_scheduled_port_sequences_validate_duplicate_policy_type() -> None:
+    with pytest.raises(TypeError, match="allow_duplicate_cyclic_shifts must be a boolean"):
+        nr_srs_port_sequences_type1(
+            24,
+            cyclic_shift_indices=(0,),
+            srs_symbol_count=1,
+            sequence_id=12,
+            slot_index=0,
+            start_symbol_index=13,
+            hopping_mode="neither",
+            transmission_comb=2,
+            allow_duplicate_cyclic_shifts=1,
         )
