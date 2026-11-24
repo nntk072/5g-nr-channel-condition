@@ -43,6 +43,58 @@ from integrations.sionna.srs.srs_constants.dci_0_3 import (
             "offsets must be in \\[0, 7\\]",
             id="offset-range",
         ),
+        pytest.param(
+            3, {"slot_offset": 0}, ValueError, "configured slot_offset must be in", id="offset-zero"
+        ),
+        pytest.param(
+            3,
+            {"available_slot_offsets": []},
+            ValueError,
+            "must contain one to four values",
+            id="offset-list-empty",
+        ),
+        pytest.param(
+            3,
+            {"available_slot_offsets": [True]},
+            ValueError,
+            "offsets must be integers",
+            id="offset-bool",
+        ),
+        pytest.param(
+            3,
+            {"available_slot_offsets": [1, 1]},
+            ValueError,
+            "offsets must be distinct",
+            id="offset-duplicate",
+        ),
+        pytest.param(
+            3,
+            {"available_slot_offsets": [1, 2]},
+            TypeError,
+            "selected_available_offset_index must be an integer",
+            id="offset-index-missing",
+        ),
+        pytest.param(
+            3,
+            {"available_slot_offsets": [1, 2], "selected_available_offset_index": True},
+            TypeError,
+            "selected_available_offset_index must be an integer",
+            id="offset-index-bool",
+        ),
+        pytest.param(
+            3,
+            {"available_slot_offsets": [1, 2], "selected_available_offset_index": 2},
+            ValueError,
+            "outside the configured list",
+            id="offset-index-range",
+        ),
+        pytest.param(
+            3,
+            {"selected_available_offset_index": 0},
+            ValueError,
+            "requires an available-slot-offset list",
+            id="offset-index-without-list",
+        ),
     ],
 )
 def test_aperiodic_target_slot_rejects_malformed_inputs(slot, kwargs, error, message) -> None:
