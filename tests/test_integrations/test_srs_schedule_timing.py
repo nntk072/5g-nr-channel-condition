@@ -619,6 +619,118 @@ def test_srs_periodic_counter_rejects_offset_outside_period() -> None:
 
 
 @pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        pytest.param(
+            {"resource_type": "invalid"}, ValueError, "resource_type must be", id="resource-type"
+        ),
+        pytest.param(
+            {"srs_symbol_count": True},
+            TypeError,
+            "srs_symbol_count must be an integer",
+            id="symbols-bool",
+        ),
+        pytest.param(
+            {"resource_symbol_index": False},
+            TypeError,
+            "resource_symbol_index must be an integer",
+            id="symbol-index-bool",
+        ),
+        pytest.param(
+            {"srs_symbol_count": 3},
+            ValueError,
+            "srs_symbol_count is unsupported",
+            id="symbols-unsupported",
+        ),
+        pytest.param(
+            {"resource_symbol_index": 2},
+            ValueError,
+            "inside the SRS resource",
+            id="symbol-index-range",
+        ),
+        pytest.param({"ports8_tdm": 1}, TypeError, "ports8_tdm must be a boolean", id="tdm-type"),
+        pytest.param(
+            {"positioning_resource": 1},
+            TypeError,
+            "positioning_resource must be a boolean",
+            id="positioning-type",
+        ),
+        pytest.param(
+            {"srs_symbol_count": 1, "ports8_tdm": True},
+            ValueError,
+            "divisible by the port factor",
+            id="tdm-symbol-divisibility",
+        ),
+        pytest.param(
+            {"repetition_factor": True},
+            TypeError,
+            "repetition_factor must be an integer",
+            id="repetition-bool",
+        ),
+        pytest.param(
+            {"repetition_factor": 0},
+            ValueError,
+            "repetition_factor must divide",
+            id="repetition-zero",
+        ),
+        pytest.param(
+            {"repetition_factor": 3},
+            ValueError,
+            "repetition_factor must divide",
+            id="repetition-nondivisor",
+        ),
+        pytest.param(
+            {"absolute_slot_index": 0},
+            ValueError,
+            "does not use periodic slot parameters",
+            id="aperiodic-slot-parameters",
+        ),
+        pytest.param(
+            {"hyper_sfn_index": 0},
+            ValueError,
+            "does not use Hyper-SFN parameters",
+            id="aperiodic-hyper-sfn",
+        ),
+        pytest.param(
+            {
+                "resource_type": "periodic",
+                "absolute_slot_index": True,
+                "periodicity_slots": 4,
+                "slot_offset": 0,
+            },
+            TypeError,
+            "absolute_slot_index must be an integer",
+            id="periodic-slot-type",
+        ),
+        pytest.param(
+            {
+                "resource_type": "periodic",
+                "absolute_slot_index": 0,
+                "periodicity_slots": 4,
+                "slot_offset": 0,
+                "numerology": 0,
+            },
+            ValueError,
+            "require hyper_sfn_index",
+            id="hyper-sfn-missing-index",
+        ),
+    ],
+)
+def test_srs_transmission_counter_enforces_request_types_and_timing_contracts(
+    changes, error, message
+) -> None:
+    arguments = {
+        "resource_type": "aperiodic",
+        "srs_symbol_count": 2,
+        "resource_symbol_index": 0,
+    }
+    arguments.update(changes)
+
+    with pytest.raises(error, match=message):
+        nr_srs_transmission_counter(**arguments)
+
+
+@pytest.mark.parametrize(
     ("kwargs", "error", "message"),
     [
         ({"b_srs": 2, "b_hop": 1}, ValueError, "n_srs is required"),
