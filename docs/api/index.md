@@ -15,7 +15,6 @@ generated/evaluation/index
 generated/experiments/index
 generated/integrations/index
 generated/learning/index
-generated/loslab/index
 generated/models/index
 generated/propagation/index
 generated/receivers/index

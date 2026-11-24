@@ -8,6 +8,8 @@ from pathlib import Path
 
 import jsonschema
 import pytest
+from evaluation import joint_evidence_artifact as artifact
+from evaluation import path_equivalence_assurance as path_equivalence_assurance
 from tests.test_evaluation.joint_evidence_artifact_support import (
     _install_scorers,
     _payload,
@@ -17,9 +19,6 @@ from tests.test_evaluation.joint_evidence_artifact_support import (
     _payload_v6,
     _write_canonical,
 )
-
-from evaluation import joint_evidence_artifact as artifact
-from evaluation import path_equivalence_assurance as path_equivalence_assurance
 
 
 def test_joint_artifact_binds_exact_inputs_and_recomputes(

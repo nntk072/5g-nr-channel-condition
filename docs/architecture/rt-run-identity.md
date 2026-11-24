@@ -16,15 +16,15 @@ part of the run identity, so the two execution paths cannot collide. An
 explicitly requested backend still fails with diagnostics rather than silently
 changing execution mode.
 
-Run `python -m loslab doctor --probe-rt` to print the resolved backend and
-probe/fallback diagnostics as JSON before starting a larger RT generation.
-Without `--probe-rt`, `doctor` remains a version-only, no-simulation check.
+Run `loslab-runtime-inventory --probe-rt-apis` to print the RT APIs available on the
+host before starting a larger RT generation. Without `--probe-rt-apis`, the
+inventory is a version-only, no-simulation check.
 
 If any scene resource cannot be resolved to a local file, the manifest is
 incomplete and the identity has `complete: false` and a null cache key. Such a
 run can still be executed and audited, but callers must not reuse its outputs as
 content-addressed cache entries. Static RT datasets can opt into the immutable
-cache with `loslab rt-data --cache-dir PATH`. The cache stores an NPZ payload
+cache with `python scripts/generate_rt_dataset.py --cache-dir PATH`. The cache stores an NPZ payload
 and JSON sidecar under the identity key, verifies payload/report hashes and
 dataset shape on every read, publishes files atomically, and rejects different
 output bytes for an already-published identity. A missing or partial pair is

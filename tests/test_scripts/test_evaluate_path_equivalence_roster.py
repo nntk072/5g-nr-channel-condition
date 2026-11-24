@@ -5,10 +5,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from evaluation import path_equivalence_roster_cli as roster_cli_implementation
 from evaluation.joint_acceptance import build_joint_acceptance_family_v4
 from scripts.evaluate_path_equivalence_roster import main
-
-from evaluation import path_equivalence_roster_cli as roster_cli_implementation
 
 
 def _family() -> dict[str, Any]:

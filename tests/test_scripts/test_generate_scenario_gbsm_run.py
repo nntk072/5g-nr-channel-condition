@@ -6,7 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-import loslab.scenario_gbsm as command
+import integrations.sionna.scenario_gbsm_run as command
 import pytest
 
 

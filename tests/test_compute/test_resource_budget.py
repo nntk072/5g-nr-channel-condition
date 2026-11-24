@@ -141,8 +141,7 @@ def test_resource_budget_cli_publishes_versioned_report(tmp_path):
         [
             sys.executable,
             "-m",
-            "loslab",
-            "resource-budget",
+            "compute.resource_budget",
             "--request",
             str(request_path),
             "--output",

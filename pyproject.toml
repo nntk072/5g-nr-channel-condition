@@ -43,7 +43,6 @@ url = "https://download.pytorch.org/whl/cu126"
 explicit = true
 
 [project.scripts]
-loslab = "loslab.__main__:main"
 loslab-audit-channel-population = "scripts.audit_channel_population:main"
 loslab-audit-odbl-scene-source = "scripts.audit_odbl_scene_source_snapshot:main"
 loslab-pilot = "experiments.pilot_cli:main"
@@ -75,7 +74,6 @@ include = [
   "experiments*",
   "integrations*",
   "compute*",
-  "loslab*",
   "scripts*",
 ]
 exclude = ["tests*", "archive*", "notebooks*"]
@@ -100,12 +98,12 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "loslab"]
+source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "loslab", "scripts"]
+src = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "scripts"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I", "D2", "D3", "D4"]
@@ -130,7 +128,6 @@ files = [
   "experiments",
   "integrations",
   "compute",
-  "loslab",
   "scripts",
 ]
 ignore_missing_imports = true

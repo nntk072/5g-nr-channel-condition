@@ -10,16 +10,15 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from evaluation import joint_evaluation as joint
+from evaluation import joint_evidence_artifact as artifact
+from evaluation import joint_evidence_run_manifest as run_manifest
+from evaluation import path_equivalence_assurance as path_equivalence_assurance
 from evaluation.joint_acceptance import build_joint_acceptance_family_v4
 from evaluation.qualification_contract import (
     build_qualification_run_contract_v3,
     build_qualification_run_contract_v4,
 )
-
-from evaluation import joint_evaluation as joint
-from evaluation import joint_evidence_artifact as artifact
-from evaluation import joint_evidence_run_manifest as run_manifest
-from evaluation import path_equivalence_assurance as path_equivalence_assurance
 
 
 def _payload() -> dict[str, Any]:

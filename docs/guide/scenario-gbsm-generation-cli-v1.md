@@ -1,9 +1,9 @@
 # G4 scenario GBSM generation command v1
 
-The Sionna 2.2 scenario adapter can be invoked through the supported CLI. It writes a content-addressed scenario run store and one canonical `EpisodeBundle` per explicitly named drop:
+The Sionna 2.2 scenario adapter can be invoked through its module entry point. It writes a content-addressed scenario run store and one canonical `EpisodeBundle` per explicitly named drop:
 
 ~~~sh
-loslab scenario-gbsm-data --config scenario-umi.json --output-dir data/scenario-gbsm
+python -m integrations.sionna.scenario_gbsm_run --config scenario-umi.json --output-dir data/scenario-gbsm
 ~~~
 
 The config uses schema umcd.scenario_gbsm_generation.v1, defined in datasets/schema/scenario-gbsm-generation-config.v1.schema.json. It must name a unique split-parent ID for every generated drop and give explicit UT/BS location, UT velocity, indoor state, and scenario LOS state. Optional endpoint orientations and array settings are accepted. All scenario-specific Sionna options must be declared in generator.scenario_options.

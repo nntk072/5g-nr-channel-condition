@@ -1,6 +1,6 @@
 # Measurement-driven resource budget preflight
 
-The `loslab resource-budget` workflow converts a caller-frozen population
+The `compute.resource_budget` workflow converts a caller-frozen population
 design and measured pilot rows into conditional solver, receiver, preprocessing,
 downstream-analysis, memory, and retained-storage estimates. It performs no RT,
 receiver, or model execution and cannot authorize production generation.
@@ -27,7 +27,7 @@ observations and retain their source reports separately. The schema requires a
 ## Run
 
 ```bash
-python -m loslab resource-budget \
+python -m compute.resource_budget \
   --request /path/to/measured-pilot-budget-request.json \
   --output /path/to/new-resource-budget-report.json
 ```

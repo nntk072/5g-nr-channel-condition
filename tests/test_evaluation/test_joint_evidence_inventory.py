@@ -9,6 +9,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from evaluation import joint_evaluation as joint
+from evaluation import joint_evidence_artifact as artifact
+from evaluation import joint_evidence_run_manifest as run_manifest
+from evaluation import path_equivalence_assurance as path_equivalence_assurance
 from tests.test_evaluation.joint_evidence_artifact_support import (
     _install_scorers,
     _legacy_v1_report,
@@ -18,11 +22,6 @@ from tests.test_evaluation.joint_evidence_artifact_support import (
     _write_canonical,
     _write_run_manifest,
 )
-
-from evaluation import joint_evaluation as joint
-from evaluation import joint_evidence_artifact as artifact
-from evaluation import joint_evidence_run_manifest as run_manifest
-from evaluation import path_equivalence_assurance as path_equivalence_assurance
 
 
 def test_run_manifest_v4_binds_runtime_inventory_and_preserves_not_qualified_status(

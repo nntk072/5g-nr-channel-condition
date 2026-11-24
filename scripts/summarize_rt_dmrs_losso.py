@@ -181,7 +181,7 @@ def summarize_loso_run(run_root: Path, source_evidence: Path | None = None) -> d
         "folds": folds,
         "reproduction": {
             "fold_template": (
-                "python -m loslab experiment --input outputs/mvp-six-scene-dmrs-observations-20261022.npz "
+                "python scripts/run_channel_experiment.py --input outputs/mvp-six-scene-dmrs-observations-20261022.npz "
                 "--output <new-run-root>/holdout-<domain> --holdout <domain> "
                 "--methods logreg rf raw_mlp --seeds 11 23 47 59 71 83 97 "
                 "--bootstrap 200 --device cuda:0 --capacity small --observation precomputed"

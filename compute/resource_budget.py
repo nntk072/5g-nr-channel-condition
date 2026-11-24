@@ -175,9 +175,7 @@ def build_resource_budget_report(request: dict[str, Any], *, request_sha256: str
         "request_schema_sha256": hashlib.sha256(_REQUEST_SCHEMA.read_bytes()).hexdigest(),
         "report_schema_sha256": hashlib.sha256(_REPORT_SCHEMA.read_bytes()).hexdigest(),
         "workflow_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "cli_source_sha256": hashlib.sha256(
-            (_ROOT / "loslab/__main__.py").read_bytes()
-        ).hexdigest(),
+        "cli_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "estimation_method": "empirical_higher_quantiles_times_planned_units_times_headroom",
         "quantiles": [0.5, 0.9, 0.99],
         "headroom_factor": headroom,

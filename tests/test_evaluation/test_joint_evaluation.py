@@ -5,12 +5,11 @@ from typing import Any, cast
 
 import numpy as np
 import pytest
+from evaluation import joint_evaluation as joint
 from evaluation.joint_acceptance import (
     build_joint_acceptance_family_v3,
     build_joint_acceptance_family_v4,
 )
-
-from evaluation import joint_evaluation as joint
 
 
 def _inputs() -> dict[str, object]:

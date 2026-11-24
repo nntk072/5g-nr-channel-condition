@@ -7,7 +7,7 @@
 names = [
   "artifacts", "configuration", "datasets", "propagation", "receivers",
   "models", "learning", "evaluation", "experiments", "integrations",
-  "compute", "loslab", "scripts",
+  "compute", "scripts",
 ]
 # Packages that are linted and type-checked but are not measured for coverage.
 coverage_exclude = ["scripts"]

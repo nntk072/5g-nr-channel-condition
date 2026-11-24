@@ -283,16 +283,16 @@ def test_public_release_status_claims_do_not_enable_production(tmp_path: Path):
         )
 
 
-def test_loslab_rt_data_cli_fails_before_calling_the_solver(monkeypatch, capsys):
-    import loslab.sionna2 as sionna2
-    from loslab.__main__ import main
+def test_rt_dataset_cli_fails_before_calling_the_solver(monkeypatch, capsys):
+    import integrations.sionna.adapter as sionna2
+    from scripts.generate_rt_dataset import main
 
     def unexpected_generation(*args, **kwargs):
         raise AssertionError("solver must not run without authorization")
 
     monkeypatch.setattr(sionna2, "generate_raytraced", unexpected_generation)
     monkeypatch.setattr(sionna2, "generate_raytraced_cached", unexpected_generation)
-    monkeypatch.setattr("sys.argv", ["loslab", "rt-data", "--output", "unused.npz"])
+    monkeypatch.setattr("sys.argv", ["generate_rt_dataset", "--output", "unused.npz"])
 
     with pytest.raises(SystemExit) as error:
         main()
@@ -301,12 +301,12 @@ def test_loslab_rt_data_cli_fails_before_calling_the_solver(monkeypatch, capsys)
     assert "qualification approval manifest" in capsys.readouterr().err
 
 
-def test_loslab_rt_data_cli_rejects_oversized_explicit_pilot(monkeypatch, capsys):
-    from loslab.__main__ import main
+def test_rt_dataset_cli_rejects_oversized_explicit_pilot(monkeypatch, capsys):
+    from scripts.generate_rt_dataset import main
 
     monkeypatch.setattr(
         "sys.argv",
-        ["loslab", "rt-data", "--pilot", "--per-class", "21", "--output", "unused.npz"],
+        ["generate_rt_dataset", "--pilot", "--per-class", "21", "--output", "unused.npz"],
     )
 
     with pytest.raises(SystemExit) as error:

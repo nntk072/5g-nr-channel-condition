@@ -1,6 +1,6 @@
 # Shared-split power-only baseline
 
-The canonical `loslab experiment` runner includes an opt-in `power_only`
+The canonical experiment runner (`scripts/run_channel_experiment.py`) includes an opt-in `power_only`
 baseline. It derives a real-valued feature for each receiver link and
 subcarrier from the observed CFR, using `10 log10(max(|H|², 1e-12))`. This
 removes complex phase while preserving the measured frequency-resolved power
@@ -17,7 +17,7 @@ matrix to the same MLP implementation as `raw_mlp`. Pin its independent
 Use one invocation to compare methods on the exact same per-seed split:
 
 ```sh
-python -m loslab experiment \
+python scripts/run_channel_experiment.py \
   --input <receiver-observations.npz> \
   --output <new-run-directory> \
   --observation precomputed \
@@ -40,7 +40,7 @@ permuted-target digest, and positive count; verification replays the
 permutation from the retained training labels. Compare it on the same split:
 
 ```sh
-python -m loslab experiment \
+python scripts/run_channel_experiment.py \
   --input <receiver-observations.npz> \
   --output <new-run-directory> \
   --observation precomputed \
@@ -79,7 +79,7 @@ at 16,000,000 cells and fails before allocation when the selected cohort would
 exceed that limit. Compare with:
 
 ```sh
-python -m loslab experiment \
+python scripts/run_channel_experiment.py \
   --input <receiver-observations.npz> \
   --output <new-run-directory> \
   --observation precomputed \
@@ -112,7 +112,7 @@ feature matrix and rejects replay when any target changes. Run this isolated
 control with:
 
 ```sh
-python -m loslab experiment \
+python scripts/run_channel_experiment.py \
   --input <receiver-observations.npz> \
   --output <new-run-directory> \
   --observation precomputed \
@@ -143,7 +143,7 @@ with other methods in one runner invocation, and bind transform and feature
 matrix identities in model-input contract v13. Example software workflow:
 
 ```sh
-python -m loslab experiment \
+python scripts/run_channel_experiment.py \
   --input <receiver-observations.npz> \
   --output <new-run-directory> \
   --observation precomputed \
@@ -166,7 +166,7 @@ qualification. Do not launch the cohort until the relevant input, split, and
 research acceptance gates are ready.
 
 ```sh
-python -m loslab experiment \
+python scripts/run_channel_experiment.py \
   --input <receiver-observations.npz> \
   --output <new-run-directory> \
   --observation precomputed \

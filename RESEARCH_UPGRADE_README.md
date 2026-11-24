@@ -13,8 +13,6 @@ under cross-domain distribution shift, not reclassification of TDL/CDL labels.
 
 **Legacy baseline audit:** `docs/research/BASELINE_AUDIT.md`
 
-**Extra modules:** `loslab/geometry.py` generates independent deterministic urban scenes;
-`loslab/pilots.py` simulates noisy non-standardized comb pilot LS estimates.
 All model checkpoints are stored with evaluation predictions.
 
 **Quick self-test:** `python -m pytest -q`

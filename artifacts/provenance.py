@@ -99,7 +99,6 @@ def package_source_sha256() -> str:
         "experiments",
         "integrations",
         "compute",
-        "loslab",
     )
     for package in packages:
         folder = root / package

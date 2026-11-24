@@ -84,7 +84,6 @@ autoapi_dirs = [
         "experiments",
         "integrations",
         "compute",
-        "loslab",
     )
 ]
 autoapi_root = "api/generated"

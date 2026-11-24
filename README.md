@@ -26,7 +26,7 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev]'
 python -m pytest
-python -m loslab doctor
+loslab-runtime-inventory --probe-rt-apis
 ```
 
 Sionna PHY and ray tracing are optional integrations. The <code>sionna</code>

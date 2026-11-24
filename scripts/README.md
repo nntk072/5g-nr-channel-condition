@@ -37,7 +37,7 @@ The manifest and emitted report contracts are defined in
 
 ## G4 scenario GBSM generation
 
-`loslab scenario-gbsm-data` generates explicitly configured UMi, UMa, RMa,
+`python -m integrations.sionna.scenario_gbsm_run` generates explicitly configured UMi, UMa, RMa,
 InH, or InF standardized-model drops. It writes both a content-addressed
 scenario run store and one UMCD `EpisodeBundle` per named drop. Drops generated
 in the same run share a split group; the command makes no claim about site-level
