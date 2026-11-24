@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -181,6 +182,66 @@ def test_ul_srs_rsrpp_enforces_resource_cap_and_digest_contract():
             channel_estimator_sha256="not-a-digest",
             **{key: value for key, value in args.items() if key != "channel_estimator_sha256"},
         )
+
+
+@pytest.mark.parametrize(
+    ("case", "error", "message"),
+    [
+        ("delay_shape", ValueError, "path_delay_s must be real"),
+        ("mask_dtype", ValueError, "path_valid_mask must be Boolean"),
+        ("boolean_limit", TypeError, "maximum_measurement_values must be an integer"),
+        ("zero_limit", ValueError, "maximum_measurement_values must be positive"),
+        ("nonfinite_delay", ValueError, "responses and delays must be finite"),
+        ("negative_delay", ValueError, "path delays must be nonnegative"),
+        ("invalid_delay_nonzero", ValueError, "invalid path delay entries must be exactly zero"),
+        ("invalid_receiver", ValueError, "receiver_category must be a TS 38.104"),
+        ("zero_bandwidth", ValueError, "measurement_frequency_bandwidth_hz must be positive"),
+        ("zero_scale", ValueError, "watts_per_channel_response_unit_squared must be positive"),
+        ("power_overflow", ValueError, "calibrated UL SRS path power is not finite"),
+    ],
+)
+def test_ul_srs_rsrpp_rejects_malformed_path_measurement_contracts(case, error, message):
+    response = np.ones((1, 1, 1), dtype=np.complex128)
+    delays = np.zeros((1, 1), dtype=np.float64)
+    valid = np.ones((1, 1), dtype=bool)
+    common = {
+        "occasion_ids": ["occasion-1"],
+        "receiver_branch_ids": ["branch-1"],
+        "receiver_category": "terrestrial_type_1_o",
+        "measurement_frequency_bandwidth_hz": 20e6,
+        "watts_per_channel_response_unit_squared": 1e-3,
+        "power_calibration_sha256": "a" * 64,
+        "channel_estimator_sha256": "b" * 64,
+        "path_detector_sha256": "c" * 64,
+    }
+    if case == "delay_shape":
+        delays = np.zeros((1, 2))
+    elif case == "mask_dtype":
+        valid = valid.astype(int)
+    elif case == "boolean_limit":
+        common["maximum_measurement_values"] = True
+    elif case == "zero_limit":
+        common["maximum_measurement_values"] = 0
+    elif case == "nonfinite_delay":
+        delays[0, 0] = np.nan
+    elif case == "negative_delay":
+        delays[0, 0] = -1.0
+    elif case == "invalid_delay_nonzero":
+        valid[0, 0] = False
+        response[0, 0, 0] = 0.0
+        delays[0, 0] = 1.0
+    elif case == "invalid_receiver":
+        common["receiver_category"] = "invalid"
+    elif case == "zero_bandwidth":
+        common["measurement_frequency_bandwidth_hz"] = 0.0
+    elif case == "zero_scale":
+        common["watts_per_channel_response_unit_squared"] = 0.0
+    elif case == "power_overflow":
+        response[0, 0, 0] = 1e200
+        common["watts_per_channel_response_unit_squared"] = 1e200
+
+    with pytest.raises(error, match=message):
+        report_ul_srs_rsrpp(response, delays, valid, **common)
 
 
 def test_ul_srs_tdct_tdcp_selects_strongest_times_and_holds_diversity_branch():
@@ -389,6 +450,47 @@ def test_ul_srs_tdct_tdcp_rejects_malformed_grid_and_report_configuration(case, 
         report_ul_srs_tdct_tdcp(response, times, first, **common)
 
 
+def test_srs_report_schema_adapters_surface_validation_errors(monkeypatch):
+    import jsonschema
+    from integrations.sionna.srs_measurements import (
+        _validate_aoa_report_schema,
+        _validate_grid_observation_schema,
+        _validate_network_grid_observation_schema,
+        _validate_report_schema,
+        _validate_rsrpp_report_schema,
+        _validate_tdct_tdcp_report_schema,
+        _validate_timing_report_schema,
+    )
+
+    class RejectingValidator:
+        @staticmethod
+        def check_schema(schema):
+            return None
+
+        def __init__(self, schema):
+            self.schema = schema
+
+        def iter_errors(self, report):
+            return [type("SchemaIssue", (), {"message": "mock contract violation"})()]
+
+    monkeypatch.setattr(jsonschema, "Draft202012Validator", RejectingValidator)
+    validators = (
+        (_validate_grid_observation_schema, "SRS receive-grid observation violates schema"),
+        (
+            _validate_network_grid_observation_schema,
+            "SRS network-grid observation violates schema",
+        ),
+        (_validate_report_schema, "UL SRS-RSRP report violates schema"),
+        (_validate_timing_report_schema, "UL SRS timing report violates schema"),
+        (_validate_aoa_report_schema, "UL AoA report violates schema"),
+        (_validate_rsrpp_report_schema, "UL SRS-RSRPP report violates schema"),
+        (_validate_tdct_tdcp_report_schema, "UL SRS-TDCT/TDCP report violates schema"),
+    )
+    for validate, message in validators:
+        with pytest.raises(ValueError, match=message):
+            validate({})
+
+
 def test_ul_rtoa_uses_sfn_subframe_reference_and_declared_receiver_point():
     report = report_ul_rtoa(
         received_subframe_start_time_s=102.346125,
@@ -403,6 +505,18 @@ def test_ul_rtoa_uses_sfn_subframe_reference_and_declared_receiver_point():
     assert report["ul_rtoa_reference_time_s"] == pytest.approx(102.234)
     assert report["ul_rtoa_s"] == pytest.approx(0.112125)
     assert report["receiver_reference_point"] == "rx_antenna_radiating_region_center"
+
+
+def test_ul_rtoa_rejects_nonfinite_received_time():
+    with pytest.raises(ValueError, match="received_subframe_start_time_s must be a finite real"):
+        report_ul_rtoa(
+            received_subframe_start_time_s=float("nan"),
+            sfn=0,
+            subframe_number=0,
+            sfn_zero_reference_time_s=0.0,
+            receiver_category="terrestrial_type_1_c",
+            timing_calibration_sha256="a" * 64,
+        )
 
 
 def test_gnb_rx_tx_difference_uses_rx_minus_tx_and_separate_reference_points():
@@ -903,6 +1017,137 @@ def test_network_grid_observation_rejects_inconsistent_provenance(case, message)
         overrides["maximum_grid_cells"] = 1
     with pytest.raises(ValueError, match=message):
         _measure_minimal_network_grid(noisy, composition, mapped, **overrides)
+
+
+@pytest.mark.parametrize(
+    ("transmitter_ids", "error", "message"),
+    [
+        ("tx-1", TypeError, "transmitter_ids must be a sequence of IDs"),
+        (("tx-1", "tx-1"), ValueError, "transmitter_ids must contain 1 unique canonical IDs"),
+        ((" tx-1",), ValueError, "transmitter_ids must contain 1 unique canonical IDs"),
+    ],
+)
+def test_network_grid_observation_requires_canonical_transmitter_ids(
+    transmitter_ids, error, message
+):
+    _, composition, noisy, mapped = _minimal_network_grid_observation_inputs()
+    with pytest.raises(error, match=message):
+        _measure_minimal_network_grid(noisy, composition, mapped, transmitter_ids=transmitter_ids)
+
+
+def test_network_grid_observation_reports_missing_torch_install(monkeypatch):
+    original_import = builtins.__import__
+
+    def import_without_torch(name, *args, **kwargs):
+        if name == "torch":
+            raise ImportError("mocked absent torch")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_torch)
+    with pytest.raises(RuntimeError, match="Install PyTorch to measure a composed network grid"):
+        measure_ul_srs_rsrp_from_noisy_network_grid(
+            None,
+            None,
+            None,
+            receiver_index=0,
+            desired_transmitter_id="tx-1",
+            transmitter_ids=("tx-1",),
+            occasion_ids=("occasion-1",),
+            receiver_branch_ids=("branch-1",),
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=1e6,
+            power_scale_w_per_grid_unit_squared=1.0,
+            power_calibration_sha256="a" * 64,
+        )
+
+
+def test_network_grid_observation_rejects_unrepresentable_component_powers():
+    torch = pytest.importorskip("torch")
+    from integrations.sionna.network_phy import NetworkGridComposition, NoisyNetworkGrid
+
+    contributions = torch.empty((1, 1, 1, 2, 1, 2), dtype=torch.complex128)
+    contributions[:, :, :, 0] = 1e154 + 0j
+    contributions[:, :, :, 1] = -1e154 + 0j
+    composed = contributions.sum(dim=3)
+    composition = NetworkGridComposition(
+        source_contributions=contributions,
+        received_grid=composed,
+        transmit_power_w_per_re=torch.ones((1, 2), dtype=torch.float64),
+    )
+    noisy = NoisyNetworkGrid(
+        received_grid=composed,
+        noise_grid=torch.zeros_like(composed),
+        noise_variance_w_per_re=torch.tensor([0.0], dtype=torch.float64),
+        seed=31,
+    )
+    mapped = NRSRSMultiportResourceGrid(
+        grid=np.zeros((1, 1, 2), dtype=np.complex128),
+        mask=np.array([[[True, False]]]),
+        symbol_indices=(0,),
+        subcarrier_indices=(0,),
+    )
+    with (
+        pytest.warns(RuntimeWarning, match="overflow encountered in multiply"),
+        pytest.raises(ValueError, match="network component powers are not representable"),
+    ):
+        measure_ul_srs_rsrp_from_noisy_network_grid(
+            noisy,
+            composition,
+            mapped,
+            receiver_index=0,
+            desired_transmitter_id="tx-1",
+            transmitter_ids=("tx-1", "tx-2"),
+            occasion_ids=("occasion-1",),
+            receiver_branch_ids=("branch-1",),
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=1e6,
+            power_scale_w_per_grid_unit_squared=2.0,
+            power_calibration_sha256="a" * 64,
+        )
+
+
+def test_network_grid_observation_rejects_unrepresentable_component_sinr():
+    torch = pytest.importorskip("torch")
+    from integrations.sionna.network_phy import NetworkGridComposition, NoisyNetworkGrid
+
+    contributions = torch.full((1, 1, 1, 1, 1, 2), 1e150 + 0j, dtype=torch.complex128)
+    composed = contributions.sum(dim=3)
+    noise_grid = torch.full_like(composed, 1e-160 + 0j)
+    composition = NetworkGridComposition(
+        source_contributions=contributions,
+        received_grid=composed,
+        transmit_power_w_per_re=torch.ones((1, 1), dtype=torch.float64),
+    )
+    noisy = NoisyNetworkGrid(
+        received_grid=composed + noise_grid,
+        noise_grid=noise_grid,
+        noise_variance_w_per_re=torch.tensor([0.0], dtype=torch.float64),
+        seed=32,
+    )
+    mapped = NRSRSMultiportResourceGrid(
+        grid=np.zeros((1, 1, 2), dtype=np.complex128),
+        mask=np.array([[[True, False]]]),
+        symbol_indices=(0,),
+        subcarrier_indices=(0,),
+    )
+    with (
+        pytest.warns(RuntimeWarning, match="overflow encountered in scalar divide"),
+        pytest.raises(ValueError, match="network component SINR is not representable"),
+    ):
+        measure_ul_srs_rsrp_from_noisy_network_grid(
+            noisy,
+            composition,
+            mapped,
+            receiver_index=0,
+            desired_transmitter_id="tx-1",
+            transmitter_ids=("tx-1",),
+            occasion_ids=("occasion-1",),
+            receiver_branch_ids=("branch-1",),
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=1e6,
+            power_scale_w_per_grid_unit_squared=1.0,
+            power_calibration_sha256="a" * 64,
+        )
 
 
 @pytest.mark.parametrize(
