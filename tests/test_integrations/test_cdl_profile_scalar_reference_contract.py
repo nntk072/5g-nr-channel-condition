@@ -10,10 +10,10 @@ from typing import Any
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[2]
-_REFERENCE = _ROOT / "docs/research/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
+_REFERENCE = _ROOT / "config/reference/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
 _SCHEMA = _ROOT / "datasets/schema/cdl-profile-scalar-reference.v1.schema.json"
-_MANIFEST = _ROOT / "docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
-_TAP_ANGLE_REFERENCE = _ROOT / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+_MANIFEST = _ROOT / "config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
+_TAP_ANGLE_REFERENCE = _ROOT / "config/reference/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 _TAP_ANGLE_SCHEMA = _ROOT / "datasets/schema/cdl-tap-angle-reference.v1.schema.json"
 _TAP_ANGLE_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _PROFILE_SCALAR_REFERENCE_SHA256 = (

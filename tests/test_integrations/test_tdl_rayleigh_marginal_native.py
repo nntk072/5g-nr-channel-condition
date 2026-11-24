@@ -17,8 +17,8 @@ from evaluation.tdl_rayleigh_marginal import score_rayleigh_tap_marginal_family
 from integrations.sionna.tdl import generate_tdl_frequency_response
 
 _ROOT = Path(__file__).resolve().parents[2]
-_SCALABLE_REFERENCE = _ROOT / "docs/research/SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json"
-_FIXED_REFERENCE = _ROOT / "docs/research/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
+_SCALABLE_REFERENCE = _ROOT / "config/reference/SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json"
+_FIXED_REFERENCE = _ROOT / "config/reference/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
 _SCALABLE_REFERENCE_SHA256 = "38b897029bd4cc6de49eece5096e69c75291eaf6dac45bebe04767ed24a4f0bd"
 _FIXED_REFERENCE_SHA256 = "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3"
 _SCALABLE_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"

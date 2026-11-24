@@ -25,5 +25,4 @@ Re-exported from `__init__.py` through `__all__`:
 
 - Public names and behaviour are unchanged by the split; tests import the package, not the modules.
 - Module-level imports point down the layers. Any cycle is a defect: `tests/architecture` checks this.
-- Files that retained evidence records by path are listed in `docs/reference/digest-rebindings.json`.
 

@@ -19,5 +19,5 @@ The public names are re-exported from `evaluation/joint_evidence_run_manifest.py
 
 ## Invariants
 
-- The source-file check accepts a recorded digest that is rebound to the current digest (`artifacts/rebinding.py`).
+- The source-file check requires the recorded digest to equal the current file digest.
 - The rosters in `constants.py` are unchanged; the new modules are outside the signed roster (narrowed binding, see `docs/architecture/module-split-design-notes.md`).

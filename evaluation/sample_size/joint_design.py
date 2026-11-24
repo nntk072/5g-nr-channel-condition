@@ -17,7 +17,7 @@ from evaluation.sample_size.binomial import (
 )
 
 
-def compose_g3_joint_sample_size_design(
+def compose_joint_sample_size_design(
     *,
     joint_acceptance_family: dict[str, Any],
     joint_plan: Mapping[str, Any],
@@ -25,7 +25,7 @@ def compose_g3_joint_sample_size_design(
     complex_csi_assurance_plan: Mapping[str, Any],
     propagation_assurance_plan: Mapping[str, Any],
     receiver_assurance_plan: Mapping[str, Any],
-    target_joint_g3_assurance: float = 0.80,
+    target_joint_assurance_lower_bound: float = 0.80,
 ) -> dict[str, Any]:
     """Join branch-specific G3 planning outputs without merging sampling units.
 
@@ -36,7 +36,9 @@ def compose_g3_joint_sample_size_design(
     a single combined G3 sample size.
     """
     family = validate_joint_acceptance_family(joint_acceptance_family)
-    target_joint = _probability(target_joint_g3_assurance, "target_joint_g3_assurance")
+    target_joint = _probability(
+        target_joint_assurance_lower_bound, "target_joint_assurance_lower_bound"
+    )
     if family.get("schema") != FAMILY_SCHEMA_V4:
         raise ValueError("joint design composition requires acceptance-family v4")
     expected_family = {
@@ -464,7 +466,7 @@ def compose_g3_joint_sample_size_design(
         "component_designs_claim_complete_powered_design": component_design_complete,
         "branch_assurance_lower_bounds": assurance_bounds,
         "joint_g3_assurance_lower_bound_union_bound": joint_assurance_lower,
-        "target_joint_g3_assurance": target_joint,
+        "target_joint_assurance_lower_bound": target_joint,
         "material_angular_maximum_assumption": {
             "supplied": angular_supplied,
             "compatible_with_material_design": angular_compatible,
@@ -529,7 +531,7 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         "component_designs_claim_complete_powered_design",
         "branch_assurance_lower_bounds",
         "joint_g3_assurance_lower_bound_union_bound",
-        "target_joint_g3_assurance",
+        "target_joint_assurance_lower_bound",
         "material_angular_maximum_assumption",
         "complete_precision_powered_g3_design",
         "complete_g3_sample_size",
@@ -691,7 +693,7 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
             "component powered-design claim is inconsistent with branch counts and assurance bounds"
         )
     target_joint_assurance = _probability(
-        saved.get("target_joint_g3_assurance"), "target_joint_g3_assurance"
+        saved.get("target_joint_assurance_lower_bound"), "target_joint_assurance_lower_bound"
     )
     if angular_assumption.get("compatible_with_material_design") is True:
         maximum_units = angular_assumption.get("maximum_units_per_stratum")

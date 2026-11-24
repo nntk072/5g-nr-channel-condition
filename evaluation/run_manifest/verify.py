@@ -8,8 +8,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-from artifacts.rebinding import recorded_digest_resolves
-
 from evaluation.acquisition_package import (
     MAX_FILE_BYTES,
     MAX_JSON_ARTIFACT_BYTES,
@@ -78,7 +76,7 @@ _V4_AND_LATER = (
 )
 
 
-def verify_g3_joint_evidence_run_manifest(
+def verify_joint_evidence_run_manifest(
     manifest_path: str | Path,
     *,
     package_root: str | Path | None = None,
@@ -464,13 +462,10 @@ def verify_g3_joint_evidence_run_manifest(
                 )
                 source_bytes_total += size
                 if digest != entry["sha256"]:
-                    # A rebound digest is accepted; the recorded size belongs to the
-                    # superseded bytes and is not compared.
-                    if not recorded_digest_resolves(entry["sha256"], digest, _REPOSITORY_ROOT):
-                        raise ValueError(
-                            f"evaluator source bytes differ from manifest: {entry['path']}"
-                        )
-                elif size != entry["size_bytes"]:
+                    raise ValueError(
+                        f"evaluator source bytes differ from manifest: {entry['path']}"
+                    )
+                if size != entry["size_bytes"]:
                     raise ValueError(
                         f"evaluator source bytes differ from manifest: {entry['path']}"
                     )

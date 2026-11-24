@@ -39,8 +39,8 @@ _MAX_RELATIVE_INTERVAL_HALF_WIDTH = 0.015
 _PROFILE_SHA256 = "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7"
 _ETSI_REFERENCE_PATH = (
     Path(__file__).resolve().parents[2]
-    / "docs"
-    / "research"
+    / "config"
+    / "reference"
     / "CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _ETSI_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"

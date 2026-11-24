@@ -26,7 +26,7 @@ from evaluation.run_manifest.sources import (
     evaluator_source_bundle_identity,
 )
 from evaluation.run_manifest.verify import (
-    verify_g3_joint_evidence_run_manifest,
+    verify_joint_evidence_run_manifest,
 )
 
 
@@ -238,7 +238,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.manifest is None:
         parser.error("provide a manifest to verify or use --create-run-id")
-    report = verify_g3_joint_evidence_run_manifest(
+    report = verify_joint_evidence_run_manifest(
         args.manifest,
         package_root=args.package_root,
         source_root=args.source_root,

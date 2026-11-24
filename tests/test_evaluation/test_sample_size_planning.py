@@ -47,10 +47,10 @@ from evaluation.sample_size_planning import (
     _maximum_angular_units_for_pass_probability,
     _required_bounded_mean_units,
     _required_quantile_units,
-    compose_g3_joint_sample_size_design,
+    compose_joint_sample_size_design,
     plan_bootstrap_assurance,
     plan_complex_csi_bootstrap_assurance,
-    plan_g3_independent_acquisition_units,
+    plan_independent_acquisition_units,
     plan_joint_independent_units,
     verify_joint_sample_size_design,
 )
@@ -150,7 +150,7 @@ def test_local_planning_contract_margins_match_evaluator_without_runtime_couplin
 
 
 def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
-    result = plan_g3_independent_acquisition_units(
+    result = plan_independent_acquisition_units(
         stratum_count=4,
         planned_quantile_pass_probabilities=_assumptions(),
         planned_interval_coverage=0.95,
@@ -493,7 +493,7 @@ def test_bootstrap_maximum_cannot_exceed_the_observed_unit_maximum() -> None:
 
 
 def test_angular_maximum_plan_fails_closed_without_assumption_and_flags_conflict() -> None:
-    result = plan_g3_independent_acquisition_units(
+    result = plan_independent_acquisition_units(
         stratum_count=1,
         planned_quantile_pass_probabilities=_assumptions(),
         planned_interval_coverage=0.95,
@@ -512,7 +512,7 @@ def test_angular_maximum_plan_fails_closed_without_assumption_and_flags_conflict
 @pytest.mark.parametrize("value", [True, -0.1, 1.1, float("nan"), float("inf")])
 def test_angular_pass_probability_rejects_invalid_assumptions(value: float) -> None:
     with pytest.raises(ValueError, match="planned_angular_unit_pass_probability"):
-        plan_g3_independent_acquisition_units(
+        plan_independent_acquisition_units(
             stratum_count=1,
             planned_quantile_pass_probabilities=_assumptions(),
             planned_interval_coverage=0.95,
@@ -533,7 +533,7 @@ def test_exact_one_sided_95_percent_bound_requires_59_zero_failure_clusters() ->
 
 
 def test_exact_binomial_design_is_minimal_for_preregistered_power() -> None:
-    result = plan_g3_independent_acquisition_units(
+    result = plan_independent_acquisition_units(
         stratum_count=1,
         planned_quantile_pass_probabilities=_assumptions(),
         planned_interval_coverage=0.95,
@@ -559,7 +559,7 @@ def test_exact_binomial_design_is_minimal_for_preregistered_power() -> None:
         float(binom.cdf(previous_cutoff, required - 1, 0.01)) if previous_cutoff >= 0 else 0.0
     )
     assert previous_power < result["per_comparison_power_target_bonferroni"]
-    four_strata = plan_g3_independent_acquisition_units(
+    four_strata = plan_independent_acquisition_units(
         stratum_count=4,
         planned_quantile_pass_probabilities=_assumptions(),
         planned_interval_coverage=0.95,
@@ -776,7 +776,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
             ],
         }
 
-    result = compose_g3_joint_sample_size_design(
+    result = compose_joint_sample_size_design(
         joint_acceptance_family=family,
         joint_plan=joint,
         material_assurance_plan={
@@ -832,7 +832,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
     assert result["all_branch_counts_available"] is True
     assert result["single_combined_sample_size_is_reported"] is False
     assert result["joint_g3_assurance_lower_bound_union_bound"] == pytest.approx(0.24)
-    assert result["target_joint_g3_assurance"] == pytest.approx(0.8)
+    assert result["target_joint_assurance_lower_bound"] == pytest.approx(0.8)
     assert result["complete_precision_powered_g3_design"] is False
     assert result["admission_possible"] is False
     assert result["complete_g3_sample_size"] is None
@@ -924,7 +924,7 @@ def test_joint_design_composer_rejects_assurance_plan_from_another_family():
         "complete_g3_sample_size": None,
     }
     with pytest.raises(ValueError, match="does not match the supplied acceptance family"):
-        compose_g3_joint_sample_size_design(
+        compose_joint_sample_size_design(
             joint_acceptance_family=family,
             joint_plan=joint,
             material_assurance_plan={
@@ -984,7 +984,7 @@ def test_planner_rejects_incomplete_or_incompatible_design_assumptions(
     arguments.update(kwargs)
 
     with pytest.raises(ValueError, match=message):
-        plan_g3_independent_acquisition_units(**arguments)  # type: ignore[arg-type]
+        plan_independent_acquisition_units(**arguments)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize("planned_mean", [0.90, 0.98, 0.89, 0.99])

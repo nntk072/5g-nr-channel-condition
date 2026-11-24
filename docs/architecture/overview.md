@@ -11,7 +11,7 @@ listed above it, never from a package below it that depends on it.
 
 | Layer | Package | Responsibility |
 | --- | --- | --- |
-| Foundation | `artifacts` | Provenance, manifests, run layout, rebinding of recorded paths and digests |
+| Foundation | `artifacts` | Provenance, manifests, run layout, digests |
 | Foundation | `configuration` | Loads declarative configuration from `config/` |
 | Physics | `propagation` | Channel geometry, visibility, and identifiability |
 | Physics | `receivers` | NR receiver chains and pilot handling |
@@ -53,5 +53,4 @@ files, and frozen protocols refer to them by name.
   the continuous-integration workflow in `.github/workflows/ci.yml`.
 - `tests/architecture` checks the package-boundary and structure rules,
   including the absence of runtime import cycles and a README in every package.
-- Retained evidence is verified against recorded digests. Renames and moves are
-  recorded in `docs/reference/digest-rebindings.json`.
+- Retained evidence is verified against recorded digests.

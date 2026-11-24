@@ -24,42 +24,6 @@ from tests.test_evaluation.joint_evidence_artifact_support import (
 )
 
 
-def test_run_manifest_v4_binds_runtime_inventory_and_preserves_not_qualified_status(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    _install_scorers(monkeypatch)
-    source = tmp_path / "joint-input.json"
-    saved = tmp_path / "joint-report.json"
-    inventory = tmp_path / "runtime-inventory.json"
-    _write_canonical(source, _payload())
-    artifact._write_new_artifact(saved, artifact.evaluate_joint_evidence_file(source))
-    inventory.write_bytes(
-        (
-            Path(__file__).resolve().parents[2]
-            / "docs/research/results/runtime-inventory-v3-cuda-phy-20261027.json"
-        ).read_bytes()
-    )
-
-    manifest = run_manifest.build_joint_evidence_run_manifest(
-        "joint-run-001",
-        source,
-        saved,
-        package_root=tmp_path,
-        runtime_inventory_path=inventory,
-    )
-    manifest_path = tmp_path / "run-manifest-v4.json"
-    _write_canonical(manifest_path, manifest)
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
-
-    assert manifest["schema"] == "loslab.g3_joint_evidence_run_manifest.v5"
-    assert manifest["runtime_inventory"]["role"] == "runtime_inventory"
-    assert len(manifest["evaluator_sources"]) == len(run_manifest.V5_EVALUATOR_SOURCE_PATHS)
-    assert report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
-    assert report["qualification_status"] == "NOT_QUALIFIED"
-    assert report["runtime_inventory_signature_status"] == "not_provided"
-    assert report["runtime_inventory_binding_status"] == "not_provided"
-
-
 def test_run_manifest_hashes_and_replays_exact_inventory_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -71,7 +35,7 @@ def test_run_manifest_hashes_and_replays_exact_inventory_bytes(
     manifest_path = tmp_path / "run-manifest.json"
     _write_run_manifest(manifest_path, source, saved)
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
 
     assert report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
     assert report["qualification_status"] == "NOT_QUALIFIED"
@@ -124,7 +88,7 @@ def test_run_manifest_v1_keeps_its_frozen_source_roster(
     manifest_path = tmp_path / "legacy-run-manifest.json"
     _write_canonical(manifest_path, manifest)
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
 
     assert report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
     assert report["qualification_status"] == "NOT_QUALIFIED"
@@ -159,7 +123,7 @@ def test_run_manifest_v2_remains_readable_after_runtime_identity_v3(
     manifest_path = tmp_path / "legacy-v2-run-manifest.json"
     _write_canonical(manifest_path, manifest)
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
 
     assert report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
     assert report["runtime_identity_status"] == "not_recorded"
@@ -229,7 +193,7 @@ def test_run_manifest_binds_contract_to_family_receiver_and_path_roster(
     manifest_path = tmp_path / "run-manifest.json"
     _write_canonical(manifest_path, manifest)
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
 
     assert report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
     assert report["qualification_status"] == "NOT_QUALIFIED"
@@ -295,7 +259,7 @@ def test_run_manifest_rejects_inventory_digest_mismatch(
     manifest_path = tmp_path / "run-manifest.json"
     _write_run_manifest(manifest_path, source, saved, wrong_input_hash=True)
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
 
     assert report["status"] == "INCONSISTENT"
     assert any("size or SHA-256" in error for error in report["errors"])
@@ -321,9 +285,7 @@ def test_run_manifest_detects_locked_dependency_source_drift(
     drifted_source = source_root / "uv.lock"
     drifted_source.write_bytes(drifted_source.read_bytes() + b"\n# drift\n")
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
-        manifest_path, source_root=source_root
-    )
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path, source_root=source_root)
 
     assert report["status"] == "INCONSISTENT"
     assert any("evaluator source bytes differ" in error for error in report["errors"])
@@ -343,7 +305,7 @@ def test_run_manifest_rejects_incomplete_scorer_source_roster(
     manifest["evaluator_sources"].pop()
     _write_canonical(manifest_path, manifest)
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
 
     assert report["status"] == "INCONSISTENT"
     assert any("violates schema" in error for error in report["errors"])

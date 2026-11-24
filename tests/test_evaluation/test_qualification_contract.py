@@ -163,7 +163,7 @@ def _complete_design(spec: dict[str, object]) -> dict[str, object]:
             "receiver_impact": 0.99,
         },
         "joint_g3_assurance_lower_bound_union_bound": 0.96,
-        "target_joint_g3_assurance": 0.8,
+        "target_joint_assurance_lower_bound": 0.8,
         "material_angular_maximum_assumption": {
             "supplied": True,
             "compatible_with_material_design": True,

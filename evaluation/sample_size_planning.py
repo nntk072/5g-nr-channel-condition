@@ -53,11 +53,11 @@ from evaluation.sample_size.constants import (
     MIN_INTERVAL_COVERAGE,
 )
 from evaluation.sample_size.independent_units import (
-    plan_g3_independent_acquisition_units,
+    plan_independent_acquisition_units,
     plan_joint_independent_units,
 )
 from evaluation.sample_size.joint_design import (
-    compose_g3_joint_sample_size_design,
+    compose_joint_sample_size_design,
     verify_joint_sample_size_design,
 )
 
@@ -90,10 +90,10 @@ __all__ = [
     "_required_quantile_units",
     "_validate_assumption_scenarios",
     "_validate_complex_csi_assurance_scenarios",
-    "compose_g3_joint_sample_size_design",
+    "compose_joint_sample_size_design",
     "plan_bootstrap_assurance",
     "plan_complex_csi_bootstrap_assurance",
-    "plan_g3_independent_acquisition_units",
+    "plan_independent_acquisition_units",
     "plan_joint_independent_units",
     "verify_joint_sample_size_design",
 ]

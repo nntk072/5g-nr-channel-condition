@@ -20,7 +20,7 @@ from .joint_evidence_artifact import run_frozen_qualification_evaluation
 from .joint_evidence_run_manifest import (
     build_joint_evidence_run_manifest,
     evaluator_source_bundle_identity,
-    verify_g3_joint_evidence_run_manifest,
+    verify_joint_evidence_run_manifest,
 )
 from .low_confidence import build_low_confidence_audit
 from .metrics import (
@@ -49,7 +49,7 @@ from .qualification_contract import (
 )
 from .receiver_impact import evaluate_receiver_impact
 from .sample_size_planning import (
-    compose_g3_joint_sample_size_design,
+    compose_joint_sample_size_design,
     verify_joint_sample_size_design,
 )
 from .spatial_audit import SpatialLeakageAudit, SpatialLeakagePair, audit_spatial_buffer
@@ -90,13 +90,13 @@ __all__ = [
     "verify_joint_evidence_bundle",
     "build_joint_evidence_run_manifest",
     "evaluator_source_bundle_identity",
-    "verify_g3_joint_evidence_run_manifest",
+    "verify_joint_evidence_run_manifest",
     "build_qualification_run_contract",
     "build_qualification_run_contract_v3",
     "verify_qualification_run_contract",
     "validate_prior_shift_spec",
     "validate_expected_population_roster",
-    "compose_g3_joint_sample_size_design",
+    "compose_joint_sample_size_design",
     "verify_joint_sample_size_design",
     "evaluate_path_equivalence_roster",
     "evaluate_receiver_impact",

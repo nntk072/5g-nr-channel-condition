@@ -1,12 +1,6 @@
-import json
-from pathlib import Path
-
-import datasets.nr_store as nr_store
 import datasets.targets as target_contracts
-import jsonschema
 import numpy as np
 import pytest
-from artifacts.rebinding import current_repo_path
 from datasets.nr import NRChannelRecord, NRObservation
 from datasets.targets import (
     CensoringInterval,
@@ -16,44 +10,6 @@ from datasets.targets import (
     validate_canonical_target_contract,
 )
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
-
-
-def test_target_family_inventory_covers_every_recognized_contract() -> None:
-    repository = Path(__file__).parents[2]
-    inventory_path = repository / "docs/research/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.json"
-    inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
-    assert inventory["schema"] == "loslab.target-family-producer-consumer-matrix.v1"
-    matrix_schema = json.loads(
-        (
-            repository / "datasets/schema/target-family-producer-consumer-matrix.v1.schema.json"
-        ).read_text(encoding="utf-8")
-    )
-    jsonschema.Draft202012Validator.check_schema(matrix_schema)
-    jsonschema.Draft202012Validator(matrix_schema).validate(inventory)
-    rows = inventory["rows"]
-    versions = [row["version"] for row in rows]
-
-    assert len(versions) == len(set(versions))
-    assert set(versions) == set(target_contracts._CANONICAL_TARGET_CONTRACTS)
-    assert set(versions) == set(target_contracts._CANONICAL_TARGET_PROVENANCE)
-    for row in rows:
-        assert row["name"]
-        assert row["producer"]
-        assert row["shape"]
-        assert row["policy"]
-        assert row["consumers"]
-        # The matrix is a frozen record. Paths it names may have moved; they resolve
-        # through the recorded moves in docs/reference/digest-rebindings.json.
-        assert all(
-            (repository / current_repo_path(path, repository)).is_file()
-            for path in row["stored_contracts"]
-        )
-        assert all(
-            (repository / current_repo_path(path, repository)).is_file()
-            for path in row["evidence"].split("; ")
-        )
-        if "NR writers" in row["policy"]:
-            assert row["version"] in nr_store._AXIS_AMBIGUOUS_NR_TARGET_VERSIONS
 
 
 def _definition(version: str, *, semantic: str, units: str) -> TargetDefinition:

@@ -62,7 +62,7 @@ def test_every_declared_profile_version_has_a_pinned_normative_source() -> None:
     report = standardized_profile_applicability_report()
     manifest_path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
+        / "config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
     )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     schema_path = (

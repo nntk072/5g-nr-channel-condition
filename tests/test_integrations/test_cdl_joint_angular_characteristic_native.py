@@ -35,7 +35,7 @@ _PROFILE_SHA256 = {
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
 _CDL_ETSI_REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2] / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "config/reference/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _RAY_OFFSETS_DEG = torch.tensor(
     (

@@ -11,10 +11,10 @@ from typing import Any
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[2]
-_REFERENCE_PATH = _ROOT / "docs/research/FIXED_TDL_LOS_K_FACTOR_REFERENCE_2026-10-26.json"
+_REFERENCE_PATH = _ROOT / "config/reference/FIXED_TDL_LOS_K_FACTOR_REFERENCE_2026-10-26.json"
 _REFERENCE_SCHEMA_PATH = _ROOT / "datasets/schema/fixed-tdl-los-k-factor-reference.v1.schema.json"
-_COMPONENT_PATH = _ROOT / "docs/research/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
-_MANIFEST_PATH = _ROOT / "docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
+_COMPONENT_PATH = _ROOT / "config/reference/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
+_MANIFEST_PATH = _ROOT / "config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
 
 
 def _reference() -> dict[str, Any]:

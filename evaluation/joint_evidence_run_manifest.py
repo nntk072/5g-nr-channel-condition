@@ -72,7 +72,7 @@ from evaluation.run_manifest.sources import (
     evaluator_source_bundle_identity,
 )
 from evaluation.run_manifest.verify import (
-    verify_g3_joint_evidence_run_manifest,
+    verify_joint_evidence_run_manifest,
     verify_joint_evidence_run_report_signature,
 )
 
@@ -130,7 +130,7 @@ __all__ = [
     "build_joint_evidence_run_manifest",
     "evaluator_source_bundle_identity",
     "main",
-    "verify_g3_joint_evidence_run_manifest",
+    "verify_joint_evidence_run_manifest",
     "verify_joint_evidence_run_report_signature",
 ]
 

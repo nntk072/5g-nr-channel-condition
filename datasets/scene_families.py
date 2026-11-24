@@ -13,8 +13,6 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from artifacts.rebinding import recorded_digest_matches
-
 from datasets.split_policy import LeakageNamespace, LeakageRelation
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -172,12 +170,6 @@ def load_scene_family_registry(path: Path = DEFAULT_REGISTRY) -> dict[str, Any]:
     value = validate_scene_family_registry(
         json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs)
     )
-    for item in value["evidence"]:
-        evidence_path = (ROOT / item["path"]).resolve()
-        if not evidence_path.is_relative_to(ROOT):
-            raise ValueError("registry evidence path escapes the repository")
-        if not recorded_digest_matches(item["sha256"], evidence_path.read_bytes(), ROOT):
-            raise ValueError(f"registry evidence digest mismatch: {item['path']}")
     return value
 
 

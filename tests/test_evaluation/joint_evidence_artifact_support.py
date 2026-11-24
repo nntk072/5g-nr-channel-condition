@@ -357,12 +357,10 @@ def _sign_run_manifest(manifest_path: Path, directory: Path) -> tuple[Path, Path
 
 
 def _runtime_inventory_fixture(path: Path) -> None:
+    from integrations.runtime_inventory import build_runtime_inventory
+
     source_root = Path(__file__).resolve().parents[2]
-    inventory = json.loads(
-        (
-            source_root / "docs/research/results/runtime-inventory-v3-cuda-phy-20261027.json"
-        ).read_text(encoding="utf-8")
-    )
+    inventory = build_runtime_inventory(source_root, probe_loaded_native_libraries=True)
     identity = run_manifest._runtime_identity()
     inventory["python"]["version"] = identity["python"]
     inventory["python"]["implementation"] = identity["python_implementation"]
@@ -619,7 +617,7 @@ def _synthetic_complete_sample_size_design(family: dict[str, Any]) -> dict[str, 
             "receiver_impact": 0.99,
         },
         "joint_g3_assurance_lower_bound_union_bound": 0.96,
-        "target_joint_g3_assurance": 0.8,
+        "target_joint_assurance_lower_bound": 0.8,
         "material_angular_maximum_assumption": {
             "supplied": True,
             "compatible_with_material_design": True,

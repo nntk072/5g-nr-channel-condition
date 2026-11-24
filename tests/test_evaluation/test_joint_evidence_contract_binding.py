@@ -226,7 +226,7 @@ def test_strict_run_manifest_requires_criterion_driven_contract_v4(
         runtime_inventory_path, tmp_path
     )
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         manifest_path,
         signature_path=manifest_signature,
         trusted_allowed_signers_path=manifest_signers,
@@ -300,7 +300,7 @@ def test_v4_contract_binds_raw_path_input_and_receipt(
         report["bundle"]["evaluations"]["path_equivalence"]["scenarios"][0]["class_coverage_status"]
         == "FAIL"
     )
-    receipt = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+    receipt = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
     assert receipt["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
     assert receipt["qualification_contract_bound"] is True
 

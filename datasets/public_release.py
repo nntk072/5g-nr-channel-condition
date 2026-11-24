@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 
 _POLICY_PATH = (
     Path(__file__).resolve().parents[1]
-    / "docs/research/licenses/odbl-osm-scene-release-policy-20261023.json"
+    / "config/reference/licenses/odbl-osm-scene-release-policy-20261023.json"
 )
 _ODBL_URL = "https://opendatacommons.org/licenses/odbl/1-0/"
 _OSM_COPYRIGHT_URL = "https://www.openstreetmap.org/copyright"

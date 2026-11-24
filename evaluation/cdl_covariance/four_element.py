@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 
 _ROOT = Path(__file__).resolve().parents[2]
-REFERENCE_PATH = _ROOT / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+REFERENCE_PATH = _ROOT / "config/reference/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 ETSI_SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
 RAY_ANGLE_OFFSETS = (

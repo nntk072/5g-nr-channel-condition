@@ -11,19 +11,19 @@ import numpy as np
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[2]
-_REFERENCE_PATH = _ROOT / "docs/research/FIXED_TDL_RMS_REFERENCE_2026-10-26.json"
+_REFERENCE_PATH = _ROOT / "config/reference/FIXED_TDL_RMS_REFERENCE_2026-10-26.json"
 _REFERENCE_SCHEMA_PATH = _ROOT / "datasets/schema/fixed-tdl-rms-reference.v1.schema.json"
-_TAP_REFERENCE_PATH = _ROOT / "docs/research/FIXED_TDL_TAP_SUMMARY_REFERENCE_2026-10-26.json"
+_TAP_REFERENCE_PATH = _ROOT / "config/reference/FIXED_TDL_TAP_SUMMARY_REFERENCE_2026-10-26.json"
 _TAP_REFERENCE_SCHEMA_PATH = (
     _ROOT / "datasets/schema/fixed-tdl-tap-summary-reference.v1.schema.json"
 )
 _TAP_PROFILE_REFERENCE_PATH = (
-    _ROOT / "docs/research/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
+    _ROOT / "config/reference/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
 )
 _TAP_PROFILE_REFERENCE_SCHEMA_PATH = (
     _ROOT / "datasets/schema/fixed-tdl-tap-profile-reference.v1.schema.json"
 )
-_SOURCE_MANIFEST_PATH = _ROOT / "docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
+_SOURCE_MANIFEST_PATH = _ROOT / "config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
 
 
 def _native_tdl_adapter():

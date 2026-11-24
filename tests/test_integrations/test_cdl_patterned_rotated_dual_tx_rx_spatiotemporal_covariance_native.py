@@ -51,7 +51,7 @@ _PROFILE_SHA256 = {
     "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
 }
 _REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2] / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "config/reference/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _SIONNA_ANTENNA_SHA256 = "09e20b89f4c4d990bed1a3ce3d6314f9fe7e45c090737a6f5790166d4a63f926"

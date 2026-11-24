@@ -56,7 +56,7 @@ def test_strict_signed_reviewer_admission_rejects_unsigned_run_before_replay(
     manifest_path = tmp_path / "run-manifest.json"
     _write_run_manifest(manifest_path, source, saved)
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         manifest_path, require_signed_reviewer_admission=True
     )
 
@@ -78,7 +78,7 @@ def test_run_manifest_verifies_detached_signature_over_exact_manifest_bytes(
     _write_run_manifest(manifest_path, source, saved)
     signature_path, allowed_signers, signer_id = _sign_run_manifest(manifest_path, tmp_path)
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         manifest_path,
         signature_path=signature_path,
         trusted_allowed_signers_path=allowed_signers,
@@ -161,7 +161,7 @@ def test_run_manifest_signature_resolves_external_signer_role_policy(
         },
     )
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         manifest_path,
         signature_path=signature_path,
         trusted_allowed_signers_path=allowed_signers,
@@ -267,7 +267,7 @@ def test_run_manifest_rejects_tampered_signed_signer_policy(
     policy_signature = Path(f"{policy_path}.sig")
     _write_canonical(policy_path, {"schema": run_manifest.SIGNER_POLICY_SCHEMA})
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         manifest_path,
         signature_path=manifest_signature,
         trusted_allowed_signers_path=manifest_signers,
@@ -287,7 +287,7 @@ def test_run_manifest_rejects_tampered_signed_signer_policy(
 def test_run_manifest_requires_all_signer_policy_signature_inputs_together(
     tmp_path: Path,
 ) -> None:
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         tmp_path / "missing-manifest.json",
         trusted_signer_policy_signature_path=tmp_path / "policy.json.sig",
     )
@@ -324,7 +324,7 @@ def test_run_manifest_rejects_role_policy_without_run_manifest_purpose(
         },
     )
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         manifest_path,
         signature_path=signature_path,
         trusted_allowed_signers_path=allowed_signers,
@@ -349,7 +349,7 @@ def test_run_manifest_signature_rejects_changed_manifest_bytes(
     signature_path, allowed_signers, signer_id = _sign_run_manifest(manifest_path, tmp_path)
     manifest_path.write_bytes(manifest_path.read_bytes() + b" ")
 
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         manifest_path,
         signature_path=signature_path,
         trusted_allowed_signers_path=allowed_signers,
@@ -363,7 +363,7 @@ def test_run_manifest_signature_rejects_changed_manifest_bytes(
 
 
 def test_run_manifest_signature_options_must_be_supplied_together(tmp_path: Path) -> None:
-    report = run_manifest.verify_g3_joint_evidence_run_manifest(
+    report = run_manifest.verify_joint_evidence_run_manifest(
         tmp_path / "manifest.json",
         signature_path=tmp_path / "manifest.json.sig",
     )
@@ -394,6 +394,6 @@ def test_preregistered_run_preflights_then_writes_artifact_and_bound_receipt(
     assert result["qualification_status"] == "NOT_QUALIFIED"
     assert saved.is_file()
     assert manifest_path.is_file()
-    receipt = run_manifest.verify_g3_joint_evidence_run_manifest(manifest_path)
+    receipt = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
     assert receipt["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION"
     assert receipt["qualification_contract_bound"] is True

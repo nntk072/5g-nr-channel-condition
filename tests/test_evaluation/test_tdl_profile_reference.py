@@ -12,10 +12,10 @@ from evaluation.tdl_profile_reference import (
 )
 
 ROOT = Path(__file__).resolve().parents[2]
-REFERENCE_PATH = ROOT / "docs/research/SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json"
+REFERENCE_PATH = ROOT / "config/reference/SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json"
 REFERENCE_SHA256 = "38b897029bd4cc6de49eece5096e69c75291eaf6dac45bebe04767ed24a4f0bd"
 SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
-FIXED_REFERENCE_PATH = ROOT / "docs/research/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
+FIXED_REFERENCE_PATH = ROOT / "config/reference/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
 FIXED_REFERENCE_SHA256 = "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3"
 FIXED_SOURCE_SHA256 = "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81"
 
@@ -39,7 +39,7 @@ def _fixed_reference() -> dict[str, object]:
 def test_scalable_tdl_power_delay_reference_is_complete_and_source_bound() -> None:
     reference = _reference()
     manifest = json.loads(
-        (ROOT / "docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json").read_text(
+        (ROOT / "config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json").read_text(
             encoding="utf-8"
         )
     )
@@ -63,7 +63,7 @@ def test_scalable_tdl_power_delay_reference_is_complete_and_source_bound() -> No
 def test_fixed_tdl_power_delay_reference_is_complete_and_source_bound() -> None:
     reference = _fixed_reference()
     manifest = json.loads(
-        (ROOT / "docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json").read_text(
+        (ROOT / "config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json").read_text(
             encoding="utf-8"
         )
     )

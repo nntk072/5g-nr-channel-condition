@@ -25,5 +25,3 @@ the native Sionna adapter by the matching native test.
   family that used them. Where a family's body differs, that family keeps its own
   helper, so each reference stays independent of the others.
 - File-relative paths use `parents[2]` for the repository root.
-- Retained results name these modules by their earlier paths. The moves are
-  recorded in `docs/reference/digest-rebindings.json`.

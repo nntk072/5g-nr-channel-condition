@@ -58,8 +58,8 @@ _CDL_TABLE_SHA256 = {
 }
 _CDL_ETSI_REFERENCE_PATH = (
     Path(__file__).resolve().parents[2]
-    / "docs"
-    / "research"
+    / "config"
+    / "reference"
     / "CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _CDL_ETSI_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"

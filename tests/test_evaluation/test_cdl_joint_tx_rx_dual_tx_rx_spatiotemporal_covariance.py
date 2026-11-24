@@ -17,8 +17,8 @@ from evaluation.cdl_covariance.joint_tx_rx_dual_tx_rx import (
 
 _REFERENCE_PATH = (
     Path(__file__).resolve().parents[2]
-    / "docs"
-    / "research"
+    / "config"
+    / "reference"
     / "CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 

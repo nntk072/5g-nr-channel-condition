@@ -18,11 +18,11 @@ review before any release claim. Signed v4 inventories use the dedicated
 
 `audit_standard_references.py` checks that locally downloaded ETSI PDF files
 match the external source identities in
-`docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json`:
+`config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json`:
 
 ```bash
 python scripts/audit_standard_references.py \
-  docs/research/STANDARD_REFERENCE_MANIFEST_2026-10-26.json \
+  config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json \
   /path/to/privately-downloaded-etsi-references
 ```
 

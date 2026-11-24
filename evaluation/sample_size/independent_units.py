@@ -39,7 +39,7 @@ from evaluation.sample_size.constants import (
 )
 
 
-def plan_g3_independent_acquisition_units(
+def plan_independent_acquisition_units(
     *,
     stratum_count: int,
     planned_quantile_pass_probabilities: Mapping[str, float],

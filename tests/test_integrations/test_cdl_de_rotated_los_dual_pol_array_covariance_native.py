@@ -37,11 +37,11 @@ _ROTATED_UT_ORIENTATIONS_RAD = (
     (0.28, -0.36, 0.0),
 )
 _REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2] / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "config/reference/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _SCALAR_PATH = (
     Path(__file__).resolve().parents[2]
-    / "docs/research/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
+    / "config/reference/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
 )
 _REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _SCALAR_SHA256 = "3b5920e7c12b0e36c8e09d1c7f14025cfbb23b6d805e1044124bfcf147185620"

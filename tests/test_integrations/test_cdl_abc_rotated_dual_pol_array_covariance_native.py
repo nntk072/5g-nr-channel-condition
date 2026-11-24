@@ -33,7 +33,7 @@ _ORIENTATIONS_RAD = (
     (0.28, -0.36, 0.0),
 )
 _REFERENCE_PATH = (
-    Path(__file__).resolve().parents[2] / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "config/reference/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 _REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
 _SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"

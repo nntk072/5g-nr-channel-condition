@@ -18,10 +18,12 @@ from evaluation.doppler_spectrum import (
 from evaluation.tdl_covariance_reference import scalable_tdl_rayleigh_tap_indices
 
 _ROOT = Path(__file__).resolve().parents[2]
-_REFERENCE_PATH = _ROOT / "docs/research/SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json"
+_REFERENCE_PATH = _ROOT / "config/reference/SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json"
 _REFERENCE_SHA256 = "38b897029bd4cc6de49eece5096e69c75291eaf6dac45bebe04767ed24a4f0bd"
 _SOURCE_SHA256 = "b71460fb4978a59fbffc864652016cf161c9e17cce19f0d0e9b46bea630b1cc4"
-_SEED_AUDIT_PATH = _ROOT / "docs/research/SCALABLE_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-11-09.json"
+_SEED_AUDIT_PATH = (
+    _ROOT / "config/reference/SCALABLE_TDL_DOPPLER_SPECTRUM_SEED_AUDIT_2026-11-09.json"
+)
 _SEED_AUDIT_SHA256 = "b39ca236b213af61e6aa9beec92c0eb228104d213b88898d703e7e4f62e3065a"
 _MODELS = tuple("ABCDE")
 _SEED_START = 1_743_000

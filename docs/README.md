@@ -41,9 +41,8 @@ Refactor and verification records.
 
 ## Reference
 
-Reference data and the digest rebinding record.
+Reference data.
 
-- [digest-rebindings.json](reference/digest-rebindings.json)
 - [refactor-digest-changes.tsv](reference/refactor-digest-changes.tsv)
 - [Scene-family registry and candidate sampling](reference/scene-family-registry.md)
 

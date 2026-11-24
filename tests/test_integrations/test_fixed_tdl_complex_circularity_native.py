@@ -13,10 +13,10 @@ from evaluation.complex_circularity import evaluate_complex_circularity_family
 from integrations.sionna.tdl import generate_tdl_frequency_response
 
 _ROOT = Path(__file__).resolve().parents[2]
-_REFERENCE_PATH = _ROOT / "docs/research/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
+_REFERENCE_PATH = _ROOT / "config/reference/FIXED_TDL_TAP_PROFILE_REFERENCE_2026-10-26.json"
 _REFERENCE_SHA256 = "fe22560a71f4e5683ea6780f73e84466155b26f5f97cc4b63e3250c102fafda3"
 _SOURCE_SHA256 = "b3c6a73c7a40219e7270c08c7a57c84cb46f6757b303a64ec768ba04a6079e81"
-_SEED_AUDIT_PATH = _ROOT / "docs/research/FIXED_TDL_PROPERNESS_SEED_AUDIT_2026-10-27.json"
+_SEED_AUDIT_PATH = _ROOT / "config/reference/FIXED_TDL_PROPERNESS_SEED_AUDIT_2026-10-27.json"
 _SEED_AUDIT_SHA256 = "c9887cb5a39b858baacacbdd783b478638722fb657c512cad34fc83c285e3e56"
 _MODELS = ("A10", "A30", "B100", "C60", "C300", "D10", "D30")
 _SEED_START = 1_730_000

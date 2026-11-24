@@ -15,10 +15,10 @@ from integrations.sionna.cdl import _profile_metadata  # noqa: E402
 
 _REFERENCE = (
     Path(__file__).resolve().parents[2]
-    / "docs/research/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
+    / "config/reference/CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"
 )
 _TAP_ANGLE_REFERENCE = (
-    Path(__file__).resolve().parents[2] / "docs/research/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+    Path(__file__).resolve().parents[2] / "config/reference/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
 )
 
 
