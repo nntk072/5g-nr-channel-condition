@@ -316,7 +316,7 @@ def evaluate_prediction_file_build_node(
     import jsonschema
 
     report_schema_path = (
-        Path(__file__).resolve().parent
+        Path(__file__).resolve().parents[1]
         / "schema/grouped-regression-uncertainty-report.v1.schema.json"
     )
     jsonschema.validate(report, json.loads(report_schema_path.read_text(encoding="utf-8")))
