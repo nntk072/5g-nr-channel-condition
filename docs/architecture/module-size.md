@@ -1,6 +1,6 @@
 # Module size
 
-Product modules stay below about 1,000 lines. Eleven modules are above that
+Product modules stay below about 1,000 lines. Twelve modules are above that
 line. Each one is listed here with the reason it has not yet been split. The
 split is tracked as follow-up work in the reading plan.
 

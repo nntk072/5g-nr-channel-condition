@@ -49,5 +49,6 @@ Concepts and output contracts for users of the framework.
 
 - [Documentation home](index.md): the Sphinx entry page for this index.
 - [Architecture package map](architecture/README.md): how the packages depend on one another.
+- [Module size](architecture/module-size.md): modules above the size target and why they stay whole.
 - [Coverage policy](architecture/coverage-policy.md): the only reviewed coverage exclusions.
 - [Project README](../README.md), [Contributing](../CONTRIBUTING.md), [Security](../SECURITY.md), [Changelog](../CHANGELOG.md), [Citation](../CITATION.cff)
