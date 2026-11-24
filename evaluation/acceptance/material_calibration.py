@@ -1,4 +1,4 @@
-"""Evaluate held-out material-scattering measurements against the G3.03 margins.
+"""Evaluate held-out material-scattering measurements against the margins.
 
 This evaluates measurement-derived predictions only. Passing the numerical
 margins is necessary but is not, by itself, RT scene or complex-CSI
@@ -23,8 +23,8 @@ from evaluation.acceptance.joint_acceptance import (
 )
 from evaluation.scoring.numeric import finite_real_array
 
-SCHEMA = "loslab.g3_material_calibration_predictions.v2"
-SPLIT_MANIFEST_SCHEMA = "loslab.g3_material_calibration_split_manifest.v1"
+SCHEMA = "loslab.material_calibration_predictions.v2"
+SPLIT_MANIFEST_SCHEMA = "loslab.material_calibration_split_manifest.v1"
 TARGET_FREQUENCY_HZ = 3.5e9
 MAX_POWER_ERROR_MEDIAN_DB = 1.5
 MAX_POWER_ERROR_P95_DB = 3.0
@@ -194,7 +194,7 @@ def _cluster_bootstrap_intervals(
 
 
 def evaluate_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
-    """Score pre-frozen, group-held-out predictions against documented G3.03 margins.
+    """Score pre-frozen, group-held-out predictions against documented margins.
 
     The input must contain a complete test-group manifest. Test rows must cover
     exactly the sample IDs declared for each held-out incidence-angle group.
@@ -207,7 +207,7 @@ def evaluate_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         raise ValueError(f"schema must be {SCHEMA!r}")
     frequency = _finite_number(payload.get("target_frequency_hz"), "target_frequency_hz")
     if not math.isclose(frequency, TARGET_FREQUENCY_HZ, rel_tol=0.0, abs_tol=1.0):
-        raise ValueError("G3.03 material admission is currently fixed at 3.5 GHz")
+        raise ValueError("material admission is currently fixed at 3.5 GHz")
 
     for field in ("model_id", "model_sha256", "measurement_calibration_id", "material_mapping_id"):
         _nonempty_string(payload.get(field), field)
@@ -742,11 +742,11 @@ def evaluate_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         )
 
     return {
-        "schema": "loslab.g3_material_calibration_evaluation.v2",
+        "schema": "loslab.material_calibration_evaluation.v2",
         "status": "MATERIAL_MEASUREMENT_PILOT_ONLY_NOT_RT_SCENE_QUALIFICATION",
         "qualification_status": "NOT_ASSESSABLE_UNVERIFIED_INDEPENDENCE_AND_NO_PRECISION_POWERED_PLAN",
         "target_frequency_hz": TARGET_FREQUENCY_HZ,
-        "criteria_source": "Unified Multipath plan G3.03 project-defined margins; not 3GPP requirements",
+        "criteria_source": "Unified Multipath plan project-defined margins; not 3GPP requirements",
         "criterion_margins": {
             "median_absolute_integrated_power_error_db_max": MAX_POWER_ERROR_MEDIAN_DB,
             "p95_absolute_integrated_power_error_db_max": MAX_POWER_ERROR_P95_DB,
@@ -817,7 +817,7 @@ def evaluate_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input", type=Path, help="frozen G3.03 prediction JSON")
+    parser.add_argument("input", type=Path, help="frozen prediction JSON")
     parser.add_argument("--output", type=Path, help="write evaluation report JSON")
     args = parser.parse_args()
     payload = json.loads(args.input.read_text(encoding="utf-8"))

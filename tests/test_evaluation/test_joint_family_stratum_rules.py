@@ -106,7 +106,7 @@ def test_family_alpha_routes_each_evaluator_to_its_declared_roster() -> None:
         family, evaluator="complex_csi", expected_strata=[("urban", "LOS")]
     )
     assert alpha > 0 and claims >= 1
-    with pytest.raises(ValueError, match="unsupported G3 evaluator"):
+    with pytest.raises(ValueError, match="unsupported evaluator"):
         family_alpha_for_claim(family, evaluator="unknown", expected_strata=[])
     with pytest.raises(ValueError, match="expected strata differ"):
         family_alpha_for_claim(family, evaluator="complex_csi", expected_strata=[("urban", "NLOS")])
@@ -130,11 +130,11 @@ def test_v4_family_routes_propagation_and_receiver_rosters() -> None:
 
 def test_older_families_do_not_route_receiver_or_propagation_claims() -> None:
     family = _v2()
-    with pytest.raises(ValueError, match="unsupported G3 evaluator"):
+    with pytest.raises(ValueError, match="unsupported evaluator"):
         family_alpha_for_claim(
             family, evaluator="receiver_impact", expected_strata=[("urban", "LOS")]
         )
-    with pytest.raises(ValueError, match="unsupported G3 evaluator"):
+    with pytest.raises(ValueError, match="unsupported evaluator"):
         family_alpha_for_claim(
             family, evaluator="propagation_metrics", expected_strata=[("urban", "LOS", "total")]
         )

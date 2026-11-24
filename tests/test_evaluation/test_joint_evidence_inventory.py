@@ -82,7 +82,7 @@ def test_run_manifest_v1_keeps_its_frozen_source_roster(
             }
         )
     manifest.pop("runtime_identity")
-    manifest["schema"] = "loslab.g3_joint_evidence_run_manifest.v1"
+    manifest["schema"] = "loslab.joint_evidence_run_manifest.v1"
     manifest["evaluator_sources"] = legacy_sources
     manifest["evaluator_source_bundle_sha256"] = run_manifest._source_bundle_sha256(legacy_sources)
     manifest_path = tmp_path / "legacy-run-manifest.json"
@@ -106,7 +106,7 @@ def test_run_manifest_v2_remains_readable_after_runtime_identity_v3(
         "joint-run-001", source, saved, package_root=tmp_path
     )
     manifest.pop("runtime_identity")
-    manifest["schema"] = "loslab.g3_joint_evidence_run_manifest.v2"
+    manifest["schema"] = "loslab.joint_evidence_run_manifest.v2"
     manifest["evaluator_sources"] = [
         item
         for item in manifest["evaluator_sources"]
@@ -188,7 +188,7 @@ def test_run_manifest_binds_contract_to_family_receiver_and_path_roster(
     source_identity = run_manifest.evaluator_source_bundle_identity()
     contract = _qualification_contract(payload, source_identity["evaluator_source_bundle_sha256"])
     manifest = run_manifest.build_joint_evidence_run_manifest(
-        "g3-run-contract-001", source, saved, qualification_contract=contract
+        "run-contract-001", source, saved, qualification_contract=contract
     )
     manifest_path = tmp_path / "run-manifest.json"
     _write_canonical(manifest_path, manifest)
@@ -244,7 +244,7 @@ def test_run_manifest_rejects_contract_source_bundle_mismatch(
 
     with pytest.raises(ValueError, match="source bundle differs"):
         run_manifest.build_joint_evidence_run_manifest(
-            "g3-run-contract-001", source, saved, qualification_contract=bad_contract
+            "run-contract-001", source, saved, qualification_contract=bad_contract
         )
 
 

@@ -25,7 +25,7 @@ from experiments.acceptance import (
 
 def _criteria() -> dict[str, object]:
     return {
-        "schema": "umcd.g5_ordered_impairments_snr_acceptance.v1",
+        "schema": "umcd.ordered_impairments_snr_acceptance.v1",
         "snr_db": [0.0, 5.0],
         "channel_seeds": list(range(100, 120)),
         "channel_estimator": "sionna_default_ls",
@@ -38,7 +38,7 @@ def _criteria() -> dict[str, object]:
 
 def _timestamped_criteria() -> dict[str, object]:
     criteria = _criteria()
-    criteria["schema"] = "umcd.g5_ordered_impairments_snr_acceptance.v2"
+    criteria["schema"] = "umcd.ordered_impairments_snr_acceptance.v2"
     criteria["preregistered_utc"] = "2026-10-25T09:00:00Z"
     return criteria
 
@@ -346,7 +346,7 @@ def test_signed_v2_contract_admission_binds_timestamp_before_receiver_import(
     assert identity["preregistered_utc"] == criteria["preregistered_utc"]
     assert isinstance(observed["payload"], bytes)
     assert identity["contract_payload_sha256"] == hashlib.sha256(observed["payload"]).hexdigest()
-    assert observed["namespace"] == "umcd-g5-snr-acceptance-v1"
+    assert observed["namespace"] == "umcd-snr-acceptance-v1"
 
 
 @pytest.mark.parametrize("alias_kind", ["symlink", "hardlink"])
@@ -387,7 +387,7 @@ def test_timestamped_acceptance_contract_verifies_real_openssh_signature(
     ).stdout.strip()
     allowed_signers_path = tmp_path / "allowed_signers"
     allowed_signers_path.write_text(
-        f'reviewer@example.org namespaces="umcd-g5-snr-acceptance-v1" {public_key}\n',
+        f'reviewer@example.org namespaces="umcd-snr-acceptance-v1" {public_key}\n',
         encoding="utf-8",
     )
     contract_path = tmp_path / "contract.json"
@@ -403,7 +403,7 @@ def test_timestamped_acceptance_contract_verifies_real_openssh_signature(
             "-f",
             str(key_path),
             "-n",
-            "umcd-g5-snr-acceptance-v1",
+            "umcd-snr-acceptance-v1",
             str(contract_path),
         ],
         check=True,
@@ -421,7 +421,7 @@ def test_timestamped_acceptance_contract_verifies_real_openssh_signature(
     assert loaded == _timestamped_criteria()
     assert identity is not None
     assert identity["signer_id"] == "reviewer@example.org"
-    assert identity["namespace"] == "umcd-g5-snr-acceptance-v1"
+    assert identity["namespace"] == "umcd-snr-acceptance-v1"
     assert identity["preregistered_utc"] == "2026-10-25T09:00:00Z"
 
     altered = _timestamped_criteria()
@@ -463,10 +463,10 @@ def test_reviewer_policy_requires_distinct_signed_custody_and_authorizes_reviewe
         return private, allowed
 
     acceptance_private, acceptance_keyring = create_key(
-        "acceptance", "reviewer@example.org", "umcd-g5-snr-acceptance-v1"
+        "acceptance", "reviewer@example.org", "umcd-snr-acceptance-v1"
     )
     policy_private, policy_keyring = create_key(
-        "policy", "custodian@example.net", "umcd-g5-snr-reviewer-policy-v1"
+        "policy", "custodian@example.net", "umcd-snr-reviewer-policy-v1"
     )
     contract_path = tmp_path / "contract.json"
     contract_path.write_text(
@@ -481,7 +481,7 @@ def test_reviewer_policy_requires_distinct_signed_custody_and_authorizes_reviewe
             "-f",
             str(acceptance_private),
             "-n",
-            "umcd-g5-snr-acceptance-v1",
+            "umcd-snr-acceptance-v1",
             str(contract_path),
         ],
         check=True,
@@ -489,14 +489,14 @@ def test_reviewer_policy_requires_distinct_signed_custody_and_authorizes_reviewe
     )
     policy_path = tmp_path / "reviewer-policy.json"
     policy = {
-        "schema": "umcd.g5_snr_reviewer_policy.v1",
+        "schema": "umcd.snr_reviewer_policy.v1",
         "policy_id": "test-reviewer-policy",
         "signers": [
             {
                 "principal": "reviewer@example.org",
                 "organization": "Independent Test Lab",
                 "roles": ["independent_reviewer"],
-                "allowed_purposes": ["g5_ordered_impairments_snr_preregistration"],
+                "allowed_purposes": ["ordered_impairments_snr_preregistration"],
             }
         ],
     }
@@ -511,7 +511,7 @@ def test_reviewer_policy_requires_distinct_signed_custody_and_authorizes_reviewe
             "-f",
             str(policy_private),
             "-n",
-            "umcd-g5-snr-reviewer-policy-v1",
+            "umcd-snr-reviewer-policy-v1",
             str(policy_path),
         ],
         check=True,
@@ -658,7 +658,7 @@ def test_acceptance_rejects_same_count_with_different_frozen_seed_ids() -> None:
 @pytest.mark.parametrize(
     ("change", "message"),
     (
-        (lambda inference: inference.__setitem__("family_size", 2), "frozen G5 method"),
+        (lambda inference: inference.__setitem__("family_size", 2), "frozen method"),
         (lambda inference: inference["by_condition"].pop("clean"), "complete frozen condition"),
         (lambda inference: inference.__setitem__("simultaneous_radius", float("nan")), "radius"),
     ),

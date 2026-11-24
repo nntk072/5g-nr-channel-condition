@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://loslab.invalid/schema/g3-joint-evaluator-artifact.v1.schema.json",
-  "title": "G3 five-branch numerical evaluator artifact",
+  "$id": "https://loslab.invalid/schema/joint-evaluator-artifact.v1.schema.json",
+  "title": "five-branch numerical evaluator artifact",
   "description": "Exact-input-byte-bound deterministic numerical evaluator output. It is never, by itself, scientific qualification or authenticated measurement evidence.",
   "type": "object",
   "additionalProperties": false,
@@ -14,7 +14,7 @@
     "bundle"
   ],
   "properties": {
-    "schema": {"const": "loslab.g3_joint_evaluator_artifact.v1"},
+    "schema": {"const": "loslab.joint_evaluator_artifact.v1"},
     "status": {"const": "NUMERICAL_EVALUATION_ONLY_NOT_QUALIFIED"},
     "qualification_status": {"const": "NOT_QUALIFIED"},
     "input_bytes_sha256": {"$ref": "#/$defs/sha256"},
@@ -77,7 +77,7 @@
         "interpretation"
       ],
       "properties": {
-        "schema": {"const": "loslab.g3_joint_evaluator_bundle.v1"},
+        "schema": {"const": "loslab.joint_evaluator_bundle.v1"},
         "status": {"const": "NUMERICAL_EVALUATION_ONLY_NOT_QUALIFIED"},
         "qualification_status": {"const": "NOT_QUALIFIED"},
         "joint_acceptance_family": {
@@ -87,7 +87,7 @@
           "properties": {
             "family_id": {"type": "string", "minLength": 1},
             "family_sha256": {"$ref": "#/$defs/sha256"},
-            "schema": {"const": "loslab.g3_joint_acceptance_family.v4"},
+            "schema": {"const": "loslab.joint_acceptance_family.v4"},
             "claim_count": {"type": "integer", "minimum": 1}
           }
         },

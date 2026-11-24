@@ -1,4 +1,4 @@
-"""Deterministic seed rosters for bounded G4 native regressions."""
+"""Deterministic seed rosters for bounded native regressions."""
 
 from __future__ import annotations
 

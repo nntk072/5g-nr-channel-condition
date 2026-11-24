@@ -1,4 +1,4 @@
-"""Tests for the standalone, non-admitting G3.03 sample-size planner."""
+"""Tests for the standalone, non-admitting sample-size planner."""
 
 from __future__ import annotations
 
@@ -157,11 +157,11 @@ def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
         planned_complex_csi_failure_probability=0.01,
     )
 
-    assert result["schema"] == "loslab.g3_sample_size_planning.v3"
+    assert result["schema"] == "loslab.sample_size_planning.v3"
     assert result["status"] == "PLANNING_ONLY_NOT_QUALIFICATION"
     assert result["uses_measurement_or_pilot_data"] is False
     assert result["admission_possible"] is False
-    assert result["complete_g3_03_sample_size"] is None
+    assert result["complete_sample_size"] is None
     assert (
         result["complete_design_status"] == "UNRESOLVED_MISSING_ANGULAR_PASS_PROBABILITY_ASSUMPTION"
     )
@@ -177,7 +177,7 @@ def test_planner_is_data_free_bonferroni_adjusted_and_never_admits() -> None:
     assert result["per_comparison_beta"] == pytest.approx(0.20 / 24)
     failure_plan = result["complex_csi_cluster_failure_plan"]
     assert failure_plan["admission_possible"] is False
-    assert failure_plan["is_complete_g3_03_design"] is False
+    assert failure_plan["is_complete_design"] is False
     assert failure_plan["stratum_count"] == 4
     assert failure_plan["per_comparison_alpha_bonferroni"] == pytest.approx(0.05 / 24)
     assert failure_plan["per_comparison_power_target_bonferroni"] == pytest.approx(1.0 - 0.20 / 24)
@@ -223,11 +223,11 @@ def test_bootstrap_assurance_is_scenario_conditional_and_never_qualifies() -> No
         seed=701,
     )
 
-    assert result["schema"] == "loslab.g3_bootstrap_assurance_planning.v1"
+    assert result["schema"] == "loslab.bootstrap_assurance_planning.v1"
     assert result["status"] == "SCENARIO_CONDITIONAL_PLANNING_ONLY_NOT_QUALIFICATION"
     assert result["admission_possible"] is False
     assert result["scenario_provenance_verified"] is False
-    assert result["complete_g3_03_sample_size"] is None
+    assert result["complete_sample_size"] is None
     assert result["selected_units_per_stratum_among_evaluated_candidates"] == 20
     first = result["candidate_designs"][0]
     assert first["joint_assurance_lower_bound_union_bound"] >= 0.80
@@ -261,7 +261,7 @@ def test_complex_csi_bootstrap_assurance_matches_joint_family_and_exact_cluster_
     }
     result = plan_complex_csi_bootstrap_assurance(**kwargs)
 
-    assert result["schema"] == "loslab.g3_complex_csi_bootstrap_assurance_planning.v1"
+    assert result["schema"] == "loslab.complex_csi_bootstrap_assurance_planning.v1"
     assert result["qualification_status"] == "NOT_QUALIFIED"
     assert result["admission_possible"] is False
     assert result["complete_sample_size"] is None
@@ -505,7 +505,7 @@ def test_angular_maximum_plan_fails_closed_without_assumption_and_flags_conflict
     assert angular["compatible_with_pilot_floor"] is False
     assert angular["compatible_with_combined_six_claim_lower_bound"] is False
     assert result["complete_design_status"] == "INFEASIBLE_UNDER_SUPPLIED_ANGULAR_ASSUMPTION"
-    assert result["complete_g3_03_sample_size"] is None
+    assert result["complete_sample_size"] is None
     assert result["admission_possible"] is False
 
 
@@ -721,7 +721,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
     }
     common = {"admission_possible": False, "qualification_status": "NOT_QUALIFIED"}
     joint = {
-        "schema": "loslab.g3_joint_sample_size_planning.v1",
+        "schema": "loslab.joint_sample_size_planning.v1",
         **common,
         "single_combined_sample_size_is_reported": False,
         "complete_sample_size": None,
@@ -780,7 +780,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
         joint_acceptance_family=family,
         joint_plan=joint,
         material_assurance_plan={
-            "schema": "loslab.g3_bootstrap_assurance_planning.v1",
+            "schema": "loslab.bootstrap_assurance_planning.v1",
             **common,
             "scenario_provenance_verified": False,
             "joint_acceptance_family": identity,
@@ -802,19 +802,19 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
             ],
         },
         complex_csi_assurance_plan=assurance(
-            "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
+            "loslab.complex_csi_bootstrap_assurance_planning.v1",
             ["urban", "LOS"],
             35,
             ("family_id", "condition"),
         ),
         propagation_assurance_plan=assurance(
-            "loslab.g3_propagation_bootstrap_assurance_planning.v1",
+            "loslab.propagation_bootstrap_assurance_planning.v1",
             ["urban", "LOS", "total"],
             45,
             ("family_id", "condition", "component"),
         ),
         receiver_assurance_plan=assurance(
-            "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1",
+            "loslab.receiver_impact_bootstrap_assurance_planning.v1",
             ["urban", "LOS"],
             45,
             ("family_id", "condition"),
@@ -860,7 +860,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
             allow_nan=False,
         ).encode("utf-8")
     ).hexdigest()
-    with pytest.raises(ValueError, match="joint G3 assurance bound is inconsistent"):
+    with pytest.raises(ValueError, match="joint assurance bound is inconsistent"):
         verify_joint_sample_size_design(tampered_bound)
 
     tampered = dict(result)
@@ -904,16 +904,16 @@ def test_joint_design_composer_rejects_assurance_plan_from_another_family():
         path_equivalence_expected_scenarios=[("urban", "LOS", "episode-1")],
     )
     bad = {
-        "schema": "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
+        "schema": "loslab.complex_csi_bootstrap_assurance_planning.v1",
         "admission_possible": False,
         "qualification_status": "NOT_QUALIFIED",
         "scenario_provenance_verified": False,
         "joint_acceptance_family": {"family_id": "other", "family_sha256": "0" * 64},
     }
     receiver = dict(bad)
-    receiver["schema"] = "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1"
+    receiver["schema"] = "loslab.receiver_impact_bootstrap_assurance_planning.v1"
     joint = {
-        "schema": "loslab.g3_joint_sample_size_planning.v1",
+        "schema": "loslab.joint_sample_size_planning.v1",
         "admission_possible": False,
         "qualification_status": "NOT_QUALIFIED",
         "joint_acceptance_family": {
@@ -928,7 +928,7 @@ def test_joint_design_composer_rejects_assurance_plan_from_another_family():
             joint_acceptance_family=family,
             joint_plan=joint,
             material_assurance_plan={
-                "schema": "loslab.g3_bootstrap_assurance_planning.v1",
+                "schema": "loslab.bootstrap_assurance_planning.v1",
                 "admission_possible": False,
                 "qualification_status": "NOT_QUALIFIED",
                 "scenario_provenance_verified": False,

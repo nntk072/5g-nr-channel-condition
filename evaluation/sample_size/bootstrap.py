@@ -206,7 +206,7 @@ def plan_complex_csi_bootstrap_assurance(
         ).encode("utf-8")
     ).hexdigest()
     return {
-        "schema": "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
+        "schema": "loslab.complex_csi_bootstrap_assurance_planning.v1",
         "status": "SCENARIO_CONDITIONAL_PLANNING_ONLY_NOT_QUALIFICATION",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,
@@ -241,8 +241,8 @@ def plan_complex_csi_bootstrap_assurance(
         "limitations": [
             "All cluster-summary distributions are hypothetical and unverified; no measurements or pilot data are read.",
             "The assurance estimate is conditional on the supplied finite-support IID scenario and exact evaluator rules.",
-            "Scene-cluster counts remain separate from material acquisition-unit counts; no combined G3 sample size is inferred.",
-            "This planner never qualifies G3, authorizes RT production, or verifies physical independence or scene representativeness.",
+            "Scene-cluster counts remain separate from material acquisition-unit counts; no combined sample size is inferred.",
+            "This planner never qualifies , authorizes RT production, or verifies physical independence or scene representativeness.",
         ],
     }
 
@@ -322,7 +322,7 @@ def _bootstrap_acceptance_checks(
     bootstrap_replicates: int,
     per_comparison_alpha: float,
 ) -> dict[str, bool]:
-    """Apply the G3.03 equal-unit point and percentile-bootstrap margins."""
+    """Apply the equal-unit point and percentile-bootstrap margins."""
     unit_count = unit_values.shape[0]
     point = np.asarray(
         [
@@ -424,7 +424,7 @@ def _validate_assumption_scenarios(
         for atom_index, atom in enumerate(atoms):
             if not isinstance(atom, Mapping) or set(atom) != set(_BOOTSTRAP_METRICS):
                 raise ValueError(
-                    f"scenario {stratum!r} atom {atom_index} must specify exactly the five G3 metrics"
+                    f"scenario {stratum!r} atom {atom_index} must specify exactly the five metrics"
                 )
             values: list[float] = []
             for metric in _BOOTSTRAP_METRICS:
@@ -478,13 +478,13 @@ def plan_bootstrap_assurance(
     monte_carlo_confidence: float = 0.95,
     seed: int = 1,
 ) -> dict[str, Any]:
-    """Estimate G3.03 bootstrap pass assurance under explicit discrete IID scenarios.
+    """Estimate bootstrap pass assurance under explicit discrete IID scenarios.
 
     Each named stratum receives a caller-specified finite-support distribution of
     *hypothetical independent-unit summaries*. One Monte Carlo study draws the
     requested number of units from that distribution, then runs the same
     equal-unit point statistics and Bonferroni percentile bootstrap checks as
-    the G3.03 evaluator. A one-sided Clopper-Pearson lower bound is computed for
+    the evaluator. A one-sided Clopper-Pearson lower bound is computed for
     each stratum/candidate; a union bound combines strata without assuming
     cross-stratum independence. Bonferroni also covers searching the supplied
     candidate counts.
@@ -648,7 +648,7 @@ def plan_bootstrap_assurance(
         None,
     )
     return {
-        "schema": "loslab.g3_bootstrap_assurance_planning.v1",
+        "schema": "loslab.bootstrap_assurance_planning.v1",
         "status": "SCENARIO_CONDITIONAL_PLANNING_ONLY_NOT_QUALIFICATION",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,
@@ -673,7 +673,7 @@ def plan_bootstrap_assurance(
         "candidate_designs": candidate_results,
         "selected_units_per_stratum_among_evaluated_candidates": selected,
         "selected_candidate_is_smallest_tested_not_global_minimum": True,
-        "complete_g3_03_sample_size": None,
+        "complete_sample_size": None,
         "complete_design_status": "UNRESOLVED_EXTERNAL_POPULATION_AND_ACQUISITION_EVIDENCE",
         "limitations": [
             "Assurance applies only to the supplied hypothetical finite-support distributions.",

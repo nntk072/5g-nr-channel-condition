@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-fixed-tdl-tap-summary-reference:v1",
-  "title": "G4 Fixed TDL Tap Summary References",
+  "$id": "urn:5gnr:loslab:fixed-tdl-tap-summary-reference:v1",
+  "title": "Fixed TDL Tap Summary References",
   "description": "ETSI Annex B table-summary targets for deterministic adapter checks. Tap count denotes resolved delay clusters; LOS TDL-D specular and diffuse first components share a zero-delay cluster. This is not a conformance verdict.",
   "type": "object",
   "additionalProperties": false,

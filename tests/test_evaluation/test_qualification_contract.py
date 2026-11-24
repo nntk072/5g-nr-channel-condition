@@ -17,7 +17,7 @@ from evaluation.acceptance.qualification_contract import (
 
 def _spec() -> dict[str, object]:
     family = build_joint_acceptance_family_v4(
-        family_id="g3-frozen-run-family",
+        family_id="frozen-run-family",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("site-a", "LOS")],
         propagation_expected_strata=[("site-a", "LOS", "total")],
@@ -25,7 +25,7 @@ def _spec() -> dict[str, object]:
         path_equivalence_expected_scenarios=[("site-a", "LOS", "episode-01")],
     )
     return {
-        "run_id": "g3-confirmation-001",
+        "run_id": "confirmation-001",
         "joint_acceptance_family": family,
         "task_scope": {
             "task_id": "complex-channel-and-receiver-impact",
@@ -133,14 +133,14 @@ def _complete_design(spec: dict[str, object]) -> dict[str, object]:
         for branch, (field, count) in branch_rosters.items()
     }
     schemas = {
-        "joint": "loslab.g3_joint_sample_size_planning.v1",
-        "material_assurance": "loslab.g3_bootstrap_assurance_planning.v1",
-        "complex_csi_assurance": "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
-        "propagation_assurance": "loslab.g3_propagation_bootstrap_assurance_planning.v1",
-        "receiver_assurance": "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1",
+        "joint": "loslab.joint_sample_size_planning.v1",
+        "material_assurance": "loslab.bootstrap_assurance_planning.v1",
+        "complex_csi_assurance": "loslab.complex_csi_bootstrap_assurance_planning.v1",
+        "propagation_assurance": "loslab.propagation_bootstrap_assurance_planning.v1",
+        "receiver_assurance": "loslab.receiver_impact_bootstrap_assurance_planning.v1",
     }
     design: dict[str, object] = {
-        "schema": "loslab.g3_joint_sample_size_design_composition.v1",
+        "schema": "loslab.joint_sample_size_design_composition.v1",
         "status": "SCENARIO_CONDITIONAL_DESIGN_NOT_QUALIFICATION",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,
@@ -232,7 +232,7 @@ def test_qualification_contract_v3_binds_complete_design_and_digest() -> None:
 
     contract = build_qualification_run_contract_v3(spec)
 
-    assert contract["schema"] == "loslab.g3_qualification_run_contract.v3"
+    assert contract["schema"] == "loslab.qualification_run_contract.v3"
     assert contract["sample_size_design_sha256"] == contract["sample_size_design"]["design_sha256"]
     assert verify_qualification_run_contract(contract)["status"] == (
         "PASS_CONTRACT_INTEGRITY_NOT_QUALIFIED"
@@ -289,7 +289,7 @@ def test_qualification_contract_v4_freezes_raw_path_analysis_configuration() -> 
 
     contract = build_qualification_run_contract_v4(spec)
 
-    assert contract["schema"] == "loslab.g3_qualification_run_contract.v4"
+    assert contract["schema"] == "loslab.qualification_run_contract.v4"
     assert contract["path_matching"]["vertex_tolerance_m"] == 0.02
     assert contract["path_matching"]["direction_tolerance_rad"] == 0.05
     assert verify_qualification_run_contract(contract)["status"] == (

@@ -14,11 +14,11 @@ from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family
 from evaluation.sample_size.joint_design import compose_joint_sample_size_design
 
 COMPONENTS = {
-    "joint": "loslab.g3_joint_sample_size_planning.v1",
-    "material_assurance": "loslab.g3_bootstrap_assurance_planning.v1",
-    "complex_csi_assurance": "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
-    "propagation_assurance": "loslab.g3_propagation_bootstrap_assurance_planning.v1",
-    "receiver_assurance": "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1",
+    "joint": "loslab.joint_sample_size_planning.v1",
+    "material_assurance": "loslab.bootstrap_assurance_planning.v1",
+    "complex_csi_assurance": "loslab.complex_csi_bootstrap_assurance_planning.v1",
+    "propagation_assurance": "loslab.propagation_bootstrap_assurance_planning.v1",
+    "receiver_assurance": "loslab.receiver_impact_bootstrap_assurance_planning.v1",
 }
 
 

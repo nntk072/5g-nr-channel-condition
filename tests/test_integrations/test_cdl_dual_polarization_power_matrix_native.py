@@ -1,4 +1,4 @@
-"""G4.07: dual-polarized CDL-A–E power follows independent XPR and K-factor references."""
+""": dual-polarized CDL-A–E power follows independent XPR and K-factor references."""
 
 from __future__ import annotations
 

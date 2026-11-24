@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:loslab:schema:g3-material-mapping.v1",
-  "title": "LoSLab G3 acquisition specimen to evaluator material mapping v1",
+  "$id": "urn:loslab:schema:material-mapping.v1",
+  "title": "LoSLab acquisition specimen to evaluator material mapping v1",
   "description": "Exact-byte mapping proposal from acquisition specimen identities and documented material claims to the evaluator's controlled material IDs. Structural consistency does not authenticate material identity or claim truth.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "material_mapping_id", "mapping_basis", "materials"],
   "properties": {
-    "schema": {"const": "loslab.g3_material_mapping.v1"},
+    "schema": {"const": "loslab.material_mapping.v1"},
     "material_mapping_id": {"$ref": "#/$defs/id"},
     "mapping_basis": {"type": "string", "minLength": 1},
     "materials": {

@@ -38,7 +38,7 @@ def _composed_result() -> dict[str, Any]:
     }
     common = {"admission_possible": False, "qualification_status": "NOT_QUALIFIED"}
     joint = {
-        "schema": "loslab.g3_joint_sample_size_planning.v1",
+        "schema": "loslab.joint_sample_size_planning.v1",
         **common,
         "single_combined_sample_size_is_reported": False,
         "complete_sample_size": None,
@@ -97,7 +97,7 @@ def _composed_result() -> dict[str, Any]:
         joint_acceptance_family=family,
         joint_plan=joint,
         material_assurance_plan={
-            "schema": "loslab.g3_bootstrap_assurance_planning.v1",
+            "schema": "loslab.bootstrap_assurance_planning.v1",
             **common,
             "scenario_provenance_verified": False,
             "joint_acceptance_family": identity,
@@ -119,19 +119,19 @@ def _composed_result() -> dict[str, Any]:
             ],
         },
         complex_csi_assurance_plan=assurance(
-            "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
+            "loslab.complex_csi_bootstrap_assurance_planning.v1",
             ["urban", "LOS"],
             35,
             ("family_id", "condition"),
         ),
         propagation_assurance_plan=assurance(
-            "loslab.g3_propagation_bootstrap_assurance_planning.v1",
+            "loslab.propagation_bootstrap_assurance_planning.v1",
             ["urban", "LOS", "total"],
             45,
             ("family_id", "condition", "component"),
         ),
         receiver_assurance_plan=assurance(
-            "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1",
+            "loslab.receiver_impact_bootstrap_assurance_planning.v1",
             ["urban", "LOS"],
             45,
             ("family_id", "condition"),
@@ -171,7 +171,7 @@ def test_composed_design_is_schema_valid_and_verifies_as_not_qualified() -> None
     [
         pytest.param(
             lambda d: d.update(joint_assurance_lower_bound_union_bound=0.99),
-            "joint G3 assurance bound is inconsistent",
+            "joint assurance bound is inconsistent",
             id="bound",
         ),
         pytest.param(

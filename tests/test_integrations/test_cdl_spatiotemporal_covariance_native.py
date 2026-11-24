@@ -154,7 +154,7 @@ def test_cdl_joint_spatiotemporal_covariance_matches_independent_reference(
     assert channel.metadata["ut_velocity_mps"] == list(velocity)
 
     record_property(
-        "g4_cdl_spatiotemporal_covariance_case",
+        "cdl_spatiotemporal_covariance_case",
         json.dumps(
             {
                 "model": model,

@@ -1,4 +1,4 @@
-"""Build and compare bounded effective path-equivalence classes for G3 reviews.
+"""Build and compare bounded effective path-equivalence classes for reviews.
 
 This module compares deterministic/specular path records between two solver
 configurations. It preserves raw multiplicity, treats primitive IDs as
@@ -488,7 +488,7 @@ def compare_path_equivalence_classes(
         raise ValueError("every class CFR contribution must match the declared full CFR grid")
     if not left and not right:
         return {
-            "schema": "loslab.g3_path_equivalence_comparison.v1",
+            "schema": "loslab.path_equivalence_comparison.v1",
             "status": "NO_CLASSES_NOT_ASSESSABLE",
             "admission_possible": False,
             "class_coverage_status": "NOT_ASSESSABLE_NO_CLASSES",
@@ -720,7 +720,7 @@ def compare_path_equivalence_classes(
         ]
 
     return {
-        "schema": "loslab.g3_path_equivalence_comparison.v1",
+        "schema": "loslab.path_equivalence_comparison.v1",
         "status": "PATH_COVERAGE_DIAGNOSTIC_NOT_QUALIFIED",
         "admission_possible": False,
         "class_coverage_status": "PASS"
@@ -781,7 +781,7 @@ def compare_path_equivalence_classes(
                 "no per-class coefficient pass margin is applied."
             ),
             "Diffuse stochastic rays are outside this identity matcher and require distributional comparison.",
-            "A passing class-coverage result cannot qualify propagation, G5 receiver validity, or production RT generation.",
+            "A passing class-coverage result cannot qualify propagation, receiver validity, or production RT generation.",
         ],
     }
 
@@ -1009,7 +1009,7 @@ def compare_diffuse_stochastic_path_distributions(
         return (left - right + math.pi) % (2.0 * math.pi) - math.pi
 
     return {
-        "schema": "loslab.g3_diffuse_path_distribution_diagnostic.v1",
+        "schema": "loslab.diffuse_path_distribution_diagnostic.v1",
         "status": "DESCRIPTIVE_ONLY_NOT_QUALIFIED",
         "admission_possible": False,
         "ray_identity_assignment": False,

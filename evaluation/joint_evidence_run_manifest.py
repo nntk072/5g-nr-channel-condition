@@ -1,4 +1,4 @@
-"""Verify file-backed, replayable G3 numerical evidence runs."""
+"""Verify file-backed, replayable numerical evidence runs."""
 
 from __future__ import annotations
 

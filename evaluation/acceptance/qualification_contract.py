@@ -1,4 +1,4 @@
-"""Frozen, hash-bound inputs for a criterion-driven G3 qualification run.
+"""Frozen, hash-bound inputs for a criterion-driven qualification run.
 
 The contract is a preregistration artifact. It records the design and finite
 resource caps; it never promotes numerical output to scientific qualification.
@@ -29,9 +29,9 @@ from evaluation.acceptance.receiver_impact import (
 )
 from evaluation.sample_size_planning import verify_joint_sample_size_design
 
-SCHEMA = "loslab.g3_qualification_run_contract.v2"
-SCHEMA_V3 = "loslab.g3_qualification_run_contract.v3"
-SCHEMA_V4 = "loslab.g3_qualification_run_contract.v4"
+SCHEMA = "loslab.qualification_run_contract.v2"
+SCHEMA_V3 = "loslab.qualification_run_contract.v3"
+SCHEMA_V4 = "loslab.qualification_run_contract.v4"
 _RUN_ID = re.compile(r"^[a-z][a-z0-9._-]{2,63}$")
 _SHA256 = re.compile(r"^[a-f0-9]{64}$")
 _REVISION = re.compile(r"^[a-f0-9]{40}$")
@@ -143,17 +143,17 @@ def _string_list(value: Any, name: str, *, nonempty: bool = True) -> list[str]:
 
 
 def build_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate and freeze all design inputs required before a G3 run starts.
+    """Validate and freeze all design inputs required before a run starts.
 
     The source identity fields must come from the caller's repository/runtime
     inventory. This function validates their form but does not authenticate
     Git hosting, measurement sources, signer custody, or physical independence.
     """
     if not isinstance(spec, Mapping) or any(not isinstance(key, str) for key in spec):
-        raise TypeError("G3 qualification specification must be an object")
+        raise TypeError("qualification specification must be an object")
     if set(spec) != _SPEC_FIELDS:
         raise ValueError(
-            "G3 qualification specification fields differ from the v2 contract; "
+            "qualification specification fields differ from the v2 contract; "
             f"missing={sorted(_SPEC_FIELDS - set(spec))}, "
             f"extra={sorted(set(spec) - _SPEC_FIELDS)}"
         )
@@ -164,8 +164,8 @@ def build_qualification_run_contract(spec: Mapping[str, Any]) -> dict[str, Any]:
             "run_id must be 3–64 lowercase letters, digits, dots, underscores, or hyphens"
         )
     family = validate_joint_acceptance_family(spec["joint_acceptance_family"])
-    if family.get("schema") != "loslab.g3_joint_acceptance_family.v4":
-        raise ValueError("G3 qualification contract requires acceptance-family v4")
+    if family.get("schema") != "loslab.joint_acceptance_family.v4":
+        raise ValueError("qualification contract requires acceptance-family v4")
 
     task = _object(
         spec["task_scope"],
@@ -470,7 +470,7 @@ def _validate_sample_size_design_binding(
 ) -> dict[str, Any]:
     verification = verify_joint_sample_size_design(design)
     if verification["complete_precision_powered_design"] is not True:
-        raise ValueError("G3 contract v3 requires a complete precision- and power-based design")
+        raise ValueError("contract v3 requires a complete precision- and power-based design")
     family = base_contract["joint_acceptance_family"]
     identity = design.get("joint_acceptance_family")
     if not isinstance(identity, Mapping) or identity != {
@@ -509,11 +509,11 @@ def build_qualification_run_contract_v3(spec: Mapping[str, Any]) -> dict[str, An
     contract version admitted to new contract-bound evaluator runs.
     """
     if not isinstance(spec, Mapping) or any(not isinstance(key, str) for key in spec):
-        raise TypeError("G3 qualification specification must be an object")
+        raise TypeError("qualification specification must be an object")
     expected_fields = _SPEC_FIELDS | {"sample_size_design"}
     if set(spec) != expected_fields:
         raise ValueError(
-            "G3 qualification v3 specification fields differ; "
+            "qualification v3 specification fields differ; "
             f"missing={sorted(expected_fields - set(spec))}, "
             f"extra={sorted(set(spec) - expected_fields)}"
         )
@@ -536,11 +536,11 @@ def build_qualification_run_contract_v4(spec: Mapping[str, Any]) -> dict[str, An
     raw path records under one preregistered analysis configuration.
     """
     if not isinstance(spec, Mapping) or any(not isinstance(key, str) for key in spec):
-        raise TypeError("G3 qualification specification must be an object")
+        raise TypeError("qualification specification must be an object")
     expected_fields = _SPEC_FIELDS | {"sample_size_design"}
     if set(spec) != expected_fields:
         raise ValueError(
-            "G3 qualification v4 specification fields differ; "
+            "qualification v4 specification fields differ; "
             f"missing={sorted(expected_fields - set(spec))}, "
             f"extra={sorted(set(spec) - expected_fields)}"
         )
@@ -602,7 +602,7 @@ def verify_qualification_run_contract(contract: Mapping[str, Any]) -> dict[str, 
     if not isinstance(declared_digest, str) or _SHA256.fullmatch(declared_digest) is None:
         raise ValueError("contract_sha256 must be a SHA-256 digest")
     if _digest(saved) != declared_digest:
-        raise ValueError("G3 qualification contract digest does not match its contents")
+        raise ValueError("qualification contract digest does not match its contents")
     schema = saved.get("schema")
     expected_fields = {
         "schema",
@@ -624,9 +624,9 @@ def verify_qualification_run_contract(contract: Mapping[str, Any]) -> dict[str, 
     if schema in (SCHEMA_V3, SCHEMA_V4):
         expected_fields |= {"sample_size_design", "sample_size_design_sha256"}
     if set(saved) != expected_fields:
-        raise ValueError("G3 qualification contract fields differ from its frozen schema")
+        raise ValueError("qualification contract fields differ from its frozen schema")
     if schema not in {SCHEMA, SCHEMA_V3, SCHEMA_V4}:
-        raise ValueError("G3 qualification contract schema is unsupported")
+        raise ValueError("qualification contract schema is unsupported")
     spec = {
         "run_id": saved["run_id"],
         "joint_acceptance_family": saved["joint_acceptance_family"],
@@ -663,9 +663,9 @@ def verify_qualification_run_contract(contract: Mapping[str, Any]) -> dict[str, 
     else:
         rebuilt = build_qualification_run_contract(spec)
     if rebuilt != dict(contract):
-        raise ValueError("G3 qualification contract differs from deterministic reconstruction")
+        raise ValueError("qualification contract differs from deterministic reconstruction")
     return {
-        "schema": "loslab.g3_qualification_run_contract_verification.v1",
+        "schema": "loslab.qualification_run_contract_verification.v1",
         "status": "PASS_CONTRACT_INTEGRITY_NOT_QUALIFIED",
         "qualification_status": "NOT_QUALIFIED",
         "run_id": rebuilt["run_id"],

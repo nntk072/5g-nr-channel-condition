@@ -11,7 +11,7 @@ from evaluation.scoring.low_confidence import build_low_confidence_audit
 def test_low_confidence_audit_uses_frozen_threshold_and_counts_groups_by_strata():
     flagged, report = build_low_confidence_audit(
         [0.45, 0.5, 0.62, 0.9],
-        ["g1", "g1", "g2", "g3"],
+        ["group1", "group1", "group2", "group3"],
         ["family-a", "family-a", "family-b", "family-b"],
         ["site-1", "site-1", "site-2", "site-2"],
         threshold=0.5,
@@ -37,9 +37,9 @@ def test_low_confidence_audit_uses_frozen_threshold_and_counts_groups_by_strata(
 @pytest.mark.parametrize(
     ("scores", "groups", "margin", "message"),
     [
-        ([0.2, np.nan], ["g1", "g2"], 0.1, "finite"),
-        ([0.2, 0.8], ["g1"], 0.1, "align"),
-        ([0.2, 0.8], ["g1", "g2"], 0.5, "0.5"),
+        ([0.2, np.nan], ["group1", "group2"], 0.1, "finite"),
+        ([0.2, 0.8], ["group1"], 0.1, "align"),
+        ([0.2, 0.8], ["group1", "group2"], 0.5, "0.5"),
     ],
 )
 def test_low_confidence_audit_rejects_invalid_contract(scores, groups, margin, message):

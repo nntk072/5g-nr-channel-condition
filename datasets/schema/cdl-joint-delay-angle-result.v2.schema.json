@@ -1,21 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-cdl-joint-delay-angle-result:v2",
-  "title": "G4 CDL Joint Delay and Four-Angle Characteristic Result",
-  "description": "Seeded, profile-level outcomes for the bounded preregistered G4.07 joint delay-angle check. This result is scoped evidence and is not overall G4 qualification.",
+  "$id": "urn:5gnr:loslab:cdl-joint-delay-angle-result:v2",
+  "title": "CDL Joint Delay and Four-Angle Characteristic Result",
+  "description": "Seeded, profile-level outcomes for the bounded preregistered joint delay-angle check. This result is scoped evidence and is not overall qualification.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "protocol", "run_date", "status", "seed_collision_audit", "design", "runtime", "command", "provenance", "outcome", "claims", "scope"],
   "properties": {
-    "schema": { "const": "loslab.g4_cdl_joint_delay_angle_result.v2" },
-    "protocol": { "const": "G4_07_CDL_JOINT_DELAY_ANGLE_PROTOCOL_V5_2026-10-27" },
+    "schema": { "const": "loslab.cdl_joint_delay_angle_result.v2" },
+    "protocol": { "const": "CDL_JOINT_DELAY_ANGLE_PROTOCOL_V5_2026-10-27" },
     "run_date": { "type": "string", "format": "date" },
     "status": { "const": "PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE" },
     "seed_collision_audit": {
       "type": "object", "additionalProperties": false,
       "required": ["path", "sha256", "status", "scanned_file_count"],
       "properties": {
-        "path": { "const": "g4-cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json" },
+        "path": { "const": "cdl-joint-delay-angle-v5-seed-collision-audit-20261027.json" },
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "status": { "const": "CLEAR_WITHIN_SCANNED_JSON_CORPUS" },
         "scanned_file_count": { "type": "integer", "minimum": 1 }
@@ -58,7 +58,7 @@
           "type": "object", "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": { "const": "g4-cdl-joint-delay-angle-v5-20261027.log" },
+            "path": { "const": "cdl-joint-delay-angle-v5-20261027.log" },
             "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
           }
         }

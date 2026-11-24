@@ -22,8 +22,8 @@ from tests.test_evaluation.test_acquisition_package_verifier import (
     _put,
 )
 
-V02 = "g3.03-acquisition-package.v0.2"
-V04 = "g3.03-acquisition-package.v0.4"
+V02 = "acquisition-package.v0.2"
+V04 = "acquisition-package.v0.4"
 Mutation = Callable[[Path, dict[str, Any]], None]
 
 
@@ -77,7 +77,7 @@ CASES = [
         id="not-proposal-only",
     ),
     pytest.param(
-        _package_edit(lambda d: d.update(schema_version="g3.03-acquisition-package.v9")),
+        _package_edit(lambda d: d.update(schema_version="acquisition-package.v9")),
         "unsupported acquisition package schema version",
         id="unsupported-schema-version",
     ),

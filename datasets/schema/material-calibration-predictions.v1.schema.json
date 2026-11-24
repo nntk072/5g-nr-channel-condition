@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:loslab:schema:g3-material-calibration-predictions.v1",
-  "title": "LoSLab G3 material calibration predictions v1",
-  "description": "Structural schema for the frozen evaluator input. Cross-record consistency, canonical hash verification, semantic numeric checks, and scoring criteria are enforced by evaluation/g3_material_calibration.py, not this schema.",
+  "$id": "urn:loslab:schema:material-calibration-predictions.v1",
+  "title": "LoSLab material calibration predictions v1",
+  "description": "Structural schema for the frozen evaluator input. Cross-record consistency, canonical hash verification, semantic numeric checks, and scoring criteria are enforced by evaluation/material_calibration.py, not this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -25,7 +25,7 @@
     "test_predictions"
   ],
   "properties": {
-    "schema": { "const": "loslab.g3_material_calibration_predictions.v1" },
+    "schema": { "const": "loslab.material_calibration_predictions.v1" },
     "target_frequency_hz": { "type": "number" },
     "model_id": { "type": "string", "minLength": 1 },
     "model_sha256": { "$ref": "#/$defs/sha256" },
@@ -120,7 +120,7 @@
       "additionalProperties": false,
       "required": ["schema", "expected_strata", "groups", "test_sample_assignments"],
       "properties": {
-        "schema": { "const": "loslab.g3_material_calibration_split_manifest.v1" },
+        "schema": { "const": "loslab.material_calibration_split_manifest.v1" },
         "expected_strata": {
           "type": "array",
           "minItems": 1,

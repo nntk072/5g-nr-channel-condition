@@ -178,7 +178,7 @@ def _four_element_seed_components(
 
     # Keep array ports paired within each independent realization and form a
     # narrowband sample by summing all profile clusters, as in the 2-element
-    # G4 reference qualification.
+    # reference qualification.
     samples = channel.h_path[:, 0, :, 0, 0, :, 0].sum(dim=-1).to(torch.complex128)
     assert samples.shape == (_BATCH_SIZE, 4)
     outer_products = samples[:, :, None] * samples[:, None, :].conj()

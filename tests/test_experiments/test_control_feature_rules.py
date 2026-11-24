@@ -66,7 +66,7 @@ def test_source_only_control_is_a_train_vocabulary_one_hot() -> None:
 
 
 def test_metadata_only_control_requires_matching_canonical_rosters() -> None:
-    group = np.asarray(["g0", "g0", "g1", "g1"])
+    group = np.asarray(["group0", "group0", "group1", "group1"])
     domain = np.asarray(["d0", "d1", "d0", "d1"])
     source = np.asarray(["s0", "s0", "s1", "s1"])
     features, _ = _metadata_only_features(
@@ -79,7 +79,7 @@ def test_metadata_only_control_requires_matching_canonical_rosters() -> None:
         )
     with pytest.raises(ValueError, match="group IDs must be canonical"):
         _metadata_only_features(
-            group_values=np.asarray(["", "g0", "g1", "g1"]),
+            group_values=np.asarray(["", "group0", "group1", "group1"]),
             domain_values=domain,
             source_values=source,
             train_indices=TRAIN,

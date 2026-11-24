@@ -1,4 +1,4 @@
-"""Roster-complete, scene-episode summaries for G3 path-equivalence diagnostics.
+"""Roster-complete, scene-episode summaries for path-equivalence diagnostics.
 
 This layer checks the preregistered evaluation roster and applies the frozen
 per-comparison bidirectional class-coverage rule to every independent episode.
@@ -25,7 +25,7 @@ from evaluation.acceptance.joint_acceptance import (
 )
 
 _COVERAGE_LIMIT = PATH_COVERAGE_LIMIT
-_SCHEMA = "loslab.g3_path_equivalence_roster_diagnostic.v2"
+_SCHEMA = "loslab.path_equivalence_roster_diagnostic.v2"
 _RAW_CONFIGURATION_FIELDS = {
     "candidate_configuration_id",
     "challenger_configuration_id",
@@ -98,7 +98,7 @@ def _recompute_raw_comparison(
     config_bytes = json.dumps(
         normalized, sort_keys=True, separators=(",", ":"), allow_nan=False
     ).encode("utf-8")
-    resolution_id = "g3-path-matching-v1:" + hashlib.sha256(config_bytes).hexdigest()
+    resolution_id = "path-matching-v1:" + hashlib.sha256(config_bytes).hexdigest()
     tolerance_args = {
         "resolution_id": resolution_id,
         "vertex_tolerance_m": normalized["vertex_tolerance_m"],
@@ -497,7 +497,7 @@ def evaluate_path_equivalence_roster(
                 solver_budget_provenance=solver_budget_provenance,
                 coefficient_relative_tolerance=coefficient_relative_tolerance,
             )
-        if comparison.get("schema") != "loslab.g3_path_equivalence_comparison.v1":
+        if comparison.get("schema") != "loslab.path_equivalence_comparison.v1":
             raise ValueError("comparison has an unsupported schema")
         if comparison.get("admission_possible") is not False:
             raise ValueError("path-equivalence comparisons must remain diagnostic-only")
@@ -571,7 +571,7 @@ def evaluate_path_equivalence_roster(
     any_fail = any(item["class_coverage_status"] == "FAIL" for item in scenario_reports)
     return {
         "schema": (
-            "loslab.g3_path_equivalence_roster_diagnostic.v2"
+            "loslab.path_equivalence_roster_diagnostic.v2"
             if solver_budget_provenance is not None
             else _SCHEMA
         ),

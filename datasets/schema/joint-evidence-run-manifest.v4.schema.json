@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://loslab.example/schema/g3-joint-evidence-run-manifest.v4.schema.json",
-  "title": "G3 Joint Evidence Run Manifest v4",
+  "$id": "https://loslab.example/schema/joint-evidence-run-manifest.v4.schema.json",
+  "title": "Joint Evidence Run Manifest v4",
   "description": "Exact input, artifact, runtime inventory, evaluator-source, and self-reported execution-environment identities. Runtime inventory signature and binding are verified separately; qualification remains NOT_QUALIFIED.",
   "type": "object",
   "additionalProperties": false,
@@ -17,7 +17,7 @@
     "evaluator_source_bundle_sha256"
   ],
   "properties": {
-    "schema": { "const": "loslab.g3_joint_evidence_run_manifest.v4" },
+    "schema": { "const": "loslab.joint_evidence_run_manifest.v4" },
     "run_id": { "type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$" },
     "qualification_status": { "const": "NOT_QUALIFIED" },
     "runtime_identity": { "$ref": "#/$defs/runtimeIdentity" },
@@ -83,7 +83,7 @@
         "source_revision"
       ],
       "properties": {
-        "schema": { "const": "loslab.g3_execution_environment.v1" },
+        "schema": { "const": "loslab.execution_environment.v1" },
         "python": { "type": "string", "minLength": 1 },
         "python_implementation": { "type": "string", "minLength": 1 },
         "platform_system": { "type": "string", "minLength": 1 },

@@ -1,4 +1,4 @@
-"""Criterion-oriented complex-CSI comparisons for bounded G3 reviews.
+"""Criterion-oriented complex-CSI comparisons for bounded reviews.
 
 The scorer computes the frozen symmetric, unnormalized CFR error and reports
 cluster-aware per-stratum diagnostics. Passing these numerical checks is not
@@ -236,7 +236,7 @@ def evaluate_complex_csi(
     ):
         raise ValueError("confidence_level must be a finite value in (0, 1)")
     if float(confidence_level) != 0.95:
-        raise ValueError("confidence_level is frozen at 0.95 by the G3 acceptance criteria")
+        raise ValueError("confidence_level is frozen at 0.95 by the acceptance criteria")
     familywise_alpha = 1.0 - float(confidence_level)
     if joint_acceptance_family is None:
         familywise_claim_count = 2 * len(expected)
@@ -395,7 +395,7 @@ def evaluate_complex_csi(
         )
 
     return {
-        "schema": "loslab.g3_complex_csi_comparison.v2",
+        "schema": "loslab.complex_csi_comparison.v2",
         "status": "NUMERICAL_CRITERIA_ONLY_NOT_QUALIFIED",
         "admission_possible": False,
         "criteria": {
@@ -416,9 +416,9 @@ def evaluate_complex_csi(
                 "Bonferroni family-wise across the cluster-bootstrap p95 bound and exact-binomial "
                 "cluster-failure bound for every expected family × LOS/NLOS stratum; "
                 + (
-                    "jointly corrected with the material-calibration claims by the referenced G3 family"
+                    "jointly corrected with the material-calibration claims by the referenced family"
                     if family_reference is not None
-                    else "not jointly corrected with other G3 estimands"
+                    else "not jointly corrected with other estimands"
                 )
             ),
             "familywise_claim_count": familywise_claim_count,

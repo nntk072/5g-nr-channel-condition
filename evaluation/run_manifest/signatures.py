@@ -50,9 +50,9 @@ def _verify_signed_runtime_inventory_bindings(
         or loaded.get("status") != "COMPLETE"
         or loaded.get("unhashed") != []
     ):
-        raise ValueError("strict G3 runtime inventory must be complete v3 integrity evidence")
+        raise ValueError("strict runtime inventory must be complete v3 integrity evidence")
     if source.get("tracked_worktree_clean") is not True:
-        raise ValueError("strict G3 runtime inventory requires a clean tracked source tree")
+        raise ValueError("strict runtime inventory requires a clean tracked source tree")
     if source.get("git_commit") != runtime_identity.get("source_revision"):
         raise ValueError("runtime inventory commit differs from the run runtime identity")
     if (
@@ -127,7 +127,7 @@ def _verify_signed_runtime_inventory_bindings(
 
 def _authorize_run_manifest_signer(signer_id: str, policy_bytes: bytes) -> dict[str, str]:
     """Resolve a cryptographically verified principal to an externally governed role."""
-    policy = _json_bytes(policy_bytes, "G3 run-manifest signer policy")
+    policy = _json_bytes(policy_bytes, "run-manifest signer policy")
     if not isinstance(policy, dict) or set(policy) != {"schema", "policy_id", "signers"}:
         raise ValueError("run-manifest signer policy fields do not match v1")
     if policy_bytes != _canonical_json_bytes(policy):
@@ -216,12 +216,12 @@ def _validate_run_verification_report(report: dict[str, Any]) -> None:
         limit=MAX_SCHEMA_BYTES,
     )
     report["report_schema_sha256"] = hashlib.sha256(schema_bytes).hexdigest()
-    schema = _json_bytes(schema_bytes, "G3 run verification report schema")
+    schema = _json_bytes(schema_bytes, "run verification report schema")
     import jsonschema
 
     errors = list(jsonschema.Draft202012Validator(schema).iter_errors(report))
     if errors:
         raise RuntimeError(
-            "G3 run verification report violates schema: "
+            "run verification report violates schema: "
             + "; ".join(error.message for error in errors[:10])
         )

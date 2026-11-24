@@ -1,4 +1,4 @@
-"""Rejection contracts for signed G3 attestation envelopes, policies and package bindings.
+"""Rejection contracts for signed attestation envelopes, policies and package bindings.
 
 The package-level consistency verifier has its own test module. Cases here that edit the
 package bytes replace that verifier with a stub that reports a consistent proposal package,
@@ -225,13 +225,13 @@ PACKAGE_CASES = [
     pytest.param(
         lambda d: d.update(proposal_status="accepted"),
         lambda e: None,
-        "signed attestation verifier accepts proposal-only G3 packages",
+        "signed attestation verifier accepts proposal-only packages",
         id="not-proposal-only",
     ),
     pytest.param(
-        lambda d: d.update(schema_version="g3.03-acquisition-package.v9"),
+        lambda d: d.update(schema_version="acquisition-package.v9"),
         lambda e: None,
-        "unsupported G3.03 package schema version",
+        "unsupported package schema version",
         id="unsupported-package-schema",
     ),
     pytest.param(
@@ -390,7 +390,7 @@ def test_signed_attestation_rejects_unknown_attestation_type_on_both_sides(tmp_p
         lambda e: e.update(attestation_type="bogus_type"),
     )
 
-    with pytest.raises(ValueError, match="unsupported G3.03 attestation type"):
+    with pytest.raises(ValueError, match="unsupported attestation type"):
         verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
@@ -589,11 +589,11 @@ def test_trusted_signer_policy_must_be_canonical_object(tmp_path: Path) -> None:
 def test_signed_attestation_rejects_package_that_is_not_a_json_object(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     package.write_bytes(b"[]\n")
-    with pytest.raises(ValueError, match="G3 package root must be an object"):
+    with pytest.raises(ValueError, match="package root must be an object"):
         verify_signed_attestation(package, envelope, signature, trusted, policy)
 
     package.write_bytes(b"\xff\n")
-    with pytest.raises(ValueError, match="G3 package is not valid strict UTF-8 JSON"):
+    with pytest.raises(ValueError, match="package is not valid strict UTF-8 JSON"):
         verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
@@ -630,9 +630,7 @@ def test_signed_attestation_requires_ssh_keygen(
 ) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     monkeypatch.setattr(signed_attestation.shutil, "which", lambda name: None)
-    with pytest.raises(
-        RuntimeError, match="OpenSSH ssh-keygen is required to verify G3 attestations"
-    ):
+    with pytest.raises(RuntimeError, match="OpenSSH ssh-keygen is required to verify attestations"):
         verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
@@ -645,16 +643,16 @@ def test_signed_attestation_times_out_ssh_verification(
         raise subprocess.TimeoutExpired(cmd="ssh-keygen", timeout=30)
 
     monkeypatch.setattr(signed_attestation.subprocess, "run", expired)
-    with pytest.raises(RuntimeError, match="OpenSSH G3 attestation verification timed out"):
+    with pytest.raises(RuntimeError, match="OpenSSH attestation verification timed out"):
         verify_signed_attestation(package, envelope, signature, trusted, policy)
 
 
 @pytest.mark.parametrize(
     ("limit_name", "message"),
     [
-        pytest.param("MAX_PACKAGE_BYTES", "G3 package exceeds 10 bytes", id="package"),
+        pytest.param("MAX_PACKAGE_BYTES", "package exceeds 10 bytes", id="package"),
         pytest.param(
-            "MAX_ATTESTATION_BYTES", "G3 attestation envelope exceeds 10 bytes", id="envelope"
+            "MAX_ATTESTATION_BYTES", "attestation envelope exceeds 10 bytes", id="envelope"
         ),
         pytest.param(
             "MAX_SIGNER_POLICY_BYTES", "trusted signer role policy exceeds 10 bytes", id="policy"
@@ -679,13 +677,13 @@ def test_signed_attestation_rejects_non_regular_inputs(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(tmp_path)
     directory = tmp_path / "package-directory"
     directory.mkdir()
-    with pytest.raises(ValueError, match="G3 package must be a single-link regular file"):
+    with pytest.raises(ValueError, match="package must be a single-link regular file"):
         verify_signed_attestation(directory, envelope, signature, trusted, policy)
 
     symbolic_signature = tmp_path / "signature-link.sig"
     symbolic_signature.symlink_to(signature)
     with pytest.raises(
-        ValueError, match="G3 attestation signature must be a single-link regular file"
+        ValueError, match="attestation signature must be a single-link regular file"
     ):
         verify_signed_attestation(package, envelope, symbolic_signature, trusted, policy)
 
@@ -798,7 +796,7 @@ def test_openssh_bytes_verifier_requires_ssh_keygen_and_handles_timeout(
 ) -> None:
     _, _, signature, trusted, _, _ = _make_signed_inputs(tmp_path)
     monkeypatch.setattr(signed_attestation.shutil, "which", lambda name: None)
-    with pytest.raises(RuntimeError, match="required to verify signed G3 artifacts"):
+    with pytest.raises(RuntimeError, match="required to verify signed artifacts"):
         verify_openssh_signature_for_bytes(
             b"x",
             signature,

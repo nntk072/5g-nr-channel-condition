@@ -1,4 +1,4 @@
-"""Experimental finite delay-domain DM-RS channel estimator for G5."""
+"""Experimental finite delay-domain DM-RS channel estimator for ."""
 
 from __future__ import annotations
 

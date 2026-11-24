@@ -28,7 +28,7 @@ def _family(**overrides):
 
 def _payload(**overrides) -> dict:
     payload = {
-        "schema": "loslab.g3_path_equivalence_roster_input.v1",
+        "schema": "loslab.path_equivalence_roster_input.v1",
         "joint_acceptance_family": _family(),
         "records": [_record("episode-1", _comparison("PASS", 1.0, 1.0))],
     }
@@ -45,7 +45,7 @@ def test_valid_input_produces_the_diagnostic_report(tmp_path, capsys) -> None:
     source = _write(tmp_path / "roster.json", _payload())
     assert roster_cli.main([str(source)]) == 0
     report = json.loads(capsys.readouterr().out)
-    assert report["schema"] == "loslab.g3_path_equivalence_roster_report.v1" or report["status"]
+    assert report["schema"] == "loslab.path_equivalence_roster_report.v1" or report["status"]
     assert report["status"] == "ROSTER_PATH_COVERAGE_DIAGNOSTIC_PASS"
     assert report["all_expected_episodes_pass"] is True
 
@@ -59,7 +59,7 @@ def test_valid_input_produces_the_diagnostic_report(tmp_path, capsys) -> None:
         ),
         (
             {
-                "schema": "loslab.g3_path_equivalence_roster_input.v1",
+                "schema": "loslab.path_equivalence_roster_input.v1",
                 "joint_acceptance_family": _family(),
             },
             "exactly schema",
@@ -82,8 +82,8 @@ def test_input_envelope_is_validated(tmp_path, capsys, payload, message) -> None
 
 def test_v3_family_is_refused_by_the_v4_roster_cli(tmp_path, capsys, monkeypatch) -> None:
     family_v4 = _family()
-    family_v4["schema"] = "loslab.g3_joint_acceptance_family.v3"
-    monkeypatch.setattr(roster_cli, "FAMILY_SCHEMA_V4", "loslab.g3_joint_acceptance_family.v4")
+    family_v4["schema"] = "loslab.joint_acceptance_family.v3"
+    monkeypatch.setattr(roster_cli, "FAMILY_SCHEMA_V4", "loslab.joint_acceptance_family.v4")
     monkeypatch.setattr(roster_cli, "validate_joint_acceptance_family", lambda value: value)
     source = _write(tmp_path / "v3.json", _payload(joint_acceptance_family=family_v4))
     with pytest.raises(SystemExit):

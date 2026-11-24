@@ -1,4 +1,4 @@
-"""Scenario-conditional assurance planning for the G3 paired NR receiver scorer.
+"""Scenario-conditional assurance planning for the paired NR receiver scorer.
 
 The planner samples hypothetical independent channel-cluster outcomes and
 delegates every simulated study to the production receiver evaluator. This
@@ -122,8 +122,8 @@ def plan_receiver_impact_bootstrap_assurance(
     """
     family = validate_joint_acceptance_family(joint_acceptance_family)
     if family["schema"] not in {
-        "loslab.g3_joint_acceptance_family.v3",
-        "loslab.g3_joint_acceptance_family.v4",
+        "loslab.joint_acceptance_family.v3",
+        "loslab.joint_acceptance_family.v4",
     }:
         raise ValueError("receiver bootstrap assurance requires a joint-family v3 or v4 roster")
     expected_strata = {
@@ -316,7 +316,7 @@ def plan_receiver_impact_bootstrap_assurance(
         ).encode("utf-8")
     ).hexdigest()
     return {
-        "schema": "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1",
+        "schema": "loslab.receiver_impact_bootstrap_assurance_planning.v1",
         "status": "SCENARIO_CONDITIONAL_PLANNING_ONLY_NOT_QUALIFICATION",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,
@@ -352,6 +352,6 @@ def plan_receiver_impact_bootstrap_assurance(
             "All per-block channel outcomes and IID cluster probabilities are hypothetical and unverified.",
             "Assurance is conditional on the supplied finite-support scenario and the current receiver evaluator implementation.",
             "The exact lower confidence bounds account for finite assurance Monte Carlo draws; a union bound combines the declared strata.",
-            "This planner never qualifies NR receiver behavior, G3, a scene family, or authorizes production RT generation.",
+            "This planner never qualifies NR receiver behavior, , a scene family, or authorizes production RT generation.",
         ],
     }

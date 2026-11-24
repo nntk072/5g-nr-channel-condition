@@ -81,4 +81,4 @@ def test_reading_refuses_symbolic_links(tmp_path: Path) -> None:
     link = tmp_path / "link.json"
     link.symlink_to(target)
     with pytest.raises(ValueError, match="single-link regular file"):
-        artifact._read_regular_file(link, limit=100, label="G3 joint input")
+        artifact._read_regular_file(link, limit=100, label="joint input")

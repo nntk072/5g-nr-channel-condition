@@ -116,7 +116,7 @@ def test_run_manifest_cli_publishes_schema_bound_report_without_overwrite(
 
     report = json.loads(verification_path.read_text(encoding="utf-8"))
     assert exit_code == 0
-    assert report["schema"] == "loslab.g3_joint_evidence_run_verification.v1"
+    assert report["schema"] == "loslab.joint_evidence_run_verification.v1"
     assert report["qualification_status"] == "NOT_QUALIFIED"
     assert len(report["report_schema_sha256"]) == 64
     assert (
@@ -234,8 +234,8 @@ def test_run_manifest_rejects_tampered_signed_signer_policy(
     ssh_keygen = shutil.which("ssh-keygen")
     if ssh_keygen is None:
         pytest.skip("OpenSSH is unavailable")
-    policy_signer_id = "g3-policy-custodian"
-    private_key = tmp_path / "g3-policy-custodian-key"
+    policy_signer_id = "policy-custodian"
+    private_key = tmp_path / "policy-custodian-key"
     subprocess.run(
         [ssh_keygen, "-q", "-t", "ed25519", "-N", "", "-f", str(private_key)],
         check=True,

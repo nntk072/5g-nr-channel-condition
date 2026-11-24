@@ -22,23 +22,23 @@ file names carry the version as a `vN` suffix.
 
 | File | Title | `$id` |
 | --- | --- | --- |
-| `acquisition-design-assumptions.v1.schema.json` | G3.03 Assumption-Driven Acquisition Design Inputs | `urn:5gnr:loslab:g3-acquisition-design-assumptions:v1` |
-| `acquisition-design-assumptions.v2.schema.json` | G3 Joint Acceptance-Family Acquisition Design Inputs | `urn:5gnr:loslab:g3-acquisition-design-assumptions:v2` |
-| `acquisition-design-assumptions.v3.schema.json` | G3 Joint Acceptance-Family Acquisition Design Inputs with CSI Bootstrap Assurance | `urn:5gnr:loslab:g3-acquisition-design-assumptions:v3` |
-| `acquisition-design-assumptions.v4.schema.json` | G3 Joint Acceptance-Family Acquisition Design Inputs with Receiver Bootstrap Assurance | `urn:5gnr:loslab:g3-acquisition-design-assumptions:v4` |
-| `acquisition-design-assumptions.v5.schema.json` | G3 Joint Acceptance-Family Acquisition Design Inputs with Receiver and Propagation Bootstrap Assurance | `urn:5gnr:loslab:g3-acquisition-design-assumptions:v4` |
-| `acquisition-package.v0.1.schema.json` | G3.03 Lab Acquisition Package Proposal v0.1 | `urn:5gnr:loslab:g3.03-acquisition-package:v0.1` |
-| `acquisition-package.v0.2.schema.json` | G3.03 Lab Acquisition Package Proposal v0.2 | `urn:5gnr:loslab:g3.03-acquisition-package:v0.2` |
-| `acquisition-package.v0.3.schema.json` | G3.03 Lab Acquisition Package Proposal v0.3 | `urn:5gnr:loslab:g3.03-acquisition-package:v0.3` |
-| `acquisition-package.v0.4.schema.json` | G3.03 Lab Acquisition Package Proposal v0.4 | `urn:5gnr:loslab:g3.03-acquisition-package:v0.4` |
+| `acquisition-design-assumptions.v1.schema.json` | Assumption-Driven Acquisition Design Inputs | `urn:5gnr:loslab:acquisition-design-assumptions:v1` |
+| `acquisition-design-assumptions.v2.schema.json` | Joint Acceptance-Family Acquisition Design Inputs | `urn:5gnr:loslab:acquisition-design-assumptions:v2` |
+| `acquisition-design-assumptions.v3.schema.json` | Joint Acceptance-Family Acquisition Design Inputs with CSI Bootstrap Assurance | `urn:5gnr:loslab:acquisition-design-assumptions:v3` |
+| `acquisition-design-assumptions.v4.schema.json` | Joint Acceptance-Family Acquisition Design Inputs with Receiver Bootstrap Assurance | `urn:5gnr:loslab:acquisition-design-assumptions:v4` |
+| `acquisition-design-assumptions.v5.schema.json` | Joint Acceptance-Family Acquisition Design Inputs with Receiver and Propagation Bootstrap Assurance | `urn:5gnr:loslab:acquisition-design-assumptions:v4` |
+| `acquisition-package.v0.1.schema.json` | Lab Acquisition Package Proposal v0.1 | `urn:5gnr:loslab:acquisition-package:v0.1` |
+| `acquisition-package.v0.2.schema.json` | Lab Acquisition Package Proposal v0.2 | `urn:5gnr:loslab:acquisition-package:v0.2` |
+| `acquisition-package.v0.3.schema.json` | Lab Acquisition Package Proposal v0.3 | `urn:5gnr:loslab:acquisition-package:v0.3` |
+| `acquisition-package.v0.4.schema.json` | Lab Acquisition Package Proposal v0.4 | `urn:5gnr:loslab:acquisition-package:v0.4` |
 | `benchmark-cohort-declaration.v1.schema.json` | UMCD benchmark cohort declaration v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/benchmark-cohort-declaration.v1.schema.json` |
 | `benchmark-partition-manifest.v1.schema.json` | UMCD benchmark partition manifest v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/benchmark-partition-manifest.v1.schema.json` |
 | `caez-ridge-model-input-contract.v1.schema.json` | CAEZ Ridge model input contract v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/caez-ridge-model-input-contract.v1.schema.json` |
-| `cdl-directional-pattern-power-result.v1.schema.json` | G4 CDL Directional Pattern Power Result | `urn:5gnr:loslab:g4-cdl-directional-pattern-power-result:v1` |
-| `cdl-e-covariance-replication.v1.schema.json` | G4 CDL-E fresh-seed covariance replication | `urn:5gnr:loslab:g4-cdl-e-covariance-replication:v1` |
-| `cdl-joint-delay-angle-result.v2.schema.json` | G4 CDL Joint Delay and Four-Angle Characteristic Result | `urn:5gnr:loslab:g4-cdl-joint-delay-angle-result:v2` |
-| `cdl-profile-scalar-reference.v1.schema.json` | G4 CDL Profile Scalar References | `urn:5gnr:loslab:g4-cdl-profile-scalar-reference:v1` |
-| `cdl-tap-angle-reference.v1.schema.json` | G4 CDL Per-Cluster Tap and Angle References | `urn:5gnr:loslab:g4-cdl-tap-angle-reference:v1` |
+| `cdl-directional-pattern-power-result.v1.schema.json` | CDL Directional Pattern Power Result | `urn:5gnr:loslab:cdl-directional-pattern-power-result:v1` |
+| `cdl-e-covariance-replication.v1.schema.json` | CDL-E fresh-seed covariance replication | `urn:5gnr:loslab:cdl-e-covariance-replication:v1` |
+| `cdl-joint-delay-angle-result.v2.schema.json` | CDL Joint Delay and Four-Angle Characteristic Result | `urn:5gnr:loslab:cdl-joint-delay-angle-result:v2` |
+| `cdl-profile-scalar-reference.v1.schema.json` | CDL Profile Scalar References | `urn:5gnr:loslab:cdl-profile-scalar-reference:v1` |
+| `cdl-tap-angle-reference.v1.schema.json` | CDL Per-Cluster Tap and Angle References | `urn:5gnr:loslab:cdl-tap-angle-reference:v1` |
 | `channel-dataset-child-artifact-roster.v1.schema.json` | UMCD ChannelDataset frozen split child artifact roster | `https://umcd.example/schemas/channel-dataset-child-artifact-roster.v1.schema.json` |
 | `channel-dataset-child-artifact-roster.v2.schema.json` | UMCD typed frozen split child artifact roster v2 | `https://umcd.example/schemas/channel-dataset-child-artifact-roster.v2.schema.json` |
 | `channel-dataset-child-artifact-roster.v3.schema.json` | UMCD typed split child artifact roster v3 | `https://umcd.example/schemas/channel-dataset-child-artifact-roster.v3.schema.json` |
@@ -53,31 +53,31 @@ file names carry the version as a `vN` suffix.
 | `direct-path-ablation-materialization-report.v1.schema.json` | Direct-path ablation materialization report | `urn:5gnr:loslab:direct-path-ablation-materialization-report:v1` |
 | `element-frame-spherical-angular-power-map.v1.schema.json` | Element-Frame Spherical Angular Power Map | `urn:5gnr:umcd:element-frame-spherical-angular-power-map:v1` |
 | `expected-population-roster.v1.schema.json` | Expected population outcome roster v1 | `urn:5gnr:expected-population-roster:v1` |
-| `fixed-tdl-los-k-factor-reference.v1.schema.json` | G4 Fixed TDL LOS K-Factor Reference | `urn:5gnr:loslab:g4-fixed-tdl-los-k-factor-reference:v1` |
-| `fixed-tdl-rms-reference.v1.schema.json` | G4 Fixed TDL RMS Delay-Spread Scalar References | `urn:5gnr:loslab:g4-fixed-tdl-rms-reference:v1` |
-| `fixed-tdl-tap-profile-reference.v1.schema.json` | G4 Fixed TDL Per-Component Tap References | `urn:5gnr:loslab:g4-fixed-tdl-tap-profile-reference:v1` |
-| `fixed-tdl-tap-summary-reference.v1.schema.json` | G4 Fixed TDL Tap Summary References | `urn:5gnr:loslab:g4-fixed-tdl-tap-summary-reference:v1` |
+| `fixed-tdl-los-k-factor-reference.v1.schema.json` | Fixed TDL LOS K-Factor Reference | `urn:5gnr:loslab:fixed-tdl-los-k-factor-reference:v1` |
+| `fixed-tdl-rms-reference.v1.schema.json` | Fixed TDL RMS Delay-Spread Scalar References | `urn:5gnr:loslab:fixed-tdl-rms-reference:v1` |
+| `fixed-tdl-tap-profile-reference.v1.schema.json` | Fixed TDL Per-Component Tap References | `urn:5gnr:loslab:fixed-tdl-tap-profile-reference:v1` |
+| `fixed-tdl-tap-summary-reference.v1.schema.json` | Fixed TDL Tap Summary References | `urn:5gnr:loslab:fixed-tdl-tap-summary-reference:v1` |
 | `implementation-feature-map.v1.schema.json` | Non-qualifying implementation feature map | `https://loslab.example/schema/implementation-feature-map.v1.schema.json` |
 | `implementation-feature-map.v2.schema.json` | Non-qualifying content-addressed implementation feature map | `https://loslab.example/schema/implementation-feature-map.v2.schema.json` |
 | `implementation-feature-map.v3.schema.json` | Non-qualifying implementation-status feature map | `https://loslab.example/schema/implementation-feature-map.v3.schema.json` |
-| `joint-evaluator-artifact.v1.schema.json` | G3 five-branch numerical evaluator artifact | `https://loslab.invalid/schema/g3-joint-evaluator-artifact.v1.schema.json` |
-| `joint-evaluator-artifact.v2.schema.json` | G3 five-branch numerical evaluator artifact | `https://loslab.invalid/schema/g3-joint-evaluator-artifact.v2.schema.json` |
-| `joint-evaluator-input.v1.schema.json` | G3 five-branch joint evaluator input | `https://loslab.invalid/schema/g3-joint-evaluator-input.v1.schema.json` |
-| `joint-evaluator-input.v2.schema.json` | G3 five-branch joint evaluator input with receiver execution identity | `https://loslab.invalid/schema/g3-joint-evaluator-input.v2.schema.json` |
-| `joint-evaluator-input.v3.schema.json` | G3 five-branch joint evaluator input with receiver execution and episode identity | `https://loslab.invalid/schema/g3-joint-evaluator-input.v3.schema.json` |
-| `joint-evaluator-input.v4.schema.json` | G3 five-branch joint evaluator input with row-bound receiver configuration | `https://loslab.invalid/schema/g3-joint-evaluator-input.v4.schema.json` |
-| `joint-evaluator-input.v5.schema.json` | G3 five-branch joint evaluator input with raw path-equivalence recomputation | `https://loslab.invalid/schema/g3-joint-evaluator-input.v5.schema.json` |
-| `joint-evaluator-input.v6.schema.json` | G3 joint evaluator input with diffuse-path distribution diagnostics | `https://loslab.invalid/schema/g3-joint-evaluator-input.v6.schema.json` |
-| `joint-evidence-run-manifest.v1.schema.json` | G3 Joint Evidence Run Manifest v1 | `https://loslab.example/schema/g3-joint-evidence-run-manifest.v1.schema.json` |
-| `joint-evidence-run-manifest.v2.schema.json` | G3 Joint Evidence Run Manifest v2 | `https://loslab.example/schema/g3-joint-evidence-run-manifest.v2.schema.json` |
-| `joint-evidence-run-manifest.v3.schema.json` | G3 Joint Evidence Run Manifest v3 | `https://loslab.example/schema/g3-joint-evidence-run-manifest.v3.schema.json` |
-| `joint-evidence-run-manifest.v4.schema.json` | G3 Joint Evidence Run Manifest v4 | `https://loslab.example/schema/g3-joint-evidence-run-manifest.v4.schema.json` |
-| `joint-evidence-run-manifest.v5.schema.json` | G3 Joint Evidence Run Manifest v5 | `https://loslab.example/schema/g3-joint-evidence-run-manifest.v5.schema.json` |
-| `joint-evidence-run-verification.v1.schema.json` | G3 Joint Evidence Run Verification Report v1 | `https://loslab.invalid/schema/g3-joint-evidence-run-verification.v1.schema.json` |
-| `joint-sample-size-design-composition.v1.schema.json` | Scenario-conditional G3 joint sample-size design composition | `urn:5gnr:loslab:g3-joint-sample-size-design-composition:v1` |
-| `material-calibration-predictions.v1.schema.json` | LoSLab G3 material calibration predictions v1 | `urn:loslab:schema:g3-material-calibration-predictions.v1` |
-| `material-calibration-predictions.v2.schema.json` | LoSLab G3 material calibration predictions v2 | `urn:loslab:schema:g3-material-calibration-predictions.v2` |
-| `material-mapping.v1.schema.json` | LoSLab G3 acquisition specimen to evaluator material mapping v1 | `urn:loslab:schema:g3-material-mapping.v1` |
+| `joint-evaluator-artifact.v1.schema.json` | five-branch numerical evaluator artifact | `https://loslab.invalid/schema/joint-evaluator-artifact.v1.schema.json` |
+| `joint-evaluator-artifact.v2.schema.json` | five-branch numerical evaluator artifact | `https://loslab.invalid/schema/joint-evaluator-artifact.v2.schema.json` |
+| `joint-evaluator-input.v1.schema.json` | five-branch joint evaluator input | `https://loslab.invalid/schema/joint-evaluator-input.v1.schema.json` |
+| `joint-evaluator-input.v2.schema.json` | five-branch joint evaluator input with receiver execution identity | `https://loslab.invalid/schema/joint-evaluator-input.v2.schema.json` |
+| `joint-evaluator-input.v3.schema.json` | five-branch joint evaluator input with receiver execution and episode identity | `https://loslab.invalid/schema/joint-evaluator-input.v3.schema.json` |
+| `joint-evaluator-input.v4.schema.json` | five-branch joint evaluator input with row-bound receiver configuration | `https://loslab.invalid/schema/joint-evaluator-input.v4.schema.json` |
+| `joint-evaluator-input.v5.schema.json` | five-branch joint evaluator input with raw path-equivalence recomputation | `https://loslab.invalid/schema/joint-evaluator-input.v5.schema.json` |
+| `joint-evaluator-input.v6.schema.json` | joint evaluator input with diffuse-path distribution diagnostics | `https://loslab.invalid/schema/joint-evaluator-input.v6.schema.json` |
+| `joint-evidence-run-manifest.v1.schema.json` | Joint Evidence Run Manifest v1 | `https://loslab.example/schema/joint-evidence-run-manifest.v1.schema.json` |
+| `joint-evidence-run-manifest.v2.schema.json` | Joint Evidence Run Manifest v2 | `https://loslab.example/schema/joint-evidence-run-manifest.v2.schema.json` |
+| `joint-evidence-run-manifest.v3.schema.json` | Joint Evidence Run Manifest v3 | `https://loslab.example/schema/joint-evidence-run-manifest.v3.schema.json` |
+| `joint-evidence-run-manifest.v4.schema.json` | Joint Evidence Run Manifest v4 | `https://loslab.example/schema/joint-evidence-run-manifest.v4.schema.json` |
+| `joint-evidence-run-manifest.v5.schema.json` | Joint Evidence Run Manifest v5 | `https://loslab.example/schema/joint-evidence-run-manifest.v5.schema.json` |
+| `joint-evidence-run-verification.v1.schema.json` | Joint Evidence Run Verification Report v1 | `https://loslab.invalid/schema/joint-evidence-run-verification.v1.schema.json` |
+| `joint-sample-size-design-composition.v1.schema.json` | Scenario-conditional joint sample-size design composition | `urn:5gnr:loslab:joint-sample-size-design-composition:v1` |
+| `material-calibration-predictions.v1.schema.json` | LoSLab material calibration predictions v1 | `urn:loslab:schema:material-calibration-predictions.v1` |
+| `material-calibration-predictions.v2.schema.json` | LoSLab material calibration predictions v2 | `urn:loslab:schema:material-calibration-predictions.v2` |
+| `material-mapping.v1.schema.json` | LoSLab acquisition specimen to evaluator material mapping v1 | `urn:loslab:schema:material-mapping.v1` |
 | `model-input-artifact-contract.v1.schema.json` | Observation-only model input artifact contract v1 | `urn:5gnr:model-input-artifact-contract:v1` |
 | `model-input-artifact-contract.v10.schema.json` | Observation-only model input artifact contract v10 | `urn:5gnr:model-input-artifact-contract:v10` |
 | `model-input-artifact-contract.v11.schema.json` | Group-only leakage-control model input artifact contract v11 | `urn:5gnr:model-input-artifact-contract:v11` |
@@ -118,36 +118,36 @@ file names carry the version as a `vN` suffix.
 | `nr-target-support-audit.v1.schema.json` | UMCD NR trajectory target support audit | `urn:5gnr:umcd:nr-target-support-audit:v1` |
 | `nr-trajectory-inventory-extension.v1.schema.json` | UMCD corpus inventory NR trajectory extension | `urn:5gnr:umcd:nr-trajectory-inventory-extension:v1` |
 | `odbl-scene-source-snapshot-audit.v1.schema.json` | ODbL scene source snapshot audit v1 | `https://loslab.invalid/schema/odbl-scene-source-snapshot-audit.v1.schema.json` |
-| `ordered-impairments-snr-acceptance.v1.schema.json` | G5 ordered-impairment SNR-family acceptance contract | `https://umcd.example/schema/g5-ordered-impairments-snr-acceptance.v1.schema.json` |
-| `ordered-impairments-snr-acceptance.v2.schema.json` | Timestamped G5 ordered-impairment SNR-family acceptance contract | `https://umcd.example/schema/g5-ordered-impairments-snr-acceptance.v2.schema.json` |
-| `ordered-impairments-snr-acceptance.v3.schema.json` | Execution-bound timestamped G5 ordered-impairment SNR-family acceptance contract | `https://umcd.example/schema/g5-ordered-impairments-snr-acceptance.v3.schema.json` |
-| `ordered-impairments-snr-curve.v1.schema.json` | G5 ordered-impairment independent-channel diagnostic SNR curve | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v1.schema.json` |
-| `ordered-impairments-snr-curve.v10.schema.json` | G5 timestamped signed preregistration SNR curve with declared ordering check | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v10.schema.json` |
-| `ordered-impairments-snr-curve.v11.schema.json` | G5 timestamped signed preregistration curve with independent reviewer policy | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v11.schema.json` |
-| `ordered-impairments-snr-curve.v12.schema.json` | CUDA execution-device-bound SNR curve based on v9 | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v12.schema.json` |
-| `ordered-impairments-snr-curve.v13.schema.json` | CUDA execution-device-bound SNR curve based on v7 | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v13.schema.json` |
-| `ordered-impairments-snr-curve.v14.schema.json` | CUDA execution-device-bound SNR curve based on v8 | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v14.schema.json` |
-| `ordered-impairments-snr-curve.v15.schema.json` | CUDA execution-device-bound SNR curve based on v10 | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v15.schema.json` |
-| `ordered-impairments-snr-curve.v16.schema.json` | CUDA execution-device-bound SNR curve based on v11 | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v16.schema.json` |
-| `ordered-impairments-snr-curve.v17.schema.json` | Execution-bound G5 SNR curve report | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v17.schema.json` |
-| `ordered-impairments-snr-curve.v2.schema.json` | G5 ordered-impairment independent-channel diagnostic SNR curve | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v2.schema.json` |
-| `ordered-impairments-snr-curve.v25.schema.json` | Execution-bound G5 SNR curve report (CUDA) | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v25.schema.json` |
-| `ordered-impairments-snr-curve.v3.schema.json` | G5 ordered-impairment independent-channel diagnostic SNR curve | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v3.schema.json` |
-| `ordered-impairments-snr-curve.v4.schema.json` | G5 ordered-impairment independent-channel diagnostic SNR curve with paired effect | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v4.schema.json` |
-| `ordered-impairments-snr-curve.v5.schema.json` | G5 ordered-impairment independent-channel SNR curve with preregistered acceptance | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v5.schema.json` |
-| `ordered-impairments-snr-curve.v6.schema.json` | G5 ordered-impairment SNR curve with signed preregistration evidence | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v6.schema.json` |
-| `ordered-impairments-snr-curve.v7.schema.json` | G5 ordered-impairment SNR curve v7 with exact channel-seed inference roster | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v7.schema.json` |
-| `ordered-impairments-snr-curve.v8.schema.json` | G5 ordered-impairment SNR curve v8 with exact channel-seed inference roster | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v8.schema.json` |
-| `ordered-impairments-snr-curve.v9.schema.json` | G5 ordered-impairment independent-channel diagnostic SNR curve with paired effect and representable unavailable inference | `https://umcd.example/schema/g5-ordered-impairments-snr-curve.v9.schema.json` |
-| `ordered-impairments-waveform-evidence.v1.schema.json` | G5 Ordered-Impairments Waveform Evidence Manifest | `urn:5gnr:umcd:g5-ordered-impairments-waveform-evidence:v1` |
-| `ordered-impairments-waveform-evidence.v2.schema.json` | G5 Ordered-Impairments Waveform Evidence Manifest v2 | `urn:5gnr:umcd:g5-ordered-impairments-waveform-evidence:v2` |
-| `ordered-impairments-waveform-evidence.v3.schema.json` | G5 Ordered-Impairments Waveform Evidence Manifest v3 | `urn:5gnr:umcd:g5-ordered-impairments-waveform-evidence:v3` |
-| `ordered-impairments-waveform-evidence.v4.schema.json` | G5 Ordered-Impairments Multi-SNR Waveform Evidence Manifest v4 | `urn:5gnr:umcd:g5-ordered-impairments-waveform-evidence:v4` |
+| `ordered-impairments-snr-acceptance.v1.schema.json` | ordered-impairment SNR-family acceptance contract | `https://umcd.example/schema/ordered-impairments-snr-acceptance.v1.schema.json` |
+| `ordered-impairments-snr-acceptance.v2.schema.json` | Timestamped ordered-impairment SNR-family acceptance contract | `https://umcd.example/schema/ordered-impairments-snr-acceptance.v2.schema.json` |
+| `ordered-impairments-snr-acceptance.v3.schema.json` | Execution-bound timestamped ordered-impairment SNR-family acceptance contract | `https://umcd.example/schema/ordered-impairments-snr-acceptance.v3.schema.json` |
+| `ordered-impairments-snr-curve.v1.schema.json` | ordered-impairment independent-channel diagnostic SNR curve | `https://umcd.example/schema/ordered-impairments-snr-curve.v1.schema.json` |
+| `ordered-impairments-snr-curve.v10.schema.json` | timestamped signed preregistration SNR curve with declared ordering check | `https://umcd.example/schema/ordered-impairments-snr-curve.v10.schema.json` |
+| `ordered-impairments-snr-curve.v11.schema.json` | timestamped signed preregistration curve with independent reviewer policy | `https://umcd.example/schema/ordered-impairments-snr-curve.v11.schema.json` |
+| `ordered-impairments-snr-curve.v12.schema.json` | CUDA execution-device-bound SNR curve based on v9 | `https://umcd.example/schema/ordered-impairments-snr-curve.v12.schema.json` |
+| `ordered-impairments-snr-curve.v13.schema.json` | CUDA execution-device-bound SNR curve based on v7 | `https://umcd.example/schema/ordered-impairments-snr-curve.v13.schema.json` |
+| `ordered-impairments-snr-curve.v14.schema.json` | CUDA execution-device-bound SNR curve based on v8 | `https://umcd.example/schema/ordered-impairments-snr-curve.v14.schema.json` |
+| `ordered-impairments-snr-curve.v15.schema.json` | CUDA execution-device-bound SNR curve based on v10 | `https://umcd.example/schema/ordered-impairments-snr-curve.v15.schema.json` |
+| `ordered-impairments-snr-curve.v16.schema.json` | CUDA execution-device-bound SNR curve based on v11 | `https://umcd.example/schema/ordered-impairments-snr-curve.v16.schema.json` |
+| `ordered-impairments-snr-curve.v17.schema.json` | Execution-bound SNR curve report | `https://umcd.example/schema/ordered-impairments-snr-curve.v17.schema.json` |
+| `ordered-impairments-snr-curve.v2.schema.json` | ordered-impairment independent-channel diagnostic SNR curve | `https://umcd.example/schema/ordered-impairments-snr-curve.v2.schema.json` |
+| `ordered-impairments-snr-curve.v25.schema.json` | Execution-bound SNR curve report (CUDA) | `https://umcd.example/schema/ordered-impairments-snr-curve.v25.schema.json` |
+| `ordered-impairments-snr-curve.v3.schema.json` | ordered-impairment independent-channel diagnostic SNR curve | `https://umcd.example/schema/ordered-impairments-snr-curve.v3.schema.json` |
+| `ordered-impairments-snr-curve.v4.schema.json` | ordered-impairment independent-channel diagnostic SNR curve with paired effect | `https://umcd.example/schema/ordered-impairments-snr-curve.v4.schema.json` |
+| `ordered-impairments-snr-curve.v5.schema.json` | ordered-impairment independent-channel SNR curve with preregistered acceptance | `https://umcd.example/schema/ordered-impairments-snr-curve.v5.schema.json` |
+| `ordered-impairments-snr-curve.v6.schema.json` | ordered-impairment SNR curve with signed preregistration evidence | `https://umcd.example/schema/ordered-impairments-snr-curve.v6.schema.json` |
+| `ordered-impairments-snr-curve.v7.schema.json` | ordered-impairment SNR curve v7 with exact channel-seed inference roster | `https://umcd.example/schema/ordered-impairments-snr-curve.v7.schema.json` |
+| `ordered-impairments-snr-curve.v8.schema.json` | ordered-impairment SNR curve v8 with exact channel-seed inference roster | `https://umcd.example/schema/ordered-impairments-snr-curve.v8.schema.json` |
+| `ordered-impairments-snr-curve.v9.schema.json` | ordered-impairment independent-channel diagnostic SNR curve with paired effect and representable unavailable inference | `https://umcd.example/schema/ordered-impairments-snr-curve.v9.schema.json` |
+| `ordered-impairments-waveform-evidence.v1.schema.json` | Ordered-Impairments Waveform Evidence Manifest | `urn:5gnr:umcd:ordered-impairments-waveform-evidence:v1` |
+| `ordered-impairments-waveform-evidence.v2.schema.json` | Ordered-Impairments Waveform Evidence Manifest v2 | `urn:5gnr:umcd:ordered-impairments-waveform-evidence:v2` |
+| `ordered-impairments-waveform-evidence.v3.schema.json` | Ordered-Impairments Waveform Evidence Manifest v3 | `urn:5gnr:umcd:ordered-impairments-waveform-evidence:v3` |
+| `ordered-impairments-waveform-evidence.v4.schema.json` | Ordered-Impairments Multi-SNR Waveform Evidence Manifest v4 | `urn:5gnr:umcd:ordered-impairments-waveform-evidence:v4` |
 | `paired-frequency-rt-requests.v1.schema.json` | Paired frequency RT request plan | `urn:5gnr:loslab:paired-frequency-rt-requests:v1` |
 | `paired-frequency-split-binding-audit.v1.schema.json` | Paired-frequency split binding audit | `urn:5gnr:loslab:paired-frequency-split-binding-audit:v1` |
-| `path-equivalence-roster-diagnostic.v1.schema.json` | G3 Path Equivalence Roster Diagnostic | `urn:5gnr:loslab:g3-path-equivalence-roster-diagnostic:v1` |
-| `path-equivalence-roster-diagnostic.v2.schema.json` | G3 Path Equivalence Roster Diagnostic | `urn:5gnr:loslab:g3-path-equivalence-roster-diagnostic:v2` |
-| `path-equivalence-roster-input.v1.schema.json` | G3 Path Equivalence Roster Diagnostic Input | `urn:5gnr:loslab:g3-path-equivalence-roster-input:v1` |
+| `path-equivalence-roster-diagnostic.v1.schema.json` | Path Equivalence Roster Diagnostic | `urn:5gnr:loslab:path-equivalence-roster-diagnostic:v1` |
+| `path-equivalence-roster-diagnostic.v2.schema.json` | Path Equivalence Roster Diagnostic | `urn:5gnr:loslab:path-equivalence-roster-diagnostic:v2` |
+| `path-equivalence-roster-input.v1.schema.json` | Path Equivalence Roster Diagnostic Input | `urn:5gnr:loslab:path-equivalence-roster-input:v1` |
 | `pilot-audit.v1.schema.json` | UMCD pilot audit v1 | `https://loslab.invalid/schema/pilot-audit.v1.schema.json` |
 | `pilot-candidate-roster.v1.schema.json` | UMCD pilot candidate roster v1 | `https://loslab.invalid/schema/pilot-candidate-roster.v1.schema.json` |
 | `pilot-design.v1.schema.json` | UMCD pilot design v1 | `https://loslab.invalid/schema/pilot-design.v1.schema.json` |
@@ -158,23 +158,23 @@ file names carry the version as a `vN` suffix.
 | `public-release-approval.v2.schema.json` | UMCD public release signature receipt v2 | `https://loslab.invalid/schema/public-release-approval.v2.schema.json` |
 | `public-release-manifest.v2.schema.json` | UMCD public release manifest v2 | `https://loslab.invalid/schema/public-release-manifest.v2.schema.json` |
 | `public-release-manifest.v3.schema.json` | UMCD public release manifest v3 | `https://loslab.invalid/schema/public-release-manifest.v3.schema.json` |
-| `qualification-run-contract.v1.schema.json` | G3 Frozen Qualification Run Contract v1 | `https://loslab.invalid/schema/g3-qualification-run-contract.v1.schema.json` |
-| `qualification-run-contract.v2.schema.json` | G3 Frozen Qualification Run Contract v2 | `https://loslab.invalid/schema/g3-qualification-run-contract.v2.schema.json` |
-| `qualification-run-contract.v3.schema.json` | G3 Frozen Qualification Run Contract v3 | `https://loslab.invalid/schema/g3-qualification-run-contract.v3.schema.json` |
-| `qualification-run-contract.v4.schema.json` | G3 Frozen Qualification Run Contract v4 | `https://loslab.invalid/schema/g3-qualification-run-contract.v4.schema.json` |
+| `qualification-run-contract.v1.schema.json` | Frozen Qualification Run Contract v1 | `https://loslab.invalid/schema/qualification-run-contract.v1.schema.json` |
+| `qualification-run-contract.v2.schema.json` | Frozen Qualification Run Contract v2 | `https://loslab.invalid/schema/qualification-run-contract.v2.schema.json` |
+| `qualification-run-contract.v3.schema.json` | Frozen Qualification Run Contract v3 | `https://loslab.invalid/schema/qualification-run-contract.v3.schema.json` |
+| `qualification-run-contract.v4.schema.json` | Frozen Qualification Run Contract v4 | `https://loslab.invalid/schema/qualification-run-contract.v4.schema.json` |
 | `research-result-promotion-manifest.v1.schema.json` | Research result promotion manifest v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/research-result-promotion-manifest.v1.schema.json` |
 | `research-result-promotion-policy.v1.schema.json` | Research result promotion policy v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/research-result-promotion-policy.v1.schema.json` |
 | `rt-backend-capability-report.v1.schema.json` | UMCD Sionna RT backend capability report v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/rt-backend-capability-report.v1.schema.json` |
 | `rt-execution-provenance.v1.schema.json` | RT execution provenance receipt v1 | `https://loslab.invalid/schema/rt-execution-provenance.v1.schema.json` |
 | `rt-nr-forecast-pilot.v2.schema.json` | RT NR receiver-only forecast pilot report v2 | `urn:5gnr:rt-nr-forecast-pilot:v2` |
 | `rt-trajectory-motion-contract.v1.schema.json` | Sionna RT trajectory motion and clock contract v1 | `https://nntk072.github.io/5g-nr-channel-condition/schema/rt-trajectory-motion-contract.v1.schema.json` |
-| `run-manifest-signer-policy.v1.schema.json` | G3 Run Manifest Signer Role Policy v1 | `https://loslab.invalid/schema/g3-run-manifest-signer-policy.v1.schema.json` |
+| `run-manifest-signer-policy.v1.schema.json` | Run Manifest Signer Role Policy v1 | `https://loslab.invalid/schema/run-manifest-signer-policy.v1.schema.json` |
 | `run-replay-provenance.v1.schema.json` | Run replay provenance v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/run-replay-provenance.v1.schema.json` |
-| `run-verification-signature-receipt.v1.schema.json` | G3 Run Verification Report Signature Receipt v1 | `https://loslab.invalid/schema/g3-run-verification-signature-receipt.v1.schema.json` |
+| `run-verification-signature-receipt.v1.schema.json` | Run Verification Report Signature Receipt v1 | `https://loslab.invalid/schema/run-verification-signature-receipt.v1.schema.json` |
 | `runtime-inventory.v1.schema.json` | UMCD runtime inventory v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/runtime-inventory.v1.schema.json` |
 | `runtime-inventory.v2.schema.json` | UMCD runtime inventory v2 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/runtime-inventory.v2.schema.json` |
 | `runtime-inventory.v3.schema.json` | UMCD runtime inventory v3 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/runtime-inventory.v3.schema.json` |
-| `scalable-tdl-power-delay-reference.v1.schema.json` | ETSI TR 38.901 scalable TDL power and delay reference v1 | `urn:5gnr:g4-scalable-tdl-power-delay-reference:v1` |
+| `scalable-tdl-power-delay-reference.v1.schema.json` | ETSI TR 38.901 scalable TDL power and delay reference v1 | `urn:5gnr:scalable-tdl-power-delay-reference:v1` |
 | `scenario-gbsm-generation-config.v1.schema.json` | Bounded 3GPP scenario GBSM generation configuration | `https://umcd.example/schema/scenario-gbsm-generation-config.v1.schema.json` |
 | `scenario-gbsm-generation-report.v1.schema.json` | Unqualified scenario GBSM generation report | `https://umcd.example/schema/scenario-gbsm-generation-report.v1.schema.json` |
 | `scenario-gbsm-generation-report.v2.schema.json` | Unqualified scenario GBSM generation and canonical episode report | `https://umcd.example/schema/scenario-gbsm-generation-report.v2.schema.json` |
@@ -183,10 +183,10 @@ file names carry the version as a `vN` suffix.
 | `scene-family-sample.v1.schema.json` | Deterministic scene-family candidate sample v1 | `urn:5gnr:umcd:scene-family-sample:v1` |
 | `seed-roster-collision-audit.v1.schema.json` | Structured Seed Roster Collision Audit | `urn:5gnr:loslab:seed-roster-collision-audit:v1` |
 | `seed-roster-collision-audit.v2.schema.json` | Structured Seed Roster Collision Audit with Bounded Scan Status | `urn:5gnr:loslab:seed-roster-collision-audit:v2` |
-| `snr-reviewer-policy.v1.schema.json` | G5 SNR preregistration reviewer policy v1 | `https://umcd.example/schema/g5-snr-reviewer-policy.v1.schema.json` |
+| `snr-reviewer-policy.v1.schema.json` | SNR preregistration reviewer policy v1 | `https://umcd.example/schema/snr-reviewer-policy.v1.schema.json` |
 | `split-registry-child-binding-report.v1.schema.json` | Split registry child binding report v1 | `https://github.com/nntk072/5g-nr-channel-condition/datasets/schema/split-registry-child-binding-report.v1.schema.json` |
-| `standard-reference-audit.v1.schema.json` | G4 Standard Reference Byte Audit Report | `urn:5gnr:loslab:g4-standard-reference-audit:v1` |
-| `standard-reference-manifest.v1.schema.json` | G4 Standard Reference Source Manifest | `urn:5gnr:loslab:g4-standard-reference-manifest:v1` |
+| `standard-reference-audit.v1.schema.json` | Standard Reference Byte Audit Report | `urn:5gnr:loslab:standard-reference-audit:v1` |
+| `standard-reference-manifest.v1.schema.json` | Standard Reference Source Manifest | `urn:5gnr:loslab:standard-reference-manifest:v1` |
 | `standardized-generator-capabilities.v1.schema.json` | UMCD standardized channel generator capability matrix | `https://umcd.example/schema/standardized-generator-capabilities.v1.schema.json` |
 | `standardized-generator-capabilities.v2.schema.json` | UMCD standardized channel generator capability matrix v2 | `https://umcd.example/schema/standardized-generator-capabilities.v2.schema.json` |
 | `standardized-profile-applicability.v1.schema.json` | UMCD standardized profile applicability ledger | `https://umcd.example/schema/standardized-profile-applicability.v1.schema.json` |
@@ -224,7 +224,7 @@ file names carry the version as a `vN` suffix.
 | --- | --- | --- |
 | `benchmark-cohort-preflight.v1.schema.json` | Benchmark cohort preflight receipt v1 | `urn:5gnr:benchmark-cohort-preflight:v1` |
 | `class_support.v1.schema.json` | LOS Lab legacy experiment class support report v1 | `https://loslab.invalid/schema/evaluation/class-support.v1.schema.json` |
-| `complex-csi-channel-view-contract.v1.schema.json` | G3 complex-CSI physical channel-view contract | `urn:5gnr:loslab:g3-complex-csi-channel-view-contract:v1` |
+| `complex-csi-channel-view-contract.v1.schema.json` | complex-CSI physical channel-view contract | `urn:5gnr:loslab:complex-csi-channel-view-contract:v1` |
 | `expected-population-audit.v1.schema.json` | Expected population selection audit v1 | `https://loslab.invalid/schema/evaluation/expected-population-audit.v1.schema.json` |
 | `group-platt-calibrator.v1.schema.json` | LOS Lab group-balanced train-only Platt calibrator v1 | `https://loslab.invalid/schema/evaluation/group-platt-calibrator.v1.schema.json` |
 | `grouped-regression-uncertainty-report.v1.schema.json` | Grouped regression uncertainty evaluation report v1 | `https://loslab.invalid/schema/grouped-regression-uncertainty-report.v1.schema.json` |

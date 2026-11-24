@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-cdl-tap-angle-reference:v1",
-  "title": "G4 CDL Per-Cluster Tap and Angle References",
+  "$id": "urn:5gnr:loslab:cdl-tap-angle-reference:v1",
+  "title": "CDL Per-Cluster Tap and Angle References",
   "description": "ETSI TR 38.901 Tables 7.7.1-1 through 7.7.1-5 transcribed against the pinned PDF source. This is deterministic reference data, not a conformance verdict.",
   "type": "object",
   "additionalProperties": false,

@@ -1,4 +1,4 @@
-"""Audit completeness and directional coverage of a preregistered G3 path roster."""
+"""Audit completeness and directional coverage of a preregistered path roster."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from evaluation.acceptance.path_equivalence_assurance import (
     evaluate_path_equivalence_roster,
 )
 
-_INPUT_SCHEMA = "loslab.g3_path_equivalence_roster_input.v1"
+_INPUT_SCHEMA = "loslab.path_equivalence_roster_input.v1"
 _MAX_INPUT_BYTES = 64 * 1024 * 1024
 
 

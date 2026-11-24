@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://umcd.example/schema/g5-ordered-impairments-snr-curve.v14.schema.json",
+  "$id": "https://umcd.example/schema/ordered-impairments-snr-curve.v14.schema.json",
   "title": "CUDA execution-device-bound SNR curve based on v8",
   "type": "object",
   "additionalProperties": false,
@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "umcd.g5_ordered_impairments_independent_channels_snr_curve.v14"
+      "const": "umcd.ordered_impairments_independent_channels_snr_curve.v14"
     },
     "scope": {
       "type": "string",
@@ -120,7 +120,7 @@
           ],
           "properties": {
             "schema": {
-              "const": "umcd.g5_ordered_impairments_waveform_evidence.v4"
+              "const": "umcd.ordered_impairments_waveform_evidence.v4"
             },
             "file_name": {
               "type": "string",
@@ -214,7 +214,7 @@
               ],
               "properties": {
                 "schema": {
-                  "const": "umcd.g5_ordered_impairments_snr_acceptance.v1"
+                  "const": "umcd.ordered_impairments_snr_acceptance.v1"
                 },
                 "snr_db": {
                   "type": "array",
@@ -298,7 +298,7 @@
                   "const": "verified_before_receiver_run"
                 },
                 "namespace": {
-                  "const": "umcd-g5-snr-acceptance-v1"
+                  "const": "umcd-snr-acceptance-v1"
                 },
                 "signer_id": {
                   "type": "string",
@@ -556,16 +556,16 @@
             "properties": {
               "schema": {
                 "enum": [
-                  "umcd.g5_ordered_impairments_independent_channels.v15",
-                  "umcd.g5_ordered_impairments_independent_channels.v16",
-                  "umcd.g5_ordered_impairments_independent_channels.v17",
-                  "umcd.g5_ordered_impairments_independent_channels.v18",
-                  "umcd.g5_ordered_impairments_independent_channels.v19",
-                  "umcd.g5_ordered_impairments_independent_channels.v20",
-                  "umcd.g5_ordered_impairments_independent_channels.v21",
-                  "umcd.g5_ordered_impairments_independent_channels.v22",
-                  "umcd.g5_ordered_impairments_independent_channels.v23",
-                  "umcd.g5_ordered_impairments_independent_channels.v24"
+                  "umcd.ordered_impairments_independent_channels.v15",
+                  "umcd.ordered_impairments_independent_channels.v16",
+                  "umcd.ordered_impairments_independent_channels.v17",
+                  "umcd.ordered_impairments_independent_channels.v18",
+                  "umcd.ordered_impairments_independent_channels.v19",
+                  "umcd.ordered_impairments_independent_channels.v20",
+                  "umcd.ordered_impairments_independent_channels.v21",
+                  "umcd.ordered_impairments_independent_channels.v22",
+                  "umcd.ordered_impairments_independent_channels.v23",
+                  "umcd.ordered_impairments_independent_channels.v24"
                 ]
               },
               "config": {

@@ -66,7 +66,7 @@ def _plan(scenarios, **overrides) -> dict[str, Any]:
         pytest.param(_scenario(atoms="abc", probabilities=[1.0]), "incompatible atom", id="text"),
         pytest.param(
             _scenario(atoms=[{"median_absolute_power_error_db": 0.5}], probabilities=[1.0]),
-            "exactly the five G3 metrics",
+            "exactly the five metrics",
             id="missing-metric",
         ),
         pytest.param(

@@ -1,4 +1,4 @@
-"""Strict numeric input parsers shared by G3 planning and evaluators."""
+"""Strict numeric input parsers shared by planning and evaluators."""
 
 from __future__ import annotations
 

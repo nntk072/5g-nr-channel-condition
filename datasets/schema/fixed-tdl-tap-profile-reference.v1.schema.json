@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-fixed-tdl-tap-profile-reference:v1",
-  "title": "G4 Fixed TDL Per-Component Tap References",
+  "$id": "urn:5gnr:loslab:fixed-tdl-tap-profile-reference:v1",
+  "title": "Fixed TDL Per-Component Tap References",
   "description": "Source-hash-bound ETSI Annex B tap rows, preserving separate LOS and diffuse components at a shared delay. This reference is not a conformance verdict.",
   "type": "object",
   "additionalProperties": false,

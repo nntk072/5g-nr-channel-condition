@@ -1,4 +1,4 @@
-"""G4 phase checks for independent CDL cluster coefficient fluctuations."""
+"""phase checks for independent CDL cluster coefficient fluctuations."""
 
 from __future__ import annotations
 

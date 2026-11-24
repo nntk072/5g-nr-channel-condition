@@ -1,4 +1,4 @@
-"""Independent G4 CDL temporal references derived from pinned ETSI rows."""
+"""Independent CDL temporal references derived from pinned ETSI rows."""
 
 from __future__ import annotations
 

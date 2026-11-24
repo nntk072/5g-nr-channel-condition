@@ -185,7 +185,7 @@ The versioned schemas are
 remain available. Results are simulation-only diagnostics and do not show
 that any control predicts measured or deployment channels.
 
-G8.08 remains partial. The group-only, domain-only, and combined metadata routes
+ remains partial. The group-only, domain-only, and combined metadata routes
 attribute leakage among group/domain/source identifiers. The two receiver-CFR
 physical-feature routes above are software baselines only; other metadata
 controls and physical estimators still need isolated routes and audit contracts

@@ -59,7 +59,7 @@ def _plan(**overrides: Any) -> dict[str, Any]:
 def test_receiver_assurance_uses_shared_family_and_never_qualifies() -> None:
     report = _plan()
 
-    assert report["schema"] == "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1"
+    assert report["schema"] == "loslab.receiver_impact_bootstrap_assurance_planning.v1"
     assert report["qualification_status"] == "NOT_QUALIFIED"
     assert report["admission_possible"] is False
     assert report["complete_sample_size"] is None

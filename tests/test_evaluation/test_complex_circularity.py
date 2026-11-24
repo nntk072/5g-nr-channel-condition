@@ -19,7 +19,7 @@ def test_complex_circularity_scorer_matches_direct_one_tap_formula() -> None:
     expected_mean = values[:, 0].mean() / np.sqrt(power)
     expected_pseudocovariance = np.mean(values[:, 0] ** 2) / power
 
-    assert result["schema"] == "loslab.g4_complex_circularity_family.v1"
+    assert result["schema"] == "loslab.complex_circularity_family.v1"
     assert result["draw_count"] == 4
     assert result["tap_count"] == 1
     assert result["claim_count"] == 4

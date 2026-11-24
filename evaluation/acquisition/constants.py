@@ -8,24 +8,24 @@ _SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "datasets/schema"
 
 
 SCHEMA_PATHS = {
-    "g3.03-acquisition-package.v0.2": _SCHEMA_ROOT / "acquisition-package.v0.2.schema.json",
-    "g3.03-acquisition-package.v0.3": _SCHEMA_ROOT / "acquisition-package.v0.3.schema.json",
-    "g3.03-acquisition-package.v0.4": _SCHEMA_ROOT / "acquisition-package.v0.4.schema.json",
+    "acquisition-package.v0.2": _SCHEMA_ROOT / "acquisition-package.v0.2.schema.json",
+    "acquisition-package.v0.3": _SCHEMA_ROOT / "acquisition-package.v0.3.schema.json",
+    "acquisition-package.v0.4": _SCHEMA_ROOT / "acquisition-package.v0.4.schema.json",
 }
 
 
 V03_PLUS_SCHEMA_VERSIONS = frozenset(
     {
-        "g3.03-acquisition-package.v0.3",
-        "g3.03-acquisition-package.v0.4",
+        "acquisition-package.v0.3",
+        "acquisition-package.v0.4",
     }
 )
 
 
 EVALUATOR_INPUT_SCHEMA_PATHS = {
-    "loslab.g3_material_calibration_predictions.v1": _SCHEMA_ROOT
+    "loslab.material_calibration_predictions.v1": _SCHEMA_ROOT
     / "material-calibration-predictions.v1.schema.json",
-    "loslab.g3_material_calibration_predictions.v2": _SCHEMA_ROOT
+    "loslab.material_calibration_predictions.v2": _SCHEMA_ROOT
     / "material-calibration-predictions.v2.schema.json",
 }
 

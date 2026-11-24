@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:loslab:schema:g3-material-calibration-predictions.v2",
-  "title": "LoSLab G3 material calibration predictions v2",
-  "description": "Structural schema for the frozen evaluator input. Cross-record consistency, canonical hash verification, semantic numeric checks, and scoring criteria are enforced by evaluation/g3_material_calibration.py, not this schema.",
+  "$id": "urn:loslab:schema:material-calibration-predictions.v2",
+  "title": "LoSLab material calibration predictions v2",
+  "description": "Structural schema for the frozen evaluator input. Cross-record consistency, canonical hash verification, semantic numeric checks, and scoring criteria are enforced by evaluation/material_calibration.py, not this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -26,7 +26,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "loslab.g3_material_calibration_predictions.v2"
+      "const": "loslab.material_calibration_predictions.v2"
     },
     "target_frequency_hz": {
       "type": "number"
@@ -203,7 +203,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "loslab.g3_joint_acceptance_family.v1"
+          "const": "loslab.joint_acceptance_family.v1"
         },
         "family_id": {
           "$ref": "#/$defs/nonemptyString"
@@ -304,7 +304,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "loslab.g3_joint_acceptance_family.v2"
+          "const": "loslab.joint_acceptance_family.v2"
         },
         "family_id": {
           "$ref": "#/$defs/nonemptyString"
@@ -464,8 +464,8 @@
       "properties": {
         "schema": {
           "enum": [
-            "loslab.g3_joint_acceptance_family.v3",
-            "loslab.g3_joint_acceptance_family.v4"
+            "loslab.joint_acceptance_family.v3",
+            "loslab.joint_acceptance_family.v4"
           ]
         },
         "family_id": {
@@ -624,7 +624,7 @@
         {
           "if": {
             "properties": {
-              "schema": { "const": "loslab.g3_joint_acceptance_family.v4" }
+              "schema": { "const": "loslab.joint_acceptance_family.v4" }
             }
           },
           "then": {
@@ -756,7 +756,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "loslab.g3_material_calibration_split_manifest.v1"
+          "const": "loslab.material_calibration_split_manifest.v1"
         },
         "expected_strata": {
           "type": "array",

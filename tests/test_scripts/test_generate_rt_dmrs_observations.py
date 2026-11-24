@@ -18,7 +18,7 @@ def test_nr_observe_cli_builds_an_immutable_dmrs_input_dataset(
     source = ChannelDataset(
         h=np.ones((2, 1, 16), dtype=np.complex64),
         y=np.asarray([0, 1], dtype=np.uint8),
-        group=np.asarray(["g0", "g1"]),
+        group=np.asarray(["group0", "group1"]),
         domain=np.asarray(["scene", "scene"]),
         source=np.asarray(["sionna_rt", "sionna_rt"]),
         metadata=tuple(

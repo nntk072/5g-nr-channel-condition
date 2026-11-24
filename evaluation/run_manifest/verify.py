@@ -71,8 +71,8 @@ from evaluation.run_manifest.sources import (
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _V4_AND_LATER = (
-    "loslab.g3_joint_evidence_run_manifest.v4",
-    "loslab.g3_joint_evidence_run_manifest.v5",
+    "loslab.joint_evidence_run_manifest.v4",
+    "loslab.joint_evidence_run_manifest.v5",
 )
 
 
@@ -95,7 +95,7 @@ def verify_joint_evidence_run_manifest(
 ) -> dict[str, Any]:
     """Verify file hashes and replay the evaluator from a small standalone manifest.
 
-    This is a numerical run receipt, not a G3.03 acquisition package or scientific qualification.
+    This is a numerical run receipt, not a acquisition package or scientific qualification.
     An optional frozen contract is integrity-checked and joined to the evaluator input, but
     the result remains explicitly not qualified. When all signature arguments are supplied,
     the exact captured manifest bytes are checked against an external allowed-signers file.
@@ -103,7 +103,7 @@ def verify_joint_evidence_run_manifest(
     symlinks. Contents are captured once and the exact captured bytes are replayed.
     """
     report: dict[str, Any] = {
-        "schema": "loslab.g3_joint_evidence_run_verification.v1",
+        "schema": "loslab.joint_evidence_run_verification.v1",
         "status": "INCONSISTENT",
         "qualification_status": "NOT_QUALIFIED",
         "run_id": None,
@@ -186,7 +186,7 @@ def verify_joint_evidence_run_manifest(
             )
         manifest_file = Path(manifest_path)
         manifest_raw = _read_bounded_regular_file(
-            manifest_file, limit=MAX_PACKAGE_BYTES, description="G3 run manifest"
+            manifest_file, limit=MAX_PACKAGE_BYTES, description="run manifest"
         )
         signature_identity: dict[str, str] | None = None
         if signature_path is not None:
@@ -213,7 +213,7 @@ def verify_joint_evidence_run_manifest(
                 policy_bytes = _read_bounded_regular_file(
                     Path(trusted_signer_policy_path),
                     limit=MAX_SCHEMA_BYTES,
-                    description="G3 run-manifest signer policy",
+                    description="run-manifest signer policy",
                 )
                 if trusted_signer_policy_signature_path is not None:
                     assert trusted_policy_allowed_signers_path is not None
@@ -272,9 +272,9 @@ def verify_joint_evidence_run_manifest(
                 raise ValueError(
                     "strict signed reviewer admission requires a verified policy signature"
                 )
-        manifest = _json_bytes(manifest_raw, "G3 run manifest")
+        manifest = _json_bytes(manifest_raw, "run manifest")
         if not isinstance(manifest, dict):
-            raise ValueError("G3 run manifest root must be an object")
+            raise ValueError("run manifest root must be an object")
         report["run_id"] = manifest.get("run_id")
         import jsonschema
 
@@ -299,32 +299,32 @@ def verify_joint_evidence_run_manifest(
                 )
 
         manifest_version = manifest.get("schema")
-        if manifest_version == "loslab.g3_joint_evidence_run_manifest.v1":
+        if manifest_version == "loslab.joint_evidence_run_manifest.v1":
             manifest_schema_path = V1_SCHEMA_RELATIVE_PATH
             expected_source_paths = V1_EVALUATOR_SOURCE_PATHS
-        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v2":
+        elif manifest_version == "loslab.joint_evidence_run_manifest.v2":
             manifest_schema_path = SCHEMA_RELATIVE_PATH
             expected_source_paths = V2_EVALUATOR_SOURCE_PATHS
-        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v3":
+        elif manifest_version == "loslab.joint_evidence_run_manifest.v3":
             manifest_schema_path = SCHEMA_V3_RELATIVE_PATH
             expected_source_paths = EVALUATOR_SOURCE_PATHS
-        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v4":
+        elif manifest_version == "loslab.joint_evidence_run_manifest.v4":
             manifest_schema_path = SCHEMA_V4_RELATIVE_PATH
             expected_source_paths = V4_EVALUATOR_SOURCE_PATHS
-        elif manifest_version == "loslab.g3_joint_evidence_run_manifest.v5":
+        elif manifest_version == "loslab.joint_evidence_run_manifest.v5":
             manifest_schema_path = SCHEMA_V5_RELATIVE_PATH
             expected_source_paths = V5_EVALUATOR_SOURCE_PATHS
         else:
-            raise ValueError("unsupported G3 run manifest schema")
+            raise ValueError("unsupported run manifest schema")
         if require_signed_reviewer_admission and manifest_version not in _V4_AND_LATER:
             raise ValueError(
                 "strict signed reviewer admission requires v4 signed runtime inventory provenance"
             )
-        validate_schema(manifest, manifest_schema_path, "G3 run manifest")
+        validate_schema(manifest, manifest_schema_path, "run manifest")
         if manifest_version in (
-            "loslab.g3_joint_evidence_run_manifest.v3",
-            "loslab.g3_joint_evidence_run_manifest.v4",
-            "loslab.g3_joint_evidence_run_manifest.v5",
+            "loslab.joint_evidence_run_manifest.v3",
+            "loslab.joint_evidence_run_manifest.v4",
+            "loslab.joint_evidence_run_manifest.v5",
         ):
             runtime_identity = manifest["runtime_identity"]
             report.update(
@@ -338,8 +338,8 @@ def verify_joint_evidence_run_manifest(
         qualification_contract = manifest.get("qualification_contract")
         if require_signed_reviewer_admission:
             if not isinstance(qualification_contract, dict):
-                raise ValueError("strict signed reviewer admission requires a frozen G3 contract")
-            if qualification_contract.get("schema") != ("loslab.g3_qualification_run_contract.v4"):
+                raise ValueError("strict signed reviewer admission requires a frozen contract")
+            if qualification_contract.get("schema") != ("loslab.qualification_run_contract.v4"):
                 raise ValueError(
                     "strict signed reviewer admission requires qualification contract v4 "
                     "with raw path criteria and a complete powered design"
@@ -352,15 +352,15 @@ def verify_joint_evidence_run_manifest(
                 raise ValueError("qualification contract run_id differs from run receipt")
             qualification_schema_path = (
                 QUALIFICATION_CONTRACT_SCHEMA_V4_RELATIVE_PATH
-                if qualification_contract.get("schema") == "loslab.g3_qualification_run_contract.v4"
+                if qualification_contract.get("schema") == "loslab.qualification_run_contract.v4"
                 else QUALIFICATION_CONTRACT_SCHEMA_RELATIVE_PATH
-                if qualification_contract.get("schema") == "loslab.g3_qualification_run_contract.v3"
+                if qualification_contract.get("schema") == "loslab.qualification_run_contract.v3"
                 else QUALIFICATION_CONTRACT_SCHEMA_V2_RELATIVE_PATH
             )
             validate_schema(
                 qualification_contract,
                 qualification_schema_path,
-                "G3 qualification contract",
+                "qualification contract",
             )
             qualification_contract_sha256 = verify_qualification_run_contract(
                 qualification_contract
@@ -368,7 +368,7 @@ def verify_joint_evidence_run_manifest(
         if not manifest_raw.endswith(b"\n") or manifest_raw != (
             json.dumps(manifest, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n"
         ).encode("utf-8"):
-            raise ValueError("G3 run manifest must use canonical compact JSON and one newline")
+            raise ValueError("run manifest must use canonical compact JSON and one newline")
 
         root = Path(package_root) if package_root is not None else manifest_file.parent
         root = root.resolve(strict=True)
@@ -472,33 +472,33 @@ def verify_joint_evidence_run_manifest(
         finally:
             os.close(source_fd)
 
-        input_payload = _json_bytes(captured["input"], "G3 joint evaluator input")
+        input_payload = _json_bytes(captured["input"], "joint evaluator input")
         if not isinstance(input_payload, dict):
-            raise ValueError("G3 joint evaluator input must be an object")
+            raise ValueError("joint evaluator input must be an object")
         _validate_joint_evaluator_input_schema(input_payload, source_root=source_dir)
         artifact_schema_path = (
             ARTIFACT_SCHEMA_RELATIVE_PATH
             if manifest_version
             in (
-                "loslab.g3_joint_evidence_run_manifest.v3",
-                "loslab.g3_joint_evidence_run_manifest.v4",
-                "loslab.g3_joint_evidence_run_manifest.v5",
+                "loslab.joint_evidence_run_manifest.v3",
+                "loslab.joint_evidence_run_manifest.v4",
+                "loslab.joint_evidence_run_manifest.v5",
             )
             else ARTIFACT_SCHEMA_V1_RELATIVE_PATH
         )
         validate_schema(
-            _json_bytes(captured["artifact"], "G3 joint evaluator artifact"),
+            _json_bytes(captured["artifact"], "joint evaluator artifact"),
             artifact_schema_path,
-            "G3 joint evaluator artifact",
+            "joint evaluator artifact",
         )
         if manifest_version in _V4_AND_LATER:
             runtime_inventory_payload = _json_bytes(
-                captured["runtime_inventory"], "G3 runtime inventory"
+                captured["runtime_inventory"], "runtime inventory"
             )
             validate_schema(
                 runtime_inventory_payload,
                 RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH,
-                "G3 runtime inventory",
+                "runtime inventory",
             )
         if manifest_version in _V4_AND_LATER:
             if runtime_inventory_signature_path is not None:
@@ -576,7 +576,7 @@ def verify_joint_evidence_run_manifest(
         coefficient_tolerance = (
             qualification_contract["path_matching"]["coefficient_relative_tolerance"]
             if qualification_contract is not None
-            and qualification_contract.get("schema") == "loslab.g3_qualification_run_contract.v4"
+            and qualification_contract.get("schema") == "loslab.qualification_run_contract.v4"
             else None
         )
         replay = verify_joint_evidence_bytes(
@@ -616,11 +616,11 @@ def verify_joint_evidence_run_report_signature(
     scientific qualification.
     """
     report_raw = _read_bounded_regular_file(
-        Path(report_path), limit=MAX_PACKAGE_BYTES, description="G3 run verification report"
+        Path(report_path), limit=MAX_PACKAGE_BYTES, description="run verification report"
     )
-    report = _json_bytes(report_raw, "G3 run verification report")
+    report = _json_bytes(report_raw, "run verification report")
     if not isinstance(report, dict):
-        raise ValueError("G3 run verification report root must be an object")
+        raise ValueError("run verification report root must be an object")
     _validate_run_verification_report(report)
     identity = verify_openssh_signature_for_bytes(
         report_raw,
@@ -634,10 +634,10 @@ def verify_joint_evidence_run_report_signature(
         / "datasets/schema/run-verification-signature-receipt.v1.schema.json"
     )
     schema_bytes = _read_bounded_regular_file(
-        schema_path, limit=MAX_SCHEMA_BYTES, description="G3 report signature receipt schema"
+        schema_path, limit=MAX_SCHEMA_BYTES, description="report signature receipt schema"
     )
     receipt: dict[str, Any] = {
-        "schema": "loslab.g3_run_verification_signature_receipt.v1",
+        "schema": "loslab.run_verification_signature_receipt.v1",
         "status": "SIGNATURE_VERIFIED",
         "qualification_status": "NOT_QUALIFIED",
         "run_id": report["run_id"],
@@ -655,12 +655,12 @@ def verify_joint_evidence_run_report_signature(
     }
     import jsonschema
 
-    schema = _json_bytes(schema_bytes, "G3 report signature receipt schema")
+    schema = _json_bytes(schema_bytes, "report signature receipt schema")
     jsonschema.Draft202012Validator.check_schema(schema)
     errors = sorted(
         jsonschema.Draft202012Validator(schema).iter_errors(receipt),
         key=lambda error: list(error.absolute_path),
     )
     if errors:
-        raise ValueError("G3 report signature receipt violates schema: " + errors[0].message)
+        raise ValueError("report signature receipt violates schema: " + errors[0].message)
     return receipt

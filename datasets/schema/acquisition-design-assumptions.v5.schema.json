@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g3-acquisition-design-assumptions:v4",
-  "title": "G3 Joint Acceptance-Family Acquisition Design Inputs with Receiver and Propagation Bootstrap Assurance",
-  "description": "Unverified planning-only assumptions for the G3 v4 family, including the frozen path-equivalence episode census and evaluator-aligned paired NR receiver and delay/angular propagation assurance; never measurement evidence or qualification.",
+  "$id": "urn:5gnr:loslab:acquisition-design-assumptions:v4",
+  "title": "Joint Acceptance-Family Acquisition Design Inputs with Receiver and Propagation Bootstrap Assurance",
+  "description": "Unverified planning-only assumptions for the v4 family, including the frozen path-equivalence episode census and evaluator-aligned paired NR receiver and delay/angular propagation assurance; never measurement evidence or qualification.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -19,7 +19,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "loslab.g3_acquisition_design_assumptions.v5"
+      "const": "loslab.acquisition_design_assumptions.v5"
     },
     "scenario_label": {
       "enum": [
@@ -87,7 +87,7 @@
         {
           "properties": {
             "schema": {
-              "const": "loslab.g3_joint_acceptance_family.v4"
+              "const": "loslab.joint_acceptance_family.v4"
             }
           }
         }
@@ -363,7 +363,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "loslab.g3_joint_acceptance_family.v1"
+          "const": "loslab.joint_acceptance_family.v1"
         },
         "family_id": {
           "$ref": "#/$defs/id"
@@ -465,7 +465,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "loslab.g3_joint_acceptance_family.v2"
+          "const": "loslab.joint_acceptance_family.v2"
         },
         "family_id": {
           "$ref": "#/$defs/id"
@@ -790,8 +790,8 @@
       "properties": {
         "schema": {
           "enum": [
-            "loslab.g3_joint_acceptance_family.v3",
-            "loslab.g3_joint_acceptance_family.v4"
+            "loslab.joint_acceptance_family.v3",
+            "loslab.joint_acceptance_family.v4"
           ]
         },
         "family_id": {
@@ -951,7 +951,7 @@
         {
           "if": {
             "properties": {
-              "schema": { "const": "loslab.g3_joint_acceptance_family.v4" }
+              "schema": { "const": "loslab.joint_acceptance_family.v4" }
             }
           },
           "then": {
@@ -1343,5 +1343,5 @@
       }
     }
   },
-  "": "urn:5gnr:loslab:g3-acquisition-design-assumptions:v5"
+  "": "urn:5gnr:loslab:acquisition-design-assumptions:v5"
 }

@@ -78,7 +78,7 @@ def _dataset(identity: dict, *, value: float = 1.0) -> ChannelDataset:
     return ChannelDataset(
         h=np.full((2, 1, 8), value + 0j, dtype=np.complex64),
         y=np.asarray([0, 1], dtype=np.uint8),
-        group=np.asarray(["g0", "g1"]),
+        group=np.asarray(["group0", "group1"]),
         domain=np.asarray(["scene", "scene"]),
         source=np.asarray(["rt", "rt"]),
         metadata=({}, {}),

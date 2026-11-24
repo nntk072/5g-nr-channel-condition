@@ -1,4 +1,4 @@
-"""Independent pinned ETSI power/delay references for G4 TDL checks."""
+"""Independent pinned ETSI power/delay references for TDL checks."""
 
 from __future__ import annotations
 

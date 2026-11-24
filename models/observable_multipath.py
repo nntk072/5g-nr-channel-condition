@@ -16,7 +16,7 @@ from typing import Any
 
 
 def render_two_path_cfr(frequencies_hz: Any, gains: Any, relative_delay_s: Any) -> Any:
-    """Render ``g0 + g1 exp(-j 2π f Δτ)`` with Torch autograd support.
+    """Render ``gain0 + gain1 exp(-j 2π f Δτ)`` with Torch autograd support.
 
     ``frequencies_hz`` is ``[tones]`` or ``[batch, tones]``; complex ``gains`` is ``[batch, 2]``;
     ``relative_delay_s`` is ``[batch]`` or ``[batch, 1]``. The first path is

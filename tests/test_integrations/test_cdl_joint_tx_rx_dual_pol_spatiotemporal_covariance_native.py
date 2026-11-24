@@ -164,7 +164,7 @@ def test_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_matches_independent_
     assert channel.metadata["bs_array"]["polarization_type"] == "V"
 
     record_property(
-        "g4_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_case",
+        "cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_case",
         json.dumps(
             {
                 "model": model,

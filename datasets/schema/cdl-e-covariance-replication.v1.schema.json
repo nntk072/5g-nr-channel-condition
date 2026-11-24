@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-cdl-e-covariance-replication:v1",
-  "title": "G4 CDL-E fresh-seed covariance replication",
-  "description": "One preregistered seed replication report. A pass is bounded evidence and never replaces the retained frozen failure or qualifies overall G4.",
+  "$id": "urn:5gnr:loslab:cdl-e-covariance-replication:v1",
+  "title": "CDL-E fresh-seed covariance replication",
+  "description": "One preregistered seed replication report. A pass is bounded evidence and never replaces the retained frozen failure or qualifies overall .",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,8 +10,8 @@
     "design", "seed_audit", "runtime", "provenance", "command", "claims", "summary", "scope"
   ],
   "properties": {
-    "schema": {"const": "loslab.g4_cdl_e_covariance_replication.v1"},
-    "protocol": {"const": "G4_CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md"},
+    "schema": {"const": "loslab.cdl_e_covariance_replication.v1"},
+    "protocol": {"const": "CDL_E_FRESH_SEED_REPLICATION_PROTOCOL_2026-11-12.md"},
     "date": {"type": "string", "format": "date"},
     "status": {"enum": ["PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE", "FAIL", "INCOMPLETE"]},
     "error": {"type": ["string", "null"]},
@@ -47,7 +47,7 @@
       "additionalProperties": false,
       "required": ["path", "sha256", "status", "scanned_file_count", "global_exclusivity_established"],
       "properties": {
-        "path": {"const": "docs/research/G4_CDL_E_FRESH_SEED_AUDIT_2026-11-12.json"},
+        "path": {"const": "docs/research/CDL_E_FRESH_SEED_AUDIT_2026-11-12.json"},
         "sha256": {"pattern": "^[0-9a-f]{64}$"},
         "status": {"const": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"},
         "scanned_file_count": {"const": 2302},

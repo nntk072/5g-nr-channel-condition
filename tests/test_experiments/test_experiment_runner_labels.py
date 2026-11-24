@@ -79,7 +79,7 @@ def test_experiment_rejects_mixed_legacy_label_semantics_before_training(tmp_pat
     mixed = ChannelDataset(
         h=np.ones((4, 1, 8), dtype=np.complex64),
         y=np.asarray([0, 1, 0, 1]),
-        group=np.asarray(["g0", "g1", "g2", "g3"]),
+        group=np.asarray(["group0", "group1", "group2", "group3"]),
         domain=np.asarray(["d0", "d1", "d2", "d3"]),
         source=np.asarray(["rt", "rt", "tdl", "tdl"]),
         metadata=(
@@ -233,7 +233,7 @@ def test_source_only_vocabulary_fits_training_rows_and_zeros_unknowns() -> None:
 def test_metadata_only_vocabulary_is_train_fitted_bounded_and_namespaced() -> None:
     from experiments.runner import _metadata_only_features
 
-    groups = np.asarray(["g1", "g2", "future", "future"])
+    groups = np.asarray(["group1", "group2", "future", "future"])
     domains = np.asarray(["d1", "d1", "d2", "d2"])
     sources = np.asarray(["s1", "s2", "s3", "s3"])
     features, transform = _metadata_only_features(

@@ -1,4 +1,4 @@
-"""Native Sionna PanelArray dual-VH port-order contract for frozen G4 families."""
+"""Native Sionna PanelArray dual-VH port-order contract for frozen families."""
 
 from __future__ import annotations
 

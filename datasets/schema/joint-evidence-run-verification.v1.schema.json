@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://loslab.invalid/schema/g3-joint-evidence-run-verification.v1.schema.json",
-  "title": "G3 Joint Evidence Run Verification Report v1",
+  "$id": "https://loslab.invalid/schema/joint-evidence-run-verification.v1.schema.json",
+  "title": "Joint Evidence Run Verification Report v1",
   "description": "Strict report contract for bounded numerical replay. Every report remains NOT_QUALIFIED; signature verification does not establish trust custody, measurement truth, or scientific admission.",
   "type": "object",
   "additionalProperties": false,
@@ -23,7 +23,7 @@
     "limitations"
   ],
   "properties": {
-    "schema": {"const": "loslab.g3_joint_evidence_run_verification.v1"},
+    "schema": {"const": "loslab.joint_evidence_run_verification.v1"},
     "status": {"enum": ["INCONSISTENT", "PASS_INPUT_SCOPED_RECOMPUTATION"]},
     "qualification_status": {"const": "NOT_QUALIFIED"},
     "run_id": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$"}]},
@@ -38,12 +38,12 @@
     "report_schema_sha256": {"$ref": "#/$defs/sha256"},
     "errors": {"type": "array", "items": {"type": "string"}},
     "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
-    "manifest_signature_namespace": {"const": "loslab-g3-joint-run-manifest-v1@github.com"},
+    "manifest_signature_namespace": {"const": "loslab-joint-run-manifest-v1@github.com"},
     "manifest_signer_id": {"type": "string", "minLength": 1},
     "manifest_signature_sha256": {"$ref": "#/$defs/sha256"},
     "trusted_allowed_signers_sha256": {"$ref": "#/$defs/sha256"},
     "trust_file_custody": {"const": "not_established_by_this_verifier"},
-    "signer_policy_signature_namespace": {"const": "loslab-g3-run-manifest-policy-v1@github.com"},
+    "signer_policy_signature_namespace": {"const": "loslab-run-manifest-policy-v1@github.com"},
     "signer_policy_signer_id": {"type": "string", "minLength": 1},
     "signer_policy_detached_signature_sha256": {"$ref": "#/$defs/sha256"},
     "signer_policy_allowed_signers_sha256": {"$ref": "#/$defs/sha256"},

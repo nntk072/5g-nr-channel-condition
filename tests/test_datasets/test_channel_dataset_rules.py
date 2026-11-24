@@ -12,7 +12,7 @@ def _dataset(**overrides):
     kwargs = {
         "h": (np.ones((n, 2, 8)) + 1j * np.ones((n, 2, 8))).astype(np.complex64),
         "y": np.array([0, 1, 0, 1]),
-        "group": np.array(["g0", "g0", "g1", "g1"]),
+        "group": np.array(["group0", "group0", "group1", "group1"]),
         "domain": np.array(["tdl"] * n),
         "source": np.array(["synthetic"] * n),
         "metadata": tuple({"split_subject_id": f"s{i}"} for i in range(n)),
@@ -40,11 +40,11 @@ def test_dataset_round_trips_and_feeds_only_cfr_inputs() -> None:
         ),
         pytest.param({"y": np.array([0, 1, 2, 1])}, "labels must be 0 or 1", id="label-value"),
         pytest.param(
-            {"group": np.array(["g0", "g0"])}, "group must be length 4", id="group-length"
+            {"group": np.array(["group0", "group0"])}, "group must be length 4", id="group-length"
         ),
         pytest.param({"metadata": ({},)}, "metadata count mismatch", id="metadata-count"),
         pytest.param(
-            {"group": np.array([" g0", "g0", "g1", "g1"])},
+            {"group": np.array([" group0", "group0", "group1", "group1"])},
             "group IDs must be nonempty",
             id="padded-group",
         ),

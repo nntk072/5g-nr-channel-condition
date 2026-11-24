@@ -25,7 +25,7 @@ def _evaluate(payload: dict[str, Any]) -> dict[str, Any]:
         pytest.param({1: "x"}, "object keys must be strings", id="key-type"),
         pytest.param({"x": complex(float("inf"), 0.0)}, "non-finite complex", id="complex-inf"),
         pytest.param({"x": float("nan")}, "non-finite numbers", id="float-nan"),
-        pytest.param({"x": object()}, "unsupported G3 joint evidence value", id="object"),
+        pytest.param({"x": object()}, "unsupported joint evidence value", id="object"),
     ],
 )
 def test_canonical_tree_rejects_nonfinite_or_untyped_values(value, message) -> None:
@@ -43,7 +43,7 @@ def test_version_specific_fields_are_gated() -> None:
     payload = copy.deepcopy(_payload_v4())
     payload["solver_budget_provenance"] = {"max_wall_seconds": 1.0}
     with pytest.raises(
-        ValueError, match="G3 joint evaluator v4 inputs must contain exactly the v4 fields"
+        ValueError, match="joint evaluator v4 inputs must contain exactly the v4 fields"
     ):
         _evaluate(payload)
 

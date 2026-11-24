@@ -1,4 +1,4 @@
-"""Bounded semantic consistency checks for proposal-only G3.03 packages."""
+"""Bounded semantic consistency checks for proposal-only packages."""
 
 from __future__ import annotations
 

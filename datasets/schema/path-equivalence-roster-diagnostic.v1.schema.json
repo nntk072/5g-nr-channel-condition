@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g3-path-equivalence-roster-diagnostic:v1",
-  "title": "G3 Path Equivalence Roster Diagnostic",
+  "$id": "urn:5gnr:loslab:path-equivalence-roster-diagnostic:v1",
+  "title": "Path Equivalence Roster Diagnostic",
   "description": "Diagnostic-only per-independent-episode path-class coverage; this record cannot admit or qualify a model.",
   "type": "object",
   "additionalProperties": false,
@@ -19,7 +19,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "loslab.g3_path_equivalence_roster_diagnostic.v1"
+      "const": "loslab.path_equivalence_roster_diagnostic.v1"
     },
     "status": {
       "enum": [

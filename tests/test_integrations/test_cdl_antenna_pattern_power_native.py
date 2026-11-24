@@ -440,7 +440,7 @@ def _record_case_result(
             }
         )
     record_property(
-        "g4_cdl_directional_pattern_case",
+        "cdl_directional_pattern_case",
         json.dumps(
             {
                 "cohort": cohort,

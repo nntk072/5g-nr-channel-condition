@@ -1,4 +1,4 @@
-"""Shared multiplicity contracts for the G3 numerical evaluators."""
+"""Shared multiplicity contracts for the numerical evaluators."""
 
 from __future__ import annotations
 
@@ -6,10 +6,10 @@ import hashlib
 import json
 from typing import Any, cast
 
-FAMILY_SCHEMA = "loslab.g3_joint_acceptance_family.v1"
-FAMILY_SCHEMA_V2 = "loslab.g3_joint_acceptance_family.v2"
-FAMILY_SCHEMA_V3 = "loslab.g3_joint_acceptance_family.v3"
-FAMILY_SCHEMA_V4 = "loslab.g3_joint_acceptance_family.v4"
+FAMILY_SCHEMA = "loslab.joint_acceptance_family.v1"
+FAMILY_SCHEMA_V2 = "loslab.joint_acceptance_family.v2"
+FAMILY_SCHEMA_V3 = "loslab.joint_acceptance_family.v3"
+FAMILY_SCHEMA_V4 = "loslab.joint_acceptance_family.v4"
 FAMILYWISE_ALPHA = 0.05
 PATH_COVERAGE_LIMIT = 0.95
 MATERIAL_CLAIMS = (
@@ -88,7 +88,7 @@ def build_joint_acceptance_family(
     material_expected_strata: list[tuple[str, str, str]],
     complex_csi_expected_strata: list[tuple[str, str]],
 ) -> dict[str, Any]:
-    """Build a deterministic, hash-bound family covering both G3 evaluators."""
+    """Build a deterministic, hash-bound family covering both evaluators."""
     family_id = _family_identifier(family_id)
     material = _stratum_keys(material_expected_strata, kind="material")
     complex_csi = _stratum_keys(complex_csi_expected_strata, kind="complex_csi")
@@ -412,7 +412,7 @@ def family_alpha_for_claim(
         observed = _stratum_keys(expected_strata, kind="receiver_impact")
         declared = _stratum_keys(family["receiver_impact_expected_strata"], kind="receiver_impact")
     else:
-        raise ValueError(f"unsupported G3 evaluator: {evaluator!r}")
+        raise ValueError(f"unsupported evaluator: {evaluator!r}")
     if observed != declared:
-        raise ValueError(f"{evaluator} expected strata differ from the shared G3 family roster")
+        raise ValueError(f"{evaluator} expected strata differ from the shared family roster")
     return float(family["per_claim_alpha"]), int(family["claim_count"])

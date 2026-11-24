@@ -181,8 +181,7 @@ def test_complex_csi_evaluation_weights_clusters_equally_and_never_qualifies() -
     assert report["configuration"]["per_claim_alpha_bonferroni"] == pytest.approx(0.025)
     assert report["configuration"]["per_claim_confidence_level"] == pytest.approx(0.975)
     assert (
-        "not jointly corrected with other G3 estimands"
-        in report["configuration"]["confidence_scope"]
+        "not jointly corrected with other estimands" in report["configuration"]["confidence_scope"]
     )
 
 
@@ -244,7 +243,7 @@ def test_complex_csi_uses_the_same_joint_family_as_material_calibration() -> Non
     same = np.ones(2, dtype=np.complex128)
     records = [_record(f"cluster-{index}", "episode", same, same) for index in range(3)]
     family = build_joint_acceptance_family_v3(
-        family_id="g3-protocol-2026-01",
+        family_id="protocol-2026-01",
         material_expected_strata=[("concrete-a", "V", "angle-20deg")],
         complex_csi_expected_strata=[("scene-family-a", "LOS")],
         propagation_expected_strata=[("scene-family-a", "LOS", "total")],
@@ -262,7 +261,7 @@ def test_complex_csi_uses_the_same_joint_family_as_material_calibration() -> Non
     assert report["configuration"]["familywise_claim_count"] == 19
     assert report["configuration"]["per_claim_alpha_bonferroni"] == pytest.approx(0.05 / 19)
     assert report["configuration"]["joint_acceptance_family"] == {
-        "family_id": "g3-protocol-2026-01",
+        "family_id": "protocol-2026-01",
         "family_sha256": family["family_sha256"],
     }
     assert (
@@ -274,7 +273,7 @@ def test_complex_csi_uses_the_same_joint_family_as_material_calibration() -> Non
 def test_complex_csi_rejects_strata_that_do_not_match_joint_family() -> None:
     same = np.ones(2, dtype=np.complex128)
     family = build_joint_acceptance_family(
-        family_id="g3-protocol-2026-01",
+        family_id="protocol-2026-01",
         material_expected_strata=[("concrete-a", "V", "angle-20deg")],
         complex_csi_expected_strata=[("scene-family-a", "LOS")],
     )

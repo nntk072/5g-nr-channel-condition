@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-fixed-tdl-rms-reference:v1",
-  "title": "G4 Fixed TDL RMS Delay-Spread Scalar References",
+  "$id": "urn:5gnr:loslab:fixed-tdl-rms-reference:v1",
+  "title": "Fixed TDL RMS Delay-Spread Scalar References",
   "description": "ETSI Annex B scalar targets for limited deterministic checks; not a conformance verdict.",
   "type": "object",
   "additionalProperties": false,

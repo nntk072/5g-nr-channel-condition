@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://loslab.invalid/schema/g3-joint-evaluator-input.v5.schema.json",
-  "title": "G3 five-branch joint evaluator input with raw path-equivalence recomputation",
+  "$id": "https://loslab.invalid/schema/joint-evaluator-input.v5.schema.json",
+  "title": "five-branch joint evaluator input with raw path-equivalence recomputation",
   "description": "Serialized numerical evaluator input. Path-equivalence comparisons are recomputed from both solvers raw valid deterministic paths and full active-grid CFRs using one shared declared configuration. This remains diagnostic and does not establish physical truth or qualification.",
   "type": "object",
   "additionalProperties": false,
@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "loslab.g3_joint_evaluator_inputs.v5"
+      "const": "loslab.joint_evaluator_inputs.v5"
     },
     "joint_acceptance_family": {
       "type": "object"

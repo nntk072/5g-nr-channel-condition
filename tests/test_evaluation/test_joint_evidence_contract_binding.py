@@ -191,8 +191,8 @@ def test_strict_run_manifest_requires_criterion_driven_contract_v4(
     ssh_keygen = shutil.which("ssh-keygen")
     if ssh_keygen is None:
         pytest.skip("OpenSSH is unavailable")
-    policy_signer_id = "g3-policy-custodian"
-    private_key = tmp_path / "g3-policy-custodian-key"
+    policy_signer_id = "policy-custodian"
+    private_key = tmp_path / "policy-custodian-key"
     subprocess.run(
         [ssh_keygen, "-q", "-t", "ed25519", "-N", "", "-f", str(private_key)],
         check=True,
@@ -294,7 +294,7 @@ def test_v4_contract_binds_raw_path_input_and_receipt(
     )
 
     assert result["status"] == "CONTRACT_BOUND_NUMERICAL_EVALUATION_NOT_QUALIFIED"
-    assert contract["schema"] == "loslab.g3_qualification_run_contract.v4"
+    assert contract["schema"] == "loslab.qualification_run_contract.v4"
     report = json.loads(saved.read_text(encoding="utf-8"))
     assert (
         report["bundle"]["evaluations"]["path_equivalence"]["scenarios"][0]["class_coverage_status"]
@@ -525,7 +525,7 @@ def test_run_manifest_rejects_contract_config_mismatch(
     )
     with pytest.raises(ValueError, match="receiver configurations differ"):
         run_manifest.build_joint_evidence_run_manifest(
-            "g3-run-contract-001", source, saved, qualification_contract=bad_contract
+            "run-contract-001", source, saved, qualification_contract=bad_contract
         )
 
 

@@ -1,4 +1,4 @@
-# G4 scenario GBSM generation command v1
+# scenario GBSM generation command v1
 
 The Sionna 2.2 scenario adapter can be invoked through its module entry point. It writes a content-addressed scenario run store and one canonical `EpisodeBundle` per explicitly named drop:
 

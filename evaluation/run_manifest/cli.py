@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
         "manifest",
         type=Path,
         nargs="?",
-        help="existing versioned G3 joint run manifest JSON to verify",
+        help="existing versioned joint run manifest JSON to verify",
     )
     parser.add_argument("--create-run-id", help="create a manifest instead of verifying one")
     parser.add_argument(
@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--qualification-contract",
         type=Path,
-        help="optional frozen G3 qualification contract to bind into the run receipt",
+        help="optional frozen qualification contract to bind into the run receipt",
     )
     parser.add_argument(
         "--runtime-inventory",
@@ -115,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help=(
             "require a signed v4 run receipt, independent signed runtime inventory, "
-            "externally signed reviewer-role policy, and frozen G3 contract before replay"
+            "externally signed reviewer-role policy, and frozen contract before replay"
         ),
     )
     parser.add_argument(
@@ -167,7 +167,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
         except (OSError, TypeError, ValueError, RuntimeError) as error:
-            print(f"G3 source inventory error: {error}", file=sys.stderr)
+            print(f"source inventory error: {error}", file=sys.stderr)
             return 2
         return 0
     if args.include_runtime_inventory_sources:
@@ -218,9 +218,9 @@ def main(argv: list[str] | None = None) -> int:
                         _read_bounded_regular_file(
                             args.qualification_contract,
                             limit=MAX_JSON_ARTIFACT_BYTES,
-                            description="G3 qualification contract",
+                            description="qualification contract",
                         ),
-                        "G3 qualification contract",
+                        "qualification contract",
                     )
                     if args.qualification_contract is not None
                     else None
@@ -232,7 +232,7 @@ def main(argv: list[str] | None = None) -> int:
                 stream.flush()
                 os.fsync(stream.fileno())
         except (OSError, TypeError, ValueError, RuntimeError) as error:
-            print(f"G3 run manifest creation error: {error}", file=sys.stderr)
+            print(f"run manifest creation error: {error}", file=sys.stderr)
             return 2
         print(json.dumps({"schema": value["schema"], "run_id": value["run_id"]}))
         return 0
@@ -258,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             _write_new_artifact(args.report_output, report)
         except OSError as error:
-            print(f"G3 verification report write error: {error}", file=sys.stderr)
+            print(f"verification report write error: {error}", file=sys.stderr)
             return 2
     print(json.dumps(report, sort_keys=True, allow_nan=False))
     return 0 if report["status"] == "PASS_INPUT_SCOPED_RECOMPUTATION" else 1

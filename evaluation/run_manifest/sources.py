@@ -64,7 +64,7 @@ def evaluator_source_bundle_identity(
     source_root: str | Path | None = None,
     include_runtime_inventory: bool = False,
 ) -> dict[str, Any]:
-    """Return the fixed G3 source roster and its digest before a run is launched."""
+    """Return the fixed source roster and its digest before a run is launched."""
     root = (
         Path(source_root).resolve(strict=True)
         if source_root is not None

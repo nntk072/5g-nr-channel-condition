@@ -89,7 +89,7 @@ def _plan(**overrides: Any) -> dict[str, Any]:
 def test_propagation_assurance_uses_shared_evaluator_and_never_qualifies() -> None:
     report = _plan()
 
-    assert report["schema"] == "loslab.g3_propagation_bootstrap_assurance_planning.v1"
+    assert report["schema"] == "loslab.propagation_bootstrap_assurance_planning.v1"
     assert report["qualification_status"] == "NOT_QUALIFIED"
     assert report["admission_possible"] is False
     assert report["complete_sample_size"] is None

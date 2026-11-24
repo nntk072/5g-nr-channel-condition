@@ -1,5 +1,5 @@
 {
-  "schema_version": "loslab.g3_acquisition_design_assumptions.v5",
+  "schema_version": "loslab.acquisition_design_assumptions.v5",
   "scenario_label": "hypothetical_unverified",
   "assumption_source_description": "SYNTHETIC HYPOTHETICAL ONLY. Illustrative engineering assumptions copied from test-sized scenarios; replace with conservatively justified, preregistered worst-stratum assumptions. Not measurement or pilot data.",
   "expected_strata": [
@@ -353,7 +353,7 @@
     "claim_count": 24,
     "per_claim_alpha": 0.0020833333333333333,
     "per_claim_confidence_level": 0.9979166666666667,
-    "schema": "loslab.g3_joint_acceptance_family.v4",
+    "schema": "loslab.joint_acceptance_family.v4",
     "path_equivalence_expected_scenarios": [
       [
         "urban",

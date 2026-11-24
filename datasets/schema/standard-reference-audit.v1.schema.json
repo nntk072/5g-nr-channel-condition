@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-standard-reference-audit:v1",
-  "title": "G4 Standard Reference Byte Audit Report",
-  "description": "Reports exact source-byte identity checks only; never asserts G4 conformance.",
+  "$id": "urn:5gnr:loslab:standard-reference-audit:v1",
+  "title": "Standard Reference Byte Audit Report",
+  "description": "Reports exact source-byte identity checks only; never asserts conformance.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -15,7 +15,7 @@
     "interpretation"
   ],
   "properties": {
-    "schema": { "const": "loslab.g4_standard_reference_audit.v1" },
+    "schema": { "const": "loslab.standard_reference_audit.v1" },
     "status": { "const": "PASS_REFERENCE_SOURCE_BYTES_ONLY" },
     "qualification_status": { "const": "NOT_QUALIFIED" },
     "manifest_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },

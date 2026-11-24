@@ -296,7 +296,7 @@ def test_receiver_scorer_rejects_coercible_record_snr(record_snr: object) -> Non
 
 def test_receiver_intervals_join_the_shared_v3_family() -> None:
     family = build_joint_acceptance_family_v3(
-        family_id="g3-v3-test",
+        family_id="v3-test",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("family-a", "LOS")],
         propagation_expected_strata=[("family-a", "LOS", "total")],
@@ -317,11 +317,11 @@ def test_receiver_intervals_join_the_shared_v3_family() -> None:
 
     stratum = report["strata"][0]  # type: ignore[index]
     assert family["claim_count"] == 19
-    assert report["schema"] == "g3_receiver_impact_diagnostic_v2"
+    assert report["schema"] == "receiver_impact_diagnostic_v2"
     assert report["familywise_claim_count"] == 19
     assert report["per_claim_alpha_bonferroni"] == pytest.approx(0.05 / 19)
     assert report["joint_acceptance_family"] == {
-        "family_id": "g3-v3-test",
+        "family_id": "v3-test",
         "family_sha256": family["family_sha256"],
     }
     assert stratum["interval_confidence_level"] == pytest.approx(1.0 - 0.05 / 19)
@@ -330,7 +330,7 @@ def test_receiver_intervals_join_the_shared_v3_family() -> None:
 
 def test_receiver_scorer_rejects_shared_family_with_different_strata() -> None:
     family = build_joint_acceptance_family_v3(
-        family_id="g3-v3-test",
+        family_id="v3-test",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("family-a", "LOS")],
         propagation_expected_strata=[("family-a", "LOS", "total")],

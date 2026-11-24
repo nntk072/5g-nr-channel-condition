@@ -179,7 +179,7 @@ def _episode_bundle() -> EpisodeBundle:
         port_element_weights=np.ones((1, 1), dtype=np.complex128),
     )
     episode = NetworkEpisode(
-        episode_id="g7-06-integrity-episode",
+        episode_id="integrity-episode",
         split_group_id="integrity-group-0",
         family_id="integrity-test-scene",
         carrier_hz=3.5e9,
@@ -214,7 +214,7 @@ def _episode_bundle() -> EpisodeBundle:
         interaction_order=np.asarray([0]),
     )
     channel = PhysicalChannelView(
-        view_id="g7-12-precision-channel",
+        view_id="precision-channel",
         link_id="gNB-0-to-UE-0",
         channel=np.asarray([[[[0.123456789012345 + 0.987654321098765j]]]], dtype=np.complex128),
         frame_times_s=(0.0,),
@@ -226,7 +226,7 @@ def _episode_bundle() -> EpisodeBundle:
         power_scale=ChannelPowerScale.ABSOLUTE,
     )
     channel_complex64 = PhysicalChannelView(
-        view_id="g7-12-precision-channel-complex64",
+        view_id="precision-channel-complex64",
         link_id="gNB-0-to-UE-0",
         channel=np.asarray([[[[0.1234567 + 0.9876543j]]]], dtype=np.complex64),
         frame_times_s=(0.0,),
@@ -592,7 +592,7 @@ def test_episode_bundle_receiver_observation_publication_failure_is_retryable(
 def test_episode_bundle_shards_are_deterministic_and_budgeted(tmp_path):
     store = tmp_path / "umcd-store"
     template = _episode_bundle()
-    second_episode = replace(template.episode, episode_id="g7-06-integrity-episode-b")
+    second_episode = replace(template.episode, episode_id="integrity-episode-b")
     write_episode_bundle(store, template)
     write_episode_bundle(
         store,
@@ -608,15 +608,15 @@ def test_episode_bundle_shards_are_deterministic_and_budgeted(tmp_path):
 
     assert len(shards) == 1
     assert [bundle.episode.episode_id for bundle in shards[0]] == [
-        "g7-06-integrity-episode",
-        "g7-06-integrity-episode-b",
+        "integrity-episode",
+        "integrity-episode-b",
     ]
 
 
 def test_episode_bundle_shards_split_before_exceeding_accounting_budget(tmp_path):
     store = tmp_path / "umcd-store"
     template = _episode_bundle()
-    second_episode = replace(template.episode, episode_id="g7-06-integrity-episode-b")
+    second_episode = replace(template.episode, episode_id="integrity-episode-b")
     write_episode_bundle(store, template)
     write_episode_bundle(
         store,
@@ -642,8 +642,8 @@ def test_episode_bundle_shards_split_before_exceeding_accounting_budget(tmp_path
     shards = list(iter_episode_bundle_shards(store, max_shard_bytes=budget))
 
     assert [[bundle.episode.episode_id for bundle in shard] for shard in shards] == [
-        ["g7-06-integrity-episode"],
-        ["g7-06-integrity-episode-b"],
+        ["integrity-episode"],
+        ["integrity-episode-b"],
     ]
 
 
@@ -784,8 +784,8 @@ def test_umcd_episode_store_process_peak_rss_scaling(tmp_path, bundle_count, sub
     for index in range(bundle_count):
         episode = replace(
             base_bundle.episode,
-            episode_id=f"g7-memory-scaling-{index:04d}",
-            split_group_id=f"g7-memory-scaling-group-{index:04d}",
+            episode_id=f"memory-scaling-{index:04d}",
+            split_group_id=f"memory-scaling-group-{index:04d}",
             subcarrier_offsets_hz=offsets,
         )
         channels = tuple(

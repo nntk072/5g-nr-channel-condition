@@ -197,9 +197,9 @@ def plan_propagation_bootstrap_assurance(
     """
     family = validate_joint_acceptance_family(joint_acceptance_family)
     if family["schema"] not in {
-        "loslab.g3_joint_acceptance_family.v2",
-        "loslab.g3_joint_acceptance_family.v3",
-        "loslab.g3_joint_acceptance_family.v4",
+        "loslab.joint_acceptance_family.v2",
+        "loslab.joint_acceptance_family.v3",
+        "loslab.joint_acceptance_family.v4",
     }:
         raise ValueError(
             "propagation bootstrap assurance requires a joint-family v2, v3, or v4 roster"
@@ -352,7 +352,7 @@ def plan_propagation_bootstrap_assurance(
         json.dumps(scenario_record, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     ).hexdigest()
     return {
-        "schema": "loslab.g3_propagation_bootstrap_assurance_planning.v1",
+        "schema": "loslab.propagation_bootstrap_assurance_planning.v1",
         "status": "SCENARIO_CONDITIONAL_PLANNING_ONLY_NOT_QUALIFICATION",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,
@@ -384,7 +384,7 @@ def plan_propagation_bootstrap_assurance(
             "Each simulated study is evaluated by the current propagation evaluator and shared-family alpha.",
             "Exact Monte Carlo lower bounds account for assurance simulation uncertainty; a union bound combines strata.",
             "Propagation clusters remain separate from material acquisition units, CSI clusters, and NR receiver clusters.",
-            "This planner never qualifies propagation, G3, a scene family, or authorizes production RT.",
+            "This planner never qualifies propagation, , a scene family, or authorizes production RT.",
         ],
         "bounded_work_cell_count": work,
         "maximum_study_episode_count": max_study_episodes,

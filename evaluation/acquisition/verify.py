@@ -56,7 +56,7 @@ def verify_acquisition_package(
     it is the directory containing the package JSON.
     """
     report: dict[str, Any] = {
-        "report_schema": "loslab.g3_acquisition_package_consistency.v1",
+        "report_schema": "loslab.acquisition_package_consistency.v1",
         "status": "inconsistent",
         "proposal_only": True,
         "qualification_status": "NOT_QUALIFIED",
@@ -188,7 +188,7 @@ def verify_acquisition_package(
             if isinstance(binding_for_inventory, dict)
             and isinstance(binding_for_inventory.get(name), dict)
         }
-        if package.get("schema_version") == "g3.03-acquisition-package.v0.4":
+        if package.get("schema_version") == "acquisition-package.v0.4":
             for csi_record in package.get("csi_measurements", []):
                 h_floor = csi_record.get("h_floor", {}) if isinstance(csi_record, dict) else {}
                 if isinstance(h_floor, dict):
@@ -635,7 +635,7 @@ def verify_acquisition_package(
             errors.append(
                 f"csi {record['csi_id']}.h_floor amplitude_linear must be finite and strictly positive"
             )
-        if package.get("schema_version") == "g3.03-acquisition-package.v0.4":
+        if package.get("schema_version") == "acquisition-package.v0.4":
             expected_method = "noise_only_cfr_estimate_rms_v1"
             if isinstance(h_floor, dict) and h_floor.get("method") != expected_method:
                 errors.append(f"csi {record['csi_id']}.h_floor method must be {expected_method!r}")
@@ -918,9 +918,9 @@ def verify_acquisition_package(
                     _read_bounded_regular_file(
                         MATERIAL_MAPPING_SCHEMA_PATH,
                         limit=MAX_SCHEMA_BYTES,
-                        description="G3 material mapping schema",
+                        description="material mapping schema",
                     ),
-                    "G3 material mapping schema",
+                    "material mapping schema",
                 )
                 mapping_errors = list(
                     jsonschema.Draft202012Validator(
@@ -933,7 +933,7 @@ def verify_acquisition_package(
                         + "; ".join(error.message for error in mapping_errors[:10])
                     )
             except Exception as error:
-                errors.append(f"cannot validate G3 material mapping schema: {error}")
+                errors.append(f"cannot validate material mapping schema: {error}")
             if not isinstance(material_mapping_doc, dict):
                 errors.append("bound material mapping must be a JSON object")
             elif material_mapping_doc.get("material_mapping_id") != input_doc.get(
@@ -942,7 +942,7 @@ def verify_acquisition_package(
                 errors.append("bound material mapping ID differs from scorer input")
         requires_joint_family = package.get("schema_version") in V03_PLUS_SCHEMA_VERSIONS
         if requires_joint_family and "joint_acceptance_family" not in input_doc:
-            errors.append("v0.3 scorer input requires the shared joint G3 acceptance family")
+            errors.append("v0.3 scorer input requires the shared joint acceptance family")
         if "joint_acceptance_family" in input_doc:
             try:
                 family = validate_joint_acceptance_family(input_doc["joint_acceptance_family"])
@@ -960,7 +960,7 @@ def verify_acquisition_package(
                     ],
                 )
             except (TypeError, ValueError) as error:
-                errors.append(f"scorer input joint G3 family is invalid: {error}")
+                errors.append(f"scorer input joint family is invalid: {error}")
         embedded_manifest = input_doc.get("full_split_manifest")
         embedded_hash = input_doc.get("full_split_manifest_sha256")
         if not isinstance(embedded_manifest, dict):
@@ -1025,7 +1025,7 @@ def verify_acquisition_package(
         # Recompute current v2 reports using the same deterministic evaluator and
         # compare the complete document, including all metric and status fields.
         if (
-            output_contract == "loslab.g3_material_calibration_evaluation.v2"
+            output_contract == "loslab.material_calibration_evaluation.v2"
             and isinstance(input_doc, dict)
             and scorer_digest is not None
         ):

@@ -31,7 +31,7 @@ def _payload() -> dict[str, Any]:
         path_equivalence_expected_scenarios=[("scene-a", "LOS", "episode-a")],
     )
     return {
-        "schema": "loslab.g3_joint_evaluator_inputs.v1",
+        "schema": "loslab.joint_evaluator_inputs.v1",
         "joint_acceptance_family": family,
         "material_calibration": {
             "payload": {"joint_acceptance_family": family, "scorer_input": "opaque"}
@@ -82,7 +82,7 @@ def _payload() -> dict[str, Any]:
 
 def _payload_v2() -> dict[str, Any]:
     payload = _payload()
-    payload["schema"] = "loslab.g3_joint_evaluator_inputs.v2"
+    payload["schema"] = "loslab.joint_evaluator_inputs.v2"
 
     def config_entry(config_id: str, configuration: dict[str, Any]) -> dict[str, Any]:
         encoded = json.dumps(
@@ -128,7 +128,7 @@ def _payload_v2() -> dict[str, Any]:
 
 def _payload_v3() -> dict[str, Any]:
     payload = _payload_v2()
-    payload["schema"] = "loslab.g3_joint_evaluator_inputs.v3"
+    payload["schema"] = "loslab.joint_evaluator_inputs.v3"
     payload["receiver_impact"]["records"][0].update(
         {"family_id": "scene-a", "condition": "LOS", "episode_id": "episode-a"}
     )
@@ -137,7 +137,7 @@ def _payload_v3() -> dict[str, Any]:
 
 def _payload_v4() -> dict[str, Any]:
     payload = _payload_v3()
-    payload["schema"] = "loslab.g3_joint_evaluator_inputs.v4"
+    payload["schema"] = "loslab.joint_evaluator_inputs.v4"
     candidate = payload["receiver_execution"]["candidate"]
     record = payload["receiver_impact"]["records"][0]
     record["configuration_id"] = candidate["config_id"]
@@ -156,7 +156,7 @@ def _payload_v4() -> dict[str, Any]:
 
 def _payload_v5() -> dict[str, Any]:
     payload = _payload_v4()
-    payload["schema"] = "loslab.g3_joint_evaluator_inputs.v5"
+    payload["schema"] = "loslab.joint_evaluator_inputs.v5"
     payload["path_equivalence"]["records"] = [
         {
             "family_id": "scene-a",
@@ -223,7 +223,7 @@ def _payload_v5() -> dict[str, Any]:
 
 def _payload_v6() -> dict[str, Any]:
     payload = _payload_v5()
-    payload["schema"] = "loslab.g3_joint_evaluator_inputs.v6"
+    payload["schema"] = "loslab.joint_evaluator_inputs.v6"
     record = payload["path_equivalence"]["records"][0]
     for side in ("candidate", "challenger"):
         diffuse = dict(record[f"{side}_paths"][0])
@@ -285,9 +285,9 @@ def _write_canonical(path: Path, value: object) -> None:
 def _legacy_v1_report(report: dict[str, Any]) -> dict[str, Any]:
     bundle = dict(report["bundle"])
     bundle.pop("numerical_criterion_rollup")
-    bundle["schema"] = "loslab.g3_joint_evaluator_bundle.v1"
+    bundle["schema"] = "loslab.joint_evaluator_bundle.v1"
     return {
-        "schema": "loslab.g3_joint_evaluator_artifact.v1",
+        "schema": "loslab.joint_evaluator_artifact.v1",
         "status": report["status"],
         "qualification_status": report["qualification_status"],
         "input_bytes_sha256": report["input_bytes_sha256"],
@@ -324,8 +324,8 @@ def _sign_run_manifest(manifest_path: Path, directory: Path) -> tuple[Path, Path
     ssh_keygen = shutil.which("ssh-keygen")
     if ssh_keygen is None:
         pytest.skip("OpenSSH is unavailable")
-    signer_id = "g3-run-manifest-reviewer"
-    private_key = directory / "g3-run-manifest-key"
+    signer_id = "run-manifest-reviewer"
+    private_key = directory / "run-manifest-key"
     subprocess.run(
         [ssh_keygen, "-q", "-t", "ed25519", "-N", "", "-f", str(private_key)],
         check=True,
@@ -423,8 +423,8 @@ def _sign_runtime_inventory(inventory_path: Path, directory: Path) -> tuple[Path
     ssh_keygen = shutil.which("ssh-keygen")
     if ssh_keygen is None:
         pytest.skip("OpenSSH is unavailable")
-    signer_id = "g3-runtime-attestor"
-    private_key = directory / "g3-runtime-attestor-key"
+    signer_id = "runtime-attestor"
+    private_key = directory / "runtime-attestor-key"
     subprocess.run(
         [ssh_keygen, "-q", "-t", "ed25519", "-N", "", "-f", str(private_key)],
         check=True,
@@ -465,7 +465,7 @@ def _qualification_contract(
 ) -> dict[str, Any]:
     family = payload["joint_acceptance_family"]
     contract_spec: dict[str, Any] = {
-        "run_id": "g3-run-contract-001",
+        "run_id": "run-contract-001",
         "joint_acceptance_family": family,
         "task_scope": {
             "task_id": "complex-csi-and-receiver-impact",
@@ -587,14 +587,14 @@ def _synthetic_complete_sample_size_design(family: dict[str, Any]) -> dict[str, 
         for branch, (roster_field, count, unit) in branch_rosters.items()
     }
     schemas = {
-        "joint": "loslab.g3_joint_sample_size_planning.v1",
-        "material_assurance": "loslab.g3_bootstrap_assurance_planning.v1",
-        "complex_csi_assurance": "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
-        "propagation_assurance": "loslab.g3_propagation_bootstrap_assurance_planning.v1",
-        "receiver_assurance": "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1",
+        "joint": "loslab.joint_sample_size_planning.v1",
+        "material_assurance": "loslab.bootstrap_assurance_planning.v1",
+        "complex_csi_assurance": "loslab.complex_csi_bootstrap_assurance_planning.v1",
+        "propagation_assurance": "loslab.propagation_bootstrap_assurance_planning.v1",
+        "receiver_assurance": "loslab.receiver_impact_bootstrap_assurance_planning.v1",
     }
     design: dict[str, Any] = {
-        "schema": "loslab.g3_joint_sample_size_design_composition.v1",
+        "schema": "loslab.joint_sample_size_design_composition.v1",
         "status": "SCENARIO_CONDITIONAL_DESIGN_NOT_QUALIFICATION",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,

@@ -59,7 +59,7 @@ def _comparison(status: str, candidate: float | None, challenger: float | None) 
         for _ in range(max(0, right_count - matched))
     ]
     return {
-        "schema": "loslab.g3_path_equivalence_comparison.v1",
+        "schema": "loslab.path_equivalence_comparison.v1",
         "status": "PATH_COVERAGE_DIAGNOSTIC_NOT_QUALIFIED",
         "admission_possible": False,
         "class_coverage_status": status,
@@ -206,7 +206,7 @@ def test_budget_bound_roster_separates_diffuse_distribution_from_path_identity()
 
     scenario = report["scenarios"][0]
     diffuse_report = scenario["diffuse_distribution"]
-    assert report["schema"] == "loslab.g3_path_equivalence_roster_diagnostic.v2"
+    assert report["schema"] == "loslab.path_equivalence_roster_diagnostic.v2"
     assert report["admission_possible"] is False
     assert report["diffuse_path_diagnostics_are_descriptive_only"] is True
     assert scenario["class_coverage_status"] == "PASS"
@@ -297,7 +297,7 @@ def test_roster_does_not_pool_coverage_to_hide_one_episode_failure() -> None:
 
 def test_roster_preserves_no_class_case_as_unresolved_diagnostic() -> None:
     comparison = {
-        "schema": "loslab.g3_path_equivalence_comparison.v1",
+        "schema": "loslab.path_equivalence_comparison.v1",
         "status": "NO_CLASSES_NOT_ASSESSABLE",
         "admission_possible": False,
         "class_coverage_status": "NOT_ASSESSABLE_NO_CLASSES",
@@ -424,7 +424,7 @@ def test_roster_rejects_missing_or_malformed_matched_class_deltas(
 def test_roster_verifies_and_reports_joint_family_reference() -> None:
     expected = [("site-family-a", "LOS", "episode-1")]
     family = build_joint_acceptance_family_v4(
-        family_id="g3-v4",
+        family_id="v4",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("site-family-a", "LOS")],
         propagation_expected_strata=[("site-family-a", "LOS", "total")],
@@ -438,7 +438,7 @@ def test_roster_verifies_and_reports_joint_family_reference() -> None:
     )
 
     assert result["joint_acceptance_family"] == {
-        "family_id": "g3-v4",
+        "family_id": "v4",
         "family_sha256": family["family_sha256"],
     }
 
@@ -446,7 +446,7 @@ def test_roster_verifies_and_reports_joint_family_reference() -> None:
 def test_roster_rejects_a_joint_family_with_a_different_path_roster() -> None:
     expected = [("site-family-a", "LOS", "episode-1")]
     family = build_joint_acceptance_family_v4(
-        family_id="g3-v4",
+        family_id="v4",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("site-family-a", "LOS")],
         propagation_expected_strata=[("site-family-a", "LOS", "total")],

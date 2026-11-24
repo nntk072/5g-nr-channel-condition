@@ -1,4 +1,4 @@
-"""Native adapter-to-record checks for standardized-channel G4 admission."""
+"""Native adapter-to-record checks for standardized-channel admission."""
 
 from __future__ import annotations
 

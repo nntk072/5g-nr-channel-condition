@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://umcd.example/schema/g5-ordered-impairments-snr-acceptance.v1.schema.json",
-  "title": "G5 ordered-impairment SNR-family acceptance contract",
+  "$id": "https://umcd.example/schema/ordered-impairments-snr-acceptance.v1.schema.json",
+  "title": "ordered-impairment SNR-family acceptance contract",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -16,7 +16,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "umcd.g5_ordered_impairments_snr_acceptance.v1"
+      "const": "umcd.ordered_impairments_snr_acceptance.v1"
     },
     "snr_db": {
       "type": "array",

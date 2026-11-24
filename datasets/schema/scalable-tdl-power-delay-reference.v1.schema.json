@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:g4-scalable-tdl-power-delay-reference:v1",
+  "$id": "urn:5gnr:scalable-tdl-power-delay-reference:v1",
   "title": "ETSI TR 38.901 scalable TDL power and delay reference v1",
   "type": "object",
   "required": ["schema", "standard", "version", "source_id", "source_sha256", "source_url", "reference_scope", "status", "profiles", "interpretation"],

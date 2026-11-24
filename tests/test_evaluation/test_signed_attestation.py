@@ -28,7 +28,7 @@ def _canonical_bytes(value: Any) -> bytes:
 
 
 def _make_signed_inputs(
-    tmp_path: Path, *, schema_version: str = "g3.03-acquisition-package.v0.3"
+    tmp_path: Path, *, schema_version: str = "acquisition-package.v0.3"
 ) -> tuple[Path, Path, Path, Path, Path, Path]:
     ssh_keygen = shutil.which("ssh-keygen")
     if ssh_keygen is None:
@@ -113,7 +113,7 @@ def _make_signed_inputs(
 def _make_signed_set(
     tmp_path: Path,
     *,
-    schema_version: str = "g3.03-acquisition-package.v0.3",
+    schema_version: str = "acquisition-package.v0.3",
     omit_attestation_type: str | None = None,
 ) -> tuple[Path, list[Path], Path, Path]:
     ssh_keygen = shutil.which("ssh-keygen")
@@ -314,7 +314,7 @@ def test_split_preregistration_signature_must_include_bound_split_manifest(
 
 def test_signed_attestation_supports_legacy_v02_package(tmp_path: Path) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(
-        tmp_path, schema_version="g3.03-acquisition-package.v0.2"
+        tmp_path, schema_version="acquisition-package.v0.2"
     )
 
     report = verify_signed_attestation(package, envelope, signature, trusted, policy)
@@ -327,7 +327,7 @@ def test_signed_attestation_supports_v04_csi_noise_evidence_package(
     tmp_path: Path,
 ) -> None:
     package, envelope, signature, trusted, policy, _ = _make_signed_inputs(
-        tmp_path, schema_version="g3.03-acquisition-package.v0.4"
+        tmp_path, schema_version="acquisition-package.v0.4"
     )
 
     report = verify_signed_attestation(package, envelope, signature, trusted, policy)
@@ -447,7 +447,7 @@ def test_signed_attestation_set_verifies_every_package_record(tmp_path: Path) ->
 
 def test_signed_attestation_set_supports_v04_package(tmp_path: Path) -> None:
     package, envelopes, trusted, policy = _make_signed_set(
-        tmp_path, schema_version="g3.03-acquisition-package.v0.4"
+        tmp_path, schema_version="acquisition-package.v0.4"
     )
 
     report = verify_signed_attestation_set(package, envelopes, trusted, policy)
@@ -481,7 +481,7 @@ def test_signed_attestation_set_strict_mode_rejects_missing_scientific_review(
 ) -> None:
     package, envelopes, trusted, policy = _make_signed_set(
         tmp_path,
-        schema_version="g3.03-acquisition-package.v0.4",
+        schema_version="acquisition-package.v0.4",
         omit_attestation_type="scientific_review",
     )
 

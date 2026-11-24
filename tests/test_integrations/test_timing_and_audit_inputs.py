@@ -61,10 +61,10 @@ def test_symbol_schedule_is_monotone_within_a_slot() -> None:
 
 def test_low_confidence_audit_validates_ids_and_threshold() -> None:
     probabilities = np.asarray([0.2, 0.8])
-    ids = ["g0", "g1"]
+    ids = ["group0", "group1"]
     with pytest.raises(ValueError, match="canonical nonempty strings"):
         build_low_confidence_audit(
-            probabilities, [" g0", "g1"], ["f", "f"], ["d", "d"], threshold=0.5, margin=0.1
+            probabilities, [" group0", "group1"], ["f", "f"], ["d", "d"], threshold=0.5, margin=0.1
         )
     with pytest.raises(ValueError, match="threshold must be finite and in"):
         build_low_confidence_audit(

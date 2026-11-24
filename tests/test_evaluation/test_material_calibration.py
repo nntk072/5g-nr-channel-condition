@@ -292,7 +292,7 @@ def test_schema_rejects_malformed_payload_shape(mutate):
 def test_cli_rejects_invalid_json(tmp_path, monkeypatch, source):
     input_path = tmp_path / "predictions.json"
     input_path.write_text(source, encoding="utf-8")
-    monkeypatch.setattr(sys, "argv", ["evaluate-g3-material-calibration", str(input_path)])
+    monkeypatch.setattr(sys, "argv", ["evaluate-material-calibration", str(input_path)])
 
     with pytest.raises(json.JSONDecodeError):
         material_calibration_main()
@@ -572,7 +572,7 @@ def test_integrated_angular_power_is_scored_on_a_complete_validated_grid():
             predicted_angular_power_per_bin_w=[[1.0], [6.0]],
         )
     report = evaluate_material_calibration(payload)
-    assert report["schema"] == "loslab.g3_material_calibration_evaluation.v2"
+    assert report["schema"] == "loslab.material_calibration_evaluation.v2"
     assert report["angular_pattern_contract"]["distance"].startswith("supremum absolute difference")
     assert report["strata"][0]["maximum_angular_cdf_ks"] == pytest.approx(3.0 / 28.0)
 
@@ -713,7 +713,7 @@ def test_material_intervals_use_shared_material_csi_propagation_and_receiver_cla
     expected_strata = payload["expected_strata"]
     assert isinstance(expected_strata, list)
     family = build_joint_acceptance_family_v3(
-        family_id="g3-protocol-2026-01",
+        family_id="protocol-2026-01",
         material_expected_strata=[
             (item["material_id"], item["polarization"], item["incidence_stratum_id"])
             for item in expected_strata
@@ -731,7 +731,7 @@ def test_material_intervals_use_shared_material_csi_propagation_and_receiver_cla
     assert family["claim_count"] == 26
     assert report["cluster_bootstrap"]["simultaneous_comparison_count"] == 26
     assert report["cluster_bootstrap"]["joint_acceptance_family"] == {
-        "family_id": "g3-protocol-2026-01",
+        "family_id": "protocol-2026-01",
         "family_sha256": family["family_sha256"],
     }
     assert all(
@@ -744,7 +744,7 @@ def test_material_intervals_use_shared_material_csi_propagation_and_receiver_cla
 def test_material_evaluator_rejects_tampered_or_mismatched_joint_family():
     payload = _payload()
     family = build_joint_acceptance_family(
-        family_id="g3-protocol-2026-01",
+        family_id="protocol-2026-01",
         material_expected_strata=[
             ("concrete-a", "V", "angle-20deg"),
             ("concrete-a", "V", "angle-40deg"),

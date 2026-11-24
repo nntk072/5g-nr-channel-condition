@@ -46,7 +46,7 @@ def test_complex_archive_reports_fields_order_and_the_phase_disposition(tmp_path
     assert report["fields"]["H"]["shape"] == [12, 4]
     assert report["channel_observation"]["complex_coefficients_present"] is True
     assert (
-        report["channel_observation"]["g3_complex_csi_disposition"]
+        report["channel_observation"]["complex_csi_disposition"]
         == "not_established_phase_reference_unverified"
     )
     assert report["timestamps"]["strictly_increasing"] is True
@@ -61,7 +61,7 @@ def test_real_archive_is_ineligible_for_complex_csi(tmp_path) -> None:
     report = caez.audit(_archive(tmp_path / "real.npz", complex_h=False))
     assert report["channel_observation"]["complex_coefficients_present"] is False
     assert (
-        report["channel_observation"]["g3_complex_csi_disposition"]
+        report["channel_observation"]["complex_csi_disposition"]
         == "ineligible_no_explicit_complex_phase"
     )
 

@@ -175,7 +175,7 @@ def test_cdl_joint_tx_rx_spatiotemporal_covariance_matches_independent_reference
     assert seeds_with_miss <= _MAX_SEEDS_WITH_MISS, (model, seeds_with_miss)
 
     record_property(
-        "g4_cdl_joint_tx_rx_spatiotemporal_covariance_coverage",
+        "cdl_joint_tx_rx_spatiotemporal_covariance_coverage",
         json.dumps(
             {
                 "model": model,

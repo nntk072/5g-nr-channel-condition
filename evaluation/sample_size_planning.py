@@ -1,6 +1,6 @@
-"""Assumption-driven sample-size planning for G3 material and complex CSI.
+"""Assumption-driven sample-size planning for material and complex CSI.
 
-This module is separate from the G3 evaluators and consumes no measurement
+This module is separate from the evaluators and consumes no measurement
 data. It provides distribution-free and exact-binomial designs plus nested
 simulations of the evaluator-aligned bootstrap rules under explicitly
 hypothetical finite-support distributions. The maximum-over-units angular-KS
@@ -8,7 +8,7 @@ criterion uses an explicit IID per-unit pass-probability assumption; its
 literal finite-sample maximum gives a pass-probability upper bound on n, not a
 population-maximum guarantee. Receiver-impact and propagation assurance live in
 sibling modules and are orchestrated by the acquisition-design CLI. Component
-designs use distinct physical-unit scales and never become a complete G3
+designs use distinct physical-unit scales and never become a complete
 sample-size claim: external acquisition authority, representativeness, rights,
 path truth, and a unified cost/design model remain unresolved. No function in
 this planner qualifies material or complex-CSI performance.

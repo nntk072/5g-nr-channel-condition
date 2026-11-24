@@ -1,4 +1,4 @@
-"""Confidence-controlled zero-mean and proper-complex checks for G4 channel taps."""
+"""Confidence-controlled zero-mean and proper-complex checks for channel taps."""
 
 from __future__ import annotations
 
@@ -101,7 +101,7 @@ def evaluate_complex_circularity_family(
     )
     maximum_half_width = max(float(mean_half_width.max()), float(pseudocovariance_half_width.max()))
     return {
-        "schema": "loslab.g4_complex_circularity_family.v1",
+        "schema": "loslab.complex_circularity_family.v1",
         "draw_count": draw_count,
         "tap_count": values.shape[1],
         "claim_count": claim_count,

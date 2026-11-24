@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-fixed-tdl-los-k-factor-reference:v1",
-  "title": "G4 Fixed TDL LOS K-Factor Reference",
+  "$id": "urn:5gnr:loslab:fixed-tdl-los-k-factor-reference:v1",
+  "title": "Fixed TDL LOS K-Factor Reference",
   "description": "Deterministic D10/D30 K-factor derived from source-bound TS 38.101-4 component powers; not a fading conformance verdict.",
   "type": "object",
   "additionalProperties": false,

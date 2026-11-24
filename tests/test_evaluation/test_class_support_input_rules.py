@@ -11,7 +11,7 @@ STRATA = [("train", "family-a")]
 def _audit(**overrides):
     kwargs = {
         "labels": [0, 1],
-        "independent_group_ids": ["g0", "g1"],
+        "independent_group_ids": ["group0", "group1"],
         "split_ids": ["train", "train"],
         "family_ids": ["family-a", "family-a"],
         "expected_strata": STRATA,

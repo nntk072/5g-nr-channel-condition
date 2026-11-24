@@ -34,8 +34,8 @@ def _approval(tmp_path: Path, request: dict, *, statuses: dict | None = None) ->
                 "approved_at": "2026-10-23T12:00:00Z",
                 "scope_request_sha256": canonical_sha256(request),
                 "gate_statuses": statuses or {f"g{index}": "passed" for index in range(6)},
-                "g7_release_scope": "internal_research",
-                "g7_release_statuses": {},
+                "release_scope": "internal_research",
+                "release_statuses": {},
                 "qualification_artifacts": [
                     {
                         "role": "qualification_plan",
@@ -271,8 +271,8 @@ def test_public_release_status_claims_do_not_enable_production(tmp_path: Path):
     request = {"seed": 5}
     approval = _approval(tmp_path, request)
     value = json.loads(approval.read_text(encoding="utf-8"))
-    value["g7_release_scope"] = "public_release"
-    value["g7_release_statuses"] = {}
+    value["release_scope"] = "public_release"
+    value["release_statuses"] = {}
     approval.write_text(json.dumps(value, sort_keys=True), encoding="utf-8")
 
     with pytest.raises(PermissionError, match="production D1 generation is disabled"):

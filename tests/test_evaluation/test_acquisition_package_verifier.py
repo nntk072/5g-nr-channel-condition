@@ -1,4 +1,4 @@
-"""Adversarial tests for proposal-only G3.03 package consistency checks."""
+"""Adversarial tests for proposal-only package consistency checks."""
 
 from __future__ import annotations
 
@@ -20,8 +20,8 @@ from evaluation.acquisition_package import verify_acquisition_package
 PACKAGE_HELPERS = Path(__file__).parents[1] / "test_datasets/test_acquisition_package_v0_2.py"
 _package_factory = runpy.run_path(str(PACKAGE_HELPERS))["_package"]
 V03_PLUS = {
-    "g3.03-acquisition-package.v0.3",
-    "g3.03-acquisition-package.v0.4",
+    "acquisition-package.v0.3",
+    "acquisition-package.v0.4",
 }
 
 
@@ -51,7 +51,7 @@ def _put(root: Path, package: dict[str, Any], file_id: str, data: bytes) -> None
             reference["exact_bytes_sha256"] = hashlib.sha256(data).hexdigest()
 
 
-def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -> Path:
+def _make_package(root: Path, schema_version="acquisition-package.v0.2") -> Path:
     package = _package_factory(schema_version)
     # Keep the synthetic acquisition record aligned with the held-out evaluator row.
     package["samples"][0]["incidence_zenith_deg"] = 20.0
@@ -65,7 +65,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
     unit_id = package["samples"][0]["unit_id"]
     provenance_id = "unit.provenance.example.1"
     manifest = {
-        "schema": "loslab.g3_material_calibration_split_manifest.v1",
+        "schema": "loslab.material_calibration_split_manifest.v1",
         "expected_strata": [stratum],
         "groups": [{"incidence_group_id": group_id, "split": "test", "sample_ids": [sample_id]}],
         "test_sample_assignments": [
@@ -96,14 +96,14 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
         "predicted_angular_power": [1.1, 1.9],
         "angular_bin_edges_deg": [0.0, 90.0, 180.0],
     }
-    input_schema = "loslab.g3_material_calibration_predictions.v1"
-    output_schema = "loslab.g3_material_calibration_evaluation.v1"
+    input_schema = "loslab.material_calibration_predictions.v1"
+    output_schema = "loslab.material_calibration_evaluation.v1"
     if schema_version in V03_PLUS:
         prediction.pop("measured_angular_power")
         prediction.pop("predicted_angular_power")
         prediction.pop("angular_bin_edges_deg")
-        input_schema = "loslab.g3_material_calibration_predictions.v2"
-        output_schema = "loslab.g3_material_calibration_evaluation.v2"
+        input_schema = "loslab.material_calibration_predictions.v2"
+        output_schema = "loslab.material_calibration_evaluation.v2"
         theta_edges = [0.0, 90.0, 180.0]
         phi_edges = [-180.0, 0.0, 180.0]
         solid_angles = [[3.141592653589793, 3.141592653589793]] * 2
@@ -162,7 +162,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
             complex_csi_expected_strata=[("scene-family-a", "LOS")],
         )
     input_bytes = (json.dumps(scorer_input, sort_keys=True, separators=(",", ":")) + "\n").encode()
-    if input_schema == "loslab.g3_material_calibration_predictions.v2":
+    if input_schema == "loslab.material_calibration_predictions.v2":
         output = evaluate_material_calibration(scorer_input)
         output["prediction_input_sha256"] = hashlib.sha256(input_bytes).hexdigest()
     else:
@@ -197,7 +197,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
         ]
     if schema_version in V03_PLUS:
         mapping = {
-            "schema": "loslab.g3_material_mapping.v1",
+            "schema": "loslab.material_mapping.v1",
             "material_mapping_id": scorer_input["material_mapping_id"],
             "mapping_basis": "Synthetic proposal fixture only.",
             "materials": [
@@ -240,7 +240,7 @@ def _make_package(root: Path, schema_version="g3.03-acquisition-package.v0.2") -
             output_file_id,
             "file.material.mapping",
         }:
-            if schema_version == "g3.03-acquisition-package.v0.4" and file_id == "file.noise.input":
+            if schema_version == "acquisition-package.v0.4" and file_id == "file.noise.input":
                 noise_stream = io.BytesIO()
                 noise = np.asarray([3.0 + 4.0j, 0.0j, 0.0j, 0.0j], dtype=np.complex128)
                 np.save(noise_stream, noise.reshape((1, 1, 2, 2)))
@@ -299,7 +299,7 @@ def test_inventory_detects_exact_byte_tampering(tmp_path: Path):
 
 
 def test_unit_independence_reference_must_have_the_correct_attestation_type(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["acquisition_units"][0]["independence_attestation_id"] = "attest.rights.plan"
     package_path.write_text(json.dumps(package), encoding="utf-8")
@@ -311,7 +311,7 @@ def test_unit_independence_reference_must_have_the_correct_attestation_type(tmp_
 
 
 def test_calibration_truth_reference_must_have_a_calibration_attestation_type(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["calibrations"][0]["truth_attestation_id"] = "attest.rights.plan"
     package_path.write_text(json.dumps(package), encoding="utf-8")
@@ -323,7 +323,7 @@ def test_calibration_truth_reference_must_have_a_calibration_attestation_type(tm
 
 
 def test_attestation_ids_must_be_unique_across_legacy_and_external_records(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["external_attestations"][0]["attestation_id"] = "attest.independent"
     package_path.write_text(json.dumps(package), encoding="utf-8")
@@ -414,7 +414,7 @@ def test_package_binding_and_evaluator_echo_must_match(tmp_path: Path):
 
 
 def test_v2_evaluator_metrics_are_recomputed_from_bound_scorer_input(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     output_entry = next(
         item for item in package["files"] if item["file_id"] == "file.evaluator.output"
@@ -555,7 +555,7 @@ def test_crosswalk_rejects_acquisition_metadata_mismatches(tmp_path: Path):
     )
     for field, value, expected_error in mismatches:
         case_root = tmp_path / field
-        package_path = _make_package(case_root, "g3.03-acquisition-package.v0.3")
+        package_path = _make_package(case_root, "acquisition-package.v0.3")
         package = json.loads(package_path.read_text(encoding="utf-8"))
         package["samples"][0][field] = value
         package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
@@ -566,7 +566,7 @@ def test_crosswalk_rejects_acquisition_metadata_mismatches(tmp_path: Path):
 
 
 def test_sample_specimen_must_match_its_acquisition_unit(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     second_specimen = dict(package["specimens"][0], specimen_id="specimen.example.2")
     package["specimens"].append(second_specimen)
@@ -579,7 +579,7 @@ def test_sample_specimen_must_match_its_acquisition_unit(tmp_path: Path):
 
 
 def test_sample_acquisition_must_fall_within_calibration_validity(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["samples"][0]["acquired_utc"] = "2026-01-01T15:00:01Z"
     package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
@@ -590,7 +590,7 @@ def test_sample_acquisition_must_fall_within_calibration_validity(tmp_path: Path
 
 
 def test_calibration_validity_interval_must_be_ordered(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["calibrations"][0]["valid_from_utc"] = "2026-01-01T15:00:00Z"
     package["calibrations"][0]["valid_to_utc"] = "2026-01-01T09:00:00Z"
@@ -602,7 +602,7 @@ def test_calibration_validity_interval_must_be_ordered(tmp_path: Path):
 
 
 def test_sample_must_reference_its_calibration_run_files(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["samples"][0]["file_ids"].remove("file.cal.run")
     package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
@@ -613,7 +613,7 @@ def test_sample_must_reference_its_calibration_run_files(tmp_path: Path):
 
 
 def test_sample_must_join_campaign_and_its_instrument(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["campaigns"][0]["instrument_ids"] = ["instrument.other.1"]
     package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
@@ -624,7 +624,7 @@ def test_sample_must_join_campaign_and_its_instrument(tmp_path: Path):
 
 
 def test_sample_frequency_must_match_instrument_configuration(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["instruments"][0]["configuration"]["carrier_frequency_hz"] = 3.6e9
     package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
@@ -635,7 +635,7 @@ def test_sample_frequency_must_match_instrument_configuration(tmp_path: Path):
 
 
 def test_sample_acquisition_must_fall_within_campaign_window(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["campaigns"][0]["end_utc"] = "2026-01-01T12:00:00Z"
     package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
@@ -646,7 +646,7 @@ def test_sample_acquisition_must_fall_within_campaign_window(tmp_path: Path):
 
 
 def test_sample_file_must_declare_its_sample_association(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     file_id = package["samples"][0]["file_ids"][0]
     next(item for item in package["files"] if item["file_id"] == file_id)["sample_ids"] = []
@@ -658,7 +658,7 @@ def test_sample_file_must_declare_its_sample_association(tmp_path: Path):
 
 
 def test_crosswalk_angular_measurement_must_match_evaluator_input(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["angular_measurements"][0]["power_per_bin_w"][0][0] = 7.0
     package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
@@ -672,7 +672,7 @@ def test_crosswalk_angular_measurement_must_match_evaluator_input(tmp_path: Path
 
 
 def test_crosswalk_material_must_match_hash_bound_specimen_mapping(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     mapping_file_id = package["evaluator_binding"]["material_mapping"]["file_id"]
     mapping_path = tmp_path / next(
@@ -691,7 +691,7 @@ def test_crosswalk_material_must_match_hash_bound_specimen_mapping(tmp_path: Pat
 
 
 def test_material_mapping_exact_bytes_are_inventory_bound(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     mapping_file_id = package["evaluator_binding"]["material_mapping"]["file_id"]
     mapping_path = tmp_path / next(
@@ -719,7 +719,7 @@ def test_angular_and_csi_cross_field_dimensions_are_checked(tmp_path: Path):
 
 
 def test_csi_noise_derived_h_floor_must_be_strictly_positive(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["csi_measurements"][0]["h_floor"]["amplitude_linear"] = 0.0
     package_path.write_text(json.dumps(package), encoding="utf-8")
@@ -731,7 +731,7 @@ def test_csi_noise_derived_h_floor_must_be_strictly_positive(tmp_path: Path):
 
 
 def test_v04_h_floor_is_recomputed_from_exact_noise_npy_bytes(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.4")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.4")
 
     report = verify_acquisition_package(package_path)
 
@@ -745,7 +745,7 @@ def test_v04_h_floor_is_recomputed_from_exact_noise_npy_bytes(tmp_path: Path):
 
 
 def test_v04_declared_h_floor_must_match_noise_samples(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.4")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.4")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["csi_measurements"][0]["h_floor"]["amplitude_linear"] = 1.0
     package_path.write_text(json.dumps(package), encoding="utf-8")
@@ -757,7 +757,7 @@ def test_v04_declared_h_floor_must_match_noise_samples(tmp_path: Path):
 
 
 def test_v04_rejects_noise_sample_bound_to_another_sample(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.4")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.4")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     noise_file = next(item for item in package["files"] if item["file_id"] == "file.noise.input")
     noise_file["sample_ids"] = ["sample.other.1"]
@@ -770,7 +770,7 @@ def test_v04_rejects_noise_sample_bound_to_another_sample(tmp_path: Path):
 
 
 def test_v04_rejects_real_valued_noise_artifacts(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.4")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.4")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     noise_stream = io.BytesIO()
     np.save(noise_stream, np.asarray([1.0, 2.0], dtype=np.float64))
@@ -784,7 +784,7 @@ def test_v04_rejects_real_valued_noise_artifacts(tmp_path: Path):
 
 
 def test_v04_noise_estimate_shape_must_match_the_csi_grid(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.4")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.4")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     noise_stream = io.BytesIO()
     np.save(noise_stream, np.ones((4,), dtype=np.complex128))
@@ -798,7 +798,7 @@ def test_v04_noise_estimate_shape_must_match_the_csi_grid(tmp_path: Path):
 
 
 def test_v04_rejects_trailing_bytes_after_npy_payload(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.4")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.4")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     noise_stream = io.BytesIO()
     noise = np.asarray([3.0 + 4.0j, 0.0j, 0.0j, 0.0j], dtype=np.complex128)
@@ -813,7 +813,7 @@ def test_v04_rejects_trailing_bytes_after_npy_payload(tmp_path: Path):
 
 
 def test_csi_h_floor_integer_must_fit_finite_float_range(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["csi_measurements"][0]["h_floor"]["amplitude_linear"] = 10**1000
     package_path.write_text(json.dumps(package), encoding="utf-8")
@@ -825,7 +825,7 @@ def test_csi_h_floor_integer_must_fit_finite_float_range(tmp_path: Path):
 
 
 def test_v03_csi_noise_inputs_require_noise_measurement_inventory_role(tmp_path: Path):
-    package_path = _make_package(tmp_path, "g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, "acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     noise_file_ids = package["csi_measurements"][0]["h_floor"]["noise_input_file_ids"]
     noise_file = next(item for item in package["files"] if item["file_id"] == noise_file_ids[0])
@@ -853,7 +853,7 @@ def test_acquisition_crosswalk_must_join_measurement_unit_and_source_files(tmp_p
 
 
 def test_v03_requires_full_sphere_and_exact_spherical_solid_angles(tmp_path: Path):
-    package_path = _make_package(tmp_path, schema_version="g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, schema_version="acquisition-package.v0.3")
     report = verify_acquisition_package(package_path)
     assert report["status"] == "consistent_proposal_only", _error_text(report)
     assert report["qualification_status"] == "NOT_QUALIFIED"
@@ -867,7 +867,7 @@ def test_v03_requires_full_sphere_and_exact_spherical_solid_angles(tmp_path: Pat
 
 
 def test_v03_rejects_incomplete_azimuth_coverage(tmp_path: Path):
-    package_path = _make_package(tmp_path, schema_version="g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, schema_version="acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["angular_measurements"][0]["phi_edges_deg"][-1] = 179.0
     package_path.write_text(json.dumps(package), encoding="utf-8")
@@ -877,7 +877,7 @@ def test_v03_rejects_incomplete_azimuth_coverage(tmp_path: Path):
 
 
 def test_v03_does_not_accept_missing_bins_as_a_complete_pattern(tmp_path: Path):
-    package_path = _make_package(tmp_path, schema_version="g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, schema_version="acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     package["angular_measurements"][0]["missing_bin_indices"] = [[0, 1]]
     package_path.write_text(json.dumps(package), encoding="utf-8")
@@ -887,7 +887,7 @@ def test_v03_does_not_accept_missing_bins_as_a_complete_pattern(tmp_path: Path):
 
 
 def test_v03_verifier_rechecks_embedded_joint_family_digest(tmp_path: Path):
-    package_path = _make_package(tmp_path, schema_version="g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, schema_version="acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     scorer_id = package["evaluator_binding"]["scorer_input"]["file_id"]
     entry = next(item for item in package["files"] if item["file_id"] == scorer_id)
@@ -900,11 +900,11 @@ def test_v03_verifier_rechecks_embedded_joint_family_digest(tmp_path: Path):
     report = verify_acquisition_package(package_path)
 
     assert report["status"] == "inconsistent"
-    assert "joint G3 family is invalid" in _error_text(report)
+    assert "joint family is invalid" in _error_text(report)
 
 
 def test_v03_verifier_requires_the_shared_joint_family(tmp_path: Path):
-    package_path = _make_package(tmp_path, schema_version="g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, schema_version="acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     scorer_id = package["evaluator_binding"]["scorer_input"]["file_id"]
     entry = next(item for item in package["files"] if item["file_id"] == scorer_id)
@@ -917,11 +917,11 @@ def test_v03_verifier_requires_the_shared_joint_family(tmp_path: Path):
     report = verify_acquisition_package(package_path)
 
     assert report["status"] == "inconsistent"
-    assert "v0.3 scorer input requires the shared joint G3 acceptance family" in _error_text(report)
+    assert "v0.3 scorer input requires the shared joint acceptance family" in _error_text(report)
 
 
 def test_v03_verifier_checks_joint_family_material_roster_against_input(tmp_path: Path):
-    package_path = _make_package(tmp_path, schema_version="g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, schema_version="acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     scorer_id = package["evaluator_binding"]["scorer_input"]["file_id"]
     entry = next(item for item in package["files"] if item["file_id"] == scorer_id)
@@ -938,11 +938,11 @@ def test_v03_verifier_checks_joint_family_material_roster_against_input(tmp_path
     report = verify_acquisition_package(package_path)
 
     assert report["status"] == "inconsistent"
-    assert "expected strata differ from the shared G3 family roster" in _error_text(report)
+    assert "expected strata differ from the shared family roster" in _error_text(report)
 
 
 def test_v03_verifier_accepts_v3_family_binding_receiver_claims(tmp_path: Path):
-    package_path = _make_package(tmp_path, schema_version="g3.03-acquisition-package.v0.3")
+    package_path = _make_package(tmp_path, schema_version="acquisition-package.v0.3")
     package = json.loads(package_path.read_text(encoding="utf-8"))
     scorer_id = package["evaluator_binding"]["scorer_input"]["file_id"]
     entry = next(item for item in package["files"] if item["file_id"] == scorer_id)

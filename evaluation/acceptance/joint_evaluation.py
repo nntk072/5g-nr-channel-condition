@@ -1,4 +1,4 @@
-"""Deterministically run and bind the G3 evaluator branches under family v4.
+"""Deterministically run and bind the evaluator branches under family v4.
 
 The bundle is a numerical-evidence orchestration artifact. Its successful
 recomputation never establishes measurement provenance or scientific
@@ -25,13 +25,13 @@ from evaluation.acceptance.path_equivalence_assurance import evaluate_path_equiv
 from evaluation.acceptance.propagation_metrics import evaluate_propagation_metrics
 from evaluation.acceptance.receiver_impact import evaluate_receiver_impact
 
-_INPUT_SCHEMA = "loslab.g3_joint_evaluator_inputs.v1"
-_INPUT_SCHEMA_V2 = "loslab.g3_joint_evaluator_inputs.v2"
-_INPUT_SCHEMA_V3 = "loslab.g3_joint_evaluator_inputs.v3"
-_INPUT_SCHEMA_V4 = "loslab.g3_joint_evaluator_inputs.v4"
-_INPUT_SCHEMA_V5 = "loslab.g3_joint_evaluator_inputs.v5"
-_INPUT_SCHEMA_V6 = "loslab.g3_joint_evaluator_inputs.v6"
-_BUNDLE_SCHEMA = "loslab.g3_joint_evaluator_bundle.v2"
+_INPUT_SCHEMA = "loslab.joint_evaluator_inputs.v1"
+_INPUT_SCHEMA_V2 = "loslab.joint_evaluator_inputs.v2"
+_INPUT_SCHEMA_V3 = "loslab.joint_evaluator_inputs.v3"
+_INPUT_SCHEMA_V4 = "loslab.joint_evaluator_inputs.v4"
+_INPUT_SCHEMA_V5 = "loslab.joint_evaluator_inputs.v5"
+_INPUT_SCHEMA_V6 = "loslab.joint_evaluator_inputs.v6"
+_BUNDLE_SCHEMA = "loslab.joint_evaluator_bundle.v2"
 _BRANCHES = (
     "material_calibration",
     "complex_csi",
@@ -81,9 +81,9 @@ def _canonical_tree(value: Any) -> Any:
     if isinstance(value, np.ndarray):
         array = np.asarray(value)
         if array.dtype.hasobject or array.dtype.kind not in "biufc":
-            raise TypeError("G3 joint evidence arrays must use non-object numeric dtypes")
+            raise TypeError("joint evidence arrays must use non-object numeric dtypes")
         if array.dtype.kind in "fc" and not np.all(np.isfinite(array)):
-            raise ValueError("G3 joint evidence arrays cannot contain non-finite values")
+            raise ValueError("joint evidence arrays cannot contain non-finite values")
         contiguous = np.asarray(array, order="C")
         return {
             "$array": {
@@ -97,21 +97,21 @@ def _canonical_tree(value: Any) -> Any:
         return _canonical_tree(value.item())
     if isinstance(value, Mapping):
         if any(not isinstance(key, str) for key in value):
-            raise TypeError("G3 joint evidence object keys must be strings")
+            raise TypeError("joint evidence object keys must be strings")
         return {key: _canonical_tree(value[key]) for key in sorted(value)}
     if isinstance(value, (list, tuple)):
         return [_canonical_tree(item) for item in value]
     if isinstance(value, complex):
         if not math.isfinite(value.real) or not math.isfinite(value.imag):
-            raise ValueError("G3 joint evidence cannot contain non-finite complex values")
+            raise ValueError("joint evidence cannot contain non-finite complex values")
         return {"$complex": [float(value.real), float(value.imag)]}
     if isinstance(value, float):
         if not math.isfinite(value):
-            raise ValueError("G3 joint evidence cannot contain non-finite numbers")
+            raise ValueError("joint evidence cannot contain non-finite numbers")
         return value
     if value is None or isinstance(value, (str, int, bool)):
         return value
-    raise TypeError(f"unsupported G3 joint evidence value: {type(value).__name__}")
+    raise TypeError(f"unsupported joint evidence value: {type(value).__name__}")
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -304,7 +304,7 @@ def _validate_shared_scene_condition_roster(
         path_roster.add((item[0], item[1], item[2]))
     declared_path_roster = {tuple(item) for item in family["path_equivalence_expected_scenarios"]}
     if path_roster != declared_path_roster:
-        raise ValueError("path-equivalence episode roster differs from the shared G3 family")
+        raise ValueError("path-equivalence episode roster differs from the shared family")
 
     def observed_episode_roster(branch: str) -> set[tuple[str, str, str]]:
         records = branch_inputs[branch].get("records")
@@ -342,7 +342,7 @@ def _validate_shared_scene_condition_roster(
             observed_roster = observed_episode_roster(branch)
             if observed_roster != path_roster:
                 raise ValueError(
-                    f"{branch} observed episode roster differs from the shared G3 path roster: "
+                    f"{branch} observed episode roster differs from the shared path roster: "
                     f"missing={sorted(path_roster - observed_roster)}, "
                     f"unexpected={sorted(observed_roster - path_roster)}"
                 )
@@ -356,7 +356,7 @@ def _validate_shared_scene_condition_roster(
     for branch, observed in expected_by_branch.items():
         if observed != reference:
             raise ValueError(
-                "G3 scene-family/LOS-NLOS roster must match across scene-based branches; "
+                "scene-family/LOS-NLOS roster must match across scene-based branches; "
                 f"{branch} differs from {reference_branch}: "
                 f"missing={sorted(reference - observed)}, "
                 f"unexpected={sorted(observed - reference)}"
@@ -371,7 +371,7 @@ def _criterion_branch_report(
 ) -> dict[str, Any]:
     """Summarize outcomes under the scorer's branch-specific result contract."""
     if outcome_kind not in {"boolean", "status", "propagation_status"}:
-        raise ValueError(f"unsupported G3 criterion outcome kind: {outcome_kind!r}")
+        raise ValueError(f"unsupported criterion outcome kind: {outcome_kind!r}")
     passed = 0
     failed = 0
     for value in outcomes:
@@ -493,7 +493,7 @@ def _numerical_criterion_rollup(outputs: dict[str, dict[str, Any]]) -> dict[str,
         else "UNRESOLVED_NUMERICAL_CRITERIA"
     )
     return {
-        "schema": "loslab.g3_joint_numerical_criterion_rollup.v1",
+        "schema": "loslab.joint_numerical_criterion_rollup.v1",
         "status": joint_status,
         "qualification_status": "NOT_QUALIFIED",
         "branches": branches,
@@ -509,26 +509,26 @@ def _recompute(
     payload: dict[str, Any], *, coefficient_relative_tolerance: float | None = None
 ) -> dict[str, Any]:
     if not isinstance(payload, dict):
-        raise TypeError("G3 joint evaluator inputs must be an object")
+        raise TypeError("joint evaluator inputs must be an object")
     schema = payload.get("schema")
     if schema == _INPUT_SCHEMA:
         if set(payload) != _INPUT_FIELDS:
-            raise ValueError("G3 joint evaluator v1 inputs must contain exactly the v1 fields")
+            raise ValueError("joint evaluator v1 inputs must contain exactly the v1 fields")
     elif schema == _INPUT_SCHEMA_V2:
         if set(payload) != _INPUT_FIELDS_V2:
-            raise ValueError("G3 joint evaluator v2 inputs must contain exactly the v2 fields")
+            raise ValueError("joint evaluator v2 inputs must contain exactly the v2 fields")
     elif schema == _INPUT_SCHEMA_V3:
         if set(payload) != _INPUT_FIELDS_V3:
-            raise ValueError("G3 joint evaluator v3 inputs must contain exactly the v3 fields")
+            raise ValueError("joint evaluator v3 inputs must contain exactly the v3 fields")
     elif schema == _INPUT_SCHEMA_V4:
         if set(payload) != _INPUT_FIELDS_V4:
-            raise ValueError("G3 joint evaluator v4 inputs must contain exactly the v4 fields")
+            raise ValueError("joint evaluator v4 inputs must contain exactly the v4 fields")
     elif schema == _INPUT_SCHEMA_V5:
         if set(payload) != _INPUT_FIELDS_V5:
-            raise ValueError("G3 joint evaluator v5 inputs must contain exactly the v5 fields")
+            raise ValueError("joint evaluator v5 inputs must contain exactly the v5 fields")
     elif schema == _INPUT_SCHEMA_V6:
         if set(payload) != _INPUT_FIELDS_V6:
-            raise ValueError("G3 joint evaluator v6 inputs must contain exactly the v6 fields")
+            raise ValueError("joint evaluator v6 inputs must contain exactly the v6 fields")
     else:
         raise ValueError(
             f"schema must be one of {_INPUT_SCHEMA!r}, {_INPUT_SCHEMA_V2!r}, "
@@ -537,7 +537,7 @@ def _recompute(
         )
     family = validate_joint_acceptance_family(payload["joint_acceptance_family"])
     if family["schema"] != FAMILY_SCHEMA_V4:
-        raise ValueError("G3 joint evaluator bundle requires acceptance family v4")
+        raise ValueError("joint evaluator bundle requires acceptance family v4")
 
     branch_inputs = {branch: _branch_input(payload, branch) for branch in _BRANCHES}
     material_input = branch_inputs["material_calibration"].get("payload")
@@ -600,7 +600,7 @@ def _recompute(
             "Deterministic scorer recomputation binds these numerical reports to the supplied "
             "inputs. It does not verify measurement truth, external provenance, physical-unit "
             "independence, preregistration, representativeness, reviewer authority, or legal "
-            "rights; no report or aggregate status qualifies G3 or authorizes production RT."
+            "rights; no report or aggregate status qualifies or authorizes production RT."
         ),
     }
 
@@ -608,7 +608,7 @@ def _recompute(
 def evaluate_joint_evidence(
     payload: dict[str, Any], *, coefficient_relative_tolerance: float | None = None
 ) -> dict[str, Any]:
-    """Run all five G3 numerical evaluators under one hash-bound family v4."""
+    """Run all five numerical evaluators under one hash-bound family v4."""
     return _recompute(payload, coefficient_relative_tolerance=coefficient_relative_tolerance)
 
 
@@ -623,9 +623,9 @@ def verify_joint_evidence_bundle(
         raise TypeError("bundle must be an object")
     expected = _recompute(payload, coefficient_relative_tolerance=coefficient_relative_tolerance)
     if _sha256(bundle) != _sha256(expected):
-        raise ValueError("G3 joint evidence bundle differs from deterministic recomputation")
+        raise ValueError("joint evidence bundle differs from deterministic recomputation")
     return {
-        "schema": "loslab.g3_joint_evaluator_bundle_verification.v1",
+        "schema": "loslab.joint_evaluator_bundle_verification.v1",
         "status": "PASS_INPUT_SCOPED_RECOMPUTATION",
         "qualification_status": "NOT_QUALIFIED",
         "bundle_sha256": _sha256(bundle),

@@ -1,4 +1,4 @@
-"""Criterion-oriented paired delay/angular checks for bounded G3 reviews.
+"""Criterion-oriented paired delay/angular checks for bounded reviews.
 
 These diagnostics compare declared candidate/challenger channel metrics using
 the project's frozen physical tolerances. They never qualify a scene family or
@@ -167,7 +167,7 @@ def evaluate_propagation_metrics(
             "family_id": normalized_family["family_id"],
             "family_sha256": normalized_family["family_sha256"],
         }
-        confidence_scope = "shared G3 family across material, complex-CSI, and propagation claims"
+        confidence_scope = "shared family across material, complex-CSI, and propagation claims"
     per_claim_confidence_level = 1.0 - per_claim_alpha
 
     # stratum -> metric -> cluster -> episode-level normalized errors
@@ -362,7 +362,7 @@ def evaluate_propagation_metrics(
     any_assessable = "PASS" in statuses or "FAIL" in statuses
     all_pass = any_assessable and all(state in {"PASS", "NOT_APPLICABLE"} for state in statuses)
     return {
-        "schema": "loslab.g3_propagation_metric_comparison.v1",
+        "schema": "loslab.propagation_metric_comparison.v1",
         "status": "NUMERICAL_CRITERIA_ONLY_NOT_QUALIFIED",
         "admission_possible": False,
         "any_metric_assessable": any_assessable,

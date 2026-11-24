@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://umcd.example/schema/g5-ordered-impairments-snr-curve.v17.schema.json",
-  "title": "Execution-bound G5 SNR curve report",
+  "$id": "https://umcd.example/schema/ordered-impairments-snr-curve.v17.schema.json",
+  "title": "Execution-bound SNR curve report",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "umcd.g5_ordered_impairments_independent_channels_snr_curve.v17"
+      "const": "umcd.ordered_impairments_independent_channels_snr_curve.v17"
     },
     "scope": {
       "type": "string",
@@ -120,7 +120,7 @@
           ],
           "properties": {
             "schema": {
-              "const": "umcd.g5_ordered_impairments_waveform_evidence.v4"
+              "const": "umcd.ordered_impairments_waveform_evidence.v4"
             },
             "file_name": {
               "type": "string",
@@ -217,7 +217,7 @@
               ],
               "properties": {
                 "schema": {
-                  "const": "umcd.g5_ordered_impairments_snr_acceptance.v3"
+                  "const": "umcd.ordered_impairments_snr_acceptance.v3"
                 },
                 "snr_db": {
                   "type": "array",
@@ -334,7 +334,7 @@
                   "const": "verified_before_receiver_run"
                 },
                 "namespace": {
-                  "const": "umcd-g5-snr-acceptance-v1"
+                  "const": "umcd-snr-acceptance-v1"
                 },
                 "signer_id": {
                   "type": "string",
@@ -412,14 +412,14 @@
                       "minLength": 1
                     },
                     "purpose": {
-                      "const": "g5_ordered_impairments_snr_preregistration"
+                      "const": "ordered_impairments_snr_preregistration"
                     },
                     "custodian_principal": {
                       "type": "string",
                       "minLength": 1
                     },
                     "signature_namespace": {
-                      "const": "umcd-g5-snr-reviewer-policy-v1"
+                      "const": "umcd-snr-reviewer-policy-v1"
                     },
                     "signature_sha256": {
                       "$ref": "#/$defs/sha256"
@@ -669,16 +669,16 @@
             "properties": {
               "schema": {
                 "enum": [
-                  "umcd.g5_ordered_impairments_independent_channels.v15",
-                  "umcd.g5_ordered_impairments_independent_channels.v16",
-                  "umcd.g5_ordered_impairments_independent_channels.v17",
-                  "umcd.g5_ordered_impairments_independent_channels.v18",
-                  "umcd.g5_ordered_impairments_independent_channels.v19",
-                  "umcd.g5_ordered_impairments_independent_channels.v20",
-                  "umcd.g5_ordered_impairments_independent_channels.v21",
-                  "umcd.g5_ordered_impairments_independent_channels.v22",
-                  "umcd.g5_ordered_impairments_independent_channels.v23",
-                  "umcd.g5_ordered_impairments_independent_channels.v24"
+                  "umcd.ordered_impairments_independent_channels.v15",
+                  "umcd.ordered_impairments_independent_channels.v16",
+                  "umcd.ordered_impairments_independent_channels.v17",
+                  "umcd.ordered_impairments_independent_channels.v18",
+                  "umcd.ordered_impairments_independent_channels.v19",
+                  "umcd.ordered_impairments_independent_channels.v20",
+                  "umcd.ordered_impairments_independent_channels.v21",
+                  "umcd.ordered_impairments_independent_channels.v22",
+                  "umcd.ordered_impairments_independent_channels.v23",
+                  "umcd.ordered_impairments_independent_channels.v24"
                 ]
               },
               "config": {

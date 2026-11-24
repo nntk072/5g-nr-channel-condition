@@ -525,7 +525,7 @@ def test_cdl_joint_delay_angle_characteristics_match_table_reference(model: str)
             }
         )
     print(
-        "G4_CDL_JOINT_DELAY_ANGLE_METRICS "
+        "CDL_JOINT_DELAY_ANGLE_METRICS "
         + json.dumps(
             {
                 "profile": model,

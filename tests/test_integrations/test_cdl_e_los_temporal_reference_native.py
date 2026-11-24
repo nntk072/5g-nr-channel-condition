@@ -11,7 +11,7 @@ influence-function standard error and Bonferroni-adjusted normal critical
 value. This is a first-order asymptotic (delta-method/normal) approximation,
 not an exact finite-sample interval; the maximum half-width is 0.05. Claims
 are limited to this configuration and implementation consistency. The test
-does not establish external physical validity or close broad G4.07.
+does not establish external physical validity or close broad .
 """
 
 from __future__ import annotations

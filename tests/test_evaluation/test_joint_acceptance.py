@@ -114,7 +114,7 @@ def test_v2_joint_family_includes_propagation_claims_and_preserves_shared_alpha(
         ],
     )
 
-    assert family["schema"] == "loslab.g3_joint_acceptance_family.v2"
+    assert family["schema"] == "loslab.joint_acceptance_family.v2"
     assert family["claim_count"] == 23
     assert family["claim_count"] == len(family["claim_roster"])
     assert (
@@ -155,7 +155,7 @@ def test_v3_joint_family_includes_receiver_intervals_in_one_shared_roster():
         receiver_impact_expected_strata=[("site-a", "LOS")],
     )
 
-    assert family["schema"] == "loslab.g3_joint_acceptance_family.v3"
+    assert family["schema"] == "loslab.joint_acceptance_family.v3"
     assert family["claim_count"] == 19
     assert len(family["claim_roster"]) == 19
     receiver_claims = [
@@ -265,7 +265,7 @@ def test_v4_joint_family_binds_path_roster_without_counting_inferential_claims()
     )
 
     assert family == reordered
-    assert family["schema"] == "loslab.g3_joint_acceptance_family.v4"
+    assert family["schema"] == "loslab.joint_acceptance_family.v4"
     assert family["claim_count"] == 19
     assert family["per_claim_alpha"] == pytest.approx(0.05 / 19)
     assert family["path_equivalence_bidirectional_coverage_min"] == 0.95

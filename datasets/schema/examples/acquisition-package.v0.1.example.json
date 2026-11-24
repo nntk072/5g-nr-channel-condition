@@ -1,5 +1,5 @@
 {
-  "schema_version": "g3.03-acquisition-package.v0.1",
+  "schema_version": "acquisition-package.v0.1",
   "package_id": "pkg.illustrative.v01",
   "study_id": "study.example.v01",
   "created_utc": "2026-01-01T12:00:00Z",

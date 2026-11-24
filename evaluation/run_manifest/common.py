@@ -27,7 +27,7 @@ def _runtime_identity() -> dict[str, Any]:
         "sionna-phy",
     )
     return {
-        "schema": "loslab.g3_execution_environment.v1",
+        "schema": "loslab.execution_environment.v1",
         "python": observed["python"],
         "python_implementation": platform.python_implementation(),
         "platform_system": platform.system(),

@@ -206,7 +206,7 @@ def test_cdl_dual_cross_handheld_ut_covariance_matches_independent_reference(
     assert channel.metadata["ut_array"]["polarization_type"] == "cross"
 
     record_property(
-        "g4_cdl_dual_cross_handheld_ut_spatiotemporal_covariance_case",
+        "cdl_dual_cross_handheld_ut_spatiotemporal_covariance_case",
         json.dumps(
             {
                 "model": model,

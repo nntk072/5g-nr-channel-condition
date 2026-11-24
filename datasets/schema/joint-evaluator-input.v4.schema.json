@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://loslab.invalid/schema/g3-joint-evaluator-input.v4.schema.json",
-  "title": "G3 five-branch joint evaluator input with row-bound receiver configuration",
+  "$id": "https://loslab.invalid/schema/joint-evaluator-input.v4.schema.json",
+  "title": "five-branch joint evaluator input with row-bound receiver configuration",
   "description": "Serialized input for deterministic numerical scoring. Each receiver outcome is bound both to the complete execution context and to the SHA-256 of the candidate or challenger configuration named on that exact row. Complex scalars use {$complex:[real,imaginary]}; this does not independently attest runtime execution, measurement truth, or qualification.",
   "type": "object",
   "additionalProperties": false,
@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "loslab.g3_joint_evaluator_inputs.v4"
+      "const": "loslab.joint_evaluator_inputs.v4"
     },
     "joint_acceptance_family": {
       "type": "object"

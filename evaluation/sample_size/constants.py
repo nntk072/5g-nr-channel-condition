@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-# Mirrored from the G3.03 evaluator's frozen project-defined margins. Kept
+# Mirrored from the evaluator's frozen project-defined margins. Kept
 # local so this data-free planner has no dependency on evaluator code/data.
 MAX_MEDIAN_INTERVAL_WIDTH_DB = 3.0
 

@@ -10,7 +10,7 @@ import pytest
 
 def _manifest() -> dict[str, Any]:
     return {
-        "schema": "umcd.g5_ordered_impairments_waveform_evidence.v1",
+        "schema": "umcd.ordered_impairments_waveform_evidence.v1",
         "file_name": "receiver.waveforms.npz",
         "sha256": "a" * 64,
         "byte_count": 4096,
@@ -27,7 +27,7 @@ def _manifest() -> dict[str, Any]:
 
 def _manifest_v2() -> dict[str, Any]:
     return {
-        "schema": "umcd.g5_ordered_impairments_waveform_evidence.v2",
+        "schema": "umcd.ordered_impairments_waveform_evidence.v2",
         "file_name": "curve.waveforms.npz",
         "sha256": "b" * 64,
         "byte_count": 8192,
@@ -46,7 +46,7 @@ def _manifest_v2() -> dict[str, Any]:
 
 def _manifest_v3() -> dict[str, Any]:
     return {
-        "schema": "umcd.g5_ordered_impairments_waveform_evidence.v3",
+        "schema": "umcd.ordered_impairments_waveform_evidence.v3",
         "file_name": "receiver.waveforms.npz",
         "sha256": "c" * 64,
         "byte_count": 16384,
@@ -68,7 +68,7 @@ def _manifest_v3() -> dict[str, Any]:
 
 def _manifest_v4() -> dict[str, Any]:
     return {
-        "schema": "umcd.g5_ordered_impairments_waveform_evidence.v4",
+        "schema": "umcd.ordered_impairments_waveform_evidence.v4",
         "file_name": "curve.waveforms.npz",
         "sha256": "d" * 64,
         "byte_count": 32768,

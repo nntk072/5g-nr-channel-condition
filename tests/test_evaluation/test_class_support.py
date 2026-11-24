@@ -8,7 +8,7 @@ from evaluation.scoring.class_support import audit_class_support
 def test_reports_each_declared_class_and_independent_group_by_stratum():
     report = audit_class_support(
         labels=np.array([0, 0, 1, 1, 0]),
-        independent_group_ids=np.array(["g1", "g1", "g2", "g3", "g4"]),
+        independent_group_ids=np.array(["group1", "group1", "group2", "group3", "group4"]),
         split_ids=np.array(["train", "train", "train", "train", "test"]),
         family_ids=np.array(["urban"] * 5),
         expected_strata=(("train", "urban"), ("test", "urban")),
@@ -35,7 +35,7 @@ def test_reports_each_declared_class_and_independent_group_by_stratum():
 def test_empty_declared_stratum_is_retained():
     report = audit_class_support(
         labels=[0, 1],
-        independent_group_ids=["g0", "g1"],
+        independent_group_ids=["group0", "group1"],
         split_ids=["train", "train"],
         family_ids=["urban", "urban"],
         expected_strata=(("train", "urban"), ("test", "rural")),
@@ -59,7 +59,7 @@ def test_empty_declared_stratum_is_retained():
 def test_rejects_invalid_support_inputs(kwargs, message):
     values = {
         "labels": [0],
-        "independent_group_ids": ["g0"],
+        "independent_group_ids": ["group0"],
         "split_ids": ["test"],
         "family_ids": ["urban"],
         "expected_strata": (("test", "urban"),),

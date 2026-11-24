@@ -1,4 +1,4 @@
-"""Torch-independent checks for acceptance-bound G5 curve seed schemas."""
+"""Torch-independent checks for acceptance-bound curve seed schemas."""
 
 import json
 from pathlib import Path

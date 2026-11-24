@@ -1,14 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g3-path-equivalence-roster-input:v1",
-  "title": "G3 Path Equivalence Roster Diagnostic Input",
-  "description": "Retained comparison records evaluated against the path roster frozen in a hash-valid G3 joint-acceptance-family v4.",
+  "$id": "urn:5gnr:loslab:path-equivalence-roster-input:v1",
+  "title": "Path Equivalence Roster Diagnostic Input",
+  "description": "Retained comparison records evaluated against the path roster frozen in a hash-valid joint-acceptance-family v4.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "joint_acceptance_family", "records"],
   "properties": {
     "schema": {
-      "const": "loslab.g3_path_equivalence_roster_input.v1"
+      "const": "loslab.path_equivalence_roster_input.v1"
     },
     "joint_acceptance_family": {
       "type": "object",
@@ -22,7 +22,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "loslab.g3_joint_acceptance_family.v4"
+          "const": "loslab.joint_acceptance_family.v4"
         },
         "family_id": { "type": "string", "minLength": 1 },
         "family_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
@@ -64,7 +64,7 @@
             "required": ["schema", "admission_possible"],
             "properties": {
               "schema": {
-                "const": "loslab.g3_path_equivalence_comparison.v1"
+                "const": "loslab.path_equivalence_comparison.v1"
               },
               "admission_possible": {
                 "const": false

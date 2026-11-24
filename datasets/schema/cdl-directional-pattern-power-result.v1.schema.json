@@ -1,21 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-cdl-directional-pattern-power-result:v1",
-  "title": "G4 CDL Directional Pattern Power Result",
-  "description": "Retained per-cluster outcomes for the bounded frozen vector-field CDL check; this is not overall G4 qualification.",
+  "$id": "urn:5gnr:loslab:cdl-directional-pattern-power-result:v1",
+  "title": "CDL Directional Pattern Power Result",
+  "description": "Retained per-cluster outcomes for the bounded frozen vector-field CDL check; this is not overall qualification.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "protocol", "run_date", "status", "seed_collision_audit", "design", "runtime", "command", "provenance", "outcome", "cases", "scope"],
   "properties": {
-    "schema": {"const": "loslab.g4_cdl_directional_pattern_power_result.v1"},
-    "protocol": {"const": "G4_07_CDL_DIRECTIONAL_PATTERN_VECTOR_FIELD_PROTOCOL_2026-11-01"},
+    "schema": {"const": "loslab.cdl_directional_pattern_power_result.v1"},
+    "protocol": {"const": "CDL_DIRECTIONAL_PATTERN_VECTOR_FIELD_PROTOCOL_2026-11-01"},
     "run_date": {"type": "string", "format": "date"},
     "status": {"enum": ["PASS_WITHIN_BOUNDED_PROTOCOL_SCOPE", "FAILED_OR_INCOMPLETE"]},
     "seed_collision_audit": {
       "type": "object", "additionalProperties": false,
       "required": ["path", "sha256", "status", "scanned_file_count"],
       "properties": {
-        "path": {"const": "G4_CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json"},
+        "path": {"const": "CDL_ANTENNA_PATTERN_VECTOR_FIELD_SEED_AUDIT_2026-11-01.json"},
         "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "status": {"const": "CLEAR_WITHIN_SCANNED_JSON_CORPUS"},
         "scanned_file_count": {"const": 2276}
@@ -59,10 +59,10 @@
         "schema_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "reference_sha256": {
           "type": "object", "additionalProperties": false,
-          "required": ["G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json", "G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"],
+          "required": ["CDL_TAP_ANGLE_REFERENCE_2026-10-26.json", "CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json"],
           "properties": {
-            "G4_CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-            "G4_CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            "CDL_TAP_ANGLE_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "CDL_PROFILE_SCALAR_REFERENCE_2026-10-26.json": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
           }
         }
       }

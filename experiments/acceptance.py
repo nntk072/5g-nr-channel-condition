@@ -1,4 +1,4 @@
-"""Torch-free validation and scoring for bounded G5 acceptance contracts."""
+"""Torch-free validation and scoring for bounded acceptance contracts."""
 
 from __future__ import annotations
 
@@ -17,13 +17,13 @@ from evaluation.acceptance.signed_attestation import verify_openssh_signature_fo
 MIN_INDEPENDENT_ACCEPTANCE_CHANNELS = 20
 MAX_INDEPENDENT_ACCEPTANCE_TRANSPORT_BLOCKS = 16_384
 MAX_INDEPENDENT_ACCEPTANCE_SNR_POINTS = 64
-SNR_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v1"
-SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v2"
-SNR_EXECUTION_ACCEPTANCE_SCHEMA = "umcd.g5_ordered_impairments_snr_acceptance.v3"
-SNR_ACCEPTANCE_SIGNATURE_NAMESPACE = "umcd-g5-snr-acceptance-v1"
-SNR_REVIEWER_POLICY_SCHEMA = "umcd.g5_snr_reviewer_policy.v1"
-SNR_REVIEWER_POLICY_PURPOSE = "g5_ordered_impairments_snr_preregistration"
-SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE = "umcd-g5-snr-reviewer-policy-v1"
+SNR_ACCEPTANCE_SCHEMA = "umcd.ordered_impairments_snr_acceptance.v1"
+SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA = "umcd.ordered_impairments_snr_acceptance.v2"
+SNR_EXECUTION_ACCEPTANCE_SCHEMA = "umcd.ordered_impairments_snr_acceptance.v3"
+SNR_ACCEPTANCE_SIGNATURE_NAMESPACE = "umcd-snr-acceptance-v1"
+SNR_REVIEWER_POLICY_SCHEMA = "umcd.snr_reviewer_policy.v1"
+SNR_REVIEWER_POLICY_PURPOSE = "ordered_impairments_snr_preregistration"
+SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE = "umcd-snr-reviewer-policy-v1"
 SNR_CURVE_BOOTSTRAP_SEED = 75_013
 SNR_CURVE_BOOTSTRAP_DRAWS = 4_096
 SNR_CURVE_BOOTSTRAP_BATCH_SIZE = 64
@@ -64,7 +64,7 @@ def snr_execution_context_from_config(config: dict[str, Any]) -> dict[str, Any]:
         "rx_iq_phase_imbalance_rad",
     )
     if not isinstance(config, dict) or any(name not in config for name in fields):
-        raise ValueError("G5 point configuration is missing frozen execution-context fields")
+        raise ValueError("point configuration is missing frozen execution-context fields")
     context = {
         "receiver_configuration": config["receiver_configuration"],
         "decoder_configuration": config["decoder_configuration"],
@@ -78,7 +78,7 @@ def snr_execution_context_from_config(config: dict[str, Any]) -> dict[str, Any]:
     try:
         return json.loads(_canonical_json_bytes(context).decode("utf-8"))
     except (TypeError, ValueError, UnicodeDecodeError) as error:
-        raise ValueError("G5 execution context must contain canonical JSON values") from error
+        raise ValueError("execution context must contain canonical JSON values") from error
 
 
 def load_snr_acceptance_contract(
@@ -118,10 +118,10 @@ def load_snr_acceptance_contract(
         value is not None for value in policy_options
     ):
         raise ValueError(
-            "G5 reviewer policy, signature, trust keyring, and custodian must be supplied together"
+            "reviewer policy, signature, trust keyring, and custodian must be supplied together"
         )
     if any(value is not None for value in policy_options) and not all(supplied_signature_options):
-        raise ValueError("G5 reviewer policy admission requires a signed acceptance contract")
+        raise ValueError("reviewer policy admission requires a signed acceptance contract")
     payload = _read_bounded_single_link_bytes(path, label="acceptance contract")
 
     def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -189,7 +189,7 @@ def load_snr_acceptance_contract(
                 SNR_EXECUTION_ACCEPTANCE_SCHEMA,
             }:
                 raise ValueError(
-                    "G5 reviewer-role policy admission requires timestamped contract v2 or v3"
+                    "reviewer-role policy admission requires timestamped contract v2 or v3"
                 )
             assert reviewer_policy_signature_path is not None
             assert trusted_reviewer_allowed_signers_path is not None
@@ -208,7 +208,7 @@ def load_snr_acceptance_contract(
 def _read_bounded_single_link_bytes(path: str | Path, *, label: str) -> bytes:
     input_path = Path(path)
     if not hasattr(os, "O_NOFOLLOW"):
-        raise ValueError("platform lacks safe no-symlink G5 policy opening")
+        raise ValueError("platform lacks safe no-symlink policy opening")
     before_path = os.lstat(input_path)
     if not stat.S_ISREG(before_path.st_mode) or before_path.st_nlink != 1:
         raise ValueError(f"{label} must be a single-link regular file")
@@ -254,22 +254,22 @@ def _verify_reviewer_policy(
     acceptance_allowed_signers_sha256: str,
 ) -> dict[str, str]:
     """Authenticate a separate policy authorizing the acceptance signer as reviewer."""
-    raw = _read_bounded_single_link_bytes(policy_path, label="G5 reviewer policy")
+    raw = _read_bounded_single_link_bytes(policy_path, label="reviewer policy")
 
     def reject_duplicate_policy_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         result: dict[str, Any] = {}
         for key, value in pairs:
             if key in result:
-                raise ValueError(f"G5 reviewer policy contains duplicate key {key!r}")
+                raise ValueError(f"reviewer policy contains duplicate key {key!r}")
             result[key] = value
         return result
 
     try:
         policy = json.loads(raw.decode("utf-8"), object_pairs_hook=reject_duplicate_policy_keys)
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ValueError("G5 reviewer policy must be valid UTF-8 JSON") from error
+        raise ValueError("reviewer policy must be valid UTF-8 JSON") from error
     if not isinstance(policy, dict) or _canonical_json_bytes(policy) != raw:
-        raise ValueError("G5 reviewer policy must use canonical sorted compact JSON bytes")
+        raise ValueError("reviewer policy must use canonical sorted compact JSON bytes")
     import jsonschema
 
     schema_path = (
@@ -279,11 +279,10 @@ def _verify_reviewer_policy(
     errors = list(jsonschema.Draft202012Validator(schema).iter_errors(policy))
     if errors:
         raise ValueError(
-            "G5 reviewer policy violates schema: "
-            + "; ".join(error.message for error in errors[:10])
+            "reviewer policy violates schema: " + "; ".join(error.message for error in errors[:10])
         )
     if acceptance_signer_id is None or policy_signer_id == acceptance_signer_id:
-        raise ValueError("G5 reviewer-policy custodian must differ from the acceptance signer")
+        raise ValueError("reviewer-policy custodian must differ from the acceptance signer")
     policy_signature = verify_openssh_signature_for_bytes(
         raw,
         policy_signature_path,
@@ -292,16 +291,16 @@ def _verify_reviewer_policy(
         namespace=SNR_REVIEWER_POLICY_SIGNATURE_NAMESPACE,
     )
     if policy_signature["allowed_signers_sha256"] == acceptance_allowed_signers_sha256:
-        raise ValueError("G5 reviewer-policy keyring must differ from the acceptance keyring")
+        raise ValueError("reviewer-policy keyring must differ from the acceptance keyring")
     authorized = [item for item in policy["signers"] if item["principal"] == acceptance_signer_id]
     if len(authorized) != 1:
-        raise ValueError("acceptance signer must occur exactly once in the G5 reviewer policy")
+        raise ValueError("acceptance signer must occur exactly once in the reviewer policy")
     reviewer = authorized[0]
     if (
         "independent_reviewer" not in reviewer["roles"]
         or SNR_REVIEWER_POLICY_PURPOSE not in reviewer["allowed_purposes"]
     ):
-        raise ValueError("G5 acceptance signer is not authorized as an independent reviewer")
+        raise ValueError("acceptance signer is not authorized as an independent reviewer")
     return {
         "status": "verified",
         "policy_id": policy["policy_id"],
@@ -499,9 +498,7 @@ def validate_preregistration_order(
         SNR_TIMESTAMPED_ACCEPTANCE_SCHEMA,
         SNR_EXECUTION_ACCEPTANCE_SCHEMA,
     }:
-        raise ValueError(
-            "signed G5 preregistration requires timestamped acceptance contract v2 or v3"
-        )
+        raise ValueError("signed preregistration requires timestamped acceptance contract v2 or v3")
     preregistered_at = _parse_utc_timestamp(frozen["preregistered_utc"], field="preregistered_utc")
     run_started_at = _parse_utc_timestamp(
         receiver_run_started_utc, field="receiver_run_started_utc"
@@ -659,7 +656,7 @@ def evaluate_snr_curve_acceptance(
         or curve_inference.get("method") != SNR_CURVE_INFERENCE_METHOD
         or curve_inference.get("paired_contrast_definition") != SNR_CURVE_PAIRED_CONTRAST
     ):
-        raise ValueError("curve inference metadata does not match the frozen G5 method")
+        raise ValueError("curve inference metadata does not match the frozen method")
     simultaneous_radius = curve_inference.get("simultaneous_radius")
     if not _is_finite_real(simultaneous_radius) or simultaneous_radius is None:
         raise ValueError("curve inference simultaneous radius must be finite and in [0, 1]")

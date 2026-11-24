@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g3-acquisition-design-assumptions:v1",
-  "title": "G3.03 Assumption-Driven Acquisition Design Inputs",
+  "$id": "urn:5gnr:loslab:acquisition-design-assumptions:v1",
+  "title": "Assumption-Driven Acquisition Design Inputs",
   "description": "Planning-only scenario assumptions that remain unverified. This input never constitutes measurement evidence, a frozen protocol, or qualification.",
   "type": "object",
   "additionalProperties": false,
@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "loslab.g3_acquisition_design_assumptions.v1"
+      "const": "loslab.acquisition_design_assumptions.v1"
     },
     "scenario_label": {
       "enum": ["hypothetical_unverified", "externally_justified_preregistered_unverified"]

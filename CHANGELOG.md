@@ -2,6 +2,18 @@
 
 All notable changes are listed here, newest first. Versions follow `pyproject.toml`.
 
+## Unreleased
+
+- Renamed every schema identity, data key, signing namespace and identifier that
+  carried an earlier gate number to a concept name. Readers of the renamed
+  identities reject the old strings. Eight pinned reference files under
+  `config/reference/` keep their original identity strings, because their bytes
+  are pinned by digest.
+- Removed unreachable validation branches from the lineage and path-oracle
+  modules.
+- Added package README files, a module-size record, and a command reference that
+  lists only installed commands.
+
 ## 0.2.0
 
 - Removed the agent control plane, the `loslab` command and its facades from the

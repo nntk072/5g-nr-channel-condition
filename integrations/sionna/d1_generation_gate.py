@@ -21,7 +21,7 @@ _APPROVAL_SCHEMA = "loslab.d1_qualification_approval.v1"
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _MAX_APPROVAL_BYTES = 256 * 1024
 _REQUIRED_GATES = {f"g{index}" for index in range(6)}
-_PUBLIC_RELEASE_GATES = {f"g7.{index:02d}" for index in range(1, 16)}
+_PUBLIC_RELEASE_GATES = {f"release.{index:02d}" for index in range(1, 16)}
 
 
 class D1GenerationAuthorization:
@@ -411,8 +411,8 @@ def _validate_approval(manifest: dict[str, Any], path: Path, request_hash: str) 
         "approved_at",
         "scope_request_sha256",
         "gate_statuses",
-        "g7_release_scope",
-        "g7_release_statuses",
+        "release_scope",
+        "release_statuses",
         "qualification_artifacts",
     }
     if set(manifest) != required:
@@ -431,21 +431,21 @@ def _validate_approval(manifest: dict[str, Any], path: Path, request_hash: str) 
         or set(statuses) != _REQUIRED_GATES
         or any(statuses[gate] != "passed" for gate in _REQUIRED_GATES)
     ):
-        raise PermissionError("approval requires passed G0, G1, G2, G3, G4, and G5 statuses")
-    release_scope = manifest["g7_release_scope"]
-    release_statuses = manifest["g7_release_statuses"]
+        raise PermissionError("approval requires passed , , , , , and statuses")
+    release_scope = manifest["release_scope"]
+    release_statuses = manifest["release_statuses"]
     if release_scope == "internal_research":
         if release_statuses != {}:
-            raise ValueError("internal research scope must not claim G7 public-release checks")
+            raise ValueError("internal research scope must not claim public-release checks")
     elif release_scope == "public_release":
         if (
             not isinstance(release_statuses, dict)
             or set(release_statuses) != _PUBLIC_RELEASE_GATES
             or any(release_statuses[gate] != "passed" for gate in _PUBLIC_RELEASE_GATES)
         ):
-            raise PermissionError("public release approval requires passed G7.01-G7.15 statuses")
+            raise PermissionError("public release approval requires passed statuses")
     else:
-        raise ValueError("g7_release_scope must be internal_research or public_release")
+        raise ValueError("release_scope must be internal_research or public_release")
 
     artifacts = manifest["qualification_artifacts"]
     if not isinstance(artifacts, list) or len(artifacts) < 2:

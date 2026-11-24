@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g3.03-acquisition-package:v0.3",
-  "title": "G3.03 Lab Acquisition Package Proposal v0.3",
-  "description": "Proposal-only structural contract. Every illustrative fixture value is synthetic/example data, including all numerical rows; validity is not evidence of measurements, lab acceptance, evaluator execution, external verification, or G3 qualification. The angular grid covers the full sphere and stores integrated power per bin with solid-angle cells for semantic verification.",
+  "$id": "urn:5gnr:loslab:acquisition-package:v0.3",
+  "title": "Lab Acquisition Package Proposal v0.3",
+  "description": "Proposal-only structural contract. Every illustrative fixture value is synthetic/example data, including all numerical rows; validity is not evidence of measurements, lab acceptance, evaluator execution, external verification, or qualification. The angular grid covers the full sphere and stores integrated power per bin with solid-angle cells for semantic verification.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -32,7 +32,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "g3.03-acquisition-package.v0.3"
+      "const": "acquisition-package.v0.3"
     },
     "package_id": {
       "$ref": "#/$defs/id"
@@ -1155,7 +1155,7 @@
           "const": 3500000000
         },
         "evaluator_schema": {
-          "const": "loslab.g3_material_calibration_predictions.v2"
+          "const": "loslab.material_calibration_predictions.v2"
         },
         "criteria_reference": {
           "type": "string",
@@ -1243,10 +1243,10 @@
           "const": "not_executed_proposal_only"
         },
         "input_contract": {
-          "const": "loslab.g3_material_calibration_predictions.v2"
+          "const": "loslab.material_calibration_predictions.v2"
         },
         "output_contract": {
-          "const": "loslab.g3_material_calibration_evaluation.v2"
+          "const": "loslab.material_calibration_evaluation.v2"
         },
         "scorer_input": {
           "$ref": "#/$defs/artifactReference"

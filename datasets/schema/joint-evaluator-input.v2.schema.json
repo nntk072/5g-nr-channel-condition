@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://loslab.invalid/schema/g3-joint-evaluator-input.v2.schema.json",
-  "title": "G3 five-branch joint evaluator input with receiver execution identity",
+  "$id": "https://loslab.invalid/schema/joint-evaluator-input.v2.schema.json",
+  "title": "five-branch joint evaluator input with receiver execution identity",
   "description": "Serialized input for deterministic numerical scoring, including hash-bound candidate/challenger, waveform, and link-budget context. Every receiver outcome record binds to that context digest. Complex scalars use {$complex:[real,imaginary]}; validity does not independently attest runtime execution, measurement truth, or qualification.",
   "type": "object",
   "additionalProperties": false,
@@ -16,7 +16,7 @@
     "path_equivalence"
   ],
   "properties": {
-    "schema": {"const": "loslab.g3_joint_evaluator_inputs.v2"},
+    "schema": {"const": "loslab.joint_evaluator_inputs.v2"},
     "joint_acceptance_family": {"type": "object"},
     "receiver_execution": {
       "type": "object",

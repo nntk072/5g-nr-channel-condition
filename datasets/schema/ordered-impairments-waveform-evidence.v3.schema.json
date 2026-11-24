@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:umcd:g5-ordered-impairments-waveform-evidence:v3",
-  "title": "G5 Ordered-Impairments Waveform Evidence Manifest v3",
+  "$id": "urn:5gnr:umcd:ordered-impairments-waveform-evidence:v3",
+  "title": "Ordered-Impairments Waveform Evidence Manifest v3",
   "description": "Hash-bound TX, oscillator, capture, standardized AWGN, and the exact clean, uncorrected, and corrected receiver input waveforms for one operating point.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "file_name", "sha256", "byte_count", "channel_count", "arrays"],
   "properties": {
-    "schema": { "const": "umcd.g5_ordered_impairments_waveform_evidence.v3" },
+    "schema": { "const": "umcd.ordered_impairments_waveform_evidence.v3" },
     "file_name": { "type": "string", "pattern": "^[^/\\\\]+\\.npz$" },
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "byte_count": { "type": "integer", "minimum": 1, "maximum": 536870912 },

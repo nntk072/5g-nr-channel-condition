@@ -1,4 +1,4 @@
-"""Dependency-free seed-roster checks for bounded G4 regressions."""
+"""Dependency-free seed-roster checks for bounded regressions."""
 
 from __future__ import annotations
 

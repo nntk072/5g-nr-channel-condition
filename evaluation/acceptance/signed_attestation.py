@@ -1,4 +1,4 @@
-"""Verify an externally signed G3.03 attestation against an exact package."""
+"""Verify an externally signed attestation against an exact package."""
 
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ from typing import Any
 
 from evaluation.acquisition_package import verify_acquisition_package
 
-SCHEMA = "loslab.g3_signed_attestation.v1"
-SIGNATURE_NAMESPACE = "loslab-g3-acquisition-attestation-v1@github.com"
+SCHEMA = "loslab.signed_attestation.v1"
+SIGNATURE_NAMESPACE = "loslab-acquisition-attestation-v1@github.com"
 ATTESTATION_TYPES = {
     "split_preregistration",
     "physical_independence",
@@ -33,7 +33,7 @@ MAX_ATTESTATION_BYTES = 1024 * 1024
 MAX_SIGNATURE_BYTES = 64 * 1024
 MAX_ALLOWED_SIGNERS_BYTES = 1024 * 1024
 MAX_SIGNER_POLICY_BYTES = 1024 * 1024
-TRUST_POLICY_SCHEMA = "loslab.g3_attestation_trust_policy.v1"
+TRUST_POLICY_SCHEMA = "loslab.attestation_trust_policy.v1"
 _ATTESTATION_FIELDS = {
     "schema",
     "package_sha256",
@@ -209,14 +209,14 @@ def _validate_attestation(
     if envelope.get("package_sha256") != package_digest:
         raise ValueError("attestation package_sha256 does not match exact package bytes")
     if package.get("proposal_status") != "proposal_only":
-        raise ValueError("signed attestation verifier accepts proposal-only G3 packages")
+        raise ValueError("signed attestation verifier accepts proposal-only packages")
     package_schema = package.get("schema_version")
     if not isinstance(package_schema, str) or package_schema not in {
-        "g3.03-acquisition-package.v0.2",
-        "g3.03-acquisition-package.v0.3",
-        "g3.03-acquisition-package.v0.4",
+        "acquisition-package.v0.2",
+        "acquisition-package.v0.3",
+        "acquisition-package.v0.4",
     }:
-        raise ValueError("unsupported G3.03 package schema version")
+        raise ValueError("unsupported package schema version")
 
     attestation_id = envelope.get("attestation_id")
     records = package.get("external_attestations")
@@ -235,7 +235,7 @@ def _validate_attestation(
             raise ValueError(f"attestation {field} differs from its package record")
     attestation_type = envelope.get("attestation_type")
     if not isinstance(attestation_type, str) or attestation_type not in ATTESTATION_TYPES:
-        raise ValueError("unsupported G3.03 attestation type")
+        raise ValueError("unsupported attestation type")
     if attestation_type == "split_preregistration":
         binding = package.get("evaluator_binding")
         split_reference = binding.get("split_manifest") if isinstance(binding, dict) else None
@@ -423,7 +423,7 @@ def _load_verification_context(
     trusted_signer_policy_path: str | Path,
 ) -> _VerificationContext:
     package_bytes = _read_single_link_file(
-        Path(package_path), limit=MAX_PACKAGE_BYTES, label="G3 package"
+        Path(package_path), limit=MAX_PACKAGE_BYTES, label="package"
     )
     signers_bytes = _read_single_link_file(
         Path(trusted_allowed_signers_path),
@@ -435,20 +435,20 @@ def _load_verification_context(
         limit=MAX_SIGNER_POLICY_BYTES,
         label="trusted signer role policy",
     )
-    package = _parse_json(package_bytes, label="G3 package")
+    package = _parse_json(package_bytes, label="package")
     if not isinstance(package, dict):
-        raise ValueError("G3 package root must be an object")
+        raise ValueError("package root must be an object")
     consistency = verify_acquisition_package(package_path)
     if consistency.get("status") != "consistent_proposal_only":
-        raise ValueError("G3 package fails the proposal-package consistency verifier")
+        raise ValueError("package fails the proposal-package consistency verifier")
     if (
-        _read_single_link_file(Path(package_path), limit=MAX_PACKAGE_BYTES, label="G3 package")
+        _read_single_link_file(Path(package_path), limit=MAX_PACKAGE_BYTES, label="package")
         != package_bytes
     ):
-        raise ValueError("G3 package changed while its consistency was being verified")
+        raise ValueError("package changed while its consistency was being verified")
     executable = shutil.which("ssh-keygen")
     if executable is None:
-        raise RuntimeError("OpenSSH ssh-keygen is required to verify G3 attestations")
+        raise RuntimeError("OpenSSH ssh-keygen is required to verify attestations")
     return _VerificationContext(
         package=package,
         package_bytes=package_bytes,
@@ -463,14 +463,14 @@ def _verify_one_attestation(
     context: _VerificationContext, attestation_path: str | Path, signature_path: str | Path
 ) -> dict[str, Any]:
     attestation_bytes = _read_single_link_file(
-        Path(attestation_path), limit=MAX_ATTESTATION_BYTES, label="G3 attestation envelope"
+        Path(attestation_path), limit=MAX_ATTESTATION_BYTES, label="attestation envelope"
     )
     signature_bytes = _read_single_link_file(
-        Path(signature_path), limit=MAX_SIGNATURE_BYTES, label="G3 attestation signature"
+        Path(signature_path), limit=MAX_SIGNATURE_BYTES, label="attestation signature"
     )
     identity = _validate_attestation(context.package, context.package_bytes, attestation_bytes)
     _, policy_digest, policy_id = _authorize_signer(identity, context.signer_policy_bytes)
-    with tempfile.TemporaryDirectory(prefix="loslab-g3-attestation-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="loslab-attestation-") as temp_dir:
         snapshot = Path(temp_dir)
         signature_snapshot = snapshot / "attestation.json.sig"
         signers_snapshot = snapshot / "allowed_signers"
@@ -497,11 +497,11 @@ def _verify_one_attestation(
                 timeout=30,
             )
         except subprocess.TimeoutExpired as error:
-            raise RuntimeError("OpenSSH G3 attestation verification timed out") from error
+            raise RuntimeError("OpenSSH attestation verification timed out") from error
     if verified.returncode != 0:
-        raise ValueError("G3 attestation signature is invalid or signer is not trusted")
+        raise ValueError("attestation signature is invalid or signer is not trusted")
     return {
-        "schema": "loslab.g3_signed_attestation_verification.v1",
+        "schema": "loslab.signed_attestation_verification.v1",
         "signature_status": "verified",
         "package_consistency_status": context.consistency_status,
         "scientific_claim_status": "not_assessed",
@@ -519,7 +519,7 @@ def _verify_one_attestation(
             "The preregistration ordering check compares declared timestamps only; OpenSSH signatures do not prove signing time, timestamp custody, or acquisition-time truth.",
             "Physical independence, calibration validity, rights sufficiency, and signer independence require separate review.",
             "The full package consistency verifier checks declared inventory hashes and joins; this signature tool does not independently authenticate the truth of those package records.",
-            "G3 qualification and production RT authorization are not assessed.",
+            "qualification and production RT authorization are not assessed.",
         ],
     }
 
@@ -559,8 +559,8 @@ def verify_openssh_signature_for_bytes(
     )
     executable = shutil.which("ssh-keygen")
     if executable is None:
-        raise RuntimeError("OpenSSH ssh-keygen is required to verify signed G3 artifacts")
-    with tempfile.TemporaryDirectory(prefix="loslab-g3-signed-bytes-") as temp_dir:
+        raise RuntimeError("OpenSSH ssh-keygen is required to verify signed artifacts")
+    with tempfile.TemporaryDirectory(prefix="loslab-signed-bytes-") as temp_dir:
         snapshot = Path(temp_dir)
         signature_snapshot = snapshot / "artifact.sig"
         signers_snapshot = snapshot / "allowed_signers"
@@ -608,7 +608,7 @@ def verify_signed_attestation(
     """Verify a detached OpenSSH signature over an envelope bound to exact package bytes.
 
     This authenticates the signer's statement and its named package files only. It does
-    not prove the statement true, establish signer independence, or qualify G3 evidence.
+    not prove the statement true, establish signer independence, or qualify evidence.
     """
     context = _load_verification_context(
         package_path, trusted_allowed_signers_path, trusted_signer_policy_path
@@ -624,10 +624,10 @@ def verify_signed_attestation_set(
     *,
     require_complete_qualification_attestations: bool = False,
 ) -> dict[str, Any]:
-    """Verify package attestations and optionally require the complete G3 type roster.
+    """Verify package attestations and optionally require the complete type roster.
 
     Complete type coverage is a prerequisite for independent scientific review,
-    not a claim that the attestations are true or that G3 has qualified.
+    not a claim that the attestations are true or that has qualified.
     """
     if type(require_complete_qualification_attestations) is not bool:
         raise TypeError("require_complete_qualification_attestations must be Boolean")
@@ -685,7 +685,7 @@ def verify_signed_attestation_set(
             + ", ".join(missing_qualification_types)
         )
     return {
-        "schema": "loslab.g3_signed_attestation_set_verification.v1",
+        "schema": "loslab.signed_attestation_set_verification.v1",
         "signature_status": "all_declared_attestations_verified",
         "package_consistency_status": context.consistency_status,
         "qualification_attestation_coverage_status": (
@@ -707,7 +707,7 @@ def verify_signed_attestation_set(
         "limitations": [
             "All package-declared attestation records have valid signatures, but this does not establish that their claims are true.",
             "Distinct or independent reviewers are not inferred from signature completeness; signer independence requires external review.",
-            "The package and all signatures remain proposal evidence and do not qualify G3 or authorize production RT.",
+            "The package and all signatures remain proposal evidence and do not qualify or authorize production RT.",
         ],
     }
 

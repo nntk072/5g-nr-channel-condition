@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g4-standard-reference-manifest:v1",
-  "title": "G4 Standard Reference Source Manifest",
+  "$id": "urn:5gnr:loslab:standard-reference-manifest:v1",
+  "title": "Standard Reference Source Manifest",
   "description": "Exact identity and scope of external normative reference files; this manifest alone does not establish conformance.",
   "type": "object",
   "additionalProperties": false,

@@ -1,4 +1,4 @@
-"""Validation for the proposal-only G3.03 acquisition package format."""
+"""Validation for the proposal-only acquisition package format."""
 
 import copy
 import json
@@ -146,7 +146,7 @@ def test_illustrative_fixture_is_self_consistent(package):
         lambda p: p["attestations"].pop("calibration_truth"),
         lambda p: p["files"][0].update(unreviewed_property=True),
         lambda p: p["files"][0].update(sha256="not-a-sha256"),
-        lambda p: p.update(schema_version="g3.03-acquisition-package.v1"),
+        lambda p: p.update(schema_version="acquisition-package.v1"),
     ],
 )
 def test_schema_fails_closed_on_missing_or_ambiguous_contract(mutate, package, schema_validator):

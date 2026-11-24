@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g3-complex-csi-channel-view-contract:v1",
-  "title": "G3 complex-CSI physical channel-view contract",
+  "$id": "urn:5gnr:loslab:complex-csi-channel-view-contract:v1",
+  "title": "complex-CSI physical channel-view contract",
   "description": "Declared metadata required to check whether two stored CFR views may be compared coherently. Matching declarations do not establish calibration or physical phase truth.",
   "type": "object",
   "additionalProperties": false,

@@ -14,7 +14,7 @@ from evaluation.acceptance.joint_acceptance import (
 
 def _inputs() -> dict[str, object]:
     family = build_joint_acceptance_family_v4(
-        family_id="preregistered-g3-family",
+        family_id="preregistered-family",
         material_expected_strata=[("concrete", "V", "20deg")],
         complex_csi_expected_strata=[("scene-a", "LOS")],
         propagation_expected_strata=[("scene-a", "LOS", "total")],
@@ -22,7 +22,7 @@ def _inputs() -> dict[str, object]:
         path_equivalence_expected_scenarios=[("scene-a", "LOS", "episode-a")],
     )
     return {
-        "schema": "loslab.g3_joint_evaluator_inputs.v1",
+        "schema": "loslab.joint_evaluator_inputs.v1",
         "joint_acceptance_family": family,
         "material_calibration": {
             "payload": {"joint_acceptance_family": family, "scorer_input": "opaque"}
@@ -78,7 +78,7 @@ def _inputs() -> dict[str, object]:
 
 def _inputs_v3() -> dict[str, Any]:
     payload = cast(dict[str, Any], _inputs())
-    payload["schema"] = "loslab.g3_joint_evaluator_inputs.v3"
+    payload["schema"] = "loslab.joint_evaluator_inputs.v3"
     execution = {
         "candidate": {
             "config_id": "candidate-a",
@@ -119,7 +119,7 @@ def _inputs_v3() -> dict[str, Any]:
 
 def _inputs_v4() -> dict[str, Any]:
     payload = _inputs_v3()
-    payload["schema"] = "loslab.g3_joint_evaluator_inputs.v4"
+    payload["schema"] = "loslab.joint_evaluator_inputs.v4"
     receiver = payload["receiver_impact"]["records"][0]
     receiver["configuration_id"] = "candidate-a"
     receiver["receiver_configuration_sha256"] = payload["receiver_execution"]["candidate"][
@@ -168,7 +168,7 @@ def test_joint_bundle_recomputes_and_binds_all_five_v4_branches(monkeypatch) -> 
     assert observed["csi"]["expected_strata"] == (("scene-a", "LOS"),)
     assert observed["path"]["expected_scenarios"] == (("scene-a", "LOS", "episode-a"),)
     assert bundle["evaluator_statuses"]["path_equivalence"] == "PATH_NUMERICAL_ONLY"
-    assert bundle["schema"] == "loslab.g3_joint_evaluator_bundle.v2"
+    assert bundle["schema"] == "loslab.joint_evaluator_bundle.v2"
     assert bundle["numerical_criterion_rollup"]["status"] == "UNRESOLVED_NUMERICAL_CRITERIA"
     assert bundle["numerical_criterion_rollup"]["qualification_status"] == "NOT_QUALIFIED"
 
@@ -310,7 +310,7 @@ def test_joint_numerical_criterion_rollup_keeps_cross_branch_statuses_unresolved
 
 def test_joint_bundle_v5_routes_raw_paths_to_path_recomputation(monkeypatch) -> None:
     payload = _inputs_v4()
-    payload["schema"] = "loslab.g3_joint_evaluator_inputs.v5"
+    payload["schema"] = "loslab.joint_evaluator_inputs.v5"
     payload["path_equivalence"]["records"] = [
         {
             "family_id": "scene-a",

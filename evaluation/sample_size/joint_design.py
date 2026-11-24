@@ -27,13 +27,13 @@ def compose_joint_sample_size_design(
     receiver_assurance_plan: Mapping[str, Any],
     target_joint_assurance_lower_bound: float = 0.80,
 ) -> dict[str, Any]:
-    """Join branch-specific G3 planning outputs without merging sampling units.
+    """Join branch-specific planning outputs without merging sampling units.
 
     The component planners remain authoritative for their own criteria and
     assumptions. This function verifies their family/stratum alignment and
     assembles per-stratum required counts for a future preregistration. It
     never upgrades scenario-conditional planning to qualification or reports
-    a single combined G3 sample size.
+    a single combined sample size.
     """
     family = validate_joint_acceptance_family(joint_acceptance_family)
     target_joint = _probability(
@@ -46,22 +46,22 @@ def compose_joint_sample_size_design(
         "family_sha256": family["family_sha256"],
     }
     components = {
-        "joint": (joint_plan, "loslab.g3_joint_sample_size_planning.v1"),
+        "joint": (joint_plan, "loslab.joint_sample_size_planning.v1"),
         "material_assurance": (
             material_assurance_plan,
-            "loslab.g3_bootstrap_assurance_planning.v1",
+            "loslab.bootstrap_assurance_planning.v1",
         ),
         "complex_csi_assurance": (
             complex_csi_assurance_plan,
-            "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
+            "loslab.complex_csi_bootstrap_assurance_planning.v1",
         ),
         "propagation_assurance": (
             propagation_assurance_plan,
-            "loslab.g3_propagation_bootstrap_assurance_planning.v1",
+            "loslab.propagation_bootstrap_assurance_planning.v1",
         ),
         "receiver_assurance": (
             receiver_assurance_plan,
-            "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1",
+            "loslab.receiver_impact_bootstrap_assurance_planning.v1",
         ),
     }
     component_digests: dict[str, dict[str, str]] = {}
@@ -419,7 +419,7 @@ def compose_joint_sample_size_design(
     if joint_assurance_lower is None:
         blockers.append("one or more evaluator-aligned branch assurance bounds remain unresolved")
     elif joint_assurance_lower < target_joint:
-        blockers.append("cross-branch union-bound assurance is below the requested joint G3 target")
+        blockers.append("cross-branch union-bound assurance is below the requested joint target")
     angular = material.get("angular_maximum_claim")
     angular_supplied = isinstance(angular, Mapping) and angular.get("assumption_supplied") is True
     angular_compatible = (
@@ -453,7 +453,7 @@ def compose_joint_sample_size_design(
     )
 
     result: dict[str, Any] = {
-        "schema": "loslab.g3_joint_sample_size_design_composition.v1",
+        "schema": "loslab.joint_sample_size_design_composition.v1",
         "status": "SCENARIO_CONDITIONAL_DESIGN_NOT_QUALIFICATION",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,
@@ -497,7 +497,7 @@ def compose_joint_sample_size_design(
 def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]:
     """Verify composition-artifact integrity while preserving non-admission status."""
     if not isinstance(design, Mapping):
-        raise TypeError("G3 joint sample-size design must be an object")
+        raise TypeError("joint sample-size design must be an object")
     saved = dict(design)
     declared_digest = saved.pop("design_sha256", None)
     if (
@@ -516,7 +516,7 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         ).encode("utf-8")
     ).hexdigest()
     if actual_digest != declared_digest:
-        raise ValueError("G3 joint sample-size design digest does not match its contents")
+        raise ValueError("joint sample-size design digest does not match its contents")
     expected_fields = {
         "schema",
         "status",
@@ -539,9 +539,9 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         "limitations",
     }
     if set(saved) != expected_fields:
-        raise ValueError("G3 joint sample-size design fields differ from its v1 schema")
+        raise ValueError("joint sample-size design fields differ from its v1 schema")
     if (
-        saved.get("schema") != "loslab.g3_joint_sample_size_design_composition.v1"
+        saved.get("schema") != "loslab.joint_sample_size_design_composition.v1"
         or saved.get("status") != "SCENARIO_CONDITIONAL_DESIGN_NOT_QUALIFICATION"
         or saved.get("qualification_status") != "NOT_QUALIFIED"
         or saved.get("admission_possible") is not False
@@ -551,7 +551,7 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         or not isinstance(saved.get("complete_precision_powered_design"), bool)
         or saved.get("complete_sample_size") is not None
     ):
-        raise ValueError("G3 joint sample-size design violates its non-qualification contract")
+        raise ValueError("joint sample-size design violates its non-qualification contract")
     angular_assumption = saved.get("material_angular_maximum_assumption")
     if not isinstance(angular_assumption, Mapping) or set(angular_assumption) != {
         "supplied",
@@ -573,11 +573,11 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         raise ValueError("unsupplied angular-maximum assumptions cannot declare derived values")
     component_plans = saved.get("component_plans")
     expected_component_schemas = {
-        "joint": "loslab.g3_joint_sample_size_planning.v1",
-        "material_assurance": "loslab.g3_bootstrap_assurance_planning.v1",
-        "complex_csi_assurance": "loslab.g3_complex_csi_bootstrap_assurance_planning.v1",
-        "propagation_assurance": "loslab.g3_propagation_bootstrap_assurance_planning.v1",
-        "receiver_assurance": "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1",
+        "joint": "loslab.joint_sample_size_planning.v1",
+        "material_assurance": "loslab.bootstrap_assurance_planning.v1",
+        "complex_csi_assurance": "loslab.complex_csi_bootstrap_assurance_planning.v1",
+        "propagation_assurance": "loslab.propagation_bootstrap_assurance_planning.v1",
+        "receiver_assurance": "loslab.receiver_impact_bootstrap_assurance_planning.v1",
     }
     if not isinstance(component_plans, Mapping) or set(component_plans) != set(
         expected_component_schemas
@@ -604,7 +604,7 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         "path_equivalence",
     }
     if not isinstance(branches, Mapping) or set(branches) != expected_branches:
-        raise ValueError("branch_designs does not cover the exact G3 evaluator branches")
+        raise ValueError("branch_designs does not cover the exact evaluator branches")
     count_availability: list[bool] = []
     for branch, branch_design in branches.items():
         if not isinstance(branch_design, Mapping):
@@ -681,9 +681,9 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
                 abs_tol=1e-12,
             )
         ):
-            raise ValueError("joint G3 assurance bound is inconsistent with branch bounds")
+            raise ValueError("joint assurance bound is inconsistent with branch bounds")
     elif declared_joint_assurance is not None:
-        raise ValueError("joint G3 assurance bound must be null when a branch bound is unresolved")
+        raise ValueError("joint assurance bound must be null when a branch bound is unresolved")
     component_design_complete = all(
         branches[branch]["count_available"] and assurance_bounds[branch] is not None
         for branch in assurance_branches
@@ -714,7 +714,7 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
     if saved["complete_precision_powered_design"] is not expected_complete:
         raise ValueError("complete_precision_powered_design is inconsistent with component plans")
     return {
-        "schema": "loslab.g3_joint_sample_size_design_verification.v1",
+        "schema": "loslab.joint_sample_size_design_verification.v1",
         "status": "PASS_DESIGN_INTEGRITY_NOT_QUALIFIED",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,

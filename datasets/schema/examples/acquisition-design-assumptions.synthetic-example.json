@@ -1,5 +1,5 @@
 {
-  "schema_version": "loslab.g3_acquisition_design_assumptions.v3",
+  "schema_version": "loslab.acquisition_design_assumptions.v3",
   "scenario_label": "hypothetical_unverified",
   "assumption_source_description": "SYNTHETIC HYPOTHETICAL ONLY. Illustrative engineering assumptions copied from test-sized scenarios; replace with conservatively justified, preregistered worst-stratum assumptions. Not measurement or pilot data.",
   "expected_strata": [
@@ -92,8 +92,8 @@
     "seed": 701
   },
   "joint_acceptance_family": {
-    "schema": "loslab.g3_joint_acceptance_family.v1",
-    "family_id": "synthetic-g3-planning-family-v1",
+    "schema": "loslab.joint_acceptance_family.v1",
+    "family_id": "synthetic-planning-family-v1",
     "familywise_alpha": 0.05,
     "familywise_confidence_level": 0.95,
     "material_expected_strata": [

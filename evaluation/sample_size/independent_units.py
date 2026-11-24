@@ -49,7 +49,7 @@ def plan_independent_acquisition_units(
     familywise_alpha: float = 0.05,
     familywise_power: float = 0.80,
 ) -> dict[str, Any]:
-    """Plan balanced independent acquisition units per G3.03 stratum.
+    """Plan balanced independent acquisition units per stratum.
 
     Assumptions are design inputs, not pilot estimates. Each shared input must
     be a conservative worst-stratum value; the planner does not accept or
@@ -89,7 +89,7 @@ def plan_independent_acquisition_units(
 
     coverage_target = _probability(planned_interval_coverage, "planned_interval_coverage")
     if not MIN_INTERVAL_COVERAGE < coverage_target < MAX_INTERVAL_COVERAGE:
-        raise ValueError("planned_interval_coverage must be strictly inside G3.03 margins")
+        raise ValueError("planned_interval_coverage must be strictly inside margins")
 
     comparison_count = stratum_count * _ALL_CLAIMS_PER_STRATUM
     alpha_per_comparison = alpha / comparison_count
@@ -136,7 +136,7 @@ def plan_independent_acquisition_units(
             ),
             "single_stratum_one_sided_95pct_zero_failure_minimum_clusters": 59,
             "admission_possible": False,
-            "is_complete_g3_03_design": False,
+            "is_complete_design": False,
         }
     )
 
@@ -269,7 +269,7 @@ def plan_independent_acquisition_units(
         )
 
     return {
-        "schema": "loslab.g3_sample_size_planning.v3",
+        "schema": "loslab.sample_size_planning.v3",
         "status": "PLANNING_ONLY_NOT_QUALIFICATION",
         "uses_measurement_or_pilot_data": False,
         "admission_possible": False,
@@ -306,7 +306,7 @@ def plan_independent_acquisition_units(
         "minimum_units_for_all_six_claims_and_pilot_floor": measurement_unit_lower_bound,
         "pilot_floor_units_per_stratum": MIN_INDEPENDENT_MEASUREMENT_UNITS,
         "pilot_floor_is_not_qualification_sample_size": True,
-        "complete_g3_03_sample_size": None,
+        "complete_sample_size": None,
         "complete_design_status": complete_design_status,
         "evaluation_alignment": (
             "These Hoeffding bounds are conservative design calculations, not a sample-size "
@@ -338,7 +338,7 @@ def plan_joint_independent_units(
     planned_propagation_cluster_failure_probabilities: Mapping[str, float] | None = None,
     familywise_power: float = 0.80,
 ) -> dict[str, Any]:
-    """Plan separate material-unit and scene-cluster counts under one G3 family.
+    """Plan separate material-unit and scene-cluster counts under one family.
 
     The shared family determines the Bonferroni alpha and power allocation.
     Material units and propagation/CSI scene clusters remain separate sampling
@@ -363,7 +363,7 @@ def plan_joint_independent_units(
         expected_strata=csi_strata,
     )
     if per_claim_alpha != csi_alpha or family_claim_count != csi_family_claim_count:
-        raise ValueError("joint G3 claim allocation is internally inconsistent")
+        raise ValueError("joint claim allocation is internally inconsistent")
     expected_claim_count = len(material_strata) * len(MATERIAL_CLAIMS) + len(csi_strata) * len(
         COMPLEX_CSI_CLAIMS
     )
@@ -374,7 +374,7 @@ def plan_joint_independent_units(
             expected_strata=propagation_strata,
         )
         if propagation_alpha != per_claim_alpha or propagation_claim_count != family_claim_count:
-            raise ValueError("joint G3 claim allocation is internally inconsistent")
+            raise ValueError("joint claim allocation is internally inconsistent")
         expected_claim_count += len(propagation_strata) * len(PROPAGATION_CLAIMS)
     elif family["schema"] in {FAMILY_SCHEMA_V3, FAMILY_SCHEMA_V4}:
         propagation_alpha, propagation_claim_count = family_alpha_for_claim(
@@ -391,16 +391,16 @@ def plan_joint_independent_units(
         if any(value != per_claim_alpha for value in (propagation_alpha, receiver_alpha)) or any(
             value != family_claim_count for value in (propagation_claim_count, receiver_claim_count)
         ):
-            raise ValueError("joint G3 claim allocation is internally inconsistent")
+            raise ValueError("joint claim allocation is internally inconsistent")
         expected_claim_count += len(propagation_strata) * len(PROPAGATION_CLAIMS)
         expected_claim_count += len(receiver_strata) * len(RECEIVER_IMPACT_CLAIMS)
     elif (
         planned_propagation_p95_pass_probabilities is not None
         or planned_propagation_cluster_failure_probabilities is not None
     ):
-        raise ValueError("propagation planning assumptions require a v2 or v3 joint G3 family")
+        raise ValueError("propagation planning assumptions require a v2 or v3 joint family")
     if family_claim_count != expected_claim_count:
-        raise ValueError("joint G3 family claim count does not match its declared strata")
+        raise ValueError("joint family claim count does not match its declared strata")
 
     alpha = float(family["familywise_alpha"])
     power = _probability(familywise_power, "familywise_power")
@@ -408,7 +408,7 @@ def plan_joint_independent_units(
     per_claim_power = 1.0 - beta_per_claim
     coverage_target = _probability(planned_interval_coverage, "planned_interval_coverage")
     if not MIN_INTERVAL_COVERAGE < coverage_target < MAX_INTERVAL_COVERAGE:
-        raise ValueError("planned_interval_coverage must be strictly inside G3.03 margins")
+        raise ValueError("planned_interval_coverage must be strictly inside margins")
     if not isinstance(planned_quantile_pass_probabilities, Mapping):
         raise ValueError("planned_quantile_pass_probabilities must be a mapping")
     if set(planned_quantile_pass_probabilities) != set(_QUANTILE_TARGETS):
@@ -483,7 +483,7 @@ def plan_joint_independent_units(
             planned_propagation_cluster_failure_probabilities, Mapping
         ):
             raise ValueError(
-                "v2 G3 planning requires propagation p95-pass and cluster-failure assumptions"
+                "v2 planning requires propagation p95-pass and cluster-failure assumptions"
             )
         if set(planned_propagation_p95_pass_probabilities) != set(_PROPAGATION_METRICS):
             raise ValueError(
@@ -600,7 +600,7 @@ def plan_joint_independent_units(
         }
 
     return {
-        "schema": "loslab.g3_joint_sample_size_planning.v1",
+        "schema": "loslab.joint_sample_size_planning.v1",
         "status": "SCENARIO_CONDITIONAL_PLANNING_ONLY_NOT_QUALIFICATION",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,

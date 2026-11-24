@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:5gnr:loslab:g3.03-acquisition-package:v0.1",
-  "title": "G3.03 Lab Acquisition Package Proposal v0.1",
+  "$id": "urn:5gnr:loslab:acquisition-package:v0.1",
+  "title": "Lab Acquisition Package Proposal v0.1",
   "description": "Unaccepted proposal for review. Does not define or alter the frozen evaluator contract.",
   "type": "object",
   "additionalProperties": false,
@@ -11,7 +11,7 @@
     "angular_measurements", "csi_measurements", "rights", "attestations"
   ],
   "properties": {
-    "schema_version": {"const": "g3.03-acquisition-package.v0.1"},
+    "schema_version": {"const": "acquisition-package.v0.1"},
     "package_id": {"$ref": "#/$defs/id"},
     "study_id": {"$ref": "#/$defs/id"},
     "created_utc": {"$ref": "#/$defs/utc"},

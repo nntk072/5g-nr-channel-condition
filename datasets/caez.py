@@ -123,7 +123,7 @@ def audit(path: Path, *, chunk_rows: int = 2048) -> dict[str, Any]:
         "stored_dtype": str(arrays["H"].dtype),
         "complex_coefficients_present": h_is_complex,
         "phase_information_available_in_archive": h_is_complex,
-        "g3_complex_csi_disposition": (
+        "complex_csi_disposition": (
             "not_established_phase_reference_unverified"
             if h_is_complex
             else "ineligible_no_explicit_complex_phase"

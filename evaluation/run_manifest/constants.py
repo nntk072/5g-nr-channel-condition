@@ -24,13 +24,13 @@ SCHEMA_V5_RELATIVE_PATH = "datasets/schema/joint-evidence-run-manifest.v5.schema
 RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH = "datasets/schema/runtime-inventory.v3.schema.json"
 
 
-RUNTIME_INVENTORY_SIGNATURE_NAMESPACE = "loslab-g3-runtime-inventory-v1@github.com"
+RUNTIME_INVENTORY_SIGNATURE_NAMESPACE = "loslab-runtime-inventory-v1@github.com"
 
 
-SIGNER_POLICY_SCHEMA = "loslab.g3_run_manifest_signer_policy.v1"
+SIGNER_POLICY_SCHEMA = "loslab.run_manifest_signer_policy.v1"
 
 
-SIGNER_POLICY_PURPOSE = "g3_joint_run_manifest_verification"
+SIGNER_POLICY_PURPOSE = "joint_run_manifest_verification"
 
 
 SIGNER_POLICY_RELATIVE_PATH = "datasets/schema/run-manifest-signer-policy.v1.schema.json"
@@ -64,15 +64,13 @@ PATH_DIAGNOSTIC_SCHEMA_V2_RELATIVE_PATH = (
 )
 
 
-RUN_MANIFEST_SIGNATURE_NAMESPACE = "loslab-g3-joint-run-manifest-v1@github.com"
+RUN_MANIFEST_SIGNATURE_NAMESPACE = "loslab-joint-run-manifest-v1@github.com"
 
 
-SIGNER_POLICY_SIGNATURE_NAMESPACE = "loslab-g3-run-manifest-policy-v1@github.com"
+SIGNER_POLICY_SIGNATURE_NAMESPACE = "loslab-run-manifest-policy-v1@github.com"
 
 
-RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE = (
-    "loslab-g3-joint-run-verification-report-v1@github.com"
-)
+RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE = "loslab-joint-run-verification-report-v1@github.com"
 
 
 ARTIFACT_SCHEMA_V1_RELATIVE_PATH = "datasets/schema/joint-evaluator-artifact.v1.schema.json"

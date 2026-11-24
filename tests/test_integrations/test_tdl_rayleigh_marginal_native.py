@@ -49,10 +49,10 @@ _MAXIMUM_SIMULTANEOUS_CDF_ERROR = 0.05
 def _load_reference(path: Path, expected_digest: str) -> dict[str, Any]:
     payload = path.read_bytes()
     if hashlib.sha256(payload).hexdigest() != expected_digest:
-        raise ValueError(f"G4 TDL Rayleigh reference changed: {path.name}")
+        raise ValueError(f"TDL Rayleigh reference changed: {path.name}")
     result = json.loads(payload)
     if not isinstance(result, dict):
-        raise ValueError(f"G4 TDL Rayleigh reference must be an object: {path.name}")
+        raise ValueError(f"TDL Rayleigh reference must be an object: {path.name}")
     return result
 
 
@@ -164,7 +164,7 @@ def test_tdl_rayleigh_tap_power_cdfs_match_table_scaled_exponential_family(
     assert all(result.passed for result in results), (model, results)
     assert all(result.simultaneous_upper_bound <= 0.05 for result in results)
     record_property(
-        "g4_tdl_rayleigh_marginal_case",
+        "tdl_rayleigh_marginal_case",
         json.dumps(
             {
                 "model": model,

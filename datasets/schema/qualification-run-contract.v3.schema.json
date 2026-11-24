@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://loslab.invalid/schema/g3-qualification-run-contract.v3.schema.json",
-  "title": "G3 Frozen Qualification Run Contract v3",
+  "$id": "https://loslab.invalid/schema/qualification-run-contract.v3.schema.json",
+  "title": "Frozen Qualification Run Contract v3",
   "description": "Hash-bound preregistration embedding a family-aligned precision and power design. It remains NOT_QUALIFIED and does not authenticate assumptions, physical independence, measurements, or review.",
   "type": "object",
   "additionalProperties": false,
@@ -27,7 +27,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "loslab.g3_qualification_run_contract.v3"
+      "const": "loslab.qualification_run_contract.v3"
     },
     "run_id": {
       "type": "string",
@@ -315,7 +315,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "loslab.g3_joint_sample_size_design_composition.v1"
+          "const": "loslab.joint_sample_size_design_composition.v1"
         },
         "status": {
           "const": "SCENARIO_CONDITIONAL_DESIGN_NOT_QUALIFICATION"
@@ -394,7 +394,7 @@
       "additionalProperties": false,
       "required": ["schema", "sha256"],
       "properties": {
-        "schema": {"const": "loslab.g3_joint_sample_size_planning.v1"},
+        "schema": {"const": "loslab.joint_sample_size_planning.v1"},
         "sha256": {"$ref": "#/$defs/hash"}
       }
     },
@@ -403,7 +403,7 @@
       "additionalProperties": false,
       "required": ["schema", "sha256"],
       "properties": {
-        "schema": {"const": "loslab.g3_bootstrap_assurance_planning.v1"},
+        "schema": {"const": "loslab.bootstrap_assurance_planning.v1"},
         "sha256": {"$ref": "#/$defs/hash"}
       }
     },
@@ -412,7 +412,7 @@
       "additionalProperties": false,
       "required": ["schema", "sha256"],
       "properties": {
-        "schema": {"const": "loslab.g3_complex_csi_bootstrap_assurance_planning.v1"},
+        "schema": {"const": "loslab.complex_csi_bootstrap_assurance_planning.v1"},
         "sha256": {"$ref": "#/$defs/hash"}
       }
     },
@@ -421,7 +421,7 @@
       "additionalProperties": false,
       "required": ["schema", "sha256"],
       "properties": {
-        "schema": {"const": "loslab.g3_propagation_bootstrap_assurance_planning.v1"},
+        "schema": {"const": "loslab.propagation_bootstrap_assurance_planning.v1"},
         "sha256": {"$ref": "#/$defs/hash"}
       }
     },
@@ -430,7 +430,7 @@
       "additionalProperties": false,
       "required": ["schema", "sha256"],
       "properties": {
-        "schema": {"const": "loslab.g3_receiver_impact_bootstrap_assurance_planning.v1"},
+        "schema": {"const": "loslab.receiver_impact_bootstrap_assurance_planning.v1"},
         "sha256": {"$ref": "#/$defs/hash"}
       }
     },

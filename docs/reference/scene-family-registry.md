@@ -52,4 +52,4 @@ relations, provenance, and run identity.
 
 The catalog is a candidate inventory only. It does not establish full family
 coverage, independent measured sites, ODbL redistribution clearance, scene
-quality/calibration, or any G1/G3/G7 qualification.
+quality/calibration, or any // qualification.

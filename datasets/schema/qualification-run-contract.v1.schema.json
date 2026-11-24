@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://loslab.invalid/schema/g3-qualification-run-contract.v1.schema.json",
-  "title": "G3 Frozen Qualification Run Contract v1",
+  "$id": "https://loslab.invalid/schema/qualification-run-contract.v1.schema.json",
+  "title": "Frozen Qualification Run Contract v1",
   "description": "Hash-bound preregistration inputs. Integrity does not establish measurement truth or qualification; solver caps are never ground truth.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "run_id", "qualification_status", "joint_acceptance_family", "joint_acceptance_family_sha256", "task_scope", "candidate", "challenger", "waveform", "link_budget_noise", "path_matching", "sampling", "solver_budget", "source_identity", "finite_solver_caps_are_ground_truth", "contract_sha256"],
   "properties": {
-    "schema": {"const": "loslab.g3_qualification_run_contract.v1"},
+    "schema": {"const": "loslab.qualification_run_contract.v1"},
     "run_id": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{2,63}$"},
     "qualification_status": {"const": "NOT_QUALIFIED"},
     "joint_acceptance_family": {"type": "object"},

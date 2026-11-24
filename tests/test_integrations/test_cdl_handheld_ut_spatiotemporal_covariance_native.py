@@ -209,7 +209,7 @@ def test_cdl_handheld_ut_spatiotemporal_covariance_matches_independent_reference
     assert channel.metadata["bs_array"]["antenna_pattern"] == "omni"
 
     record_property(
-        "g4_cdl_handheld_ut_spatiotemporal_covariance_case",
+        "cdl_handheld_ut_spatiotemporal_covariance_case",
         json.dumps(
             {
                 "model": model,

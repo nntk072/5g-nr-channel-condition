@@ -100,7 +100,7 @@ def build_joint_evidence_run_manifest(
             )
             if inventory_bytes is None:
                 raise ValueError("runtime inventory bytes were not captured")
-            inventory_payload = _json_bytes(inventory_bytes, "G3 runtime inventory")
+            inventory_payload = _json_bytes(inventory_bytes, "runtime inventory")
             import jsonschema
 
             inventory_schema = _json_bytes(
@@ -131,7 +131,7 @@ def build_joint_evidence_run_manifest(
             if input_bytes is None:
                 raise ValueError("joint evaluator input was not captured")
             _validate_joint_evaluator_input_schema(
-                _json_bytes(input_bytes, "G3 joint evaluator input"),
+                _json_bytes(input_bytes, "joint evaluator input"),
                 source_root=source_dir,
             )
             _verify_qualification_contract_bindings(qualification_contract, input_bytes)
@@ -170,9 +170,9 @@ def build_joint_evidence_run_manifest(
         raise ValueError("qualification contract source bundle differs from run receipt sources")
     manifest = {
         "schema": (
-            "loslab.g3_joint_evidence_run_manifest.v5"
+            "loslab.joint_evidence_run_manifest.v5"
             if runtime_inventory_entry is not None
-            else "loslab.g3_joint_evidence_run_manifest.v3"
+            else "loslab.joint_evidence_run_manifest.v3"
         ),
         "run_id": run_id,
         "qualification_status": "NOT_QUALIFIED",
@@ -211,12 +211,12 @@ def build_joint_evidence_run_manifest(
             else SCHEMA_V3_RELATIVE_PATH,
             limit=MAX_SCHEMA_BYTES,
         ),
-        "G3 run manifest schema",
+        "run manifest schema",
     )
     schema_errors = list(jsonschema.Draft202012Validator(manifest_schema).iter_errors(manifest))
     if schema_errors:
         raise ValueError(
-            "G3 run manifest violates selected schema: "
+            "run manifest violates selected schema: "
             + "; ".join(error.message for error in schema_errors[:10])
         )
     return manifest

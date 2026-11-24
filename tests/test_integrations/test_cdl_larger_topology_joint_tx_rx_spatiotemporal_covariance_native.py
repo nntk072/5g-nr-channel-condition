@@ -165,7 +165,7 @@ def test_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_matches_indep
     assert channel.metadata["tx_antenna_count"] == tx_count
 
     record_property(
-        "g4_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_case",
+        "cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_case",
         json.dumps(
             {
                 "model": model,

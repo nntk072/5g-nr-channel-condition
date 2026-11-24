@@ -1,4 +1,4 @@
-"""Score paired G3 NR receiver-impact outcomes without claiming qualification."""
+"""Score paired NR receiver-impact outcomes without claiming qualification."""
 
 from __future__ import annotations
 
@@ -144,7 +144,7 @@ def evaluate_receiver_impact(
             "family_sha256": normalized_family["family_sha256"],
         }
         confidence_scope = (
-            "shared G3 family across material, complex-CSI, propagation, and receiver-impact claims"
+            "shared family across material, complex-CSI, propagation, and receiver-impact claims"
         )
     per_claim_confidence_level = 1.0 - per_claim_alpha
 
@@ -411,7 +411,7 @@ def evaluate_receiver_impact(
         for row in result_strata
     )
     return {
-        "schema": "g3_receiver_impact_diagnostic_v2",
+        "schema": "receiver_impact_diagnostic_v2",
         "status": "NUMERICAL_CRITERIA_ONLY_NOT_QUALIFIED"
         if numeric_pass
         else "NUMERICAL_CRITERIA_NOT_MET_OR_UNRESOLVED",
@@ -438,6 +438,6 @@ def evaluate_receiver_impact(
             "The caller must freeze the comparison SNR before examining candidate/challenger outcomes.",
             "Cluster IDs must represent independent channel realizations; this is not externally verified.",
             "CRC outcomes and decoder labels are preserved as supplied; this scorer does not validate the receiver implementation.",
-            "A numerical pass cannot establish G5 qualification, physical validity, or authorize production RT generation.",
+            "A numerical pass cannot establish qualification, physical validity, or authorize production RT generation.",
         ],
     }

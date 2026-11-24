@@ -24,7 +24,7 @@ def test_holdout_domain_needs_both_labels_on_each_side() -> None:
     data = _dataset(
         domains=["holdout", "holdout", "train", "train", "train", "train"],
         labels=[0, 0, 0, 1, 0, 1],
-        groups=["g1", "g1", "g2", "g2", "g3", "g3"],
+        groups=["group1", "group1", "group2", "group2", "group3", "group3"],
     )
     with pytest.raises(ValueError, match="must both contain LOS/NLOS"):
         holdout_domain(data, "holdout")
@@ -34,7 +34,7 @@ def test_unknown_holdout_domain_is_rejected() -> None:
     data = _dataset(
         domains=["a", "a", "b", "b"],
         labels=[0, 1, 0, 1],
-        groups=["g1", "g1", "g2", "g2"],
+        groups=["group1", "group1", "group2", "group2"],
     )
     with pytest.raises(ValueError, match="Unknown/only domain"):
         holdout_domain(data, "missing")
