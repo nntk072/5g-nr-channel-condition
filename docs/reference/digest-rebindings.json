@@ -2631,10 +2631,6 @@
     {
       "old_path": "experiments/audit_tdl_profile_matrix.py",
       "new_path": "experiments/audit_tdl/profile_matrix.py"
-    },
-    {
-      "old_path": "dev-docs/reference/helper-wiring-matrix.md",
-      "new_path": "docs/research/HELPER_WIRING_MATRIX.md"
     }
   ],
   "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",
