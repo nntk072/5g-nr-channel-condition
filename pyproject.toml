@@ -84,15 +84,26 @@ addopts = [
   "-q",
   "--cov",
   "--cov-report=term-missing",
-  "--cov-fail-under=75",
 ]
 markers = [
   "integration: tests for optional integrations and external libraries",
   "native_sionna: requires Sionna 2.2 PHY; RT cases additionally require the sionna-rt extra",
 ]
 
+# Coverage covers the product packages. Every exclusion is listed with its reason in
+# docs/architecture/coverage-policy.md; tools/coverage_policy.py fails on any mismatch.
 [tool.coverage.run]
-source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute"]
+source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "scripts"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+skip_covered = false
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+]
 
 [tool.ruff]
 line-length = 100

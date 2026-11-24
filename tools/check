@@ -112,6 +112,7 @@ elif gate == "typecheck":
     uv("run", "--locked", "mypy")
 elif gate == "architecture":
     uv("run", "--locked", "python", "-m", "pytest", "--no-cov", "-q", "tests/architecture")
+    uv("run", "--locked", "python", "tools/coverage_policy.py")
 elif gate in {"core", "test"}:
     uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
 elif gate == "neural":

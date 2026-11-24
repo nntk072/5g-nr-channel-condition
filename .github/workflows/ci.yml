@@ -120,13 +120,59 @@ jobs:
           cache-dependency-glob: uv.lock
 
       - name: Install project and development dependencies
-        run: uv sync --locked --extra dev --extra boosting
+        run: uv sync --locked --extra dev --extra boosting --extra sionna --no-install-package torch
 
       - name: Install CPU-only PyTorch
         run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
 
       - name: Run neural and boosted tests with coverage
         run: ./tools/check neural
+
+  architecture:
+    name: Architecture and coverage policy
+    needs: lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Architecture, package lists and coverage policy
+        run: ./tools/check architecture
+
+  docs:
+    name: Documentation build
+    needs: lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install documentation dependencies
+        run: uv sync --locked --extra dev --extra docs
+
+      - name: Build the Sphinx site with warnings as errors
+        run: ./tools/check docs
 
   build:
     name: Build package and import smoke
@@ -154,7 +200,7 @@ jobs:
   ci-success:
     name: CI result
     if: always()
-    needs: [lock, lint, typecheck, test, neural, build]
+    needs: [lock, lint, typecheck, architecture, docs, test, neural, build]
     runs-on: ubuntu-latest
     steps:
       - name: Require all jobs to succeed
