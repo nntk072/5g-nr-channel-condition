@@ -37,6 +37,10 @@ _LAG_S = 0.2e-3
 _BS_ORIENTATION = (0.0, 0.0, 0.0)
 _SEED_START = 2_821_000
 _BATCH_SIZE = 32_768
+# Draws are generated in chunks of this size, each with its own seed, so that peak
+# memory stays bounded while the statistical sample size stays _BATCH_SIZE.
+_CHUNK_BATCH_SIZE = 4_096
+_CHUNK_SEED_STRIDE = 100_003
 _DEVICE_DEPTH_M = 0.15
 _DEVICE_WIDTH_M = 0.07
 _FAMILYWISE_ALPHA = 0.01
@@ -140,42 +144,45 @@ def test_cdl_dual_cross_handheld_ut_covariance_matches_independent_reference(
     assert table_digest == _PROFILE_SHA256[model]
     seed = _seed_for(model, roster_index)
 
-    channel = generate_cdl_frequency_response(
-        model=model,
-        seed=seed,
-        carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
-        subcarrier_spacing_hz=30_000.0,
-        num_subcarriers=8,
-        batch_size=_BATCH_SIZE,
-        delay_spread_s=100e-9,
-        num_time_steps=2,
-        sampling_frequency_hz=1.0 / _LAG_S,
-        ut_velocity_mps=_UT_VELOCITY,
-        ut_array=CDLHandheldUTArrayConfig(
-            polarization="dual",
-            polarization_type="cross",
-            antenna_locations=roster,
-            antenna_pattern="38.901-handheld",
-            device_depth=_DEVICE_DEPTH_M,
-            device_width=_DEVICE_WIDTH_M,
-        ),
-        bs_array=CDLArrayConfig(
-            polarization="single",
-            polarization_type="V",
-            antenna_pattern="omni",
-        ),
-        ut_orientation_rad=_UT_ORIENTATION,
-        bs_orientation_rad=_BS_ORIENTATION,
-        spec_version="19.2",
-        device="cpu",
-    )
-
-    path = channel.h_path[:, 0, :, 0, 0, :, :].to(torch.complex128)
-    assert tuple(path.shape[1:]) == (port_count, path.shape[2], 2)
-    samples = path.sum(dim=2)
-    h0 = samples[:, :, 0]
-    h1 = samples[:, :, 1]
-    cross = h0.conj()[:, :, None] * h1[:, None, :]
+    cross_chunks: list[torch.Tensor] = []
+    for chunk_index in range(_BATCH_SIZE // _CHUNK_BATCH_SIZE):
+        chunk_seed = seed + _CHUNK_SEED_STRIDE * chunk_index
+        channel = generate_cdl_frequency_response(
+            model=model,
+            seed=chunk_seed,
+            carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
+            subcarrier_spacing_hz=30_000.0,
+            num_subcarriers=8,
+            batch_size=_CHUNK_BATCH_SIZE,
+            delay_spread_s=100e-9,
+            num_time_steps=2,
+            sampling_frequency_hz=1.0 / _LAG_S,
+            ut_velocity_mps=_UT_VELOCITY,
+            ut_array=CDLHandheldUTArrayConfig(
+                polarization="dual",
+                polarization_type="cross",
+                antenna_locations=roster,
+                antenna_pattern="38.901-handheld",
+                device_depth=_DEVICE_DEPTH_M,
+                device_width=_DEVICE_WIDTH_M,
+            ),
+            bs_array=CDLArrayConfig(
+                polarization="single",
+                polarization_type="V",
+                antenna_pattern="omni",
+            ),
+            ut_orientation_rad=_UT_ORIENTATION,
+            bs_orientation_rad=_BS_ORIENTATION,
+            spec_version="19.2",
+            device="cpu",
+        )
+        path = channel.h_path[:, 0, :, 0, 0, :, :].to(torch.complex128)
+        assert tuple(path.shape[1:]) == (port_count, path.shape[2], 2)
+        samples = path.sum(dim=2)
+        h0 = samples[:, :, 0]
+        h1 = samples[:, :, 1]
+        cross_chunks.append(h0.conj()[:, :, None] * h1[:, None, :])
+    cross = torch.cat(cross_chunks, dim=0)
     estimate = cross.mean(dim=0)
     standard_error_real = cross.real.std(dim=0, unbiased=True) / math.sqrt(_BATCH_SIZE)
     standard_error_imag = cross.imag.std(dim=0, unbiased=True) / math.sqrt(_BATCH_SIZE)
