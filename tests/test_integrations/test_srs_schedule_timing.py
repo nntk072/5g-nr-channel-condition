@@ -13,6 +13,7 @@ from integrations.sionna.srs import (
     map_nr_srs_hopped_resource,
     map_nr_srs_multiport_resource,
     nr_srs_aperiodic_resource_schedule,
+    nr_srs_aperiodic_resource_set_schedules,
     nr_srs_aperiodic_target_slot_index,
     nr_srs_cyclic_shift_hopping_offset,
     nr_srs_cyclic_shift_hopping_offsets,
@@ -1427,3 +1428,197 @@ def test_periodic_srs_resource_set_rejects_invalid_decoded_fields(changes, error
     arguments.update(changes)
     with pytest.raises(error, match=message):
         nr_srs_periodic_resource_set_schedule(**arguments)
+
+
+@pytest.mark.parametrize(
+    ("allocation", "error", "message"),
+    [
+        ("bad", ValueError, "requires an allocation mapping"),
+        ({"c_srs": 0}, ValueError, "allocation fields are invalid"),
+        (
+            {
+                "c_srs": 0,
+                "transmission_comb": 2,
+                "b_srs": 0,
+                "b_hop": 0,
+                "srs_symbol_count": 1,
+                "unsupported": True,
+            },
+            ValueError,
+            "allocation fields are invalid",
+        ),
+        (
+            {
+                "c_srs": 0,
+                "transmission_comb": 2,
+                "b_srs": 0,
+                "b_hop": 0,
+                "srs_symbol_count": 1,
+                "available_slot_offsets": "bad",
+            },
+            ValueError,
+            "available_slot_offsets must contain one to four values",
+        ),
+    ],
+)
+def test_aperiodic_resource_set_rejects_invalid_selected_allocation(
+    allocation, error, message
+) -> None:
+    resource_set = {
+        "resource_set_id": 1,
+        "resource_type": "aperiodic",
+        "aperiodic_trigger": 1,
+        "allocation": allocation,
+    }
+    with pytest.raises(error, match=message):
+        nr_srs_aperiodic_resource_set_schedules(
+            12,
+            1,
+            (resource_set,),
+            dci_format="0_1",
+        )
+
+
+@pytest.mark.parametrize(
+    ("allocation_offsets", "combo", "message"),
+    [
+        ([0, 1], None, "needs an SRS offset-combo entry"),
+        ([0, 1], (3,), "outside the available offset list"),
+    ],
+)
+def test_multicell_aperiodic_schedule_requires_valid_selected_offset(
+    allocation_offsets, combo, message
+) -> None:
+    arguments = {
+        "request_list_index": 0,
+        "request_list": ((1,),),
+        "serving_cell_ids": ("cell-a",),
+        "resource_sets_by_cell": {
+            "cell-a": [
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "allocation": {
+                        "c_srs": 0,
+                        "transmission_comb": 2,
+                        "b_srs": 0,
+                        "b_hop": 0,
+                        "srs_symbol_count": 1,
+                        "available_slot_offsets": allocation_offsets,
+                    },
+                }
+            ]
+        },
+        "triggering_dci_slot_by_cell": {"cell-a": 12},
+        "scheduled_cell_ids": ("cell-a",),
+    }
+    if combo is not None:
+        arguments.update(
+            offset_combo_index=0,
+            offset_combos=(combo,),
+            offset_combo_cell_ids=("cell-a",),
+        )
+
+    with pytest.raises(ValueError, match=message):
+        nr_srs_multicell_aperiodic_resource_set_schedules(**arguments)
+
+
+def test_multicell_aperiodic_combo_entry_without_offset_list_keeps_base_offset() -> None:
+    result = nr_srs_multicell_aperiodic_resource_set_schedules(
+        0,
+        ((1,),),
+        ("cell-a",),
+        {
+            "cell-a": [
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "allocation": {
+                        "c_srs": 0,
+                        "transmission_comb": 2,
+                        "b_srs": 0,
+                        "b_hop": 0,
+                        "srs_symbol_count": 1,
+                        "slot_offset": 2,
+                    },
+                }
+            ]
+        },
+        {"cell-a": 20},
+        scheduled_cell_ids=("cell-a",),
+        offset_combo_index=0,
+        offset_combos=((3,),),
+        offset_combo_cell_ids=("cell-a",),
+    )
+
+    assert result[0][1][0].target_slot_index == 22
+
+
+@pytest.mark.parametrize(
+    ("available_offsets", "error", "message"),
+    [
+        ("bad", TypeError, "available_slot_offsets must be an ordered sequence"),
+        ((), ValueError, "available_slot_offsets must not be empty"),
+    ],
+)
+def test_multicell_aperiodic_schedule_validates_available_offset_list(
+    available_offsets, error, message
+) -> None:
+    resource_sets = {
+        "cell-a": [
+            {
+                "resource_set_id": 1,
+                "resource_type": "aperiodic",
+                "aperiodic_trigger": 1,
+                "allocation": {
+                    "c_srs": 0,
+                    "transmission_comb": 2,
+                    "b_srs": 0,
+                    "b_hop": 0,
+                    "srs_symbol_count": 1,
+                    "available_slot_offsets": available_offsets,
+                },
+            }
+        ]
+    }
+
+    with pytest.raises(error, match=message):
+        nr_srs_multicell_aperiodic_resource_set_schedules(
+            0,
+            ((1,),),
+            ("cell-a",),
+            resource_sets,
+            {"cell-a": 10},
+            scheduled_cell_ids=("cell-a",),
+        )
+
+
+def test_multicell_aperiodic_schedule_uses_single_available_offset_without_combo() -> None:
+    result = nr_srs_multicell_aperiodic_resource_set_schedules(
+        0,
+        ((1,),),
+        ("cell-a",),
+        {
+            "cell-a": [
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "allocation": {
+                        "c_srs": 0,
+                        "transmission_comb": 2,
+                        "b_srs": 0,
+                        "b_hop": 0,
+                        "srs_symbol_count": 1,
+                        "available_slot_offsets": (2,),
+                    },
+                }
+            ]
+        },
+        {"cell-a": 10},
+        scheduled_cell_ids=("cell-a",),
+    )
+
+    assert result[0][1][0].target_slot_index == 12
