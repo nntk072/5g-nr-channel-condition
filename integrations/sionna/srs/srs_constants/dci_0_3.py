@@ -518,14 +518,12 @@ def _nr_srs_dci_0_3_precoding_width(
                             "2-port fullpowerMode1 rank-2 codebook requires nonCoherent subset"
                         )
                     widths[cell] = 2
-                elif rank == 1 or transform_precoding:
+                else:
                     if subset != "nonCoherent":
                         raise ValueError(
                             "2-port fullpowerMode1 rank-1 codebook requires nonCoherent subset"
                         )
                     widths[cell] = 2
-                else:
-                    raise ValueError("unsupported 2-port fullpowerMode1 codebook configuration")
             elif rank == 1 or transform_precoding:
                 if subset not in {"fullyAndPartialAndNonCoherent", "nonCoherent"}:
                     raise ValueError("2-port rank-1 codebook does not support partial-only subset")

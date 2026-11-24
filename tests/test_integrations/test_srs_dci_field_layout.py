@@ -59,11 +59,22 @@ def test_antenna_port_width_uses_dmrs_mapping_aggregation_and_transform_precodin
     [
         ({"mode": "type3"}, ValueError, "antenna_ports_mode"),
         ({"transform": {}}, ValueError, "must cover"),
+        ({"transform": {"cell-a": 1}}, TypeError, "values must be booleans"),
+        ({"configs": {}}, ValueError, "must cover"),
+        ({"configs": {"cell-a": "bad"}}, TypeError, "must be a sequence"),
+        ({"configs": {"cell-a": ()}}, ValueError, "one or two mapping types"),
+        ({"configs": {"cell-a": (None,)}}, TypeError, "must be a mapping"),
         ({"configs": {"cell-a": ({"mapping_type": "A"},)}}, ValueError, "field roster"),
         ({"configs": {"cell-a": (_dmrs("C"),)}}, ValueError, "mapping_type"),
         ({"configs": {"cell-a": (_dmrs(), _dmrs("A", 2))}}, ValueError, "must be unique"),
         ({"configs": {"cell-a": (_dmrs(dmrs_type=True),)}}, TypeError, "dmrs_type"),
+        ({"configs": {"cell-a": (_dmrs(dmrs_type=3),)}}, ValueError, "dmrs_type must be integer"),
         ({"configs": {"cell-a": (_dmrs(enhanced=1),)}}, TypeError, "enhanced"),
+        (
+            {"configs": {"cell-a": (_dmrs(max_length=1.0),)}},
+            TypeError,
+            "max_length must be integer",
+        ),
         ({"configs": {"cell-a": (_dmrs(max_length=3),)}}, ValueError, "max_length"),
         (
             {"transform": {"cell-a": True}, "configs": {"cell-a": (_dmrs(dmrs_type=2),)}},
@@ -161,10 +172,31 @@ def test_precoding_width_aggregates_per_cell_and_allows_noncodebook_cells() -> N
     assert _nr_srs_dci_0_3_precoding_width(mode="type2", **noncodebook) == 2
 
 
+def test_precoding_width_rejects_codebook_only_settings_on_noncodebook_cell() -> None:
+    with pytest.raises(ValueError, match="non-codebook cell.*must not have codebook-only"):
+        _nr_srs_dci_0_3_precoding_width(
+            mode="type1a",
+            cell_ids=("cell-a",),
+            tx_config_by_cell={"cell-a": "nonCodebook"},
+            transform_precoding_enabled_by_cell={"cell-a": False},
+            codebook_srs_antenna_port_counts_by_cell={"cell-a": (2,)},
+            codebook_subset_by_cell={"cell-a": None},
+            max_rank_for_codebook_by_cell={"cell-a": None},
+            ul_full_power_transmission_by_cell={"cell-a": None},
+            full_cell_roster=("cell-a",),
+        )
+
+
+def test_precoding_width_rejects_unsupported_codebook_subset_name() -> None:
+    with pytest.raises(ValueError, match="supported RRC choices"):
+        _precoding_width(ports=(2,), subset="unsupported", rank=1)
+
+
 @pytest.mark.parametrize(
     ("overrides", "error", "message"),
     [
         ({"mode": "type3"}, ValueError, "tpmi_mode"),
+        ({"tx_config_by_cell": None}, TypeError, "inputs must be mappings"),
         ({"tx_config_by_cell": {}}, ValueError, "must cover"),
         ({"tx_config_by_cell": {"cell-a": "unsupported"}}, ValueError, "must be 'codebook'"),
         ({"transform_precoding_enabled_by_cell": {"cell-a": 1}}, TypeError, "must be booleans"),
@@ -182,6 +214,11 @@ def test_precoding_width_aggregates_per_cell_and_allows_noncodebook_cells() -> N
             {"codebook_srs_antenna_port_counts_by_cell": {"cell-a": (3,)}},
             ValueError,
             "must be 1, 2, or 4",
+        ),
+        (
+            {"codebook_srs_antenna_port_counts_by_cell": {"cell-a": "bad"}},
+            TypeError,
+            "must be a sequence",
         ),
         ({"codebook_subset_by_cell": {"cell-a": "partialAndNonCoherent"}}, ValueError, "subset"),
         ({"max_rank_for_codebook_by_cell": {"cell-a": True}}, TypeError, "must be an integer"),
@@ -208,6 +245,55 @@ def test_precoding_width_rejects_invalid_srs_codebook_configuration(
     arguments.update(overrides)
     with pytest.raises(error, match=message):
         _nr_srs_dci_0_3_precoding_width(**arguments)
+
+
+@pytest.mark.parametrize(
+    ("ports", "subset", "rank", "full_power", "message"),
+    [
+        ((1,), "nonCoherent", None, None, "single-port codebook cell.*must not supply"),
+        (
+            (2,),
+            "partialAndNonCoherent",
+            2,
+            "fullpowerMode1",
+            "rank-2 codebook requires nonCoherent",
+        ),
+        (
+            (2,),
+            "partialAndNonCoherent",
+            1,
+            "fullpowerMode1",
+            "rank-1 codebook requires nonCoherent",
+        ),
+        (
+            (4,),
+            "fullyAndPartialAndNonCoherent",
+            1,
+            "fullpowerMode1",
+            "rank-1 subset is unsupported",
+        ),
+        (
+            (4,),
+            "fullyAndPartialAndNonCoherent",
+            2,
+            "fullpowerMode1",
+            "rank-2 subset is unsupported",
+        ),
+        (
+            (4,),
+            "fullyAndPartialAndNonCoherent",
+            3,
+            "fullpowerMode1",
+            "rank-3/4 subset is unsupported",
+        ),
+        ((2,), "partialAndNonCoherent", 2, None, "rank-2 codebook does not support partial-only"),
+    ],
+)
+def test_precoding_width_rejects_unsupported_port_rank_subset_combinations(
+    ports, subset, rank, full_power, message
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        _precoding_width(ports=ports, subset=subset, rank=rank, full_power=full_power)
 
 
 def _sri_width(
@@ -308,6 +394,28 @@ def test_sri_width_rejects_invalid_rrc_or_ue_layer_configuration(overrides, erro
     arguments.update(overrides)
     with pytest.raises(error, match=message):
         _nr_srs_dci_0_3_sri_width(**arguments)
+
+
+@pytest.mark.parametrize("invalid", [None, ()])
+def test_sri_width_requires_configuration_rosters_to_be_mappings(invalid) -> None:
+    common = {
+        "mode": "type1a",
+        "cell_ids": ("cell-a",),
+        "tx_config_by_cell": {"cell-a": "codebook"},
+        "srs_resource_count_by_cell": {"cell-a": 2},
+        "max_noncodebook_layers_by_cell": {"cell-a": None},
+        "ue_supports_max_mimo_layers_by_cell": {"cell-a": True},
+        "ue_max_noncodebook_layers_by_cell": None,
+        "full_cell_roster": ("cell-a",),
+    }
+    if invalid is None:
+        common["tx_config_by_cell"] = None
+    else:
+        common["ue_max_noncodebook_layers_by_cell"] = invalid
+    with pytest.raises(
+        TypeError, match="configuration inputs must be mappings|capabilities must be a mapping"
+    ):
+        _nr_srs_dci_0_3_sri_width(**common)
 
 
 def test_dci_0_3_decoder_rejects_malformed_bit_rosters_and_resource_overflow() -> None:
@@ -765,6 +873,34 @@ def test_frequency_assignment_rejects_invalid_bwp_rosters(
 
 
 @pytest.mark.parametrize(
+    ("cells", "configured", "active", "configs", "message"),
+    [
+        (("cell",), {}, {}, {}, "configured_bwp_ids_by_cell must be a nonempty mapping"),
+        (
+            ("cell",),
+            {"cell": (0,)},
+            {},
+            {"cell": {0: {}}},
+            "active_bwp_id_by_cell must exactly cover",
+        ),
+        (
+            ("cell",),
+            {"cell": (0,)},
+            {"cell": 0},
+            {},
+            "bwp_frequency_config_by_cell must exactly cover",
+        ),
+        (("cell",), {"cell": (0,)}, {"cell": 0}, {"cell": {True: {}}}, "must cover every BWP"),
+    ],
+)
+def test_frequency_assignment_requires_complete_bwp_configuration_rosters(
+    cells, configured, active, configs, message
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        nr_srs_dci_0_3_frequency_assignment_widths(cells, configured, active, configs)
+
+
+@pytest.mark.parametrize(
     ("enabled", "skipping_count", "groups", "expected"),
     [
         (False, None, None, 0),
@@ -888,6 +1024,16 @@ def test_scell_dormancy_rejects_invalid_context_and_group_ids(
                 "start_prb": 0,
                 "resource_allocation": "type1",
                 "rbg_size_config": "bad",
+            },
+            ValueError,
+            "rbg_size_config must be config1",
+        ),
+        (
+            {
+                "size_prb": 1,
+                "start_prb": 0,
+                "resource_allocation": "type1",
+                "rbg_size_config": 4,
             },
             ValueError,
             "rbg_size_config must be config1",
