@@ -110,6 +110,12 @@ skip_covered = false
 exclude_also = [
   "if TYPE_CHECKING:",
   "if __name__ == .__main__.:",
+  'if not hasattr\(os, "O_NOFOLLOW"\)',
+  'if not hasattr\(os, "O_DIRECTORY"\) or os\.open',
+  'if os\.name != "posix"',
+  'if device\.startswith\("cuda"\) and not torch\.cuda\.is_available',
+  'if not torch\.cuda\.is_available\(\)',
+  'if not torch_cuda_available\(\)',
 ]
 
 [tool.ruff]
