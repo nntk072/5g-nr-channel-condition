@@ -26,6 +26,7 @@ from integrations.sionna.srs import (
     nr_srs_port_sequences_type1,
     nr_srs_port_symbol_activity,
     nr_srs_resource_sequences_type1,
+    nr_srs_sequence_hopping_index,
     nr_srs_sequence_type1,
     nr_srs_single_port_ls_channel_estimate,
     nr_srs_transmission_comb_from_rrc,
@@ -647,6 +648,37 @@ def test_srs_low_papr_sequence_rejects_unsupported_parameters(args, error, messa
         kwargs["base_sequence_index"] = 1
     with pytest.raises(error, match=message):
         nr_low_papr_sequence_type1(*args, **kwargs)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "error", "message"),
+    [
+        ({"hopping_finer_granularity": 1}, TypeError, "hopping_finer_granularity"),
+        ({"cyclic_shift_count": 0}, ValueError, "cyclic_shift_count must be positive"),
+        (
+            {"cyclic_shift_count": 2, "cyclic_shift_hopping_offset": 2},
+            ValueError,
+            "outside the configured shift range",
+        ),
+    ],
+)
+def test_low_papr_sequence_rejects_invalid_cyclic_shift_hopping(kwargs, error, message) -> None:
+    with pytest.raises(error, match=message):
+        nr_low_papr_sequence_type1(72, group_index=0, **kwargs)
+
+
+@pytest.mark.parametrize(
+    ("sequence_length", "error", "message"),
+    [
+        (True, TypeError, "sequence_length must be an integer"),
+        (0, ValueError, "sequence_length must be positive"),
+    ],
+)
+def test_sequence_hopping_index_rejects_invalid_sequence_lengths(
+    sequence_length, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        nr_srs_sequence_hopping_index(1, 0, 13, 0, sequence_length)
 
 
 @pytest.mark.parametrize(("comb", "expected"), [(2, 8), (4, 12), (8, 6)])

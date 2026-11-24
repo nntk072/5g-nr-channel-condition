@@ -6,6 +6,7 @@ import pytest
 from integrations.sionna.srs.srs_lookups import (
     nr_srs_frequency_position_indices,
     nr_srs_periodicity_and_offset_slots,
+    nr_srs_port_configuration_from_rrc,
     nr_srs_port_symbol_activity,
     nr_srs_positioning_symbol_offset,
     srs_cyclic_shift_count,
@@ -101,3 +102,36 @@ def test_periodicity_decoding_checks_the_choice_key(periodicity, message) -> Non
     else:
         with pytest.raises(TypeError, match=message):
             nr_srs_periodicity_and_offset_slots(periodicity)
+
+
+@pytest.mark.parametrize(
+    ("ports", "kwargs", "error", "message"),
+    [
+        pytest.param(
+            "port1",
+            {"cyclic_shift_hopping_enabled": 1},
+            TypeError,
+            "flags must be booleans",
+            id="flag-type",
+        ),
+        pytest.param(
+            None, {"nrof_srs_ports_n8": 8}, TypeError, "must be a string enum", id="ports8-type"
+        ),
+        pytest.param(
+            "ports4",
+            {"nrof_srs_ports_n8": "ports16"},
+            ValueError,
+            "must be ports8 or ports8tdm",
+            id="ports8-value",
+        ),
+        pytest.param(4, {}, TypeError, "nrofSRS-Ports must be a string enum", id="ports-type"),
+        pytest.param(
+            "ports8", {}, ValueError, "must be port1, ports2, or ports4", id="ports-value"
+        ),
+    ],
+)
+def test_rrc_srs_port_configuration_rejects_mistyped_or_unsupported_enums(
+    ports, kwargs, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        nr_srs_port_configuration_from_rrc(ports, **kwargs)
