@@ -81,27 +81,7 @@ def uv(*args):
 
 
 gate = sys.argv[1] if len(sys.argv) == 2 else ""
-if gate == "agent":
-    # Local agent tooling (git-ignored). Not part of the published project or CI.
-    # The package is not installed (not shipped); import it from the checkout.
-    os.environ["PYTHONPATH"] = os.pathsep.join(filter(None, [str(ROOT), os.environ.get("PYTHONPATH", "")]))
-    uv("run", "--locked", "python", "tools/agent/validate-rules")
-    uv("run", "--locked", "python", "tools/agent/validate-profiles")
-    uv("run", "--locked", "python", "tools/agent/doctor")
-    uv(
-        "run",
-        "--locked",
-        "python",
-        "-m",
-        "pytest",
-        "--no-cov",
-        "-o",
-        "addopts=",
-        "-q",
-        "tests/test_agentops",
-        "tests/test_scripts/test_agent_rule_validation.py",
-    )
-elif gate == "fast":
+if gate == "fast":
     active = active_python_paths()
     active_tests = [path for path in active if path.startswith("tests/")]
     mypy_paths = [path for path in active if not path.startswith(("tests/", "tools/"))]
@@ -165,7 +145,7 @@ elif gate == "native-smoke":
     raise SystemExit(4)
 else:
     print(
-        "usage: tools/check {lock|lint|typecheck|architecture|test|core|neural|build|docs|agent|fast|full|native-smoke}",
+        "usage: tools/check {lock|lint|typecheck|architecture|test|core|neural|build|docs|fast|full|native-smoke}",
         file=sys.stderr,
     )
     raise SystemExit(2)
