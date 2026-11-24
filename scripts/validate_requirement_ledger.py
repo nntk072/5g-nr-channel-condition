@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import jsonschema
@@ -56,21 +57,50 @@ def _evidence_exceptions() -> dict[str, list[str]]:
     return {item["path"]: item["replaced_by"] for item in payload["entries"]}
 
 
+def developer_local_records() -> dict[str, str]:
+    """Cited records kept in the git-ignored ``dev-docs`` folder, with the reason each is declared."""
+    payload = json.loads(
+        (ROOT / "docs/reference/ledger-evidence-exceptions.json").read_text(encoding="utf-8")
+    )
+    return {item["path"]: item["reason"] for item in payload["developer_local"]}
+
+
+def _move_chain_end(relative_path: str) -> str:
+    moves = _recorded_moves()
+    end, seen = relative_path, {relative_path}
+    while end in moves and moves[end] not in seen:
+        end = moves[end]
+        seen.add(end)
+    return end
+
+
+def developer_local_unverified() -> list[str]:
+    """Declared developer records whose citation cannot be checked in this checkout.
+
+    ``dev-docs`` is git-ignored, so a clean checkout (CI) does not have it. There, a declared
+    citation whose recorded move chain ends in ``dev-docs`` is accepted and reported as
+    unverified. Where the folder exists, the record must be present and is checked.
+    """
+    if (ROOT / "dev-docs").is_dir():
+        return []
+    return sorted(
+        path
+        for path in developer_local_records()
+        if not _cited_path_exists(path) and _move_chain_end(path).startswith("dev-docs/")
+    )
+
+
 def _cited_path_exists(relative_path: str) -> bool:
     """Return True when a frozen citation resolves to a file, through the recorded moves.
 
     A citation resolves when the path exists, when its recorded move chain ends at an
     existing file, when it names a module that became a package, or when it is an
     explicit exception whose replacements all exist. Developer records moved to the local
-    ``dev-docs`` folder resolve when that local file exists.
+    ``dev-docs`` folder resolve when that local file exists (see ``developer_local_unverified``).
     """
     if (ROOT / relative_path).is_file():
         return True
-    moves = _recorded_moves()
-    end, seen = relative_path, {relative_path}
-    while end in moves and moves[end] not in seen:
-        end = moves[end]
-        seen.add(end)
+    end = _move_chain_end(relative_path)
     if (ROOT / end).is_file():
         return True
     if end.endswith(".py") and (ROOT / end[:-3] / "__init__.py").is_file():
@@ -165,15 +195,16 @@ def validate_requirement_ledger() -> dict[str, int]:
     if indexed_appendix_gates != appendix_e_gates:
         raise ValueError("research Appendix E acceptance-gate source text mismatch")
 
+    unverified = set(developer_local_unverified())
     for row in rows:
         for authority in row["authority"]:
             relative_path = authority.split("#", 1)[0]
-            if not _cited_path_exists(relative_path):
+            if not _cited_path_exists(relative_path) and relative_path not in unverified:
                 raise ValueError(
                     f"{row['requirement_id']} references missing authority {relative_path}"
                 )
         for evidence_path in row["implementation"]["evidence"]:
-            if not _cited_path_exists(evidence_path):
+            if not _cited_path_exists(evidence_path) and evidence_path not in unverified:
                 raise ValueError(
                     f"{row['requirement_id']} references missing evidence {evidence_path}"
                 )
@@ -188,6 +219,13 @@ def validate_requirement_ledger() -> dict[str, int]:
 
 def main() -> None:
     print(json.dumps(validate_requirement_ledger(), sort_keys=True))
+    unverified = developer_local_unverified()
+    if unverified:
+        print(
+            "not verified in this checkout (developer records in the git-ignored dev-docs folder): "
+            + ", ".join(unverified),
+            file=sys.stderr,
+        )
 
 
 if __name__ == "__main__":

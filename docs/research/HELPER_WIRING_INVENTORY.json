@@ -74,11 +74,11 @@
     "evaluation/qualification_contract.py": "be183cc189091f59cd9f13dd1aa3481ef1fcc050cb9bb19649a286f57a57c0ba",
     "evaluation/receiver_assurance.py": "d2be4aefa83ddd119b5260a4ddfa0f302c1106b723d705329a34a28612a13ece",
     "evaluation/receiver_impact.py": "c1b85562075563eed6ea70d578ed7751008ab5e86517b8645a01402f32ae4b73",
-    "evaluation/run_manifest/build.py": "05156f600610930ab374c3b0ec9dd90e9842c1e03af6cbc87a1cef5bd655d64d",
+    "evaluation/run_manifest/build.py": "c3ae1ca5271a9705e860e36e9eaf48969873282f534b21d7a51a26b8c469d076",
     "evaluation/run_manifest/cli.py": "c6f494a231022885ad8f5253ec84e3ad2fb7970208b39eaf4046e10b737ad2e2",
     "evaluation/run_manifest/contracts.py": "25f3dbbc79815e7c938d9b6d6f13669bde94f7275c6d236f6894ce408caef3ac",
-    "evaluation/run_manifest/sources.py": "273db5c1205a04a6e4795a0d5f68f5f9cdfa614351d55b14b4aa0c5be60d5b15",
-    "evaluation/run_manifest/verify.py": "290dfdd1d32a913120d236be90d952b18a481f4a59f7a46fb8e710503c42d9ab",
+    "evaluation/run_manifest/sources.py": "499e503bb87853096a45d896a6c8ef0105427487ea9139cb5de3de47f184cc4b",
+    "evaluation/run_manifest/verify.py": "97e158792859536cb5ef24df321a0cfad2d87ae1c1c11f13e9989d4f4fd49de5",
     "evaluation/sample_size/joint_design.py": "d60521563bc6dac0ffe6af94900803f2482fad793c544092e5006dcf6ac71fde",
     "evaluation/spatial_audit.py": "0e4d34a247529c369fb2a131af3902e30250fe53fdf8bcb221c8af56d1f08b3f",
     "evaluation/spherical_angular_power.py": "2e97bfd7e7d665fb4159642a07377040226141dde4001ed74fe4cc41d2aa3ea6",
@@ -227,7 +227,7 @@
     "tests/test_evaluation/test_independent_splits.py": "4e65681de74da98e1696906a6db7c79baae993b6fc6410780f09bffd4ae9599a",
     "tests/test_evaluation/test_joint_evaluation.py": "81cdddf776f7dac676e23f1cf240b4fcb845c65ed1294f5c7db618e13486c8f4",
     "tests/test_evaluation/test_joint_evidence_contract_binding.py": "a8c40821c2af811585d73b5afd574b3c4a6714642f8ae4d2ea5b48073654a87d",
-    "tests/test_evaluation/test_joint_evidence_inventory.py": "1a1af6d03bf6b16c810ed8264ce4e75eb657efd31e8c3bc3ecf4675321a8a1b1",
+    "tests/test_evaluation/test_joint_evidence_inventory.py": "73aab5db173a965f83ae17345d2feb5bee67c84961d62dc4c0dae8d794df5889",
     "tests/test_evaluation/test_joint_evidence_signatures.py": "fb7995811829b8c4a43d25d846afe84cecae119b84abbac7e005e4363fdde815",
     "tests/test_evaluation/test_low_confidence.py": "868ca0cc19a4fbe94c5c2e35a610195e27c4f78bcaf224eb53dcd2db844895a1",
     "tests/test_evaluation/test_metrics.py": "c271db2cd2221e1e55500aa05bc3ca2250b6b9ea98e98441aabc4aab0d927077",
@@ -255,7 +255,7 @@
     "tests/test_experiments/test_rt_trajectory_forecast.py": "2feb3147ae81905b16d76efe84eaa8f8ad83a39a27f04853781a97760725b141",
     "tests/test_experiments/test_trajectory_targets.py": "36c33da5924975ae3ac11c49272ffb77f1e47707207987747f71141ff9bb623e",
     "tests/test_experiments/test_two_path_experiment_contract.py": "74ccfb6688b59d5890dafc4653ce7e4748803b4657cb3e6bee3673cf5ed2dc9f",
-    "tests/test_integrations/test_admission_native.py": "91c992a7260d6876a825e29255358b1da82ab353f25cd9a6542854f9b3b1d889",
+    "tests/test_integrations/test_admission_native.py": "61bd77554e8db6b7f10dfa4121cdfb6293a5eca7209a9f9354ca22c8f405d1cb",
     "tests/test_integrations/test_cdl_abc_rotated_dual_pol_array_covariance_native.py": "f89320b82096605c9bf93395b831cb6f406b9ac4b256ebef27b09ca4da478d8c",
     "tests/test_integrations/test_cdl_angular_power_confidence_native.py": "e88dd3400a80920407d53545230c4ed731dfbae97a7f9e4a04a80ad22a03fdaf",
     "tests/test_integrations/test_cdl_antenna_pattern_power_native.py": "2774d6884ca37c8bb516b9b2ca0d3f6c3051803073a9cec4063ea162f77b84fb",
@@ -278,7 +278,7 @@
     "tests/test_integrations/test_cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_native.py": "f329e05f90a9779a33fe9f6b135d74697b6c0f962fa29f604f1b12416335a61c",
     "tests/test_integrations/test_cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_native.py": "e5193d8f824b444fa7013b9aa16a5e8ff7f986dfe1b3f5ecf7269cf4a93d3071",
     "tests/test_integrations/test_cdl_joint_tx_rx_spatial_covariance_native.py": "23350d7eb48839718781bdd4ef816bd30ce5c80daf635363419233a9881c9ad0",
-    "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py": "f5419f3009eae6dd9963d8f6ec39740b7134d331292fb50683961ce3585119eb",
+    "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py": "fc52858250f1413b829582ff5c26aa40f3f4204dda5862c06392b66b56671365",
     "tests/test_integrations/test_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py": "4d162e8d2ec51770aac5704e019b70975dc3421f91ee8157cc8a6410676bf18a",
     "tests/test_integrations/test_cdl_larger_topology_joint_tx_rx_spatiotemporal_covariance_native.py": "89d8da6cc0d5f2ea8cb0782a1d7a266493656ac9262d8a7b7e8a560acdffef2e",
     "tests/test_integrations/test_cdl_los_delay_angular_moment_native.py": "70d7fb60c975071680233b9eeb84d5bf3d04a94387012c5f53ca8e1c1f6201aa",
@@ -286,7 +286,7 @@
     "tests/test_integrations/test_cdl_patterned_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "a1736044fccdc31390db5ac07f5b9029176608a6acdd9702e6f60463e4a24b88",
     "tests/test_integrations/test_cdl_profile_tables_native.py": "b6b0ea7aecba9a8f73ff352e02145d196b62740438ed98f568498952669c2228",
     "tests/test_integrations/test_cdl_rotated_dual_tx_rx_spatiotemporal_covariance_native.py": "10d20df3d9ba2268ad7f503ed151f0228704681d40d3e62dbeebfd88c18c4f76",
-    "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py": "a37b5133f839a7ee2b8b332caf27bd26e6842d1b8015fc2cd95becce94fca5a2",
+    "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py": "c5d7a951a961e21097c459093626d618dd30de5cdc5527dcb5eda63adc733902",
     "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py": "da0ba387f38aebb982c76ebc683a10a3b810f5afee0313b0816ae47d67f1df9d",
     "tests/test_integrations/test_cdl_spatiotemporal_covariance_native.py": "0e4fa19f0bdf9bb8272ca4f79055344ab5561eea2869d6f757f0aec587b3938e",
     "tests/test_integrations/test_cdl_temporal_vector_reference_native.py": "c0b55ec45aa7d66f11a5e943d5e4117817bf7fbd90af84d3b962172848704bca",
@@ -322,7 +322,7 @@
     "tests/test_integrations/test_rt_to_nr_contract.py": "031efa1684f5ce10b6de3420a920f8289529994d2aa45f3984794bd48fda8459",
     "tests/test_integrations/test_rt_to_nr_native.py": "7a3ab21ad74166446192462683d73b34d2ee7851f3d8c3e030235cb28383fba9",
     "tests/test_integrations/test_rt_trajectory_contract.py": "36fa7643297c7ad79f6ca476ba45a5e4bdd4dfb656c56552f5f733030a03ea1a",
-    "tests/test_integrations/test_rt_trajectory_native.py": "d0b90a3af339ba323281c0a5eb37eea73f529ce06bdd8c9a3f93dd9903a07467",
+    "tests/test_integrations/test_rt_trajectory_native.py": "58ff3dc1acc5a64d05fdcefe70ae03db2c06a9cbe8a7110ae9fbca97fcf1a62e",
     "tests/test_integrations/test_scalable_tdl_complex_circularity_native.py": "7cb428b897e69b8455fa1dea2f9c6a2b95e2faeae84a4ab869b47db1a39aadff",
     "tests/test_integrations/test_scalable_tdl_doppler_spectrum_native.py": "6a3a45ae04dc88c3d4deecd1a062efd6e6758cd5b23939dccfbb07a5a30bb63a",
     "tests/test_integrations/test_scalable_tdl_temporal_reference_native.py": "9699146e6544fa1683f9e285ed632f5cae2de9216876e1a9e63b5a2d99b4632b",
@@ -2526,23 +2526,23 @@
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 101
+          "line": 105
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 318
+          "line": 325
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 391
+          "line": 398
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 421
+          "line": 428
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 500
+          "line": 507
         },
         {
           "path": "tests/test_scripts/test_materialize_direct_path_ablation.py",
@@ -2784,19 +2784,19 @@
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 197
+          "line": 204
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 288
+          "line": 295
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 350
+          "line": 357
         },
         {
           "path": "tests/test_integrations/test_rt_trajectory_native.py",
-          "line": 573
+          "line": 580
         }
       ],
       "documented_route": true,
@@ -3096,7 +3096,7 @@
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 212
+          "line": 217
         },
         {
           "path": "tests/test_integrations/test_channel_draw_semantics_native.py",
@@ -3665,7 +3665,7 @@
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 210
+          "line": 215
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
@@ -3677,11 +3677,11 @@
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 175
+          "line": 180
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 262
+          "line": 267
         },
         {
           "path": "tests/test_integrations/test_channel_draw_semantics_native.py",
@@ -4786,7 +4786,7 @@
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 211
+          "line": 216
         },
         {
           "path": "tests/test_integrations/test_channel_draw_semantics_native.py",
@@ -5162,15 +5162,15 @@
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 219
+          "line": 227
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 199
+          "line": 207
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 275
+          "line": 283
         }
       ],
       "documented_route": false,
@@ -5760,11 +5760,11 @@
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 217
+          "line": 225
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 240
+          "line": 248
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
@@ -6269,7 +6269,7 @@
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 255
+          "line": 263
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
@@ -6371,7 +6371,7 @@
       "public_name": "verify_g3_joint_evidence_run_manifest",
       "qualified_name": "evaluation.verify_g3_joint_evidence_run_manifest",
       "source": "evaluation/run_manifest/verify.py",
-      "definition_line": 75,
+      "definition_line": 81,
       "direct_production_references": [
         {
           "path": "evaluation/run_manifest/cli.py",
@@ -6405,19 +6405,19 @@
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 225
+          "line": 233
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 291
+          "line": 299
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 317
+          "line": 325
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_inventory.py",
-          "line": 339
+          "line": 347
         },
         {
           "path": "tests/test_evaluation/test_joint_evidence_signatures.py",
@@ -6541,7 +6541,7 @@
         },
         {
           "path": "evaluation/run_manifest/verify.py",
-          "line": 359
+          "line": 367
         }
       ],
       "direct_test_references": [
@@ -7966,7 +7966,7 @@
         },
         {
           "path": "tests/test_integrations/test_cdl_joint_tx_rx_spatiotemporal_covariance_native.py",
-          "line": 108
+          "line": 97
         },
         {
           "path": "tests/test_integrations/test_cdl_larger_dual_tx_rx_spatiotemporal_covariance_native.py",
@@ -8014,7 +8014,7 @@
         },
         {
           "path": "tests/test_integrations/test_cdl_spatial_covariance_4element_native.py",
-          "line": 164
+          "line": 161
         },
         {
           "path": "tests/test_integrations/test_cdl_spatial_covariance_reference_native.py",
@@ -8226,19 +8226,19 @@
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 163
+          "line": 168
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 194
+          "line": 199
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 251
+          "line": 256
         },
         {
           "path": "tests/test_integrations/test_admission_native.py",
-          "line": 235
+          "line": 240
         },
         {
           "path": "tests/test_integrations/test_core1_covariance_matrix_native.py",

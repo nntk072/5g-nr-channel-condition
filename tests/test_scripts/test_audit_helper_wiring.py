@@ -3,12 +3,32 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.audit_helper_wiring import ARCHIVED_SOURCES, SCHEMA, build_inventory
+import pytest
+
+from scripts.audit_helper_wiring import ARCHIVED_SOURCES, MATRIX, SCHEMA, build_inventory
+
+ROOT = Path(__file__).resolve().parents[2]
+TRACKED_INVENTORY = ROOT / "docs/research/HELPER_WIRING_INVENTORY.json"
 
 
+def test_tracked_helper_inventory_matches_its_schema() -> None:
+    # Runs in every checkout: it reads the committed inventory, not the developer matrix.
+    from jsonschema import Draft202012Validator
+
+    inventory = json.loads(TRACKED_INVENTORY.read_text(encoding="utf-8"))
+    schema = json.loads((ROOT / SCHEMA).read_text(encoding="utf-8"))
+    Draft202012Validator(schema).validate(inventory)
+    assert inventory["helper_count"] == len(inventory["helpers"])
+    assert inventory["helper_count"] >= 200
+
+
+@pytest.mark.skipif(
+    not (ROOT / MATRIX).is_file(),
+    reason="the helper-wiring matrix is a developer record in the git-ignored dev-docs folder",
+)
 def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
     inventory = build_inventory()
-    schema = json.loads((Path(__file__).resolve().parents[2] / SCHEMA).read_text(encoding="utf-8"))
+    schema = json.loads((ROOT / SCHEMA).read_text(encoding="utf-8"))
     from jsonschema import Draft202012Validator
 
     Draft202012Validator(schema).validate(inventory)
@@ -61,6 +81,4 @@ def test_helper_wiring_inventory_binds_exports_and_direct_call_sites() -> None:
     for source, digest in inventory["source_sha256"].items():
         assert len(digest) == 64
         # Archived sources are read from the archive tag, not the working tree.
-        assert (Path(__file__).resolve().parents[2] / source).is_file() or Path(
-            source
-        ) in ARCHIVED_SOURCES
+        assert (ROOT / source).is_file() or Path(source) in ARCHIVED_SOURCES

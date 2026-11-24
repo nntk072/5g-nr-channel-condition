@@ -35,5 +35,27 @@
         "tests/test_scripts/test_audit_channel_split_dataset_registry.py"
       ]
     }
+  ],
+  "developer_local": [
+    {
+      "path": "docs/research/HELPER_WIRING_MATRIX.md",
+      "requirement": "PKG00-003",
+      "reason": "Developer record kept in the git-ignored dev-docs folder; its move is recorded in digest-rebindings.json. The frozen ledger cites it as evidence, and the citation is verified where dev-docs exists."
+    },
+    {
+      "path": "docs/research/MODEL_INPUT_ROUTE_INVENTORY.md",
+      "requirement": "PKG08-017",
+      "reason": "Developer record kept in the git-ignored dev-docs folder; its move is recorded in digest-rebindings.json. The frozen ledger cites it as evidence, and the citation is verified where dev-docs exists."
+    },
+    {
+      "path": "docs/research/PROBABILITY_PRIOR_POLICY.md",
+      "requirement": "PKG09-004",
+      "reason": "Developer record kept in the git-ignored dev-docs folder; its move is recorded in digest-rebindings.json. The frozen ledger cites it as evidence, and the citation is verified where dev-docs exists."
+    },
+    {
+      "path": "docs/research/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.md",
+      "requirement": "PKG08-008",
+      "reason": "Developer record kept in the git-ignored dev-docs folder; its move is recorded in digest-rebindings.json. The frozen ledger cites it as evidence, and the citation is verified where dev-docs exists."
+    }
   ]
 }
