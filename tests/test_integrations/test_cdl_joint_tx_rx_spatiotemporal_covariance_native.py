@@ -24,6 +24,9 @@ _MODELS = tuple("ABCDE")
 _VELOCITY = (10.0, 20.0, 20.0)
 _SEED_START = 2_811_000
 _BATCH_SIZE = 16_384
+# Draws are generated in chunks of this size, each with its own seed, to bound peak memory.
+_CHUNK_BATCH_SIZE = 4_096
+_CHUNK_SEED_STRIDE = 100_003
 _CARRIER_FREQUENCY_HZ = 3.5e9
 _LAG_S = 0.7e-3
 _TX_COUNT = 2
@@ -94,28 +97,34 @@ _MAX_SEEDS_WITH_MISS = 2
 def _joint_seed_claims(
     model: str, seed: int, expected: Any, table_digest: str
 ) -> list[dict[str, Any]]:
-    channel = generate_cdl_frequency_response(
-        model=model,
-        seed=seed,
-        carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
-        subcarrier_spacing_hz=30_000.0,
-        num_subcarriers=8,
-        batch_size=_BATCH_SIZE,
-        delay_spread_s=100e-9,
-        num_time_steps=2,
-        sampling_frequency_hz=1.0 / _LAG_S,
-        ut_velocity_mps=_VELOCITY,
-        ut_array=CDLArrayConfig(num_cols_per_panel=_RX_COUNT, element_horizontal_spacing=0.5),
-        bs_array=CDLArrayConfig(num_cols_per_panel=_TX_COUNT, element_horizontal_spacing=0.5),
-        ut_orientation_rad=(0.0, 0.0, 0.0),
-        bs_orientation_rad=(0.0, 0.0, 0.0),
-        spec_version="19.2",
-        device="cpu",
-    )
+    samples_chunks: list[torch.Tensor] = []
+    for chunk_index in range(_BATCH_SIZE // _CHUNK_BATCH_SIZE):
+        chunk_seed = seed + _CHUNK_SEED_STRIDE * chunk_index
+        channel = generate_cdl_frequency_response(
+            model=model,
+            seed=chunk_seed,
+            carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
+            subcarrier_spacing_hz=30_000.0,
+            num_subcarriers=8,
+            batch_size=_CHUNK_BATCH_SIZE,
+            delay_spread_s=100e-9,
+            num_time_steps=2,
+            sampling_frequency_hz=1.0 / _LAG_S,
+            ut_velocity_mps=_VELOCITY,
+            ut_array=CDLArrayConfig(num_cols_per_panel=_RX_COUNT, element_horizontal_spacing=0.5),
+            bs_array=CDLArrayConfig(num_cols_per_panel=_TX_COUNT, element_horizontal_spacing=0.5),
+            ut_orientation_rad=(0.0, 0.0, 0.0),
+            bs_orientation_rad=(0.0, 0.0, 0.0),
+            spec_version="19.2",
+            device="cpu",
+        )
 
-    path = channel.h_path[:, 0, :, 0, :, :, :].to(torch.complex128)
-    samples = path.sum(dim=3).reshape(_BATCH_SIZE, _PORT_COUNT, 2)
-    assert tuple(samples.shape) == (_BATCH_SIZE, _PORT_COUNT, 2)
+        path = channel.h_path[:, 0, :, 0, :, :, :].to(torch.complex128)
+        samples = path.sum(dim=3).reshape(_CHUNK_BATCH_SIZE, _PORT_COUNT, 2)
+        assert tuple(samples.shape) == (_CHUNK_BATCH_SIZE, _PORT_COUNT, 2)
+        samples_chunks.append(samples)
+    samples = torch.cat(samples_chunks, dim=0)
+    assert tuple(samples.shape[:1]) == (_BATCH_SIZE,)
     h0 = samples[:, :, 0]
     h1 = samples[:, :, 1]
     cross = h0.conj()[:, :, None] * h1[:, None, :]
