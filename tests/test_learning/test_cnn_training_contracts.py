@@ -51,7 +51,7 @@ def test_real_cnn_rejects_invalid_hyperparameters(kwargs, message) -> None:
 
 
 def test_real_cnn_refuses_unavailable_cuda_when_requested(monkeypatch: pytest.MonkeyPatch) -> None:
-    import torch
+    torch = pytest.importorskip("torch")
 
     fit_real_cnn, *_ = _apis()
     monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
@@ -89,7 +89,7 @@ def test_real_cnn_predictor_rejects_wrong_link_count_and_threshold(tmp_path) -> 
 
 
 def test_real_cnn_checkpoint_format_is_checked(tmp_path) -> None:
-    import torch
+    torch = pytest.importorskip("torch")
 
     _, _, _, load_real_cnn, _ = _apis()
     torch.save({"format": "not-real-cnn"}, tmp_path / "wrong.pt")
@@ -98,7 +98,7 @@ def test_real_cnn_checkpoint_format_is_checked(tmp_path) -> None:
 
 
 def test_complex_cnn_predictor_checks_links_threshold_and_format(tmp_path) -> None:
-    import torch
+    torch = pytest.importorskip("torch")
 
     _, fit_complex_cnn, _, _, load_complex_cnn = _apis()
     x, y = _data()
