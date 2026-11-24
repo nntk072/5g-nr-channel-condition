@@ -612,6 +612,159 @@ def test_frequency_assignment_width_matches_allocation_mode(configuration, expec
 @pytest.mark.parametrize(
     ("configuration", "error", "message"),
     [
+        ({"size_prb": 20, "resource_allocation": "type1"}, TypeError, "start_prb"),
+        ({"start_prb": 0, "resource_allocation": "type1"}, TypeError, "size_prb"),
+        (
+            {"size_prb": 20, "start_prb": 0, "resource_allocation": "type1", "use_interlace": 1},
+            TypeError,
+            "use_interlace.*boolean",
+        ),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 0,
+                "use_interlace": True,
+                "subcarrier_spacing_khz": True,
+                "rb_set_count": 1,
+            },
+            TypeError,
+            "subcarrier_spacing_khz.*integer",
+        ),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 0,
+                "use_interlace": True,
+                "subcarrier_spacing_khz": 30,
+                "rb_set_count": True,
+            },
+            TypeError,
+            "rb_set_count.*integer",
+        ),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 0,
+                "use_interlace": True,
+                "subcarrier_spacing_khz": 30,
+                "rb_set_count": 0,
+            },
+            ValueError,
+            "rb_set_count.*\\[1, 275\\]",
+        ),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 0,
+                "resource_allocation": "type1",
+                "frequency_hopping": True,
+            },
+            TypeError,
+            "frequency_hopping_offset_count.*integer",
+        ),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 0,
+                "resource_allocation": "type1",
+                "rbg_size_config": 1.5,
+            },
+            TypeError,
+            "rbg_size_config.*config1",
+        ),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 0,
+                "resource_allocation": "type1",
+                "type1_granularity_prb": True,
+            },
+            TypeError,
+            "type1_granularity_prb.*integer",
+        ),
+    ],
+)
+def test_frequency_assignment_rejects_malformed_active_bwp_fields(
+    configuration, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        _frequency_width(configuration)
+
+
+@pytest.mark.parametrize(
+    ("cells", "configured", "active", "configs", "error", "message"),
+    [
+        ((), {"cell": (0,)}, {"cell": 0}, {"cell": {0: {}}}, ValueError, "nonempty and unique"),
+        (
+            ("cell", "cell"),
+            {"cell": (0,)},
+            {"cell": 0},
+            {"cell": {0: {}}},
+            ValueError,
+            "nonempty and unique",
+        ),
+        (
+            ("other",),
+            {"cell": (0,)},
+            {"cell": 0},
+            {"cell": {0: {}}},
+            ValueError,
+            "covered by the full BWP configuration roster",
+        ),
+        (("cell",), {"cell": "bad"}, {"cell": 0}, {"cell": {0: {}}}, TypeError, "ordered sequence"),
+        (
+            ("cell",),
+            {"cell": (True,)},
+            {"cell": True},
+            {"cell": {True: {}}},
+            ValueError,
+            "integers in \\[0, 4\\]",
+        ),
+        (("cell",), {"cell": ()}, {"cell": 0}, {"cell": {}}, ValueError, "nonempty and unique"),
+        (
+            ("cell",),
+            {"cell": (0, 0)},
+            {"cell": 0},
+            {"cell": {0: {}}},
+            ValueError,
+            "nonempty and unique",
+        ),
+        (
+            ("cell",),
+            {"cell": (0,)},
+            {"cell": True},
+            {"cell": {0: {}}},
+            TypeError,
+            "active BWP ID.*integer",
+        ),
+        (
+            ("cell",),
+            {"cell": (0,)},
+            {"cell": 1},
+            {"cell": {0: {}}},
+            ValueError,
+            "is not configured",
+        ),
+        (
+            ("cell",),
+            {"cell": (0,)},
+            {"cell": 0},
+            {"cell": {0: "bad"}},
+            TypeError,
+            "must be a mapping",
+        ),
+    ],
+)
+def test_frequency_assignment_rejects_invalid_bwp_rosters(
+    cells, configured, active, configs, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        nr_srs_dci_0_3_frequency_assignment_widths(cells, configured, active, configs)
+
+
+@pytest.mark.parametrize(
+    ("configuration", "error", "message"),
+    [
         ({"size_prb": True, "start_prb": 0}, TypeError, "size_prb"),
         ({"size_prb": 1, "start_prb": False}, TypeError, "start_prb"),
         (
