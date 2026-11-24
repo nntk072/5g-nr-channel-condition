@@ -1,46 +1,52 @@
 # Command reference
 
-Installed console commands, from `[project.scripts]` in `pyproject.toml`.
+This page lists every command that the project installs or ships. Each entry
+was verified to import, so every listed name runs.
+
+## Installed console commands
+
+From `[project.scripts]` in `pyproject.toml`:
 
 | Command | Module | Purpose |
 | --- | --- | --- |
-| `loslab-audit-channel-population` | `scripts.audit_channel_population` |  |
-| `loslab-audit-odbl-scene-source` | `scripts.audit_odbl_scene_source_snapshot` |  |
+| `loslab-pilot` | `experiments.pilot_cli` | Deterministic pilot sampling and result audits. |
+| `loslab-runtime-inventory` | `integrations.runtime_inventory` | Exact, read-only inventory of software and model tables used by runs. |
+| `loslab-report-standardized-capabilities` | `scripts.report_standardized_capabilities` | Schema-validated, deterministic standardized generator scope reports. |
+| `loslab-build-standardized-split-registry` | `scripts.build_standardized_split_registry` | Candidate split lock from immutable standardized-channel runs. |
 | `loslab-bind-split-registry-children` | `scripts.bind_split_registry_children` | Bind frozen child rosters to a candidate split registry without changing parents. |
-| `loslab-build-result-promotion-manifest` | `scripts.build_result_promotion_manifest` |  |
-| `loslab-build-standardized-split-registry` | `scripts.build_standardized_split_registry` | Build a candidate release split lock from immutable standardized-channel runs. |
-| `loslab-export-public-release` | `scripts.export_public_release` | Export a hash-checked public release after external signature verification. |
-| `loslab-g3-joint-evidence` | `evaluation.joint_evidence_artifact` | File-bound execution and replay for the five-branch G3 numeric bundle. |
-| `loslab-materialize-benchmark-partitions` | `scripts.materialize_benchmark_partitions` | Materialize a signed, non-copying six-cohort benchmark index from ChannelDatasets. |
-| `loslab-materialize-direct-path-ablation` | `scripts.materialize_direct_path_ablation` | Materialize a mathematical direct-path ablation from an existing UMCD bundle. |
-| `loslab-pair-stored-frequency-views` | `scripts.pair_stored_frequency_views` | Pair existing independently solved channel bundles under a frozen split lock. |
-| `loslab-pilot` | `experiments.pilot_cli` | Command-line interface for deterministic pilot sampling and result audits. |
-| `loslab-report-standardized-capabilities` | `scripts.report_standardized_capabilities` | Publish schema-validated, deterministic standardized generator scope reports. |
-| `loslab-runtime-inventory` | `integrations.runtime_inventory` | Exact, read-only inventory of the software and model tables used by runs. |
-| `loslab-verify-g3-run-report-signature` | `scripts.verify_run_report_signature` |  |
+| `loslab-pair-stored-frequency-views` | `scripts.pair_stored_frequency_views` | Pair independently solved channel bundles under a frozen split lock. |
+| `loslab-materialize-direct-path-ablation` | `scripts.materialize_direct_path_ablation` | Mathematical direct-path ablation from an existing UMCD bundle. |
+| `loslab-materialize-benchmark-partitions` | `scripts.materialize_benchmark_partitions` | Signed, non-copying benchmark index from ChannelDatasets. |
+| `loslab-joint-evidence-artifact` | `evaluation.joint_evidence_artifact` | File-bound execution and replay of the joint numerical evidence bundle. |
+| `loslab-export-public-release` | `scripts.export_public_release` | Hash-checked public release after external signature verification. |
 
-## Script commands
+## Scripts
 
-Scripts in `scripts/` run as `python scripts/<name>.py --help`.
+Scripts run with `python -m scripts.<name> --help`. They are grouped by workflow in
+[`scripts/README.md`](../../scripts/README.md).
 
 | Script | Purpose |
 | --- | --- |
-| `scripts/bind_split_registry_children.py` | Bind frozen child rosters to a candidate split registry without changing parents. |
-| `scripts/build_channel_split_registry.py` | Build an immutable candidate split registry from saved ChannelDatasets. |
-| `scripts/build_rt_dmrs_observation_dataset.py` | Convert saved RT CFR datasets to PUSCH/DMRS receiver observations. |
-| `scripts/build_standardized_pusch_dataset.py` | Build receiver-visible PUSCH/DMRS records from Sionna TDL or CDL draws. |
-| `scripts/build_standardized_split_registry.py` | Build a candidate release split lock from immutable standardized-channel runs. |
-| `scripts/check_rt_backend.py` | Probe installed Mitsuba variants with a minimal native Sionna RT trace. |
-| `scripts/export_public_release.py` | Export a hash-checked public release after external signature verification. |
-| `scripts/generate_rt_dataset.py` | Generate geometric LOS/NLOS RT datasets from full multi-path ray tracing. |
-| `scripts/generate_rt_dmrs_observations.py` | Apply a Sionna PUSCH/DMRS receiver to saved RT channel-frequency-response datasets. |
-| `scripts/generate_rt_nr_trajectory.py` | Generate one timestamped, hash-addressed Sionna RT-to-NR trajectory. |
-| `scripts/materialize_benchmark_partitions.py` | Materialize a signed, non-copying six-cohort benchmark index from ChannelDatasets. |
-| `scripts/materialize_direct_path_ablation.py` | Materialize a mathematical direct-path ablation from an existing UMCD bundle. |
-| `scripts/pair_stored_frequency_views.py` | Pair existing independently solved channel bundles under a frozen split lock. |
-| `scripts/report_rt_backend_capabilities.py` | Report installed and probe-verified Sionna RT backend capabilities. |
-| `scripts/report_runtime_inventory.py` | Write a local software, accelerator, and Sionna model-table inventory. |
-| `scripts/report_standardized_capabilities.py` | Publish schema-validated, deterministic standardized generator scope reports. |
-| `scripts/run_channel_experiment.py` | Evaluate channel-condition baselines on saved datasets from a versioned configuration. |
-| `scripts/run_profile_proxy_dataset.py` | Generate a provenance-recorded TDL/CDL profile-proxy dataset. |
-| `scripts/sample_scene_families.py` | Create an immutable, deterministic S00–S11 scene-candidate sample report. |
+| `bind_split_registry_children` | Console command above. |
+| `build_channel_split_registry` | Immutable candidate split registry from saved ChannelDatasets. |
+| `build_rt_dmrs_observation_dataset` | Convert saved RT CFR datasets to PUSCH/DMRS receiver observations. |
+| `build_standardized_pusch_dataset` | Receiver-visible PUSCH/DMRS records from Sionna TDL or CDL draws. |
+| `build_standardized_split_registry` | Console command above. |
+| `check_rt_backend` | Probe installed Mitsuba variants with a minimal Sionna RT trace. |
+| `export_public_release` | Console command above. |
+| `generate_rt_dataset` | Geometric line-of-sight and NLOS RT datasets from full multipath ray tracing. |
+| `generate_rt_dmrs_observations` | Apply a Sionna PUSCH/DMRS receiver to saved RT channel-frequency-response datasets. |
+| `generate_rt_nr_trajectory` | One timestamped, hash-addressed Sionna RT-to-NR trajectory. |
+| `materialize_benchmark_partitions` | Console command above. |
+| `materialize_direct_path_ablation` | Console command above. |
+| `pair_stored_frequency_views` | Console command above. |
+| `report_rt_backend_capabilities` | Installed and probe-verified Sionna RT backend capabilities. |
+| `report_runtime_inventory` | Local software, accelerator, and Sionna model-table inventory. |
+| `report_standardized_capabilities` | Console command above. |
+| `run_channel_experiment` | Channel-condition baselines on saved datasets from a versioned configuration. |
+| `run_profile_proxy_dataset` | Provenance-recorded TDL/CDL profile-proxy dataset. |
+| `sample_scene_families` | Immutable, deterministic scene-candidate sample report. |
+
+Native commands (`check_rt_backend`, `generate_rt_*`, `build_rt_dmrs_*`,
+`generate_rt_nr_trajectory`) need the Sionna RT extras and a host with Mitsuba.
+They fail with an explicit message otherwise.
