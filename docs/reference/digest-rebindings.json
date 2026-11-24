@@ -2635,18 +2635,6 @@
     {
       "old_path": "dev-docs/reference/helper-wiring-matrix.md",
       "new_path": "docs/research/HELPER_WIRING_MATRIX.md"
-    },
-    {
-      "old_path": "dev-docs/architecture/model-input-route-inventory.md",
-      "new_path": "docs/research/MODEL_INPUT_ROUTE_INVENTORY.md"
-    },
-    {
-      "old_path": "dev-docs/operations/probability-prior-policy.md",
-      "new_path": "docs/research/PROBABILITY_PRIOR_POLICY.md"
-    },
-    {
-      "old_path": "dev-docs/reference/target-family-producer-consumer-matrix.md",
-      "new_path": "docs/research/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.md"
     }
   ],
   "note": "Retained evidence is not edited. Each entry maps a superseded SHA-256 to its replacement after a rename. Verifiers may accept either digest.",
