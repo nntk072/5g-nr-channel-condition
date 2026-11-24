@@ -7,13 +7,18 @@ from integrations.sionna.srs import (
     NRSRSBWPFrequencyBounds,
     NRSRSResourceSetAperiodicSchedule,
     nr_srs_fixed_frequency_allocation,
+    nr_srs_periodic_resource_set_schedule,
 )
-from integrations.sionna.srs.srs_bwp_schedules import NRSRSBWPCellResourceSetSchedules
+from integrations.sionna.srs.srs_bwp_schedules import (
+    NRSRSBWPCellPeriodicResourceSetSchedules,
+    NRSRSBWPCellResourceSetSchedules,
+    NRSRSBWPPeriodicResourceSetSchedule,
+)
 
 
 @pytest.fixture
 def bounds():
-    return NRSRSBWPFrequencyBounds(start_subcarrier=0, size_subcarriers=48)
+    return NRSRSBWPFrequencyBounds(start_subcarrier=0, size_subcarriers=120)
 
 
 @pytest.fixture
@@ -50,3 +55,82 @@ def test_aperiodic_bwp_schedules_validate_identity(bounds, resource_set, kwargs,
     arguments.update(kwargs)
     with pytest.raises((TypeError, ValueError), match=message):
         NRSRSBWPCellResourceSetSchedules(**arguments)
+
+
+@pytest.fixture
+def periodic_resource_set():
+    return nr_srs_periodic_resource_set_schedule(
+        0,
+        7,
+        (
+            {
+                "resource_id": 3,
+                "allocation": {
+                    "c_srs": 0,
+                    "transmission_comb": 2,
+                    "b_srs": 0,
+                    "b_hop": 0,
+                    "srs_symbol_count": 1,
+                },
+            },
+        ),
+        periodicity_slots=1,
+        slot_offset=0,
+    )
+
+
+@pytest.fixture
+def periodic_bwp_schedule(bounds, periodic_resource_set):
+    return NRSRSBWPPeriodicResourceSetSchedule("cell-0", 0, bounds, periodic_resource_set)
+
+
+def test_periodic_bwp_schedule_binds_active_resource_set(
+    periodic_resource_set, periodic_bwp_schedule
+) -> None:
+    assert periodic_bwp_schedule.resource_set_schedule is periodic_resource_set
+    assert periodic_bwp_schedule.cell_id == "cell-0"
+
+
+@pytest.mark.parametrize(
+    ("overrides", "error", "message"),
+    [
+        ({"cell_id": "  "}, ValueError, "cell_id must be a nonempty string"),
+        ({"ul_bwp_id": True}, ValueError, "ul_bwp_id must be in"),
+        ({"frequency_bounds": None}, TypeError, "frequency_bounds must be"),
+        ({"resource_set_schedule": None}, TypeError, "resource_set_schedule must be"),
+    ],
+)
+def test_periodic_bwp_schedule_rejects_invalid_identity_and_types(
+    bounds, periodic_resource_set, overrides, error, message
+) -> None:
+    arguments = {
+        "cell_id": "cell-0",
+        "ul_bwp_id": 0,
+        "frequency_bounds": bounds,
+        "resource_set_schedule": periodic_resource_set,
+    }
+    arguments.update(overrides)
+    with pytest.raises(error, match=message):
+        NRSRSBWPPeriodicResourceSetSchedule(**arguments)
+
+
+def test_periodic_bwp_schedule_rejects_resource_outside_selected_bwp(periodic_resource_set) -> None:
+    narrow_bounds = NRSRSBWPFrequencyBounds(start_subcarrier=100, size_subcarriers=100)
+    with pytest.raises(ValueError, match="lies outside selected UL BWP"):
+        NRSRSBWPPeriodicResourceSetSchedule("cell-0", 0, narrow_bounds, periodic_resource_set)
+
+
+def test_periodic_cell_schedules_require_consistent_unique_bwp_bindings(
+    bounds, periodic_bwp_schedule
+) -> None:
+    valid = NRSRSBWPCellPeriodicResourceSetSchedules(
+        " cell-0 ", 0, bounds, (periodic_bwp_schedule,)
+    )
+    assert valid.cell_id == "cell-0"
+    assert valid.resource_set_schedules == (periodic_bwp_schedule,)
+    with pytest.raises(ValueError, match="share the cell's active-BWP binding"):
+        NRSRSBWPCellPeriodicResourceSetSchedules("cell-1", 0, bounds, (periodic_bwp_schedule,))
+    with pytest.raises(ValueError, match="IDs must be unique"):
+        NRSRSBWPCellPeriodicResourceSetSchedules(
+            "cell-0", 0, bounds, (periodic_bwp_schedule, periodic_bwp_schedule)
+        )
