@@ -700,7 +700,7 @@ def test_episode_bundle_reader_rejects_duplicate_manifest_keys(tmp_path):
         read_episode_bundle(store, stored)
 
 
-def test_g7_12_compressed_round_trip_preserves_physical_values_and_dtypes(tmp_path):
+def test_compressed_round_trip_preserves_physical_values_and_dtypes(tmp_path):
     store = tmp_path / "precision-store"
     bundle = _episode_bundle()
     stored = write_episode_bundle(store, bundle)
@@ -727,7 +727,7 @@ def test_g7_12_compressed_round_trip_preserves_physical_values_and_dtypes(tmp_pa
         assert stored_target.definition == source_target.definition
 
 
-def test_g7_complex_cfr_target_survives_episode_store_round_trip(tmp_path):
+def test_complex_cfr_target_survives_episode_store_round_trip(tmp_path):
     store = tmp_path / "complex-cfr-store"
     source_bundle = _episode_bundle()
     target = _versioned_complex_cfr_target()
