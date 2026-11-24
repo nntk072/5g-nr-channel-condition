@@ -16,6 +16,7 @@ from integrations.sionna.srs import (
     nr_srs_dci_0_3_ul_bwp_selection,
     nr_srs_multicell_aperiodic_resource_set_schedules,
     nr_srs_multicell_request_resource_set_ids,
+    nr_srs_periodic_resource_set_schedule_by_bwp,
     nr_srs_triggered_resource_set_ids,
 )
 
@@ -1258,3 +1259,355 @@ def test_srs_request_requires_allocation_only_for_triggered_resource_sets() -> N
     assert nr_srs_aperiodic_resource_set_schedules(50, 0, resource_sets, dci_format="0_1") == ()
     with pytest.raises(ValueError, match="requires an allocation mapping"):
         nr_srs_aperiodic_resource_set_schedules(50, 1, resource_sets, dci_format="0_1")
+
+
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"serving_cell_ids": "cell-a"}, TypeError, "ordered sequence"),
+        ({"serving_cell_ids": ()}, ValueError, "nonempty cell IDs"),
+        ({"serving_cell_ids": ("cell-a", "cell-a")}, ValueError, "must be unique"),
+        (
+            {"supplementary_uplink_cells": "cell-a"},
+            TypeError,
+            "supplementary_uplink_cells must be an ordered sequence",
+        ),
+        (
+            {"supplementary_uplink_cells": ("",)},
+            ValueError,
+            "must contain nonempty cell IDs",
+        ),
+        (
+            {"supplementary_uplink_cells": ("cell-x",)},
+            ValueError,
+            "unique serving-cell subset",
+        ),
+        ({"resource_sets_by_cell": ()}, TypeError, "must be a mapping"),
+        ({"resource_sets_by_cell": {}}, ValueError, "include every cell"),
+    ],
+)
+def test_multicell_aperiodic_scheduler_rejects_invalid_serving_rosters(
+    changes, error, message
+) -> None:
+    arguments = {
+        "request_list_index": 0,
+        "request_list": ((1, 1),),
+        "serving_cell_ids": ("cell-a", "cell-b"),
+        "resource_sets_by_cell": {"cell-a": (), "cell-b": ()},
+        "triggering_dci_slot_by_cell": {},
+        "cell_set_configs": (
+            {
+                "set_id": 0,
+                "scheduled_cell_ids": ("cell-a", "cell-b"),
+                "scheduled_cell_combos": ((0, 1),),
+            },
+        ),
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules(**arguments)
+
+
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"ul_bwp_frequency_bounds_by_cell_and_bwp": ()}, TypeError, "must be a mapping"),
+        ({"ul_bwp_frequency_bounds_by_cell_and_bwp": {}}, ValueError, "keys must exactly match"),
+        (
+            {"ul_bwp_frequency_bounds_by_cell_and_bwp": {"cell-a": {}, "cell-b": {}}},
+            ValueError,
+            "IDs for 'cell-a' must match configured",
+        ),
+        (
+            {
+                "ul_bwp_frequency_bounds_by_cell_and_bwp": {
+                    "cell-a": None,
+                    "cell-b": {0: NRSRSBWPFrequencyBounds(0, 10)},
+                }
+            },
+            TypeError,
+            "for 'cell-a' must be a mapping",
+        ),
+        (
+            {
+                "ul_bwp_frequency_bounds_by_cell_and_bwp": {
+                    "cell-a": {True: NRSRSBWPFrequencyBounds(0, 10)},
+                    "cell-b": {0: NRSRSBWPFrequencyBounds(0, 10)},
+                }
+            },
+            TypeError,
+            "IDs for 'cell-a' must be integers",
+        ),
+        (
+            {
+                "ul_bwp_frequency_bounds_by_cell_and_bwp": {
+                    "cell-a": {},
+                    "cell-b": {0: NRSRSBWPFrequencyBounds(0, 10)},
+                }
+            },
+            ValueError,
+            "IDs for 'cell-a' must match configured",
+        ),
+        (
+            {
+                "ul_bwp_frequency_bounds_by_cell_and_bwp": {
+                    "cell-a": {0: object(), 1: NRSRSBWPFrequencyBounds(0, 10)},
+                    "cell-b": {0: NRSRSBWPFrequencyBounds(0, 10)},
+                }
+            },
+            TypeError,
+            "has invalid type",
+        ),
+        ({"resource_sets_by_cell_and_bwp": ()}, TypeError, "must be a mapping"),
+        ({"resource_sets_by_cell_and_bwp": {}}, ValueError, "keys must exactly match"),
+        (
+            {"resource_sets_by_cell_and_bwp": {"cell-a": None, "cell-b": {0: (), 1: ()}}},
+            TypeError,
+            "table for 'cell-a' must be a mapping",
+        ),
+        (
+            {
+                "resource_sets_by_cell_and_bwp": {
+                    "cell-a": {True: ()},
+                    "cell-b": {0: ()},
+                }
+            },
+            TypeError,
+            "keys for 'cell-a' must be integer IDs",
+        ),
+        (
+            {
+                "resource_sets_by_cell_and_bwp": {
+                    "cell-a": {0: ()},
+                    "cell-b": {0: ()},
+                }
+            },
+            ValueError,
+            "keys for 'cell-a' must match configured",
+        ),
+        (
+            {
+                "resource_sets_by_cell_and_bwp": {
+                    "cell-a": {0: "bad", 1: ()},
+                    "cell-b": {0: ()},
+                }
+            },
+            TypeError,
+            "must be a sequence",
+        ),
+        (
+            {
+                "resource_sets_by_cell_and_bwp": {
+                    "cell-a": {0: (None,), 1: ()},
+                    "cell-b": {0: ()},
+                }
+            },
+            TypeError,
+            "each per-BWP resource-set record must be a mapping",
+        ),
+        (
+            {
+                "resource_sets_by_cell_and_bwp": {
+                    "cell-a": {0: ({"resource_type": "aperiodic", "allocation": None},), 1: ()},
+                    "cell-b": {0: ()},
+                }
+            },
+            ValueError,
+            "requires an allocation mapping",
+        ),
+        (
+            {
+                "resource_sets_by_cell_and_bwp": {
+                    "cell-a": {
+                        0: (
+                            {
+                                "resource_type": "aperiodic",
+                                "allocation": {"available_slot_offsets": "bad"},
+                            },
+                        ),
+                        1: (),
+                    },
+                    "cell-b": {0: ()},
+                }
+            },
+            TypeError,
+            "available_slot_offsets must be an ordered sequence",
+        ),
+        (
+            {
+                "resource_sets_by_cell_and_bwp": {
+                    "cell-a": {
+                        0: (
+                            {
+                                "resource_type": "aperiodic",
+                                "allocation": {"available_slot_offsets": ()},
+                            },
+                        ),
+                        1: (),
+                    },
+                    "cell-b": {0: ()},
+                }
+            },
+            ValueError,
+            "available_slot_offsets must not be empty",
+        ),
+        ({"offset_combo_cell_ids": ("cell-a",)}, ValueError, "must match BWP-derived"),
+    ],
+)
+def test_multicell_bwp_scheduler_rejects_malformed_tables(changes, error, message) -> None:
+    arguments = {
+        "request_list_index": 0,
+        "request_list": ((0, 0),),
+        "serving_cell_ids": ("cell-a", "cell-b"),
+        "resource_sets_by_cell_and_bwp": {
+            "cell-a": {0: (), 1: ()},
+            "cell-b": {0: ()},
+        },
+        "triggering_dci_slot_by_cell": {},
+        "cell_set_configs": (
+            {
+                "set_id": 0,
+                "scheduled_cell_ids": ("cell-a", "cell-b"),
+                "scheduled_cell_combos": ((0, 1),),
+            },
+        ),
+        "configured_ul_bwp_ids_by_cell": {"cell-a": (0, 1), "cell-b": (0,)},
+        "active_ul_bwp_id_by_cell": {"cell-a": 0, "cell-b": 0},
+        "ul_bwp_frequency_bounds_by_cell_and_bwp": {
+            "cell-a": {0: NRSRSBWPFrequencyBounds(0, 10), 1: NRSRSBWPFrequencyBounds(0, 10)},
+            "cell-b": {0: NRSRSBWPFrequencyBounds(0, 10)},
+        },
+        "bwp_indicator": 0,
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(**arguments)
+
+
+def test_dci_0_3_multicell_selector_rejects_string_request_list() -> None:
+    with pytest.raises(TypeError, match="request_list must be a sequence"):
+        nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_from_bits(
+            (),
+            field_offset=0,
+            request_list="bad",
+            serving_cell_ids=(),
+            resource_sets_by_cell={},
+            triggering_dci_slot_by_cell={},
+            cell_set_configs=(),
+        )
+
+
+def test_multicell_scheduler_checks_serving_roster_order() -> None:
+    with pytest.raises(ValueError, match="follow serving_cell_ids order"):
+        nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules(
+            0,
+            ((0, 0),),
+            ("cell-a", "cell-b"),
+            {"cell-a": (), "cell-b": ()},
+            {},
+            cell_set_configs=(
+                {
+                    "set_id": 0,
+                    "scheduled_cell_ids": ("cell-b", "cell-a"),
+                    "scheduled_cell_combos": ((0, 1),),
+                },
+            ),
+        )
+
+
+def test_multicell_bwp_scheduler_accepts_dci_set_indicator_and_default_id() -> None:
+    config = (
+        {
+            "set_id": 2,
+            "scheduled_cell_ids": ("cell-c", "cell-d"),
+            "scheduled_cell_combos": ((0, 1),),
+        },
+    )
+    common = {
+        "request_list_index": 0,
+        "request_list": ((0, 0),),
+        "serving_cell_ids": ("cell-c", "cell-d"),
+        "resource_sets_by_cell_and_bwp": {cell: {0: ()} for cell in ("cell-c", "cell-d")},
+        "triggering_dci_slot_by_cell": {cell: 0 for cell in ("cell-c", "cell-d")},
+        "cell_set_configs": config,
+        "configured_ul_bwp_ids_by_cell": {cell: (0,) for cell in ("cell-c", "cell-d")},
+        "active_ul_bwp_id_by_cell": {cell: 0 for cell in ("cell-c", "cell-d")},
+        "ul_bwp_frequency_bounds_by_cell_and_bwp": {
+            cell: {0: NRSRSBWPFrequencyBounds(0, 10)} for cell in ("cell-c", "cell-d")
+        },
+        "bwp_indicator": None,
+    }
+    selected = nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
+        **common, scheduled_cell_set_indicator=0
+    )
+    defaulted = nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
+        **common, default_set_id=2
+    )
+    assert selected == defaulted
+    assert tuple(item.cell_id for item in selected) == ("cell-c", "cell-d")
+
+
+def test_multicell_bwp_scheduler_skips_other_and_non_offset_resources() -> None:
+    record_sets = {
+        "cell-a": {
+            0: (
+                {"resource_set_id": 10, "resource_type": "periodic"},
+                {
+                    "resource_set_id": 11,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "allocation": {},
+                },
+                {
+                    "resource_set_id": 12,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "allocation": {"available_slot_offsets": (0, 1)},
+                },
+                {
+                    "resource_set_id": 13,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "allocation": {"available_slot_offsets": (1, 2)},
+                },
+            )
+        },
+        "cell-b": {0: ()},
+    }
+    result = nr_srs_dci_0_3_multicell_aperiodic_resource_set_schedules_by_bwp(
+        0,
+        ((0, 0),),
+        ("cell-a", "cell-b"),
+        record_sets,
+        {"cell-a": 0, "cell-b": 0},
+        cell_set_configs=(
+            {
+                "set_id": 0,
+                "scheduled_cell_ids": ("cell-a", "cell-b"),
+                "scheduled_cell_combos": ((0, 1),),
+            },
+        ),
+        configured_ul_bwp_ids_by_cell={"cell-a": (0,), "cell-b": (0,)},
+        active_ul_bwp_id_by_cell={"cell-a": 0, "cell-b": 0},
+        ul_bwp_frequency_bounds_by_cell_and_bwp={
+            "cell-a": {0: NRSRSBWPFrequencyBounds(0, 10)},
+            "cell-b": {0: NRSRSBWPFrequencyBounds(0, 10)},
+        },
+        bwp_indicator=None,
+        offset_combo_index=0,
+        offset_combos=((0,),),
+    )
+    assert tuple(item.cell_id for item in result) == ("cell-a", "cell-b")
+    assert all(item.resource_set_schedules == () for item in result)
+
+
+def test_periodic_srs_bwp_wrapper_rejects_untyped_frequency_bounds() -> None:
+    with pytest.raises(TypeError, match="frequency_bounds must be"):
+        nr_srs_periodic_resource_set_schedule_by_bwp(
+            0,
+            0,
+            (),
+            cell_id="cell-a",
+            ul_bwp_id=0,
+            frequency_bounds=object(),
+        )
