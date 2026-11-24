@@ -10,6 +10,8 @@ from integrations.sionna.srs import (
 from integrations.sionna.srs.srs_constants.dci_0_3 import (
     _DCI_0_3_FIELD_ORDER,
     _nr_srs_dci_0_3_antenna_ports_width,
+    _nr_srs_dci_0_3_precoding_width,
+    _nr_srs_dci_0_3_sri_width,
 )
 
 
@@ -71,6 +73,237 @@ def test_antenna_port_width_rejects_invalid_dmrs_configuration(overrides, error,
     arguments.update(overrides)
     with pytest.raises(error, match=message):
         _antenna_width(**arguments)
+
+
+def _precoding_width(
+    *,
+    ports=(2,),
+    subset="fullyAndPartialAndNonCoherent",
+    rank=1,
+    full_power=None,
+    transform=False,
+    mode="type1a",
+):
+    cells = ("cell-a",)
+    return _nr_srs_dci_0_3_precoding_width(
+        mode=mode,
+        cell_ids=cells,
+        tx_config_by_cell={"cell-a": "codebook"},
+        transform_precoding_enabled_by_cell={"cell-a": transform},
+        codebook_srs_antenna_port_counts_by_cell={"cell-a": ports},
+        codebook_subset_by_cell={"cell-a": subset},
+        max_rank_for_codebook_by_cell={"cell-a": rank},
+        ul_full_power_transmission_by_cell={"cell-a": full_power},
+        full_cell_roster=cells,
+    )
+
+
+@pytest.mark.parametrize(
+    ("ports", "subset", "rank", "full_power", "transform", "expected"),
+    [
+        ((1,), None, None, None, False, 0),
+        ((2,), "fullyAndPartialAndNonCoherent", 1, None, False, 3),
+        ((2,), "fullyAndPartialAndNonCoherent", 2, None, False, 4),
+        ((2,), "nonCoherent", 2, None, False, 2),
+        ((2,), "nonCoherent", 1, "fullpowerMode1", False, 2),
+        ((2,), "nonCoherent", 2, "fullpowerMode1", False, 2),
+        ((4,), "fullyAndPartialAndNonCoherent", 1, None, False, 5),
+        ((4,), "partialAndNonCoherent", 2, None, False, 5),
+        ((4,), "nonCoherent", 3, None, False, 4),
+        ((4,), "partialAndNonCoherent", 2, "fullpowerMode1", False, 5),
+        ((4,), "nonCoherent", 3, "fullpowerMode1", False, 4),
+        ((4,), "nonCoherent", 1, "fullpowerMode1", True, 3),
+    ],
+)
+def test_precoding_width_follows_srs_ports_rank_subset_and_full_power(
+    ports, subset, rank, full_power, transform, expected
+) -> None:
+    assert (
+        _precoding_width(
+            ports=ports,
+            subset=subset,
+            rank=rank,
+            full_power=full_power,
+            transform=transform,
+        )
+        == expected
+    )
+
+
+def test_precoding_width_aggregates_per_cell_and_allows_noncodebook_cells() -> None:
+    common = {
+        "tx_config_by_cell": {"cell-a": "codebook", "cell-b": "codebook"},
+        "transform_precoding_enabled_by_cell": {"cell-a": False, "cell-b": False},
+        "codebook_srs_antenna_port_counts_by_cell": {"cell-a": (2,), "cell-b": (2,)},
+        "codebook_subset_by_cell": {
+            "cell-a": "fullyAndPartialAndNonCoherent",
+            "cell-b": "nonCoherent",
+        },
+        "max_rank_for_codebook_by_cell": {"cell-a": 1, "cell-b": 2},
+        "ul_full_power_transmission_by_cell": {"cell-a": None, "cell-b": None},
+        "full_cell_roster": ("cell-a", "cell-b"),
+        "cell_ids": ("cell-a", "cell-b"),
+    }
+    assert _nr_srs_dci_0_3_precoding_width(mode="type1a", **common) == 3
+    assert _nr_srs_dci_0_3_precoding_width(mode="type2", **common) == 5
+    noncodebook = {
+        **common,
+        "tx_config_by_cell": {"cell-a": "nonCodebook", "cell-b": "codebook"},
+        "codebook_srs_antenna_port_counts_by_cell": {"cell-a": (), "cell-b": (2,)},
+        "codebook_subset_by_cell": {"cell-a": None, "cell-b": "nonCoherent"},
+        "max_rank_for_codebook_by_cell": {"cell-a": None, "cell-b": 2},
+        "ul_full_power_transmission_by_cell": {"cell-a": None, "cell-b": None},
+    }
+    assert _nr_srs_dci_0_3_precoding_width(mode="type2", **noncodebook) == 2
+
+
+@pytest.mark.parametrize(
+    ("overrides", "error", "message"),
+    [
+        ({"mode": "type3"}, ValueError, "tpmi_mode"),
+        ({"tx_config_by_cell": {}}, ValueError, "must cover"),
+        ({"tx_config_by_cell": {"cell-a": "unsupported"}}, ValueError, "must be 'codebook'"),
+        ({"transform_precoding_enabled_by_cell": {"cell-a": 1}}, TypeError, "must be booleans"),
+        (
+            {"codebook_srs_antenna_port_counts_by_cell": {"cell-a": ()}},
+            ValueError,
+            "must configure",
+        ),
+        (
+            {"codebook_srs_antenna_port_counts_by_cell": {"cell-a": (True,)}},
+            TypeError,
+            "must be integers",
+        ),
+        (
+            {"codebook_srs_antenna_port_counts_by_cell": {"cell-a": (3,)}},
+            ValueError,
+            "must be 1, 2, or 4",
+        ),
+        ({"codebook_subset_by_cell": {"cell-a": "partialAndNonCoherent"}}, ValueError, "subset"),
+        ({"max_rank_for_codebook_by_cell": {"cell-a": True}}, TypeError, "must be an integer"),
+        ({"max_rank_for_codebook_by_cell": {"cell-a": 3}}, ValueError, "must be in"),
+        ({"ul_full_power_transmission_by_cell": {"cell-a": "invalid"}}, ValueError, "is invalid"),
+    ],
+)
+def test_precoding_width_rejects_invalid_srs_codebook_configuration(
+    overrides, error, message
+) -> None:
+    arguments = {}
+    for key, value in {
+        "mode": "type1a",
+        "cell_ids": ("cell-a",),
+        "tx_config_by_cell": {"cell-a": "codebook"},
+        "transform_precoding_enabled_by_cell": {"cell-a": False},
+        "codebook_srs_antenna_port_counts_by_cell": {"cell-a": (2,)},
+        "codebook_subset_by_cell": {"cell-a": "nonCoherent"},
+        "max_rank_for_codebook_by_cell": {"cell-a": 1},
+        "ul_full_power_transmission_by_cell": {"cell-a": None},
+        "full_cell_roster": ("cell-a",),
+    }.items():
+        arguments[key] = value
+    arguments.update(overrides)
+    with pytest.raises(error, match=message):
+        _nr_srs_dci_0_3_precoding_width(**arguments)
+
+
+def _sri_width(
+    *,
+    mode="type1a",
+    tx_config="nonCodebook",
+    resource_count=4,
+    max_layers=2,
+    supports_configured_max=True,
+    ue_max_layers=None,
+):
+    cells = ("cell-a",)
+    return _nr_srs_dci_0_3_sri_width(
+        mode=mode,
+        cell_ids=cells,
+        tx_config_by_cell={"cell-a": tx_config},
+        srs_resource_count_by_cell={"cell-a": resource_count},
+        max_noncodebook_layers_by_cell={"cell-a": max_layers},
+        ue_supports_max_mimo_layers_by_cell={"cell-a": supports_configured_max},
+        ue_max_noncodebook_layers_by_cell=(
+            None if ue_max_layers is None else {"cell-a": ue_max_layers}
+        ),
+        full_cell_roster=cells,
+    )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected"),
+    [
+        ({"tx_config": "codebook", "resource_count": 1}, 0),
+        ({"tx_config": "codebook", "resource_count": 4}, 2),
+        ({"resource_count": 4, "max_layers": 2}, 4),
+        ({"resource_count": 2, "max_layers": 8}, 2),
+        ({"max_layers": None, "supports_configured_max": False, "ue_max_layers": 1}, 2),
+        ({"max_layers": 3, "supports_configured_max": False, "ue_max_layers": 2}, 4),
+    ],
+)
+def test_sri_width_counts_configured_codebook_and_noncodebook_selections(kwargs, expected) -> None:
+    assert _sri_width(**kwargs) == expected
+
+
+def test_sri_width_uses_max_or_sum_for_the_selected_cells() -> None:
+    common = {
+        "tx_config_by_cell": {"cell-a": "codebook", "cell-b": "nonCodebook"},
+        "srs_resource_count_by_cell": {"cell-a": 4, "cell-b": 4},
+        "max_noncodebook_layers_by_cell": {"cell-a": None, "cell-b": 2},
+        "ue_supports_max_mimo_layers_by_cell": {"cell-a": True, "cell-b": True},
+        "ue_max_noncodebook_layers_by_cell": None,
+        "full_cell_roster": ("cell-a", "cell-b"),
+        "cell_ids": ("cell-a", "cell-b"),
+    }
+    assert _nr_srs_dci_0_3_sri_width(mode="type1a", **common) == 4
+    assert _nr_srs_dci_0_3_sri_width(mode="type2", **common) == 6
+
+
+@pytest.mark.parametrize(
+    ("overrides", "error", "message"),
+    [
+        ({"mode": "type3"}, ValueError, "sri_mode"),
+        ({"tx_config_by_cell": {}}, ValueError, "must cover"),
+        ({"tx_config_by_cell": {"cell-a": "unsupported"}}, ValueError, "must be 'codebook'"),
+        ({"ue_supports_max_mimo_layers_by_cell": {"cell-a": 1}}, TypeError, "must be booleans"),
+        ({"srs_resource_count_by_cell": {"cell-a": True}}, TypeError, "must be an integer"),
+        ({"srs_resource_count_by_cell": {"cell-a": 65}}, ValueError, "in \\[1, 64\\]"),
+        (
+            {"max_noncodebook_layers_by_cell": {"cell-a": None}},
+            ValueError,
+            "capability is required",
+        ),
+        ({"max_noncodebook_layers_by_cell": {"cell-a": True}}, TypeError, "must be an integer"),
+        ({"max_noncodebook_layers_by_cell": {"cell-a": 9}}, ValueError, "in \\[1, 8\\]"),
+        (
+            {
+                "supports_configured_max": False,
+                "max_noncodebook_layers_by_cell": {"cell-a": None},
+                "ue_max_noncodebook_layers_by_cell": {},
+            },
+            ValueError,
+            "must cover",
+        ),
+    ],
+)
+def test_sri_width_rejects_invalid_rrc_or_ue_layer_configuration(overrides, error, message) -> None:
+    arguments = {
+        "mode": "type1a",
+        "cell_ids": ("cell-a",),
+        "tx_config_by_cell": {"cell-a": "nonCodebook"},
+        "srs_resource_count_by_cell": {"cell-a": 4},
+        "max_noncodebook_layers_by_cell": {"cell-a": 2},
+        "ue_supports_max_mimo_layers_by_cell": {"cell-a": True},
+        "ue_max_noncodebook_layers_by_cell": None,
+        "full_cell_roster": ("cell-a",),
+    }
+    if "supports_configured_max" in overrides:
+        arguments["ue_supports_max_mimo_layers_by_cell"] = {
+            "cell-a": overrides.pop("supports_configured_max")
+        }
+    arguments.update(overrides)
+    with pytest.raises(error, match=message):
+        _nr_srs_dci_0_3_sri_width(**arguments)
 
 
 def test_dci_0_3_decoder_rejects_malformed_bit_rosters_and_resource_overflow() -> None:
@@ -306,6 +539,144 @@ def test_dci_0_3_frequency_assignment_rejects_invalid_active_bwp_configuration(
             {"cell": 0},
             {"cell": {0: configuration}},
         )
+
+
+def _frequency_width(configuration):
+    return nr_srs_dci_0_3_frequency_assignment_widths(
+        ("cell",), {"cell": (0,)}, {"cell": 0}, {"cell": {0: configuration}}
+    )["cell"]
+
+
+@pytest.mark.parametrize(
+    ("configuration", "expected"),
+    [
+        ({"size_prb": 20, "start_prb": 1, "resource_allocation": "type1"}, 8),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 1,
+                "resource_allocation": "type1",
+                "frequency_hopping": True,
+                "frequency_hopping_offset_count": 2,
+            },
+            9,
+        ),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 1,
+                "resource_allocation": "type1",
+                "frequency_hopping": True,
+                "frequency_hopping_offset_count": 4,
+            },
+            10,
+        ),
+        (
+            {
+                "size_prb": 20,
+                "start_prb": 1,
+                "resource_allocation": "dynamicSwitch",
+                "rbg_size_config": "config2",
+                "type1_granularity_prb": 4,
+            },
+            7,
+        ),
+        (
+            {
+                "size_prb": 50,
+                "start_prb": 0,
+                "use_interlace": True,
+                "subcarrier_spacing_khz": 15,
+                "rb_set_count": 1,
+            },
+            6,
+        ),
+        (
+            {
+                "size_prb": 50,
+                "start_prb": 0,
+                "use_interlace": True,
+                "subcarrier_spacing_khz": 30,
+                "rb_set_count": 4,
+            },
+            7,
+        ),
+    ],
+)
+def test_frequency_assignment_width_matches_allocation_mode(configuration, expected) -> None:
+    assert _frequency_width(configuration) == expected
+
+
+@pytest.mark.parametrize(
+    ("configuration", "error", "message"),
+    [
+        ({"size_prb": True, "start_prb": 0}, TypeError, "size_prb"),
+        ({"size_prb": 1, "start_prb": False}, TypeError, "start_prb"),
+        (
+            {"size_prb": 1, "start_prb": 0, "resource_allocation": "type1", "frequency_hopping": 1},
+            TypeError,
+            "frequency_hopping.*boolean",
+        ),
+        (
+            {
+                "size_prb": 1,
+                "start_prb": 0,
+                "resource_allocation": "type1",
+                "frequency_hopping": True,
+                "frequency_hopping_offset_count": 3,
+            },
+            ValueError,
+            "offset list must contain 2 or 4",
+        ),
+        (
+            {
+                "size_prb": 1,
+                "start_prb": 0,
+                "resource_allocation": "type1",
+                "rbg_size_config": "bad",
+            },
+            ValueError,
+            "rbg_size_config must be config1",
+        ),
+        (
+            {
+                "size_prb": 1,
+                "start_prb": 0,
+                "resource_allocation": "type1",
+                "type1_granularity_prb": 3,
+            },
+            ValueError,
+            "type1_granularity_prb must be one of",
+        ),
+        (
+            {
+                "size_prb": 1,
+                "start_prb": 0,
+                "use_interlace": True,
+                "subcarrier_spacing_khz": 60,
+                "rb_set_count": 1,
+            },
+            ValueError,
+            "supports 15 or 30 kHz",
+        ),
+        (
+            {
+                "size_prb": 1,
+                "start_prb": 0,
+                "use_interlace": True,
+                "subcarrier_spacing_khz": 30,
+                "rb_set_count": 276,
+            },
+            ValueError,
+            "rb_set_count.*1, 275",
+        ),
+    ],
+)
+def test_frequency_assignment_width_rejects_invalid_active_bwp_fields(
+    configuration, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        _frequency_width(configuration)
 
 
 def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration() -> None:
