@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import Any
 
 import pytest
@@ -133,6 +134,15 @@ def test_approval_artifact_path_rejects_symlink_components(tmp_path: Path) -> No
         _hash_relative_file(tmp_path, "linked/evidence.json")
 
 
+def test_approval_artifact_path_rejects_symlink_target(tmp_path: Path) -> None:
+    target = tmp_path / "actual.json"
+    target.write_text("evidence", encoding="utf-8")
+    (tmp_path / "linked.json").symlink_to(target)
+
+    with pytest.raises(ValueError, match="regular non-symlink file"):
+        _hash_relative_file(tmp_path, "linked.json")
+
+
 def test_stable_approval_reader_bounds_and_checks_regular_files(tmp_path: Path) -> None:
     regular = tmp_path / "approval.json"
     regular.write_bytes(b"{}")
@@ -142,6 +152,103 @@ def test_stable_approval_reader_bounds_and_checks_regular_files(tmp_path: Path) 
         _read_stable_file(regular, max_bytes=1)
     with pytest.raises(ValueError, match="regular file"):
         _read_stable_file(tmp_path, max_bytes=100)
+
+
+def test_stable_approval_reader_rejects_file_changed_during_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import integrations.sionna.d1_generation_gate as gate
+
+    path = tmp_path / "approval.json"
+    path.write_bytes(b"{}")
+    original_fstat = os.fstat
+
+    def changed_inode(descriptor: int) -> SimpleNamespace:
+        opened = original_fstat(descriptor)
+        return SimpleNamespace(
+            st_mode=opened.st_mode,
+            st_dev=opened.st_dev,
+            st_ino=opened.st_ino + 1,
+        )
+
+    monkeypatch.setattr(gate.os, "fstat", changed_inode)
+    with pytest.raises(PermissionError, match="changed while opening"):
+        _read_stable_file(path)
+
+
+def test_stable_approval_reader_rejects_growth_and_mutation_during_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import integrations.sionna.d1_generation_gate as gate
+
+    path = tmp_path / "approval.json"
+    path.write_bytes(b"")
+    original_read = os.read
+    monkeypatch.setattr(gate.os, "read", lambda descriptor, size: b"xx")
+    with pytest.raises(ValueError, match="too large"):
+        _read_stable_file(path, max_bytes=1)
+
+    path.write_bytes(b"stable")
+    original_fstat = os.fstat
+    calls = 0
+
+    def changed_mtime(descriptor: int) -> SimpleNamespace:
+        nonlocal calls
+        calls += 1
+        observed = original_fstat(descriptor)
+        return SimpleNamespace(
+            st_mode=observed.st_mode,
+            st_dev=observed.st_dev,
+            st_ino=observed.st_ino,
+            st_size=observed.st_size,
+            st_mtime_ns=observed.st_mtime_ns + (calls > 1),
+        )
+
+    monkeypatch.setattr(gate.os, "read", original_read)
+    monkeypatch.setattr(gate.os, "fstat", changed_mtime)
+    with pytest.raises(PermissionError, match="changed while reading"):
+        _read_stable_file(path)
+
+
+def test_approval_artifact_hash_rejects_file_changed_while_opening_or_hashing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import integrations.sionna.d1_generation_gate as gate
+
+    target = tmp_path / "artifact.json"
+    target.write_text("frozen", encoding="utf-8")
+    original_fstat = os.fstat
+
+    def changed_inode(descriptor: int) -> SimpleNamespace:
+        opened = original_fstat(descriptor)
+        return SimpleNamespace(
+            st_mode=opened.st_mode,
+            st_dev=opened.st_dev,
+            st_ino=opened.st_ino + 1,
+        )
+
+    monkeypatch.setattr(gate.os, "fstat", changed_inode)
+    with pytest.raises(PermissionError, match="changed while opening"):
+        _hash_relative_file(tmp_path, target.name)
+
+    monkeypatch.setattr(gate.os, "fstat", original_fstat)
+    calls = 0
+
+    def changed_mtime(descriptor: int) -> SimpleNamespace:
+        nonlocal calls
+        calls += 1
+        observed = original_fstat(descriptor)
+        return SimpleNamespace(
+            st_mode=observed.st_mode,
+            st_dev=observed.st_dev,
+            st_ino=observed.st_ino,
+            st_size=observed.st_size,
+            st_mtime_ns=observed.st_mtime_ns + (calls > 1),
+        )
+
+    monkeypatch.setattr(gate.os, "fstat", changed_mtime)
+    with pytest.raises(PermissionError, match="changed while hashing"):
+        _hash_relative_file(tmp_path, target.name)
 
 
 @pytest.mark.parametrize(
@@ -208,6 +315,28 @@ def test_pilot_publisher_must_use_an_authorized_scratch_path() -> None:
         require_pilot_destination(authorization, "/tmp/d1-gate-test", publisher="trajectory_store")
     with pytest.raises(PermissionError, match="fixed scratch root"):
         require_pilot_destination(authorization, "/var/tmp/outside", publisher="rt_dataset")
+    authorization._mode = "production"
+    with pytest.raises(PermissionError, match="disabled without a trusted keyring"):
+        require_pilot_destination(authorization, "/tmp/d1-gate-test", publisher="rt_dataset")
+
+
+def test_valid_trajectory_request_allows_zero_path_depth() -> None:
+    authorization = authorize_d1_generation(
+        {
+            "operation": "rt_nr_trajectory",
+            "config": {
+                "num_steps": 1,
+                "samples_per_src": 1,
+                "max_depth": 0,
+                "max_num_paths_per_src": 1,
+                "total_work_units": 1,
+            },
+            "destinations": ["/tmp/trajectory"],
+        },
+        pilot=True,
+    )
+
+    assert authorization.operation == "rt_nr_trajectory"
 
 
 def test_scene_identity_requires_complete_local_asset_provenance(
