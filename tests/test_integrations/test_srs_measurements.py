@@ -314,6 +314,81 @@ def test_ul_srs_tdct_tdcp_rejects_tick_grid_overflow():
         )
 
 
+@pytest.mark.parametrize(
+    ("case", "error", "message"),
+    [
+        ("real_response", ValueError, "must be nonempty complex"),
+        ("noninteger_candidates", ValueError, "candidate_time_ticks must be integer"),
+        ("noninteger_first_path", ValueError, "first_detected_path_time_ticks must be integer"),
+        ("negative_tick", ValueError, "must fit nonnegative int64"),
+        ("boolean_limit", TypeError, "maximum_measurement_values must be an integer"),
+        ("zero_limit", ValueError, "maximum_measurement_values must be positive"),
+        (
+            "boolean_granularity",
+            TypeError,
+            "timing_reporting_granularity_factor must be an integer",
+        ),
+        ("large_granularity", ValueError, "timing_reporting_granularity_factor must be in"),
+        ("boolean_time_count", TypeError, "reported_time_count must be an integer"),
+        ("invalid_receiver", ValueError, "receiver_category must be a terrestrial"),
+        ("invalid_sfn", ValueError, "sfn must be an integer"),
+        ("invalid_subframe", ValueError, "subframe_number must be an integer"),
+        ("zero_scale", ValueError, "must be positive"),
+        ("power_overflow", ValueError, "channel power is not finite"),
+    ],
+)
+def test_ul_srs_tdct_tdcp_rejects_malformed_grid_and_report_configuration(case, error, message):
+    response = np.ones((1, 1, 3), dtype=np.complex128)
+    times = np.array([[6, 8, 10]], dtype=np.int64)
+    first = np.array([7], dtype=np.int64)
+    common = {
+        "occasion_ids": ["occasion-1"],
+        "receiver_branch_ids": ["branch-1"],
+        "receiver_category": "terrestrial_type_1_o",
+        "sfn": 0,
+        "subframe_number": 0,
+        "sfn_zero_reference_time_s": 0.0,
+        "timing_reporting_granularity_factor": 1,
+        "reported_time_count": 1,
+        "watts_per_channel_response_unit_squared": 1.0,
+        "power_calibration_sha256": "a" * 64,
+        "channel_estimator_sha256": "b" * 64,
+        "path_detector_sha256": "c" * 64,
+    }
+    if case == "real_response":
+        response = response.real
+    elif case == "noninteger_candidates":
+        times = times.astype(float)
+    elif case == "noninteger_first_path":
+        first = first.astype(float)
+    elif case == "negative_tick":
+        times[0, 0] = -1
+    elif case == "boolean_limit":
+        common["maximum_measurement_values"] = True
+    elif case == "zero_limit":
+        common["maximum_measurement_values"] = 0
+    elif case == "boolean_granularity":
+        common["timing_reporting_granularity_factor"] = True
+    elif case == "large_granularity":
+        common["timing_reporting_granularity_factor"] = 6
+    elif case == "boolean_time_count":
+        common["reported_time_count"] = True
+    elif case == "invalid_receiver":
+        common["receiver_category"] = "satellite_type_1_h"
+    elif case == "invalid_sfn":
+        common["sfn"] = 1024
+    elif case == "invalid_subframe":
+        common["subframe_number"] = 10
+    elif case == "zero_scale":
+        common["watts_per_channel_response_unit_squared"] = 0.0
+    elif case == "power_overflow":
+        response.fill(1e200 + 0j)
+        common["watts_per_channel_response_unit_squared"] = 1e200
+
+    with pytest.raises(error, match=message):
+        report_ul_srs_tdct_tdcp(response, times, first, **common)
+
+
 def test_ul_rtoa_uses_sfn_subframe_reference_and_declared_receiver_point():
     report = report_ul_rtoa(
         received_subframe_start_time_s=102.346125,
