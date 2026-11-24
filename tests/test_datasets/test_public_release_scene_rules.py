@@ -105,3 +105,59 @@ def test_third_party_asset_paths_must_not_repeat() -> None:
 
     with pytest.raises(ValueError, match="repeats a third-party asset path"):
         validate_public_release_manifest(_with(mutate))
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        pytest.param(
+            lambda m: m["scenes"][0].update(source_data_offer_url="https://example.org:99999/x"),
+            "valid HTTPS URL",
+            id="invalid-port",
+        ),
+        pytest.param(
+            lambda m: m["scenes"][0].update(source_data_offer_url="https://user@example.org/x"),
+            "valid HTTPS URL",
+            id="credentials-in-url",
+        ),
+        pytest.param(
+            lambda m: m["scenes"][0].update(osm_extract_timestamp="not-a-time"),
+            "ISO-8601 OSM extract timestamp",
+            id="bad-timestamp",
+        ),
+        pytest.param(
+            lambda m: m["scenes"][0].update(attribution_location="README.md"),
+            "must name the generated OSM notice",
+            id="attribution-location",
+        ),
+        pytest.param(
+            lambda m: m["artifacts"][0].update(lineage_complete=False),
+            "complete source-lineage review",
+            id="incomplete-lineage",
+        ),
+    ],
+)
+def test_public_release_rejects_unsafe_scene_metadata(mutate, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        validate_public_release_manifest(_with(mutate))
+
+
+def test_third_party_asset_entries_must_have_exact_fields_and_digests() -> None:
+    def extra_field(manifest):
+        manifest["scenes"][0]["third_party_license_closure"]["assets"][0]["unexpected"] = 1
+
+    def uppercase_digest(manifest):
+        manifest["scenes"][0]["third_party_license_closure"]["assets"][0]["asset_sha256"] = "A" * 64
+
+    with pytest.raises(ValueError, match="invalid third-party asset entry"):
+        validate_public_release_manifest(_with(extra_field))
+    with pytest.raises(ValueError, match="lowercase SHA-256"):
+        validate_public_release_manifest(_with(uppercase_digest))
+
+
+def test_duplicate_scene_assessments_are_refused() -> None:
+    def duplicate(manifest):
+        manifest["scenes"].append(copy.deepcopy(manifest["scenes"][0]))
+
+    with pytest.raises(ValueError, match="scene assessments must be unique"):
+        validate_public_release_manifest(_with(duplicate))
