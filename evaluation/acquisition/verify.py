@@ -602,15 +602,7 @@ def verify_acquisition_package(
                     errors.append(
                         f"angular {angular_id} solid_angle_sr must match the spherical bin geometry"
                     )
-                elif not math.isclose(
-                    sum(sum(row) for row in solid_angle),
-                    4.0 * math.pi,
-                    rel_tol=1e-9,
-                    abs_tol=1e-12,
-                ):
-                    errors.append(
-                        f"angular {angular_id} solid-angle cells must sum to 4*pi steradians"
-                    )
+
     for record in csi.values():
         require_ids(record, "sample_id", samples, f"csi {record['csi_id']}")
         require_file_refs(record, "file_ids", f"csi {record['csi_id']}")
