@@ -22,6 +22,7 @@ from integrations.sionna.srs import (
     nr_srs_hopped_sequence_type1,
     nr_srs_multicell_aperiodic_resource_set_schedules,
     nr_srs_multicell_periodic_resource_set_schedules_by_bwp,
+    nr_srs_periodic_resource_schedule,
     nr_srs_periodic_resource_set_schedule,
     nr_srs_periodic_resource_set_schedule_by_bwp,
     nr_srs_periodicity_and_offset_slots,
@@ -1350,3 +1351,79 @@ def test_srs_scheduled_port_sequences_validate_duplicate_policy_type() -> None:
             transmission_comb=2,
             allow_duplicate_cyclic_shifts=1,
         )
+
+
+@pytest.mark.parametrize(
+    ("slot", "resource_type", "error", "message"),
+    [
+        (True, "periodic", TypeError, "absolute_slot_index must be an integer"),
+        (-1, "periodic", ValueError, "absolute_slot_index must be nonnegative"),
+        (0, "aperiodic", ValueError, "requires periodic or semi-persistent"),
+    ],
+)
+def test_periodic_srs_resource_schedule_rejects_invalid_slot_or_type(
+    slot, resource_type, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        nr_srs_periodic_resource_schedule(
+            slot,
+            c_srs=0,
+            transmission_comb=2,
+            b_srs=0,
+            b_hop=0,
+            srs_symbol_count=1,
+            resource_type=resource_type,
+            periodicity_slots=1,
+            slot_offset=0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"absolute_slot_index": True}, TypeError, "absolute_slot_index must be an integer"),
+        ({"absolute_slot_index": -1}, ValueError, "absolute_slot_index must be nonnegative"),
+        ({"resources": "bad"}, TypeError, "resources must be an ordered sequence"),
+        ({"resources": ()}, ValueError, "resources must contain at least one"),
+        ({"resources": ("bad",)}, TypeError, "resources\\[0\\] must be a mapping"),
+        ({"resources": ({"resource_id": True},)}, TypeError, "resource_id must be an integer"),
+        ({"resources": ({"resource_id": -1},)}, ValueError, "unique nonnegative integers"),
+        (
+            {"resources": ({"resource_id": 1}, {"resource_id": 1})},
+            ValueError,
+            "unique nonnegative integers",
+        ),
+        ({"resource_set_id": True}, TypeError, "resource_set_id must be an integer"),
+        ({"resource_set_id": -1}, ValueError, "resource_set_id must be nonnegative"),
+        ({"resource_type": "aperiodic"}, ValueError, "must be periodic or semi-persistent"),
+        ({"positioning_resource": 1}, TypeError, "positioning_resource must be a boolean"),
+        ({"resources": ({"resource_id": 1, "extra": 0},)}, ValueError, "unsupported fields"),
+        (
+            {"resources": ({"resource_id": 1, "allocation": {"c_srs": 0}},)},
+            ValueError,
+            "allocation fields are invalid",
+        ),
+    ],
+)
+def test_periodic_srs_resource_set_rejects_invalid_decoded_fields(changes, error, message) -> None:
+    arguments = {
+        "absolute_slot_index": 0,
+        "resource_set_id": 1,
+        "resources": (
+            {
+                "resource_id": 1,
+                "allocation": {
+                    "c_srs": 0,
+                    "transmission_comb": 2,
+                    "b_srs": 0,
+                    "b_hop": 0,
+                    "srs_symbol_count": 1,
+                },
+            },
+        ),
+        "periodicity_slots": 1,
+        "slot_offset": 0,
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        nr_srs_periodic_resource_set_schedule(**arguments)
