@@ -200,6 +200,7 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             "samples_per_src": 5_000_000,
             "max_depth": 3,
         }
+        checked_rt_data_values: dict[str, int] = {}
         for field, maximum in limits.items():
             value = values.get(field)
             if (
@@ -209,9 +210,9 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
                 or value > maximum
             ):
                 raise ValueError(f"pilot rt_data {field} must be an integer in [1, {maximum}]")
-        attempts = values.get("max_attempts")
-        samples = values.get("samples_per_src")
-        # Both operands were type- and range-checked in the limits loop above.
+            checked_rt_data_values[field] = value
+        attempts = checked_rt_data_values["max_attempts"]
+        samples = checked_rt_data_values["samples_per_src"]
         work = attempts * samples
         if (
             isinstance(work, bool)
@@ -239,6 +240,7 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             "max_depth": 3,
             "max_num_paths_per_src": 1_000_000,
         }
+        checked_trajectory_values: dict[str, int] = {}
         for field, maximum in limits.items():
             value = values.get(field)
             minimum = 0 if field == "max_depth" else 1
@@ -251,9 +253,9 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
                 raise ValueError(
                     f"pilot rt_nr_trajectory {field} must be an integer in [{minimum}, {maximum}]"
                 )
-        steps = trajectory_values.get("num_steps")
-        samples = trajectory_values.get("samples_per_src")
-        # Both operands were type- and range-checked in the limits loop above.
+            checked_trajectory_values[field] = value
+        steps = checked_trajectory_values["num_steps"]
+        samples = checked_trajectory_values["samples_per_src"]
         work = steps * samples
         if (
             isinstance(work, bool)
@@ -292,12 +294,12 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             or artifact_count > 20
         ):
             raise ValueError("pilot RT DM-RS input_artifact_count must be an integer in [0, 20]")
-        work = values.get("total_work_units")
+        work_count = values.get("total_work_units")
         if (
-            isinstance(work, bool)
-            or not isinstance(work, int)
-            or work < 1
-            or work > _MAX_PILOT_WORK_UNITS
+            isinstance(work_count, bool)
+            or not isinstance(work_count, int)
+            or work_count < 1
+            or work_count > _MAX_PILOT_WORK_UNITS
         ):
             raise ValueError("pilot DM-RS total_work_units must be an integer in [1, 250000]")
         return
