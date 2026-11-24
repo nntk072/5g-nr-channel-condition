@@ -569,6 +569,83 @@ def test_srs_multicell_schedule_rejects_invalid_offset_combos(
         )
 
 
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        (
+            {"scheduled_cell_ids": "cell-a"},
+            TypeError,
+            "scheduled_cell_ids must be an ordered sequence",
+        ),
+        ({"scheduled_cell_ids": ()}, ValueError, "nonempty cell IDs"),
+        ({"scheduled_cell_ids": ("unknown",)}, ValueError, "unique subset of serving_cell_ids"),
+        (
+            {
+                "scheduled_cell_ids": ("cell-b", "cell-a"),
+                "serving_cell_ids": ("cell-a", "cell-b"),
+                "request_list": ((1, 0),),
+                "resource_sets_by_cell": {
+                    "cell-a": (),
+                    "cell-b": (),
+                },
+                "triggering_dci_slot_by_cell": {"cell-a": 12, "cell-b": 12},
+            },
+            ValueError,
+            "serving-cell order",
+        ),
+        ({"triggering_dci_slot_by_cell": "bad"}, TypeError, "must be a mapping"),
+        ({"triggering_dci_slot_by_cell": {"other": 1}}, ValueError, "keys must exactly match"),
+        ({"triggering_dci_slot_by_cell": {"cell-a": True}}, ValueError, "must be nonnegative"),
+        ({"offset_combo_cell_ids": "cell-a"}, TypeError, "must be an ordered sequence"),
+        ({"offset_combo_cell_ids": ("unknown",)}, ValueError, "unique subset of serving_cell_ids"),
+        (
+            {"offset_combo_cell_ids": ("cell-a", "cell-a")},
+            ValueError,
+            "unique subset of serving_cell_ids",
+        ),
+        ({"offset_combos": "bad"}, TypeError, "offset_combos must be an ordered sequence"),
+        ({"offset_combos": ()}, ValueError, "needs 1..8 rows"),
+        ({"offset_combo_index": True}, TypeError, "must select a configured offset-combo row"),
+        ({"offset_combo_index": 1}, ValueError, "does not select a configured row"),
+        ({"offset_combos": ("bad",)}, TypeError, "selected offset-combo row must be a sequence"),
+        ({"offset_combos": ((4,),)}, ValueError, "indices in \\[0, 3\\]"),
+    ],
+)
+def test_multicell_aperiodic_schedule_rejects_invalid_cell_and_offset_inputs(
+    changes, error, message
+) -> None:
+    arguments = {
+        "request_list_index": 0,
+        "request_list": ((1,),),
+        "serving_cell_ids": ("cell-a",),
+        "resource_sets_by_cell": {
+            "cell-a": [
+                {
+                    "resource_set_id": 10,
+                    "resource_type": "aperiodic",
+                    "aperiodic_trigger": 1,
+                    "allocation": {
+                        "c_srs": 9,
+                        "transmission_comb": 4,
+                        "b_srs": 3,
+                        "b_hop": 0,
+                        "srs_symbol_count": 1,
+                        "available_slot_offsets": [0, 1],
+                    },
+                }
+            ]
+        },
+        "triggering_dci_slot_by_cell": {"cell-a": 12},
+        "scheduled_cell_ids": ("cell-a",),
+        "offset_combo_index": 0,
+        "offset_combos": ((0,),),
+        "offset_combo_cell_ids": ("cell-a",),
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        nr_srs_multicell_aperiodic_resource_set_schedules(**arguments)
+
+
 def test_srs_hopped_mapper_uses_each_symbols_frequency_allocation() -> None:
     allocations = tuple(
         nr_srs_fixed_frequency_allocation(
