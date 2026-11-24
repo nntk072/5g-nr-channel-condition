@@ -1468,6 +1468,22 @@ def test_dci_0_3_layout_request_selector_rejects_reserved_selector() -> None:
 
 
 @pytest.mark.parametrize(
+    ("entry_count", "error", "message"),
+    [
+        (True, TypeError, "request_list_entry_count must be an integer"),
+        (17, ValueError, "request_list_entry_count must be in \\[0, 16\\]"),
+    ],
+)
+def test_dci_0_3_layout_request_selector_rejects_invalid_entry_count(
+    entry_count, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        nr_srs_dci_0_3_request_list_index_from_layout(
+            (), field_widths_bits={}, request_list_entry_count=entry_count
+        )
+
+
+@pytest.mark.parametrize(
     ("sequences", "ports8_tdm", "four_port_srs_3tx", "error", "message"),
     [
         (np.ones((1, 1, 24)), False, False, TypeError, "complex-valued"),
