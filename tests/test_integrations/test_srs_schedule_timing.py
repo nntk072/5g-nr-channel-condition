@@ -447,6 +447,198 @@ def test_multicell_periodic_srs_requires_exact_cell_rosters() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("cell_ids", "resource_sets", "slots", "bwps", "bounds", "error", "message"),
+    [
+        (
+            "cell-1",
+            {"cell-1": ()},
+            {"cell-1": 0},
+            {"cell-1": 0},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+            TypeError,
+            "ordered sequence",
+        ),
+        (
+            ("",),
+            {"": ()},
+            {"": 0},
+            {"": 0},
+            {"": NRSRSBWPFrequencyBounds(0, 100)},
+            ValueError,
+            "nonempty cell IDs",
+        ),
+        (
+            (" cell-1 ", "cell-1"),
+            {"cell-1": ()},
+            {"cell-1": 0},
+            {"cell-1": 0},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+            ValueError,
+            "must be unique",
+        ),
+        (
+            ("cell-1",),
+            (),
+            {"cell-1": 0},
+            {"cell-1": 0},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+            TypeError,
+            "resource_sets_by_cell must be a mapping",
+        ),
+        (
+            ("cell-1",),
+            {"cell-1": ()},
+            {"cell-1": True},
+            {"cell-1": 0},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+            TypeError,
+            "absolute slot.*integer",
+        ),
+        (
+            ("cell-1",),
+            {"cell-1": ()},
+            {"cell-1": -1},
+            {"cell-1": 0},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+            ValueError,
+            "must be nonnegative",
+        ),
+        (
+            ("cell-1",),
+            {"cell-1": ()},
+            {"cell-1": 0},
+            {"cell-1": True},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+            TypeError,
+            "active UL BWP ID.*integer",
+        ),
+        (
+            ("cell-1",),
+            {"cell-1": ()},
+            {"cell-1": 0},
+            {"cell-1": 5},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+            ValueError,
+            "BWP ID.*\\[0, 4\\]",
+        ),
+        (
+            ("cell-1",),
+            {"cell-1": ()},
+            {"cell-1": 0},
+            {"cell-1": 0},
+            {"cell-1": object()},
+            TypeError,
+            "frequency bounds.*invalid type",
+        ),
+        (
+            ("cell-1",),
+            {"cell-1": "bad"},
+            {"cell-1": 0},
+            {"cell-1": 0},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+            TypeError,
+            "resource sets.*ordered sequence",
+        ),
+    ],
+)
+def test_multicell_periodic_srs_rejects_invalid_roster_and_cell_inputs(
+    cell_ids, resource_sets, slots, bwps, bounds, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        nr_srs_multicell_periodic_resource_set_schedules_by_bwp(
+            cell_ids, resource_sets, slots, bwps, bounds
+        )
+
+
+@pytest.mark.parametrize(
+    ("resource_sets", "error", "message"),
+    [
+        ((None,), TypeError, "must be a mapping"),
+        (({1: "bad"},), ValueError, "keys must be strings"),
+        (({"resource_set_id": 1, "resource_type": "periodic"},), ValueError, "fields are invalid"),
+        (
+            ({"resource_set_id": True, "resource_type": "periodic", "resources": ()},),
+            TypeError,
+            "resource_set_id must be an integer",
+        ),
+        (
+            ({"resource_set_id": -1, "resource_type": "periodic", "resources": ()},),
+            ValueError,
+            "unique nonnegative integers",
+        ),
+        (
+            ({"resource_set_id": 1, "resource_type": "periodic", "resources": (), "timing": ()},),
+            TypeError,
+            "timing must be a mapping",
+        ),
+        (
+            (
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "periodic",
+                    "resources": (),
+                    "timing": {1: 0},
+                },
+            ),
+            ValueError,
+            "timing keys must be strings",
+        ),
+        (
+            (
+                {
+                    "resource_set_id": 1,
+                    "resource_type": "periodic",
+                    "resources": (),
+                    "timing": {"unknown": 0},
+                },
+            ),
+            ValueError,
+            "unsupported fields",
+        ),
+    ],
+)
+def test_multicell_periodic_srs_rejects_invalid_resource_set_records(
+    resource_sets, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        nr_srs_multicell_periodic_resource_set_schedules_by_bwp(
+            ("cell-1",),
+            {"cell-1": resource_sets},
+            {"cell-1": 0},
+            {"cell-1": 0},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+        )
+
+
+def test_multicell_periodic_srs_rejects_duplicate_resource_set_ids_per_cell() -> None:
+    duplicate = {
+        "resource_set_id": 3,
+        "resource_type": "periodic",
+        "timing": {"periodicity_slots": 2, "slot_offset": 1},
+        "resources": (
+            {
+                "resource_id": 101,
+                "allocation": {
+                    "c_srs": 9,
+                    "transmission_comb": 4,
+                    "b_srs": 3,
+                    "b_hop": 0,
+                    "srs_symbol_count": 2,
+                },
+            },
+        ),
+    }
+    with pytest.raises(ValueError, match="unique nonnegative integers"):
+        nr_srs_multicell_periodic_resource_set_schedules_by_bwp(
+            ("cell-1",),
+            {"cell-1": (duplicate, duplicate)},
+            {"cell-1": 0},
+            {"cell-1": 0},
+            {"cell-1": NRSRSBWPFrequencyBounds(0, 100)},
+        )
+
+
 def test_srs_aperiodic_target_slot_uses_dci_offset_selection() -> None:
     assert nr_srs_aperiodic_target_slot_index(100) == 100
     assert nr_srs_aperiodic_target_slot_index(100, slot_offset=2) == 102
