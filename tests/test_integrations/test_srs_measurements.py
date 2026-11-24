@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -635,6 +636,101 @@ def test_noisy_network_grid_observation_rejects_composition_noise_mismatch():
             power_scale_w_per_grid_unit_squared=1.0,
             power_calibration_sha256="e" * 64,
         )
+
+
+def _minimal_network_grid_observation_inputs():
+    torch = pytest.importorskip("torch")
+    from integrations.sionna.network_phy import NetworkGridComposition, NoisyNetworkGrid
+
+    contributions = torch.zeros((1, 1, 1, 1, 1, 2), dtype=torch.complex64)
+    received = contributions.sum(dim=2)
+    composition = NetworkGridComposition(
+        source_contributions=contributions,
+        received_grid=received,
+        transmit_power_w_per_re=torch.ones((1, 1)),
+    )
+    noisy = NoisyNetworkGrid(
+        received_grid=received,
+        noise_grid=torch.zeros_like(received),
+        noise_variance_w_per_re=torch.tensor([0.0]),
+        seed=29,
+    )
+    mapped = NRSRSMultiportResourceGrid(
+        grid=np.zeros((1, 1, 2), dtype=complex),
+        mask=np.array([[[True, False]]]),
+        symbol_indices=(0,),
+        subcarrier_indices=(0,),
+    )
+    return torch, composition, noisy, mapped
+
+
+def _measure_minimal_network_grid(noisy, composition, mapped, **overrides):
+    arguments = {
+        "receiver_index": 0,
+        "desired_transmitter_id": "tx-1",
+        "transmitter_ids": ("tx-1",),
+        "occasion_ids": ("occasion-1",),
+        "receiver_branch_ids": ("branch-1",),
+        "receiver_category": "terrestrial_type_1_c",
+        "measurement_frequency_bandwidth_hz": 1e6,
+        "power_scale_w_per_grid_unit_squared": 1.0,
+        "power_calibration_sha256": "a" * 64,
+        **overrides,
+    }
+    return measure_ul_srs_rsrp_from_noisy_network_grid(noisy, composition, mapped, **arguments)
+
+
+@pytest.mark.parametrize(
+    ("case", "error", "message"),
+    [
+        ("wrong_noisy_record", TypeError, "noisy_network_grid must come from"),
+        ("wrong_composition_record", TypeError, "network_composition must come from"),
+        ("boolean_receiver", ValueError, "receiver_index must be a nonnegative integer"),
+        ("negative_receiver", ValueError, "receiver_index must be a nonnegative integer"),
+        ("unknown_receiver", ValueError, "receiver_index must identify an existing receiver"),
+    ],
+)
+def test_network_grid_observation_rejects_invalid_records_and_receiver_indices(
+    case, error, message
+):
+    _, composition, noisy, mapped = _minimal_network_grid_observation_inputs()
+    receiver_index = 0
+    if case == "wrong_noisy_record":
+        noisy = object()
+    elif case == "wrong_composition_record":
+        composition = object()
+    elif case in {"boolean_receiver", "negative_receiver", "unknown_receiver"}:
+        receiver_index = {"boolean_receiver": True, "negative_receiver": -1, "unknown_receiver": 1}[
+            case
+        ]
+    with pytest.raises(error, match=message):
+        _measure_minimal_network_grid(
+            noisy,
+            composition,
+            mapped,
+            receiver_index=receiver_index,
+        )
+
+
+@pytest.mark.parametrize(
+    ("case", "error", "message"),
+    [
+        ("negative_noise", ValueError, "noise_variance_w_per_re must be finite"),
+        ("boolean_seed", ValueError, "noise seed must be a nonnegative integer"),
+        ("boolean_limit", ValueError, "maximum_grid_cells must be a positive integer"),
+    ],
+)
+def test_network_grid_observation_rejects_invalid_noise_and_resource_limits(case, error, message):
+    torch, composition, noisy, mapped = _minimal_network_grid_observation_inputs()
+    overrides = {}
+    if case == "negative_noise":
+        noisy = replace(noisy, noise_variance_w_per_re=torch.tensor([-1.0]))
+    elif case == "boolean_seed":
+        noisy = replace(noisy, seed=True)
+    elif case == "boolean_limit":
+        overrides["maximum_grid_cells"] = True
+    with pytest.raises(error, match=message):
+        _measure_minimal_network_grid(noisy, composition, mapped, **overrides)
 
 
 @pytest.mark.parametrize(
