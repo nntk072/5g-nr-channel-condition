@@ -482,6 +482,65 @@ def test_grid_observation_rejects_invalid_scale_shape_and_resource_bound():
         )
 
 
+@pytest.mark.parametrize(
+    ("received", "mapped_resource", "maximum_grid_cells", "error", "message"),
+    [
+        (np.ones((1, 1, 1, 2), dtype=complex), object(), 100, TypeError, "mapped multiport SRS"),
+        (np.ones((1, 1, 2), dtype=complex), "valid", 100, ValueError, "nonempty complex"),
+        (np.ones((1, 1, 1, 2), dtype=float), "valid", 100, ValueError, "nonempty complex"),
+        (np.ones((1, 1, 0, 2), dtype=complex), "valid", 100, ValueError, "nonempty complex"),
+        (np.ones((1, 1, 1, 2), dtype=complex), "valid", True, TypeError, "must be an integer"),
+        (np.ones((1, 1, 1, 2), dtype=complex), "valid", 0, ValueError, "must be positive"),
+        (np.full((1, 1, 1, 2), np.inf + 0j), "valid", 100, ValueError, "only finite"),
+        (np.full((1, 1, 1, 2), 1e308 + 0j), "valid", 100, ValueError, "power is not finite"),
+    ],
+)
+def test_grid_observation_rejects_invalid_resource_and_receive_grids(
+    received, mapped_resource, maximum_grid_cells, error, message
+):
+    mapped = NRSRSMultiportResourceGrid(
+        grid=np.array([[[1 + 0j, 1 + 0j]]]),
+        mask=np.array([[[True, True]]]),
+        symbol_indices=(0,),
+        subcarrier_indices=(0, 1),
+    )
+    if mapped_resource == "valid":
+        mapped_resource = mapped
+    with pytest.raises(error, match=message):
+        measure_ul_srs_rsrp_from_grid(
+            received,
+            mapped_resource,
+            occasion_ids=["occasion-1"],
+            receiver_branch_ids=["branch-1"],
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=1e6,
+            power_scale_w_per_grid_unit_squared=1e308 if "power is not finite" in message else 1.0,
+            maximum_grid_cells=maximum_grid_cells,
+            power_calibration_sha256="a" * 64,
+        )
+
+
+def test_grid_observation_requires_mapped_srs_resource_elements():
+    mapped = NRSRSMultiportResourceGrid(
+        grid=np.zeros((1, 1, 2), dtype=complex),
+        mask=np.zeros((1, 1, 2), dtype=bool),
+        symbol_indices=(0,),
+        subcarrier_indices=(0, 1),
+        active_port_symbols=((False,),),
+    )
+    with pytest.raises(ValueError, match="occupy at least one resource element"):
+        measure_ul_srs_rsrp_from_grid(
+            np.ones((1, 1, 1, 2), dtype=complex),
+            mapped,
+            occasion_ids=["occasion-1"],
+            receiver_branch_ids=["branch-1"],
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=1e6,
+            power_scale_w_per_grid_unit_squared=1.0,
+            power_calibration_sha256="a" * 64,
+        )
+
+
 def test_noisy_network_grid_observation_binds_interference_and_receiver_noise():
     torch = pytest.importorskip("torch")
     from integrations.sionna.network_phy import (
