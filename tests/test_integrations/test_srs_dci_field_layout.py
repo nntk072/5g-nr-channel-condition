@@ -12,7 +12,9 @@ from integrations.sionna.srs import (
 from integrations.sionna.srs.srs_constants.dci_0_3 import (
     _DCI_0_3_FIELD_ORDER,
     _nr_srs_dci_0_3_antenna_ports_width,
+    _nr_srs_dci_0_3_pdcch_monitoring_adaptation_width,
     _nr_srs_dci_0_3_precoding_width,
+    _nr_srs_dci_0_3_scell_dormancy_width,
     _nr_srs_dci_0_3_sri_width,
 )
 
@@ -760,6 +762,103 @@ def test_frequency_assignment_rejects_invalid_bwp_rosters(
 ) -> None:
     with pytest.raises(error, match=message):
         nr_srs_dci_0_3_frequency_assignment_widths(cells, configured, active, configs)
+
+
+@pytest.mark.parametrize(
+    ("enabled", "skipping_count", "groups", "expected"),
+    [
+        (False, None, None, 0),
+        (True, 1, None, 1),
+        (True, 4, None, 2),
+        (True, None, (0, 1), 1),
+        (True, None, (0, 1, 2), 2),
+        (True, 2, (0,), 2),
+    ],
+)
+def test_pdcch_monitoring_adaptation_width_from_release_19_inputs(
+    enabled, skipping_count, groups, expected
+) -> None:
+    assert (
+        _nr_srs_dci_0_3_pdcch_monitoring_adaptation_width(
+            enabled=enabled,
+            skipping_duration_count=skipping_count,
+            search_space_group_ids=groups,
+        )
+        == expected
+    )
+
+
+@pytest.mark.parametrize(
+    ("enabled", "skipping_count", "groups", "error", "message"),
+    [
+        (1, None, None, TypeError, "must be a boolean"),
+        (True, True, None, TypeError, "must be an integer or None"),
+        (True, 65, None, ValueError, "must be in \\[1, 64\\]"),
+        (True, None, "bad", TypeError, "ordered sequence or None"),
+        (True, None, (3,), ValueError, "only IDs 0, 1, and 2"),
+        (True, None, (0, 0), ValueError, "must not contain duplicates"),
+        (True, None, (0,), ValueError, "requires group IDs"),
+        (True, None, None, ValueError, "requires a skipping-duration list"),
+    ],
+)
+def test_pdcch_monitoring_adaptation_rejects_invalid_release_19_inputs(
+    enabled, skipping_count, groups, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        _nr_srs_dci_0_3_pdcch_monitoring_adaptation_width(
+            enabled=enabled,
+            skipping_duration_count=skipping_count,
+            search_space_group_ids=groups,
+        )
+
+
+@pytest.mark.parametrize(
+    ("configured", "active_time", "multiple_bwps", "groups", "expected"),
+    [
+        (False, True, True, None, 0),
+        (True, False, True, None, 0),
+        (True, True, False, None, 0),
+        (False, True, True, (0, 1), 0),
+        (True, True, True, (2,), 1),
+        (True, True, True, (0, 1, 2, 3, 4), 5),
+    ],
+)
+def test_scell_dormancy_width_uses_applicability_and_group_count(
+    configured, active_time, multiple_bwps, groups, expected
+) -> None:
+    assert (
+        _nr_srs_dci_0_3_scell_dormancy_width(
+            dormancy_configured=configured,
+            dormancy_group_ids=groups,
+            carried_on_primary_cell_within_drx_active_time=active_time,
+            scell_has_multiple_dl_bwps=multiple_bwps,
+        )
+        == expected
+    )
+
+
+@pytest.mark.parametrize(
+    ("configured", "active_time", "multiple_bwps", "groups", "error", "message"),
+    [
+        (1, True, True, None, TypeError, "dormancy_configured must be a boolean"),
+        (True, True, True, None, ValueError, "requires configured dormancy group IDs"),
+        (True, True, True, "bad", TypeError, "ordered sequence or None"),
+        (True, True, True, (True,), ValueError, "nonnegative integers"),
+        (True, True, True, (0, 0), ValueError, "must be unique"),
+        (True, True, True, (), ValueError, "contain 1..5 groups"),
+        (True, True, True, (0, 1, 2, 3, 4, 5), ValueError, "contain 1..5 groups"),
+    ],
+)
+def test_scell_dormancy_rejects_invalid_context_and_group_ids(
+    configured, active_time, multiple_bwps, groups, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        _nr_srs_dci_0_3_scell_dormancy_width(
+            dormancy_configured=configured,
+            dormancy_group_ids=groups,
+            carried_on_primary_cell_within_drx_active_time=active_time,
+            scell_has_multiple_dl_bwps=multiple_bwps,
+        )
 
 
 @pytest.mark.parametrize(
