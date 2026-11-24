@@ -95,6 +95,13 @@ markers = [
 [tool.coverage.run]
 source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "scripts"]
 branch = true
+omit = [
+  "integrations/sionna/rt_trajectory.py",
+  "integrations/sionna/rt_network.py",
+  "integrations/sionna/adapter/raytrace.py",
+  "integrations/sionna/adapter/generate.py",
+  "integrations/sionna/path_lineage.py",
+]
 
 [tool.coverage.report]
 fail_under = 100
