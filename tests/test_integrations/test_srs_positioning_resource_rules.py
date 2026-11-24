@@ -77,6 +77,21 @@ def test_positioning_resource_rejects_invalid_sequences() -> None:
     bad[0] = np.nan
     with pytest.raises(ValueError, match="only finite values"):
         map_nr_srs_positioning_resource(bad, **BASE)
+    with pytest.raises(ValueError, match="shape \\[occupied REs\\] or \\[SRS symbols"):
+        map_nr_srs_positioning_resource(np.ones((1, 1, 6), dtype=np.complex64), **BASE)
+    with pytest.raises(ValueError, match="exactly srs_symbol_count rows"):
+        map_nr_srs_positioning_resource(
+            np.ones((2, 6), dtype=np.complex64), **{**BASE, "srs_symbol_count": 1}
+        )
+
+
+@pytest.mark.parametrize(
+    "beta_srs",
+    [True, "1.0", float("nan"), 0.0],
+)
+def test_positioning_resource_requires_finite_positive_beta(beta_srs) -> None:
+    with pytest.raises(ValueError, match="beta_srs must be a finite positive real number"):
+        map_nr_srs_positioning_resource(_sequence(), beta_srs=beta_srs, **BASE)
 
 
 def test_multiport_positioning_requires_complex_sequences_and_port_rules() -> None:
