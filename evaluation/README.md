@@ -1,19 +1,34 @@
 # evaluation
 
-Evaluation of channel-condition models: scoring, channel-reference models,
-acceptance contracts, and dataset audits.
+**Purpose.** Metrics, statistics, reference covariance models, acceptance
+contracts, sample-size planning, run manifests, and dataset audits used to judge
+channel-condition models and datasets.
 
-## Layout
+**Public API (by subpackage).**
 
-| Subpackage or module | Purpose |
-| --- | --- |
-| `scoring/` | Metrics, paired statistics, uncertainty estimates, calibration, class support, prior shift, low-confidence and coverage checks |
-| `covariance/` | Reference channel covariance and power models: CDL covariance (`covariance/cdl/`), TDL profile and covariance references, Doppler spectrum, circularity, angular power |
-| `acceptance/` | Contracts for accepting evaluation results: joint acceptance, qualification contracts, receiver and propagation assurance, path-equivalence checks, seed rosters, attestations |
-| `audits/` | Dataset audits: duplicates, near-duplicates, population coverage, spatial leakage |
-| `sample_size/`, `run_manifest/`, `acquisition/` | Sample-size planning, run manifests with source binding, and acquisition packages |
-| `*_planning.py`, `joint_evidence_*.py`, `acquisition_package.py` | Public facades for the acceptance workflow |
+- `evaluation.scoring` — metrics, paired statistics, uncertainty intervals,
+  calibration, class support, prior shift, and coverage checks.
+- `evaluation.covariance` — reference channel covariance and power models
+  (CDL and TDL covariance, Doppler spectrum, circularity, angular power).
+- `evaluation.acceptance` — joint acceptance families, qualification contracts,
+  receiver and propagation assurance, path-equivalence checks, seed rosters, and
+  signed attestations.
+- `evaluation.audits` — dataset audits: duplicates, near-duplicates, population
+  coverage, and spatial leakage.
+- `evaluation.sample_size`, `evaluation.run_manifest`, `evaluation.acquisition`
+  — sample-size planning, run manifests bound to their source, and acquisition
+  packages.
+- `evaluation.joint_evidence_artifact` — the `loslab-joint-evidence-artifact`
+  command.
 
-Modules import each other by their full dotted path, for example
-`evaluation.scoring.metrics`. Subpackage boundaries are checked by the
-architecture tests.
+**Invariants.**
+
+- An acceptance result never qualifies a model, scene, or dataset by itself.
+  Each contract states its own scope, and its output records the status it
+  does and does not establish.
+- Multiplicity is controlled across the whole joint family. A separate claim
+  cannot be tested at a lower correction than its family.
+- Seeds, rosters and source bundles are part of the identity of a result.
+  Changing one changes the identity.
+- Signature and trust-file checks fail closed. Unsigned or unverifiable inputs
+  are reported as diagnostic only.

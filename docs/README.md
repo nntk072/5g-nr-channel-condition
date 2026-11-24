@@ -10,7 +10,6 @@ Setup and workflows for users of the framework.
 - [Quickstart](guide/quickstart.md)
 - [Getting started](guide/getting-started.md)
 - [Shared-split power-only baseline](guide/baseline-controls-workflow.md)
-- [Luna execution guide](guide/luna-execution-guide-2026-11-11.md)
 - [Sample-domain network waveform to PUSCH receiver](guide/network-pusch-receiver-workflow.md)
 - [Pilot sampling workflow](guide/pilot-sampling-workflow.md)
 - [Resource budget preflight](guide/resource-budget-workflow.md)
@@ -44,4 +43,11 @@ Concepts and output contracts for users of the framework.
 
 ## API
 
-The API reference is generated from the docstrings by Sphinx (`docs/api/`).
+- [API reference](api/index.md): generated from the docstrings by Sphinx.
+
+## Index and project pages
+
+- [Documentation home](index.md): the Sphinx entry page for this index.
+- [Architecture package map](architecture/README.md): how the packages depend on one another.
+- [Coverage policy](architecture/coverage-policy.md): the only reviewed coverage exclusions.
+- [Project README](../README.md), [Contributing](../CONTRIBUTING.md), [Security](../SECURITY.md), [Changelog](../CHANGELOG.md), [Citation](../CITATION.cff)
