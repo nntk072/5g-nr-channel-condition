@@ -345,6 +345,26 @@ def test_gnb_rx_tx_difference_uses_rx_minus_tx_and_separate_reference_points():
 
 
 @pytest.mark.parametrize(
+    ("receiver_category", "transmitter_category", "message"),
+    [
+        ("satellite_type_1_h", "terrestrial_type_1_c", "receiver_category"),
+        ("terrestrial_type_1_c", "satellite_type_1_h", "transmitter_category"),
+    ],
+)
+def test_gnb_rx_tx_difference_rejects_non_terrestrial_trp_categories(
+    receiver_category, transmitter_category, message
+):
+    with pytest.raises(ValueError, match=message):
+        report_gnb_rx_tx_time_difference(
+            received_uplink_subframe_time_s=12.0,
+            transmitted_downlink_subframe_time_s=11.0,
+            receiver_category=receiver_category,
+            transmitter_category=transmitter_category,
+            timing_calibration_sha256="d" * 64,
+        )
+
+
+@pytest.mark.parametrize(
     ("coordinate_system", "azimuth_reference", "vertical_reference"),
     (("GCS", "geographical_north", "zenith"), ("LCS", "local_x_axis", "local_z_axis")),
 )
@@ -402,6 +422,29 @@ def test_ul_aoa_report_rejects_invalid_angle_or_identity(overrides):
     arguments.update(overrides)
     with pytest.raises((TypeError, ValueError)):
         report_ul_aoa(**arguments)
+
+
+@pytest.mark.parametrize(
+    ("sample_id", "reference_frame_id", "message"),
+    [
+        (" episode-01", "frame-1", "sample_id"),
+        ("episode-01", " frame-1", "reference_frame_id"),
+    ],
+)
+def test_ul_aoa_requires_canonical_sample_and_reference_frame_ids(
+    sample_id, reference_frame_id, message
+):
+    with pytest.raises(ValueError, match=message):
+        report_ul_aoa(
+            sample_id=sample_id,
+            azimuth_deg=10.0,
+            vertical_deg=72.0,
+            coordinate_system="GCS",
+            reference_frame_id=reference_frame_id,
+            estimated_channel_sha256="a" * 64,
+            estimator_config_sha256="b" * 64,
+            antenna_calibration_sha256="c" * 64,
+        )
 
 
 def test_grid_observation_measures_only_configured_srs_res_and_binds_inputs():
