@@ -41,8 +41,8 @@ physically qualified.
 
 ## Pinned ODbL scene source snapshot
 
-Run `loslab-audit-odbl-scene-source /path/to/sionna-checkout audit.json` to
-compare the Sionna root commit and RT submodule against the accepted ODbL policy,
+The ODbL source-snapshot audit is kept with the research records (local, not
+published). It compares the Sionna root commit and RT submodule against the accepted ODbL policy,
 record Git tree/blob inventory digests and the last XML history event, and
 recompute the three recursive scene asset hashes. The command returns success
 only when both source checkouts are clean, both commits match policy, and every

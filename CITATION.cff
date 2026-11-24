@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "5G NR Channel Condition"
+message: "If you use this software, please cite it as below."
+type: software
+version: 0.2.0
+authors:
+  - given-names: Long
+    family-names: Nguyen
+abstract: "Research framework for machine-learning-based 5G NR channel-condition analysis."

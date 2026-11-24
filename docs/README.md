@@ -34,7 +34,13 @@ Concepts and output contracts for users of the framework.
 
 ## Reference
 
+- [Command reference](reference/cli.md): console commands and scripts
+- [Schema index](reference/schemas.md): every JSON schema and its identity
 - [Scene-family registry and candidate sampling](reference/scene-family-registry.md)
+
+## Contributing
+
+- [Contributing, gates and rules](../CONTRIBUTING.md)
 
 ## API
 
