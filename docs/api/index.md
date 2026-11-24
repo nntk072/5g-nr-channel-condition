@@ -7,7 +7,6 @@ Pages under this section are generated from the library packages' docstrings by
 ```{toctree}
 :maxdepth: 2
 
-generated/agentops/index
 generated/artifacts/index
 generated/compute/index
 generated/configuration/index

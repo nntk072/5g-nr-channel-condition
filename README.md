@@ -19,10 +19,6 @@ Developer-only notes (agent operations, refactor records, verification logs)
 are kept in a local `dev-docs/` folder and are not part of the published
 repository.
 
-## Bounded agent engineering
-
-The repository includes an engineering-only `agentops/` control plane for reviewed task cards. `nr-agent` can validate the curated queue, inspect plans and state, run bounded software tasks, verify exact gates, resume safe checkpoints, and emit structured handoffs. Agent engineering status never promotes G0-G8, G5, G3, publication, or production D1 scientific status. See [Agent Operations](dev-docs/operations/agent-operations.md) before using mutating commands.
-
 ## Install and run
 
 ```bash

@@ -1,3 +1,0 @@
-role_id = "resource_engineer"
-canonical_delegation = ".agents/rules/delegation.md"
-intent = "bounded repository engineering"

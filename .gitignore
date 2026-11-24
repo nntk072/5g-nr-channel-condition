@@ -62,3 +62,14 @@ docs/api/generated/
 
 # Developer-only documentation: kept in the local working copy, not published
 dev-docs/
+
+# Agent tooling: kept in the local working copy for engineering use, not published
+AGENTS.md
+.agents/
+.claude/
+.codex/
+agentops/
+tests/test_agentops/
+tools/agent/
+config/agentops/
+tests/test_scripts/test_agent_rule_validation.py

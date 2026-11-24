@@ -29,11 +29,9 @@ flowchart LR
     Integrations --> Experiments
     Experiments --> Scripts[scripts]
     Compute[compute] --> Experiments
-    Agentops[agentops] --> Artifacts
 ```
 
 Runtime settings belong in `config/` and are read through `configuration/`.
 Python packages own implementation. Serialized schemas, causal feature
 alignment, and the chronological evaluation order are contracts; change them
-only with the protocol that governs them. Repository invariants are in
-[AGENTS.md](AGENTS.md).
+only with the protocol that governs them.

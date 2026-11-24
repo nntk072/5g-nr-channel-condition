@@ -43,7 +43,6 @@ url = "https://download.pytorch.org/whl/cu126"
 explicit = true
 
 [project.scripts]
-nr-agent = "agentops.cli:main"
 loslab = "loslab.__main__:main"
 loslab-audit-channel-population = "scripts.audit_channel_population:main"
 loslab-audit-odbl-scene-source = "scripts.audit_odbl_scene_source_snapshot:main"
@@ -78,12 +77,10 @@ include = [
   "compute*",
   "loslab*",
   "scripts*",
-  "agentops*",
 ]
 exclude = ["tests*", "archive*", "notebooks*"]
 
 [tool.setuptools.package-data]
-agentops = ["schema/*.json"]
 datasets = ["schema/*.json", "schema/**/*.json"]
 experiments = ["schema/*.json"]
 evaluation = ["schema/*.json"]
@@ -103,12 +100,12 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "loslab", "agentops"]
+source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "loslab"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "loslab", "scripts", "agentops"]
+src = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "loslab", "scripts"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I", "D2", "D3", "D4"]
@@ -135,7 +132,6 @@ files = [
   "compute",
   "loslab",
   "scripts",
-  "agentops",
 ]
 ignore_missing_imports = true
 check_untyped_defs = true

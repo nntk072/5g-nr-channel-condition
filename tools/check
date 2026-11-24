@@ -26,7 +26,6 @@ def _read_package_list():
 _PACKAGES = _read_package_list()
 PACKAGE_NAMES = list(_PACKAGES["names"])
 BASE = [*PACKAGE_NAMES, *_PACKAGES["test_roots"]]
-AGENT = ["agentops", "tests/test_agentops", "tools/agent"]
 IMPORT_SMOKE = (
     "import importlib; "
     "[importlib.import_module(name) for name in " + repr(PACKAGE_NAMES) + "]; "
@@ -83,6 +82,9 @@ def uv(*args):
 
 gate = sys.argv[1] if len(sys.argv) == 2 else ""
 if gate == "agent":
+    # Local agent tooling (git-ignored). Not part of the published project or CI.
+    # The package is not installed (not shipped); import it from the checkout.
+    os.environ["PYTHONPATH"] = os.pathsep.join(filter(None, [str(ROOT), os.environ.get("PYTHONPATH", "")]))
     uv("run", "--locked", "python", "tools/agent/validate-rules")
     uv("run", "--locked", "python", "tools/agent/validate-profiles")
     uv("run", "--locked", "python", "tools/agent/doctor")
@@ -101,28 +103,26 @@ if gate == "agent":
     )
 elif gate == "fast":
     active = active_python_paths()
-    ruff_paths = unique_paths(AGENT, active)
-    mypy_paths = unique_paths(
-        [AGENT[0]],
-        [path for path in active if not path.startswith((AGENT[0] + "/", "tests/", "tools/"))],
-    )
     active_tests = [path for path in active if path.startswith("tests/")]
-    uv("run", "--locked", "ruff", "check", *ruff_paths)
-    uv("run", "--locked", "ruff", "format", "--check", *ruff_paths)
-    uv("run", "--locked", "mypy", *mypy_paths)
-    uv(
-        "run",
-        "--locked",
-        "python",
-        "-m",
-        "pytest",
-        "--no-cov",
-        "-o",
-        "addopts=",
-        "-q",
-        "tests/test_agentops",
-        *active_tests,
-    )
+    mypy_paths = [path for path in active if not path.startswith(("tests/", "tools/"))]
+    if active:
+        uv("run", "--locked", "ruff", "check", *active)
+        uv("run", "--locked", "ruff", "format", "--check", *active)
+    if mypy_paths:
+        uv("run", "--locked", "mypy", *mypy_paths)
+    if active_tests:
+        uv(
+            "run",
+            "--locked",
+            "python",
+            "-m",
+            "pytest",
+            "--no-cov",
+            "-o",
+            "addopts=",
+            "-q",
+            *active_tests,
+        )
 elif gate == "lock":
     uv("lock", "--check")
 elif gate == "lint":
@@ -152,9 +152,9 @@ elif gate == "full":
     uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
     uv("build")
 elif gate == "native-smoke":
-    if os.environ.get("NR_AGENT_ALLOW_NATIVE_SMOKE") != "1":
+    if os.environ.get("NR_ALLOW_NATIVE_SMOKE") != "1":
         print(
-            "BLOCKED: native-smoke requires explicit NR_AGENT_ALLOW_NATIVE_SMOKE=1",
+            "BLOCKED: native-smoke requires explicit NR_ALLOW_NATIVE_SMOKE=1",
             file=sys.stderr,
         )
         raise SystemExit(4)

@@ -1,7 +1,0 @@
-schema: nr-agentops.config.v1
-task_cards:
-  - config/agentops/tasks/AGENT.INFRA.SELFTEST.yaml
-  - config/agentops/tasks/E04.PKG06-003.HOP_EST_DEMAP.yaml
-state_root: outputs/agentops/tasks
-log_root: logs/agents
-provider: null

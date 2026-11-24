@@ -21,7 +21,6 @@ listed above it, never from a package below it that depends on it.
 | Evaluation | `evaluation` | Metrics, acceptance criteria, joint evidence, sample-size planning |
 | Experiments | `experiments` | Run drivers, acceptance contracts, and audits of retained results |
 | Support | `compute` | Scientific resource estimates |
-| Control plane | `agentops` | Engineering task queue, verification receipts, and ownership rules |
 | Entry points | `scripts`, `loslab` | Command-line tools that call the packages above |
 
 ## Flows
