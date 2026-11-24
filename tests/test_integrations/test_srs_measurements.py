@@ -734,6 +734,60 @@ def test_network_grid_observation_rejects_invalid_noise_and_resource_limits(case
 
 
 @pytest.mark.parametrize(
+    ("case", "message"),
+    [
+        ("contribution_axes", "network contributions must have"),
+        ("incompatible_grid_axes", "network and noisy grid axes are incompatible"),
+        ("device_mismatch", "network and noise grids must share one device"),
+        ("dtype_mismatch", "network and noise grids must share one complex dtype"),
+        ("nonfinite_grid", "network and noise grids must contain finite complex values"),
+        ("coherent_sum_mismatch", "network received grid must equal the coherent sum"),
+        ("noise_sum_mismatch", "noisy network grid must equal the composed grid plus its noise"),
+        (
+            "unknown_desired_transmitter",
+            "desired_transmitter_id must identify one declared transmitter",
+        ),
+        (
+            "selected_grid_limit",
+            "selected network and mapped-resource grids exceed maximum_grid_cells",
+        ),
+    ],
+)
+def test_network_grid_observation_rejects_inconsistent_provenance(case, message):
+    torch, composition, noisy, mapped = _minimal_network_grid_observation_inputs()
+    overrides = {}
+    if case == "contribution_axes":
+        composition = replace(
+            composition,
+            source_contributions=torch.zeros((1, 1, 1, 1, 2), dtype=torch.complex64),
+        )
+    elif case == "incompatible_grid_axes":
+        noisy = replace(noisy, received_grid=torch.zeros((1, 1, 1, 1, 1), dtype=torch.complex64))
+    elif case == "device_mismatch":
+        noisy = replace(
+            noisy, noise_grid=torch.zeros((1, 1, 1, 1, 2), dtype=torch.complex64, device="meta")
+        )
+    elif case == "dtype_mismatch":
+        noisy = replace(noisy, noise_grid=noisy.noise_grid.to(dtype=torch.complex128))
+    elif case == "nonfinite_grid":
+        composition = replace(
+            composition,
+            received_grid=torch.full_like(composition.received_grid, complex(float("nan"), 0)),
+        )
+    elif case == "coherent_sum_mismatch":
+        composition = replace(composition, received_grid=torch.ones_like(composition.received_grid))
+        noisy = replace(noisy, received_grid=composition.received_grid)
+    elif case == "noise_sum_mismatch":
+        noisy = replace(noisy, received_grid=noisy.received_grid + 1)
+    elif case == "unknown_desired_transmitter":
+        overrides["desired_transmitter_id"] = "tx-2"
+    elif case == "selected_grid_limit":
+        overrides["maximum_grid_cells"] = 1
+    with pytest.raises(ValueError, match=message):
+        _measure_minimal_network_grid(noisy, composition, mapped, **overrides)
+
+
+@pytest.mark.parametrize(
     ("power", "mask", "receiver_category", "calibration_digest", "message"),
     [
         ([[[1.0, np.nan]]], [[True, True]], "terrestrial_type_1_c", "a" * 64, "finite"),
