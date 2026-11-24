@@ -1,258 +1,63 @@
-# 5G NR Channel Condition Research
+# 5G NR Channel Condition
 
-Research framework for machine-learning-based 5G NR channel-condition
-analysis. The current study begins with physically grounded LOS/NLOS detection
-under domain shift, while the project is structured to grow toward broader
-channel-condition characterization and prediction. The framework distinguishes
-geometric LOS labels from standardized TDL/CDL profile proxy labels and marks
-synthetic smoke data as debug-only.
+Software for generating and evaluating NR channel-condition datasets and
+receiver observations. It covers:
 
-## Start here
+- standardized TDL and CDL channel generation and NR PUSCH/DM-RS observations
+  through an optional Sionna PHY integration;
+- ray-traced channel datasets through an optional Sionna RT integration;
+- immutable, content-addressed storage of channel records and episode bundles,
+  with scene-grouped split policies and leakage audits;
+- evaluation contracts for metrics, paired statistics, and acceptance, each
+  with an explicit scope.
 
-- [Documentation index](docs/README.md): guides, concepts, and reference data.
-- [Getting started](docs/guide/getting-started.md): set up the environment and run the checks.
-- [Architecture overview](docs/architecture/overview.md): packages, layers and main flows.
-- [Research program and evidence limits](docs/research/RESEARCH_PROGRAM.md).
-- [2025 thesis PDF](docs/thesis/NguyenLong.pdf).
+The software distinguishes geometric line-of-sight labels, standardized
+profile labels, and synthetic debug data. Results carry their configuration and
+source hashes. A passing check is an engineering result. It does not qualify a
+scene, a receiver, or a standard.
 
-Developer-only notes (agent operations, refactor records, verification logs)
-are kept in a local `dev-docs/` folder and are not part of the published
-repository.
+## Documentation
 
-## Install and run
+- [Documentation index](docs/README.md) lists every guide, architecture note,
+  and reference page.
+- [Getting started](docs/guide/getting-started.md) explains setup and the
+  quality gates.
+- [Architecture overview](docs/architecture/overview.md) describes packages and
+  data flow.
+- [Command reference](docs/reference/cli.md) lists the installed commands.
+- [Schema index](docs/reference/schemas.md) lists the versioned JSON schemas.
 
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e '.[dev]'
-python -m pytest
-loslab-runtime-inventory --probe-rt-apis
-```
-
-Sionna PHY and ray tracing are optional integrations. The <code>sionna</code>
-extra installs the PHY-only distribution and PyTorch. RT workflows can add the
-<code>sionna-rt</code> extra, which also installs Mitsuba and Dr.Jit; select an
-RT backend supported by the host before running native RT simulations.
-
-## NR PUSCH channel estimation
-
-The optional Sionna PHY integration includes an initial DMRS-based PUSCH LS
-receiver. Install it with <code>python -m pip install -e '.[sionna]'</code>.
-Select a PyTorch build that matches the host CUDA setup before installing the
-extra when GPU execution is required. This PHY-only extra avoids importing the
-Mitsuba-based RT backend; use <code>.[sionna-rt]</code> for RT workflows.
-
-The receiver accepts a complex resource grid with axes
-<code>[batch, rx, rx_antenna, ofdm_symbol, fft_bin]</code> and returns channel
-estimates with axes
-<code>[batch, rx, rx_antenna, tx, stream, ofdm_symbol, subcarrier]</code>,
-Sionna's broadcastable estimator error variance, the DMRS pilot mask, and
-configuration/version metadata. Run the native test with
-<code>python -m pytest tests/test_integrations/test_nr_pusch_channel_estimation.py tests/test_integrations/test_nr_pusch_dmrs_layout.py tests/test_integrations/test_nr_pusch_decode_and_allocation.py</code>. The native
-test is discovered by the regular suite and skips when Sionna is absent. In a
-CUDA environment it verifies a known flat complex channel, checks that estimator
-NMSE decreases as AWGN variance falls, and exercises a Rayleigh waveform/channel/
-receiver loop against Sionna's channel truth. This
-golden-vector test validates the adapter contract; synchronization,
-channel/noise calibration, BER/BLER, and broad configuration coverage remain
-planned work. A separate RT-to-OFDM-grid bridge preserves path delays and maps
-Sionna RT CFR onto NR baseband bins; a native 10 m free-space CPU/LLVM test
-checks its per-subcarrier phase against the absolute-delay CIR formula. The
-complete RT-to-PUSCH receive chain is still under validation.
-
-## Leak-resistant NR records
-
-The versioned NR dataset contracts live in datasets/nr.py. NRObservation
-validates grid/estimate axes, FFT-bin mapping, and a typed PUSCH configuration;
-its model_inputs method omits sample IDs, targets, and provenance. The Sionna
-receiver's <code>observe()</code> method packages estimates with the resource
-grid's authoritative effective FFT-bin indices. NRChannelRecord keeps target
-values, masks, and provenance outside the model-input payload.
-
-<code>datasets.nr_store</code> writes pickle-free, content-addressed NPZ records
-and immutable JSON manifests with SHA256 verification. Use
-<code>write_nr_record(root, record)</code> and <code>read_nr_record(root,
-manifest)</code> to persist and verify records. Scene-grouped assignments can be
-created with <code>evaluation.make_independent_split</code>, audited with
-<code>evaluation.audit_group_leakage</code>, and frozen as immutable lock files
-with <code>evaluation.freeze_split_lock</code>. These establish storage and split
-infrastructure. <code>evaluation.audit_spatial_buffer</code> additionally
-reports cross-split neighbors inside a meter buffer, requiring exact sample
-coverage and coordinates in one projected metric frame. Target semantics,
-large-scale data generation, and a real-data geographic audit still require
-research-specific schemas and datasets.
-
-Pilot-shard duplicate QA is available through
-<code>evaluation.audit_cfr_near_duplicates</code>, which flags phase/common-gain
-invariant CFR correlation across frozen splits, and
-<code>evaluation.find_cross_split_temporal_overlaps</code>, which finds
-overlapping windows from the same trajectory. CFR fingerprinting is quadratic
-in the sample count and is intended for small QA shards; a production-scale
-approximate index remains future work.
-
-For analytical sanity checks,
-<code>datasets.generate_analytical_multipath</code> creates seeded one-to-three
-path CFR fixtures with explicit Hz/second units, timing offsets, and a separate
-synthetic path oracle. Its direct-component flag is not a geometric LOS label,
-and the fixture is not a 3GPP or measured channel model.
-
-<code>datasets.audit_path_evolution</code> compares adjacent retained
-<code>PathOracleTable</code> frames under caller-declared time and descriptor
-gates. It reports candidate associations, near ties, births/deaths, missing or
-failed solves, and optional Doppler phase residuals only when matching phase
-gauges are declared. Path row positions are provenance, not identities. This
-bounded audit does not retrace scenes, establish complete physical truth, or
-qualify Doppler evolution.
-
-Stored <code>PhysicalChannelView</code> records may declare a
-<code>phase_gauge_id</code>. <code>datasets.phase_comparison_disposition</code>
-allows coherent comparison only when both views declare the same gauge and
-their link, time, port, frequency, delay-reference, and power-reference
-contracts agree. A missing or mismatched reference remains unavailable; the
-ID itself is a producer claim, not calibration evidence. No phase fitting,
-delay shifting, or gain normalization is applied automatically.
-
-`datasets.PairedFrequencyViews` binds two independently solved complex channel
-views to the same scene geometry and source asset hashes while retaining their
-separate carrier, material, solver, and run-provenance digests. It requires a
-shared link/time/port and delay/power contract, but deliberately makes no
-cross-band phase-coherence claim. Each provenance record must declare an RT
-source family; this remains a producer claim and does not authenticate the
-source or qualify either solve. Magnitude-only measurement archives remain
-ineligible as complex CSI/ToA truth.
-
-`datasets.pair_stored_frequency_bundles` resolves two stored episode bundles,
-checks their content hashes, common split group, selected channel views, and
-carrier-matched RT provenance, then includes both bundle hashes in the pair
-manifest. Scene and parent IDs remain explicit caller-supplied lineage claims.
-
-`write_paired_frequency_manifest` publishes the manifest immutably by content
-hash. `read_paired_frequency_manifest` verifies its digest and replays both
-source bundles before returning the pair.
-`audit_paired_frequency_split_binding` checks that both bundle episode IDs are
-registered children of the declared network-scene parent and resolve to the
-same partition; its result is input-scoped and does not verify registry
-signature custody.
-
-`integrations.sionna.build_paired_frequency_rt_requests` prepares two
-band-specific RT trajectory requests with the same route, seed, scene geometry,
-and asset set but separate carrier and material manifests. Each request still
-requires its own D1 authorization; the planner does not run the solver.
-
-`TargetValue` entries marked `censored` now require an explicit finite lower
-and/or upper bound per element. The target layer stores these intervals and
-reads earlier target layers without interval metadata; legacy censored values
-retain their unavailable mask and are marked `legacy_reason_unrecorded`. Other
-unavailable reasons cannot carry censor bounds.
-
-`align_named_time_axes` records independent timestamp matches from named TX,
-RX, object, or pose clocks to a shared episode grid. Each source report retains
-missing and extra samples plus residuals; it can be replayed when the episode
-bundle is read. The report does not interpolate or prove that the caller's
-source clock IDs or tolerance are physically justified.
-
-When an episode carries this report, its channel views must reference the
-report's digest. The bounded RT trajectory adapter records the shared solver,
-TX-pose, and RX-pose frame grid on both the episode and generated channel view;
-this proves software linkage to that declared grid, not external clock
-calibration or scene-object motion synchronization.
-
-<code>propagation.path_steering_diagnostics</code> measures rank, condition
-number, and mutual coherence of candidate path steering vectors on a specified
-finite set of subcarrier frequencies. It demonstrates exact coincidence and
-bandwidth-limited conditioning cases; it is a fixed-delay gain-conditioning
-diagnostic, not a nonlinear path estimator, CRLB, or guaranteed resolution
-bound.
-
-<code>integrations.sionna.generate_tdl_frequency_response</code> also provides
-a pinned Sionna 2.2 TR 38.901 TDL-to-CFR adapter with explicit profile/spec
-metadata, centered NR baseband bins, deterministic per-call seeds, and the
-original shared RNG state restored after generation. TDL profile names are
-recorded as stochastic <em>profile proxies</em>; they are never emitted as
-geometric LOS labels. Its metadata records nominal tap delays and mean powers;
-native tests compare A–E empirical powers and tap delays against the pinned
-Sionna 19.2 profile tables. This checks implementation consistency, not full
-3GPP conformance. It generates channel coefficients and CFR only, not a
-complete PUSCH/CP/synchronization/receiver chain.
-
-To generate a deterministic, provenance-recorded profile-proxy source dataset
-for TDL/CDL A–E, run `scripts/run_profile_proxy_dataset.py`. For example, on a
-CUDA host:
+## Quick start
 
 ```bash
-uv run --no-sync --locked python scripts/run_profile_proxy_dataset.py \
-  outputs/profile-proxy-tdl-cdl-a-to-e.npz \
-  --samples-per-profile 4096 --seed 78021 --device cuda:0
+uv sync --locked --extra dev
+./tools/check lint
+./tools/check test
+loslab-runtime-inventory --help
 ```
 
-The runner writes the dataset and a JSON sidecar containing hashes, runtime
-versions, per-profile and delay-spread counts, and received-CFR power summaries.
-By default, 4,096 samples per family/profile are balanced over four delay
-spreads. These labels are 3GPP profile proxies (`A/B/C → 0`, `D/E → 1`), not
-geometric LOS/NLOS truth or measured-data evidence. Keep these domains separate
-when training or evaluating physical channel-condition claims.
-
-To run the registered classical baselines with one entire TDL/CDL profile held
-out at a time, use the dataset and its sidecar manifest:
+The native PHY and RT integrations need optional extras and a suitable host:
 
 ```bash
-uv run --no-sync --locked python scripts/run_profile_holdout_baselines.py \
-  outputs/profile-proxy-tdl-cdl-a-to-e-4096-seed78021-final.npz \
-  outputs/profile-holdout-baselines.json --seed 20261021
+uv sync --locked --extra dev --extra sionna        # Sionna PHY
+uv sync --locked --extra dev --extra sionna-rt     # Sionna RT (Mitsuba, Dr.Jit)
 ```
 
-The run saves per-sample scores and a provenance report. Validation groups
-select each decision threshold; all links from the held-out profile stay out
-of training and validation. Since each held-out profile carries only one proxy
-class, the report gives per-profile recall and macro summaries rather than an
-invalid pooled AUROC. This diagnostic measures transfer among standardized
-profile proxies, not transfer to geometric LOS/NLOS or measured channels.
+Native tests skip cleanly when their dependencies are absent. Their results are
+evidence only for the host on which they run.
 
-On the pinned Sionna CUDA environment, `scripts/run_cdl_profile_validation.py`
-checks CDL A–E delay scaling/order, LOS K-factor power splitting, and empirical
-tap powers against the versioned Sionna 19.2 tables:
+## Contributing
 
-```bash
-/home/nguyenl37/.venvs/sionna220-gpu/bin/python \
-  scripts/run_cdl_profile_validation.py \
-  docs/research/results/cdl-profile-validation.json \
-  --batch-size 4096 --seed 31900 --delay-spread-ns 100 --device cuda:0
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, the quality
+gates, and the coverage policy. Report security issues as described in
+[SECURITY.md](SECURITY.md). Release notes are in [CHANGELOG.md](CHANGELOG.md).
 
-This is a pinned simulator implementation check, not full 3GPP conformance or
-geometric/measurement validation.
+## License
 
-For an ideal frequency-domain simulation batch,
-<code>integrations.sionna.generate_tdl_pusch_batch</code> connects the PUSCH
-transmitter, pinned TDL profile, Sionna OFDM channel, reproducible AWGN, and
-PUSCH observation adapter. It keeps transmitted bits and perfect channel truth
-separate from <code>NRObservation.model_inputs()</code>. The current link supports
-one transmit layer/port, assumes perfect synchronization and a sufficient CP,
-and does not model CFO, ICI/ISI, or decode BLER; report it as a simulation
-fixture until those receiver checks are implemented.
+No license has been chosen for this repository yet. The license decision is an
+open owner decision, recorded in the reading plan. No license is granted until
+that decision is made.
 
-## Repository map
+## Citation
 
-```text
-artifacts/       run identity, manifests, and provenance
-configuration/  config loading and canonical hashes
-config/          versioned experiment and runtime declarations
-datasets/        channel dataset schema and data generators
-propagation/     propagation physics and deterministic scene geometry
-receivers/       channel observation and pilot estimation
-models/          classifier implementations
-learning/        training objectives and adaptation algorithms
-evaluation/      metrics, group-aware splits, and statistics
-experiments/     experiment orchestration
-integrations/    optional Sionna adapters
-data/ scenes/ cache/ outputs/
-notebooks/       active and historical notebooks
-archive/         preserved superseded 2025 implementation
-tests/           tests organized around active packages
-```
-
-The Sionna source checkout used as an API reference is kept separately at
-`/home/nguyenl37/sionna`; it is not vendored into this project or imported by
-the runtime.
-
-Author: Long Nguyen
+See [CITATION.cff](CITATION.cff).

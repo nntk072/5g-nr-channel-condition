@@ -1,10 +1,8 @@
 # External Sionna source reference
 
-The upstream Sionna repository is cloned outside this thesis repository:
-
-```text
-/home/nguyenl37/sionna
-```
+The upstream Sionna repository is cloned outside this repository. Set
+`SIONNA_SOURCE` to the local checkout path when you need the source; the path is
+not recorded in this repository.
 
 At the time this refactor was prepared, the checkout was on `main` at commit
 `2f0a3820269b53fd022780a6f2f5f720f7ceb9b4`, from
