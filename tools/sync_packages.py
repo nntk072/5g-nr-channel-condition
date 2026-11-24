@@ -47,7 +47,9 @@ def render(text: str, packages: dict[str, list[str]]) -> str:
         return new
 
     setuptools_include = [f"{name}*" if name != "scripts" else "scripts*" for name in names]
-    text = replace_block(text, "tool.setuptools.packages.find", "include", setuptools_include, False)
+    text = replace_block(
+        text, "tool.setuptools.packages.find", "include", setuptools_include, False
+    )
     text = replace_block(text, "tool.coverage.run", "source", coverage, True)
     text = replace_block(text, "tool.ruff", "src", names, True)
     text = replace_block(text, "tool.mypy", "files", names, False)
@@ -62,7 +64,10 @@ def main(argv: list[str] | None = None) -> int:
     rendered = render(current, load_packages())
     if args.check:
         if rendered != current:
-            print("pyproject.toml package lists are stale; run tools/sync_packages.py", file=sys.stderr)
+            print(
+                "pyproject.toml package lists are stale; run tools/sync_packages.py",
+                file=sys.stderr,
+            )
             return 1
         print("pyproject.toml package lists are current")
         return 0

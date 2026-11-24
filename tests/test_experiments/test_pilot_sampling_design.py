@@ -7,7 +7,6 @@ import hashlib
 import math
 
 import pytest
-
 from experiments.pilot_sampling import audit_pilot_outcomes, build_pilot_sample
 
 FAMILIES = ["cdl", "tdl"]
@@ -260,7 +259,10 @@ def test_design_requires_every_difficulty_and_prior_for_each_family_topology_pai
         (lambda c: c["candidates"][0].update(extra=1), "each pilot candidate"),
         (lambda c: c["candidates"][0].update(difficulty="extreme"), "unsupported"),
         (lambda c: c["candidates"][0].update(source_record_sha256="zz"), "lowercase SHA-256"),
-        (lambda c: c["candidates"][1].update(candidate_id=c["candidates"][0]["candidate_id"]), "must be unique"),
+        (
+            lambda c: c["candidates"][1].update(candidate_id=c["candidates"][0]["candidate_id"]),
+            "must be unique",
+        ),
     ],
 )
 def test_candidate_roster_validation(mutation, message) -> None:
@@ -305,9 +307,11 @@ def test_audit_reports_complete_cost_and_outcome_coverage() -> None:
         assert sum(cell["outcome_counts"].values()) == cell["observed_candidate_count"]
         runtime = cell["runtime_seconds"]
         assert runtime["p50"] <= runtime["p90"] <= runtime["p99"]
-        assert cell["storage_bytes"]["total"] == sum(
-            1000 + i for i in range(cell["observed_candidate_count"])
-        ) or cell["storage_bytes"]["total"] > 0
+        assert (
+            cell["storage_bytes"]["total"]
+            == sum(1000 + i for i in range(cell["observed_candidate_count"]))
+            or cell["storage_bytes"]["total"] > 0
+        )
 
 
 def test_audit_is_incomplete_when_candidates_are_not_run() -> None:
@@ -331,7 +335,10 @@ def test_audit_is_incomplete_for_an_incomplete_sample_design() -> None:
         (lambda o: o.update(extra=1), "exactly the v1 fields"),
         (lambda o: o.update(schema="other"), "unsupported pilot outcomes"),
         (lambda o: o["outcomes"][0].update(extra=1), "each pilot outcome"),
-        (lambda o: o["outcomes"][1].update(candidate_id=o["outcomes"][0]["candidate_id"]), "at most one row"),
+        (
+            lambda o: o["outcomes"][1].update(candidate_id=o["outcomes"][0]["candidate_id"]),
+            "at most one row",
+        ),
         (lambda o: o["outcomes"][0].update(outcome="maybe"), "outcome value is unsupported"),
         (lambda o: o["outcomes"][0].update(runtime_seconds=True), "finite nonnegative"),
         (lambda o: o["outcomes"][0].update(runtime_seconds=-1.0), "finite nonnegative"),
@@ -370,7 +377,9 @@ def test_audit_rejects_outcomes_outside_the_frozen_sample() -> None:
 def test_audit_rejects_malformed_sample_reports() -> None:
     sample = _sample()
     broken = copy.deepcopy(sample)
-    broken["selected_candidates"] = broken["selected_candidates"] + [broken["selected_candidates"][0]]
+    broken["selected_candidates"] = broken["selected_candidates"] + [
+        broken["selected_candidates"][0]
+    ]
     with pytest.raises(ValueError):
         audit_pilot_outcomes(broken, _outcomes(sample))
     broken_cells = copy.deepcopy(sample)

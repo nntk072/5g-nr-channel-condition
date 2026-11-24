@@ -44,5 +44,8 @@ architecture/sionna-reference
 :maxdepth: 1
 
 reference/scene-family-registry
+reference/cli
+reference/schemas
+architecture/coverage-policy
 api/index
 ```

@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 
 import pytest
-
 from integrations.sionna.random import call_with_sionna_seed
 
 

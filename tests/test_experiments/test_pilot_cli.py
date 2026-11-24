@@ -6,7 +6,6 @@ import json
 import os
 
 import pytest
-
 from experiments import pilot_cli
 from tests.test_experiments.test_pilot_sampling_design import _candidates, _design, _outcomes
 
@@ -21,7 +20,9 @@ def _run(monkeypatch, *argv) -> None:
     pilot_cli.main()
 
 
-def test_sample_command_writes_a_complete_roster_and_exits_cleanly(tmp_path, monkeypatch, capsys) -> None:
+def test_sample_command_writes_a_complete_roster_and_exits_cleanly(
+    tmp_path, monkeypatch, capsys
+) -> None:
     design = _write(tmp_path / "design.json", _design(groups=2))
     candidates = _write(tmp_path / "candidates.json", _candidates(groups_per_cell=3))
     output = tmp_path / "sample.json"
@@ -35,7 +36,16 @@ def test_incomplete_sample_is_written_but_exits_nonzero(tmp_path, monkeypatch, c
     candidates = _write(tmp_path / "candidates.json", _candidates(groups_per_cell=2))
     output = tmp_path / "short.json"
     with pytest.raises(SystemExit) as error:
-        _run(monkeypatch, "sample", "--design", design, "--candidates", candidates, "--output", output)
+        _run(
+            monkeypatch,
+            "sample",
+            "--design",
+            design,
+            "--candidates",
+            candidates,
+            "--output",
+            output,
+        )
     assert error.value.code == 1
     assert json.loads(output.read_text(encoding="utf-8"))["status"] == "INCOMPLETE_DESIGN"
     assert "INCOMPLETE_DESIGN" in capsys.readouterr().out
@@ -48,7 +58,16 @@ def test_audit_command_binds_outcomes_to_the_frozen_sample(tmp_path, monkeypatch
     sample_path = _write(tmp_path / "sample.json", sample)
     outcomes_path = _write(tmp_path / "outcomes.json", _outcomes(sample))
     output = tmp_path / "audit.json"
-    _run(monkeypatch, "audit", "--sample", sample_path, "--outcomes", outcomes_path, "--output", output)
+    _run(
+        monkeypatch,
+        "audit",
+        "--sample",
+        sample_path,
+        "--outcomes",
+        outcomes_path,
+        "--output",
+        output,
+    )
     assert json.loads(output.read_text(encoding="utf-8"))["status"] == "COMPLETE_DIAGNOSTIC"
 
 
@@ -78,7 +97,16 @@ def test_existing_output_is_never_overwritten(tmp_path, monkeypatch) -> None:
     design = _write(tmp_path / "design.json", _design())
     candidates = _write(tmp_path / "candidates.json", _candidates())
     with pytest.raises(SystemExit) as error:
-        _run(monkeypatch, "sample", "--design", design, "--candidates", candidates, "--output", output)
+        _run(
+            monkeypatch,
+            "sample",
+            "--design",
+            design,
+            "--candidates",
+            candidates,
+            "--output",
+            output,
+        )
     assert error.value.code == 2
     assert output.read_text(encoding="utf-8") == "keep"
 

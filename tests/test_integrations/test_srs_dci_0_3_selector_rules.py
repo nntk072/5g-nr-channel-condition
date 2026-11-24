@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import numpy as np
 import pytest
 from integrations.sionna.srs.srs_constants.dci_0_3 import (
     nr_srs_dci_0_3_request_list_index_from_bits,

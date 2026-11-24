@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-
 from integrations.sionna.path_power_threshold import (
     relative_path_power_db,
     relative_power_threshold_mask,
@@ -51,12 +50,20 @@ def test_threshold_never_admits_padded_paths() -> None:
 @pytest.mark.parametrize(
     ("gains", "valid", "message"),
     [
-        (np.ones((2, 2), dtype=np.complex128), np.ones((2, 2), dtype=bool), "one-dimensional complex"),
+        (
+            np.ones((2, 2), dtype=np.complex128),
+            np.ones((2, 2), dtype=bool),
+            "one-dimensional complex",
+        ),
         (np.array([1.0, 2.0]), np.array([True, True]), "one-dimensional complex"),
         (np.ones(2, dtype=np.complex128), np.ones(3, dtype=bool), "boolean mask matching"),
         (np.ones(2, dtype=np.complex128), np.ones(2, dtype=int), "boolean mask matching"),
         (np.array([1.0 + 0j, np.nan]), np.array([True, True]), "must be finite"),
-        (np.array([1e200 + 0j, 1.0 + 0j]), np.array([True, True]), "squared path powers must be finite"),
+        (
+            np.array([1e200 + 0j, 1.0 + 0j]),
+            np.array([True, True]),
+            "squared path powers must be finite",
+        ),
         (np.array([1.0 + 0j]), np.array([False]), "at least one valid path"),
         (np.array([0.0 + 0j]), np.array([True]), "at least one valid path"),
     ],
@@ -69,4 +76,6 @@ def test_levels_reject_invalid_path_vectors(gains, valid, message) -> None:
 @pytest.mark.parametrize("threshold", [True, float("nan"), float("inf"), 0.5])
 def test_threshold_must_be_finite_and_nonpositive(threshold) -> None:
     with pytest.raises(ValueError, match="finite and nonpositive"):
-        relative_power_threshold_mask(np.ones(2, dtype=np.complex128), np.ones(2, dtype=bool), threshold)
+        relative_power_threshold_mask(
+            np.ones(2, dtype=np.complex128), np.ones(2, dtype=bool), threshold
+        )

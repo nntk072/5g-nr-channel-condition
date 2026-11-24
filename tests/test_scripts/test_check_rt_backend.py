@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 
 import pytest
-
 import scripts.check_rt_backend as check_rt_backend
 
 
@@ -17,10 +16,15 @@ class _Selection:
 def test_successful_probe_prints_the_selected_variant(monkeypatch, capsys) -> None:
     activated = []
     monkeypatch.setattr(check_rt_backend, "select_rt_backend", lambda backend: _Selection())
-    monkeypatch.setattr(check_rt_backend, "activate_rt_backend", lambda selection: activated.append(selection))
+    monkeypatch.setattr(
+        check_rt_backend, "activate_rt_backend", lambda selection: activated.append(selection)
+    )
     monkeypatch.setattr("sys.argv", ["check_rt_backend", "--backend", "llvm"])
     check_rt_backend.main()
-    assert json.loads(capsys.readouterr().out) == {"backend": "llvm", "variant": "llvm_ad_mono_polarized"}
+    assert json.loads(capsys.readouterr().out) == {
+        "backend": "llvm",
+        "variant": "llvm_ad_mono_polarized",
+    }
     assert len(activated) == 1
 
 

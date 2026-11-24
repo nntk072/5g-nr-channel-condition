@@ -54,9 +54,7 @@ composition = compose_received_waveforms(
     capture_num_samples=tx_waveform.shape[-1],
     sample_rate_hz=receiver.resource_grid.fft_size * 30_000,
 )
-noisy = add_independent_receiver_waveform_awgn(
-    composition, (1e-7,), seed=54321
-)
+noisy = add_independent_receiver_waveform_awgn(composition, (1e-7,), seed=54321)
 result = decode_noisy_network_pusch(
     composition,
     noisy,

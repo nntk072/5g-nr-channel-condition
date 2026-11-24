@@ -7,10 +7,9 @@ import json
 import os
 from pathlib import Path
 
+import evaluation.scoring.uncertainty_io as uncertainty_io
 import numpy as np
 import pytest
-
-import evaluation.scoring.uncertainty_io as uncertainty_io
 from evaluation.scoring.uncertainty_io import (
     evaluate_prediction_file,
     evaluate_prediction_file_build_node,
@@ -82,7 +81,9 @@ def test_defaults_apply_when_optional_fields_are_absent(tmp_path) -> None:
         "schema": "loslab.scalar_regression_predictions.v1",
         "predictions": _rows("calibration", 24, 0.0) + _rows("test", 18, 0.1),
     }
-    report = evaluate_prediction_file(_write(tmp_path / "minimal.json", minimal), bootstrap_draws=100)
+    report = evaluate_prediction_file(
+        _write(tmp_path / "minimal.json", minimal), bootstrap_draws=100
+    )
     assert report["method_name"] == "unspecified"
     assert report["experiment_id"] == "unspecified"
     assert report["target_name"] == "unspecified scalar target"
@@ -137,13 +138,23 @@ def _row_mutation(index: int, **changes) -> dict:
         (lambda: _row_mutation(0, condition={"bandwidth_hz": 1.0}), "invalid condition descriptor"),
         (
             lambda: _row_mutation(
-                0, condition={"bandwidth_hz": True, "snr_db": 1.0, "separation_fraction_of_reciprocal_bandwidth": 0.5}
+                0,
+                condition={
+                    "bandwidth_hz": True,
+                    "snr_db": 1.0,
+                    "separation_fraction_of_reciprocal_bandwidth": 0.5,
+                },
             ),
             "must be finite numbers",
         ),
         (
             lambda: _row_mutation(
-                0, condition={"bandwidth_hz": 1e8, "snr_db": float("inf"), "separation_fraction_of_reciprocal_bandwidth": 0.5}
+                0,
+                condition={
+                    "bandwidth_hz": 1e8,
+                    "snr_db": float("inf"),
+                    "separation_fraction_of_reciprocal_bandwidth": 0.5,
+                },
             ),
             "non-finite JSON value",
         ),
@@ -152,7 +163,9 @@ def _row_mutation(index: int, **changes) -> dict:
 )
 def test_prediction_rows_are_validated(tmp_path, payload_factory, message) -> None:
     with pytest.raises(ValueError, match=message):
-        evaluate_prediction_file(_write(tmp_path / "rows.json", payload_factory()), bootstrap_draws=100)
+        evaluate_prediction_file(
+            _write(tmp_path / "rows.json", payload_factory()), bootstrap_draws=100
+        )
 
 
 def test_missing_row_fields_are_named(tmp_path) -> None:
@@ -176,7 +189,9 @@ def test_valid_optional_condition_and_stratum_are_accepted(tmp_path) -> None:
         "separation_fraction_of_reciprocal_bandwidth": 0.25,
     }
     payload["predictions"][-1]["identifiability_stratum"] = "resolved"
-    report = evaluate_prediction_file(_write(tmp_path / "optional.json", payload), bootstrap_draws=100)
+    report = evaluate_prediction_file(
+        _write(tmp_path / "optional.json", payload), bootstrap_draws=100
+    )
     assert report["metrics"]
 
 
@@ -239,10 +254,14 @@ def test_build_node_evaluates_once_and_reuses_the_cached_report(tmp_path) -> Non
     assert report["schema"] == "loslab.grouped_regression_uncertainty_report.v1"
     assert first["cache_reused"] is False
     assert len(first["node_key"]) == 64 and len(first["artifact_sha256"]) == 64
-    again_report, second = evaluate_prediction_file_build_node(source, cache, seed=3, bootstrap_draws=100)
+    again_report, second = evaluate_prediction_file_build_node(
+        source, cache, seed=3, bootstrap_draws=100
+    )
     assert second["cache_reused"] is True
     assert second["node_key"] == first["node_key"]
     assert again_report == report
-    other_seed, third = evaluate_prediction_file_build_node(source, cache, seed=4, bootstrap_draws=100)
+    other_seed, third = evaluate_prediction_file_build_node(
+        source, cache, seed=4, bootstrap_draws=100
+    )
     assert third["node_key"] != first["node_key"]
     assert other_seed["seed"] == 4

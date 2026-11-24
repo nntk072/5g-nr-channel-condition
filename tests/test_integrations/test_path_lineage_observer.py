@@ -8,7 +8,6 @@ import types
 
 import numpy as np
 import pytest
-
 from integrations.sionna.path_lineage import (
     PathLineageObserver,
     _CandidateGeneratorProxy,
@@ -138,7 +137,10 @@ def test_buffer_snapshot_maps_writer_lineage_and_tracks_new_zero_order_paths(fak
     assert rows[2]["buffer_write_active"] is False
     assert rows[0]["k_tx"] == pytest.approx([0.1, 0.2, 0.3])
     assert rows[0]["vertices_m"][0] == pytest.approx([0.0, 1.0, 2.0])
-    assert all(row["new_zero_order_index_since_previous_candidate_stage"] for row in first["zero_interaction_records"])
+    assert all(
+        row["new_zero_order_index_since_previous_candidate_stage"]
+        for row in first["zero_interaction_records"]
+    )
 
     # The second snapshot only flags zero-order paths that were not present in the earlier stage.
     new_flags = {

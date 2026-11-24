@@ -80,7 +80,9 @@ def test_a_bundle_with_no_data_layer_is_refused() -> None:
 
 def test_direct_path_ablations_must_be_typed() -> None:
     bundle = _bundle()
-    with pytest.raises(TypeError, match="direct_path_ablations must contain DirectPathAblation values"):
+    with pytest.raises(
+        TypeError, match="direct_path_ablations must contain DirectPathAblation values"
+    ):
         EpisodeBundle(
             bundle.episode,
             bundle.path_oracle,

@@ -67,7 +67,9 @@ def test_render_rejects_invalid_inputs(frequencies, gains, delay, error) -> None
 
 
 def test_complex_nll_has_the_gaussian_value_and_ignores_unobserved_tones() -> None:
-    observed = torch.complex(torch.zeros(1, 4, dtype=torch.float64), torch.zeros(1, 4, dtype=torch.float64))
+    observed = torch.complex(
+        torch.zeros(1, 4, dtype=torch.float64), torch.zeros(1, 4, dtype=torch.float64)
+    )
     predicted = observed.clone()
     mask = torch.tensor([[True, True, False, False]])
     variance = torch.tensor([2.0], dtype=torch.float64)
@@ -76,14 +78,18 @@ def test_complex_nll_has_the_gaussian_value_and_ignores_unobserved_tones() -> No
     # Corrupting an unobserved tone must not change the likelihood.
     corrupted = predicted.clone()
     corrupted[0, 3] = 100.0
-    assert complex_pilot_gaussian_nll(observed, corrupted, variance, mask).item() == pytest.approx(nll.item())
+    assert complex_pilot_gaussian_nll(observed, corrupted, variance, mask).item() == pytest.approx(
+        nll.item()
+    )
 
 
 def test_complex_nll_penalizes_residuals_and_accepts_per_tone_variance() -> None:
     observed = torch.ones(2, 3, dtype=torch.complex128)
     predicted = observed + 1.0
     mask = torch.ones(2, 3, dtype=torch.bool)
-    scalar = complex_pilot_gaussian_nll(observed, predicted, torch.tensor([1.0, 1.0], dtype=torch.float64), mask)
+    scalar = complex_pilot_gaussian_nll(
+        observed, predicted, torch.tensor([1.0, 1.0], dtype=torch.float64), mask
+    )
     per_tone = complex_pilot_gaussian_nll(
         observed, predicted, torch.ones(2, 3, dtype=torch.float64), mask
     )
@@ -94,13 +100,55 @@ def test_complex_nll_penalizes_residuals_and_accepts_per_tone_variance() -> None
 @pytest.mark.parametrize(
     ("observed", "predicted", "mask", "variance", "message"),
     [
-        (torch.ones(2, 3, dtype=torch.complex128), torch.ones(2, 2, dtype=torch.complex128), torch.ones(2, 3, dtype=torch.bool), 1.0, "matching complex"),
-        (torch.ones(2, 3), torch.ones(2, 3), torch.ones(2, 3, dtype=torch.bool), 1.0, "matching complex"),
-        (torch.full((1, 2), complex(np.nan, 0.0), dtype=torch.complex128), torch.ones(1, 2, dtype=torch.complex128), torch.ones(1, 2, dtype=torch.bool), 1.0, "finite"),
-        (torch.ones(1, 2, dtype=torch.complex128), torch.ones(1, 2, dtype=torch.complex128), torch.ones(1, 2), 1.0, "boolean"),
-        (torch.ones(1, 2, dtype=torch.complex128), torch.ones(1, 2, dtype=torch.complex128), torch.zeros(1, 2, dtype=torch.bool), 1.0, "at least one observed"),
-        (torch.ones(1, 2, dtype=torch.complex128), torch.ones(1, 2, dtype=torch.complex128), torch.ones(1, 2, dtype=torch.bool), torch.zeros(1, dtype=torch.float64), "finite and positive"),
-        (torch.ones(1, 2, dtype=torch.complex128), torch.ones(1, 2, dtype=torch.complex128), torch.ones(1, 2, dtype=torch.bool), torch.ones(3), "batch] or"),
+        (
+            torch.ones(2, 3, dtype=torch.complex128),
+            torch.ones(2, 2, dtype=torch.complex128),
+            torch.ones(2, 3, dtype=torch.bool),
+            1.0,
+            "matching complex",
+        ),
+        (
+            torch.ones(2, 3),
+            torch.ones(2, 3),
+            torch.ones(2, 3, dtype=torch.bool),
+            1.0,
+            "matching complex",
+        ),
+        (
+            torch.full((1, 2), complex(np.nan, 0.0), dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.bool),
+            1.0,
+            "finite",
+        ),
+        (
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2),
+            1.0,
+            "boolean",
+        ),
+        (
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.zeros(1, 2, dtype=torch.bool),
+            1.0,
+            "at least one observed",
+        ),
+        (
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.bool),
+            torch.zeros(1, dtype=torch.float64),
+            "finite and positive",
+        ),
+        (
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.bool),
+            torch.ones(3),
+            "batch] or",
+        ),
     ],
 )
 def test_complex_nll_rejects_invalid_inputs(observed, predicted, mask, variance, message) -> None:
@@ -115,7 +163,9 @@ def test_heteroscedastic_nll_is_minimal_at_the_predicted_delay() -> None:
     off = heteroscedastic_delay_nll(target, target + 1.0, torch.zeros(2, dtype=torch.float64))
     assert off.item() == pytest.approx(0.5)
     # Integer targets are promoted to floating point before the likelihood.
-    assert heteroscedastic_delay_nll(torch.tensor([1, 2]), torch.tensor([1.0, 2.0]), torch.zeros(2)).item() == pytest.approx(0.0)
+    assert heteroscedastic_delay_nll(
+        torch.tensor([1, 2]), torch.tensor([1.0, 2.0]), torch.zeros(2)
+    ).item() == pytest.approx(0.0)
 
 
 @pytest.mark.parametrize(
@@ -134,9 +184,13 @@ def test_heteroscedastic_nll_rejects_invalid_inputs(target, mean, log_scale, mes
 
 
 def test_heteroscedastic_nll_clamps_extreme_log_scales() -> None:
-    value = heteroscedastic_delay_nll(torch.tensor([1.0]), torch.tensor([0.0]), torch.tensor([1000.0]))
+    value = heteroscedastic_delay_nll(
+        torch.tensor([1.0]), torch.tensor([0.0]), torch.tensor([1000.0])
+    )
     assert math.isfinite(value.item())
-    assert value.item() == pytest.approx(0.5 * math.exp(-30.0 * 2) * 0 + 30.0 + 0.5 * (1.0 * math.exp(-30.0)) ** 2, rel=1e-6)
+    assert value.item() == pytest.approx(
+        0.5 * math.exp(-30.0 * 2) * 0 + 30.0 + 0.5 * (1.0 * math.exp(-30.0)) ** 2, rel=1e-6
+    )
 
 
 def _crlb_inputs(batch: int = 2, tones: int = 12):
@@ -154,7 +208,9 @@ def test_crlb_floor_is_positive_and_capped_by_the_declared_delay_support() -> No
     assert floor.shape == (2, 1)
     assert torch.all(floor > 0) and torch.all(floor <= 5e-6)
     # Less noise means more information, so the floor must shrink.
-    quieter = relative_delay_crlb_scale_floor(gains, delay, frequencies, variance / 100.0, mask, 5e-6)
+    quieter = relative_delay_crlb_scale_floor(
+        gains, delay, frequencies, variance / 100.0, mask, 5e-6
+    )
     assert torch.all(quieter < floor)
     # A tiny support caps the floor exactly.
     capped = relative_delay_crlb_scale_floor(gains, delay, frequencies, variance, mask, 1e-12)
@@ -176,7 +232,14 @@ def test_crlb_floor_accepts_batched_frequencies_and_column_delays() -> None:
         ({"gains": _gains().real}, "complex tensor"),
         ({"mask": torch.ones(3, 12, dtype=torch.bool)}, "match the gain batch"),
         ({"mask": torch.ones(2, 12)}, "boolean with at least two"),
-        ({"mask": torch.cat([torch.zeros(1, 12, dtype=torch.bool), torch.ones(1, 12, dtype=torch.bool)])}, "boolean with at least two"),
+        (
+            {
+                "mask": torch.cat(
+                    [torch.zeros(1, 12, dtype=torch.bool), torch.ones(1, 12, dtype=torch.bool)]
+                )
+            },
+            "boolean with at least two",
+        ),
         ({"frequencies": torch.ones(2, 5, dtype=torch.float64)}, "match the pilot mask"),
         ({"delay": torch.zeros(3, dtype=torch.float64)}, "shape \\[batch\\] or"),
         ({"variance": torch.zeros(2, dtype=torch.float64)}, "finite and positive"),
@@ -253,7 +316,14 @@ def test_decoder_accepts_batched_frequencies() -> None:
         ({"cfr": torch.ones(3, 7, dtype=torch.complex64)}, "shape \\[batch, n_tones\\]"),
         ({"cfr": torch.ones(3, 8)}, "must be complex"),
         ({"mask": torch.ones(3, 8)}, "boolean and match"),
-        ({"mask": torch.cat([torch.zeros(1, 8, dtype=torch.bool), torch.ones(2, 8, dtype=torch.bool)])}, "at least two pilot"),
+        (
+            {
+                "mask": torch.cat(
+                    [torch.zeros(1, 8, dtype=torch.bool), torch.ones(2, 8, dtype=torch.bool)]
+                )
+            },
+            "at least two pilot",
+        ),
         ({"freq": torch.ones(5)}, "pilot-tone shape"),
         ({"freq": torch.full((8,), np.nan)}, "pilot-tone shape"),
         ({"freq": torch.zeros(8)}, "nonzero bandwidth"),
@@ -296,7 +366,10 @@ def test_decoder_build_rejects_invalid_architecture(n_tones, max_delay, hidden, 
 
 
 def _save_state(decoder, path):
-    np.savez(path, **{name: tensor.detach().cpu().numpy() for name, tensor in decoder.state_dict().items()})
+    np.savez(
+        path,
+        **{name: tensor.detach().cpu().numpy() for name, tensor in decoder.state_dict().items()},
+    )
 
 
 def test_checkpoint_round_trip_restores_outputs_and_marks_contract_status(tmp_path) -> None:
@@ -318,11 +391,11 @@ def test_checkpoint_loader_requires_a_contract_when_asked(tmp_path) -> None:
     checkpoint = tmp_path / "decoder.npz"
     _save_state(decoder, checkpoint)
     with pytest.raises(ValueError, match="input contract is required"):
-        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,), require_contract=True)
-    with pytest.raises(ValueError, match="input contract is required"):
         load_two_path_uncertainty_decoder(
-            checkpoint, 8, 2e-6, hidden_dims=(8,), dataset=object()
+            checkpoint, 8, 2e-6, hidden_dims=(8,), require_contract=True
         )
+    with pytest.raises(ValueError, match="input contract is required"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,), dataset=object())
 
 
 def test_checkpoint_loader_rejects_missing_and_mismatched_files(tmp_path) -> None:

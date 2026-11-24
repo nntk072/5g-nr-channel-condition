@@ -6,10 +6,9 @@ import copy
 import math
 from statistics import NormalDist
 
+import evaluation.covariance.cdl.four_element as four_element
 import numpy as np
 import pytest
-
-import evaluation.covariance.cdl.four_element as four_element
 from evaluation.covariance.cdl.four_element import (
     _CLAIM_NAMES,
     audit_cdl_spatial_covariance_claims,
@@ -102,13 +101,38 @@ def test_precision_bound_is_enforced_independently_of_containment() -> None:
         (np.ones((5, 4)), np.eye(4, dtype=complex), {}, "complex \\[draw, 4\\]"),
         (np.ones((5, 3), dtype=complex), np.eye(4, dtype=complex), {}, "complex \\[draw, 4\\]"),
         (np.ones((1, 4), dtype=complex), np.eye(4, dtype=complex), {}, "at least two finite draws"),
-        (np.full((5, 4), np.nan, dtype=complex), np.eye(4, dtype=complex), {}, "at least two finite draws"),
+        (
+            np.full((5, 4), np.nan, dtype=complex),
+            np.eye(4, dtype=complex),
+            {},
+            "at least two finite draws",
+        ),
         (np.ones((5, 4), dtype=complex), np.ones((4, 4)), {}, "finite complex 4x4"),
         (np.ones((5, 4), dtype=complex), np.ones((3, 3), dtype=complex), {}, "finite complex 4x4"),
-        (np.ones((5, 4), dtype=complex), np.eye(4, dtype=complex), {"familywise_alpha": 0.0}, "familywise_alpha"),
-        (np.ones((5, 4), dtype=complex), np.eye(4, dtype=complex), {"familywise_alpha": True}, "familywise_alpha"),
-        (np.ones((5, 4), dtype=complex), np.eye(4, dtype=complex), {"maximum_half_width": 0.0}, "maximum_half_width"),
-        (np.ones((5, 4), dtype=complex), np.eye(4, dtype=complex), {"maximum_half_width": True}, "maximum_half_width"),
+        (
+            np.ones((5, 4), dtype=complex),
+            np.eye(4, dtype=complex),
+            {"familywise_alpha": 0.0},
+            "familywise_alpha",
+        ),
+        (
+            np.ones((5, 4), dtype=complex),
+            np.eye(4, dtype=complex),
+            {"familywise_alpha": True},
+            "familywise_alpha",
+        ),
+        (
+            np.ones((5, 4), dtype=complex),
+            np.eye(4, dtype=complex),
+            {"maximum_half_width": 0.0},
+            "maximum_half_width",
+        ),
+        (
+            np.ones((5, 4), dtype=complex),
+            np.eye(4, dtype=complex),
+            {"maximum_half_width": True},
+            "maximum_half_width",
+        ),
     ],
 )
 def test_claim_inputs_are_validated(samples, reference, kwargs, message) -> None:

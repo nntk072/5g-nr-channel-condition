@@ -30,7 +30,9 @@ def _mask() -> torch.Tensor:
 def _pilot_values() -> torch.Tensor:
     count = len(DMRS_SYMBOLS) * (FFT // PILOT_STEP)
     phases = torch.linspace(0.0, 2.0, count, dtype=torch.float64)
-    return torch.polar(torch.ones(count, dtype=torch.float64), phases).to(torch.complex64)[None, None, :]
+    return torch.polar(torch.ones(count, dtype=torch.float64), phases).to(torch.complex64)[
+        None, None, :
+    ]
 
 
 class _FakeEstimator:
@@ -60,9 +62,7 @@ def _receiver(mask=None, pilots=None, fft=FFT, symbols=SYMBOLS):
 def _true_response(taps: torch.Tensor, delays: list[int]) -> torch.Tensor:
     """Frequency response on the centered bin order used by the estimator's output."""
     bins = torch.arange(FFT, dtype=torch.float64) - FFT // 2
-    basis = torch.stack(
-        [torch.exp(-2j * math.pi * bins * delay / FFT) for delay in delays], dim=1
-    )
+    basis = torch.stack([torch.exp(-2j * math.pi * bins * delay / FFT) for delay in delays], dim=1)
     return (basis @ taps.to(torch.complex128)).to(torch.complex64)
 
 
@@ -73,14 +73,19 @@ def _noise_free_grid(taps: torch.Tensor, delays: list[int]) -> torch.Tensor:
     # The pilots carry known values; the received pilot equals channel times pilot.
     pilot_values = _pilot_values()[0, 0]
     received = grid.clone()
-    received[..., _mask()[0, 0]] = response[None, None, None, None, :][..., _mask()[0, 0].nonzero(as_tuple=True)[1]] * pilot_values
+    received[..., _mask()[0, 0]] = (
+        response[None, None, None, None, :][..., _mask()[0, 0].nonzero(as_tuple=True)[1]]
+        * pilot_values
+    )
     return received
 
 
 def test_noise_free_finite_delay_channel_is_recovered_exactly_at_every_symbol() -> None:
     delays = [0, 1, 2]
     taps = torch.tensor([1.0 + 0.5j, -0.3 + 0.2j, 0.1 - 0.4j], dtype=torch.complex128)
-    estimator = FiniteDelayDFTChannelEstimator(_receiver(), max_delay_samples=2, min_delay_samples=0)
+    estimator = FiniteDelayDFTChannelEstimator(
+        _receiver(), max_delay_samples=2, min_delay_samples=0
+    )
     received = _noise_free_grid(taps, delays)
     estimate, variance = estimator(received, torch.tensor(0.0))
     truth = _true_response(taps, delays)
@@ -151,7 +156,9 @@ def test_constructor_rejects_unsupported_grids_and_pilot_patterns() -> None:
     clustered[0, 0, 4, :2] = True
     clustered_pilots = torch.ones(1, 1, 4, dtype=torch.complex64)
     with pytest.raises(ValueError, match="cannot identify the configured delay span"):
-        FiniteDelayDFTChannelEstimator(_receiver(mask=clustered, pilots=clustered_pilots), max_delay_samples=2)
+        FiniteDelayDFTChannelEstimator(
+            _receiver(mask=clustered, pilots=clustered_pilots), max_delay_samples=2
+        )
 
 
 def test_estimation_rejects_zero_pilots_and_invalid_noise() -> None:
@@ -185,7 +192,9 @@ def test_estimation_rejects_a_pilot_count_that_differs_from_the_grid() -> None:
 
 def test_decoder_factory_builds_the_estimator_through_the_receiver() -> None:
     receiver = _receiver()
-    decoder_name, estimator = make_finite_delay_dft_decoder(receiver, max_delay_samples=3, min_delay_samples=1)
+    decoder_name, estimator = make_finite_delay_dft_decoder(
+        receiver, max_delay_samples=3, min_delay_samples=1
+    )
     assert decoder_name == "decoder"
     assert isinstance(estimator, FiniteDelayDFTChannelEstimator)
     assert estimator._tap_count == 3

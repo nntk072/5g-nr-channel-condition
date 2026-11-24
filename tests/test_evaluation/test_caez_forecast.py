@@ -6,7 +6,6 @@ import hashlib
 
 import numpy as np
 import pytest
-
 from evaluation.scoring.caez_forecast import (
     align_forecast_pairs,
     make_caez_forecast_artifact_contract,
@@ -122,7 +121,11 @@ def _contract_kwargs(**overrides):
         ({"train_pair_indices": -np.ones((4, 3), dtype=np.int64)}, "nonnegative integer"),
         ({"train_pair_indices": np.zeros((4, 3))}, "nonnegative integer"),
         (
-            {"train_pair_indices": np.stack([np.arange(4), np.arange(4), np.arange(4) + 2], axis=1)},
+            {
+                "train_pair_indices": np.stack(
+                    [np.arange(4), np.arange(4), np.arange(4) + 2], axis=1
+                )
+            },
             "strictly history/anchor/target",
         ),
         ({"train_archive_sha256": "ABC"}, "lowercase SHA-256"),
@@ -154,9 +157,7 @@ def test_score_summary_excludes_constant_targets_from_macro_average() -> None:
     assert result["per_oru"][1]["nrmse_by_target_std"] is not None
     assert result["macro_nrmse_by_target_std"] == result["per_oru"][1]["nrmse_by_target_std"]
 
-    all_constant = score_summary_predictions(
-        np.ones((2, 2)), np.ones((2, 2)), n_orus=1, n_rx=2
-    )
+    all_constant = score_summary_predictions(np.ones((2, 2)), np.ones((2, 2)), n_orus=1, n_rx=2)
     assert all_constant["macro_nrmse_by_target_std"] is None
 
 

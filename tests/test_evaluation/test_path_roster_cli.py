@@ -6,7 +6,6 @@ import json
 import os
 
 import pytest
-
 from evaluation.acceptance import path_equivalence_roster_cli as roster_cli
 from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family_v4
 from tests.test_evaluation.test_path_equivalence_assurance import _comparison, _record
@@ -54,11 +53,23 @@ def test_valid_input_produces_the_diagnostic_report(tmp_path, capsys) -> None:
 @pytest.mark.parametrize(
     ("payload", "message"),
     [
-        ({"schema": "other", "joint_acceptance_family": _family(), "records": [{}]}, "input schema must be"),
-        ({"schema": "loslab.g3_path_equivalence_roster_input.v1", "joint_acceptance_family": _family()}, "exactly schema"),
+        (
+            {"schema": "other", "joint_acceptance_family": _family(), "records": [{}]},
+            "input schema must be",
+        ),
+        (
+            {
+                "schema": "loslab.g3_path_equivalence_roster_input.v1",
+                "joint_acceptance_family": _family(),
+            },
+            "exactly schema",
+        ),
         (_payload(records=[]), "records must be a nonempty list"),
         (_payload(records="not-a-list"), "records must be a nonempty list"),
-        (_payload(joint_acceptance_family={**_family(), "schema": "other"}), "schema is unsupported"),
+        (
+            _payload(joint_acceptance_family={**_family(), "schema": "other"}),
+            "schema is unsupported",
+        ),
     ],
 )
 def test_input_envelope_is_validated(tmp_path, capsys, payload, message) -> None:

@@ -23,9 +23,7 @@ def _metadata(**overrides) -> dict:
             "solve_status": ["solved"],
             "path_kind": None,
             "coefficient_convention": storage.PATH_COEFFICIENT_CONVENTION,
-            "optional_fields": {
-                field: False for field in _PATH_ORACLE_OPTIONAL_METADATA_FIELDS
-            },
+            "optional_fields": {field: False for field in _PATH_ORACLE_OPTIONAL_METADATA_FIELDS},
         }
     )
     metadata["optional_fields"]["interaction_vertex_frame"] = None

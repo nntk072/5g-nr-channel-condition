@@ -52,16 +52,6 @@ def test_episode_identity_and_radio_context_must_match(episode_change, message) 
         _bind(record, episode)
 
 
-
-
-
-
-
-
-
-
-
-
 def test_record_is_a_scenario_gbsm_record() -> None:
     record, _ = _bundle_parts()
     assert isinstance(record, ScenarioGBSMRecord)

@@ -10,13 +10,24 @@ import pytest
 from datasets import caez
 
 
-def _archive(path, *, complex_h: bool = True, samples: int = 12, timestamps=None, positions=None, extra=None, compressed: bool = False):
+def _archive(
+    path,
+    *,
+    complex_h: bool = True,
+    samples: int = 12,
+    timestamps=None,
+    positions=None,
+    extra=None,
+    compressed: bool = False,
+):
     rng = np.random.default_rng(4)
     h = rng.normal(size=(samples, 4)) + (1j * rng.normal(size=(samples, 4)) if complex_h else 0)
     fields = {
         "H": h if complex_h else h.real,
         "noise_var": np.full(samples, 0.01),
-        "timestamps": np.arange(samples, dtype=np.float64) * 0.5 if timestamps is None else timestamps,
+        "timestamps": np.arange(samples, dtype=np.float64) * 0.5
+        if timestamps is None
+        else timestamps,
         "pos": rng.normal(size=(samples, 3)) if positions is None else positions,
     }
     fields.update(extra or {})
@@ -34,7 +45,10 @@ def test_complex_archive_reports_fields_order_and_the_phase_disposition(tmp_path
     assert report["fields"]["H"]["all_finite"] is True
     assert report["fields"]["H"]["shape"] == [12, 4]
     assert report["channel_observation"]["complex_coefficients_present"] is True
-    assert report["channel_observation"]["g3_complex_csi_disposition"] == "not_established_phase_reference_unverified"
+    assert (
+        report["channel_observation"]["g3_complex_csi_disposition"]
+        == "not_established_phase_reference_unverified"
+    )
     assert report["timestamps"]["strictly_increasing"] is True
     assert report["timestamps"]["min_positive_step"] == pytest.approx(0.5)
     assert report["timestamps"]["max_step"] == pytest.approx(0.5)
@@ -46,11 +60,16 @@ def test_complex_archive_reports_fields_order_and_the_phase_disposition(tmp_path
 def test_real_archive_is_ineligible_for_complex_csi(tmp_path) -> None:
     report = caez.audit(_archive(tmp_path / "real.npz", complex_h=False))
     assert report["channel_observation"]["complex_coefficients_present"] is False
-    assert report["channel_observation"]["g3_complex_csi_disposition"] == "ineligible_no_explicit_complex_phase"
+    assert (
+        report["channel_observation"]["g3_complex_csi_disposition"]
+        == "ineligible_no_explicit_complex_phase"
+    )
 
 
 def test_non_monotonic_and_single_step_timestamps_are_reported(tmp_path) -> None:
-    unsorted = caez.audit(_archive(tmp_path / "unsorted.npz", timestamps=np.array([0.0, 2.0, 1.0] + [3.0] * 9)))
+    unsorted = caez.audit(
+        _archive(tmp_path / "unsorted.npz", timestamps=np.array([0.0, 2.0, 1.0] + [3.0] * 9))
+    )
     assert unsorted["timestamps"]["strictly_increasing"] is False
     constant = caez.audit(_archive(tmp_path / "constant.npz", timestamps=np.zeros(12)))
     assert constant["timestamps"]["min_positive_step"] is None
@@ -62,7 +81,9 @@ def test_nonfinite_channel_values_are_counted_not_hidden(tmp_path) -> None:
     h = rng.normal(size=(12, 4)).astype(np.complex128)
     h[3, 1] = complex(np.nan, 0.0)
     path = tmp_path / "nan.npz"
-    np.savez(path, H=h, noise_var=np.ones(12), timestamps=np.arange(12.0), pos=rng.normal(size=(12, 2)))
+    np.savez(
+        path, H=h, noise_var=np.ones(12), timestamps=np.arange(12.0), pos=rng.normal(size=(12, 2))
+    )
     report = caez.audit(path)
     assert report["fields"]["H"]["all_finite"] is False
     assert report["fields"]["H"]["finite_values"] == report["fields"]["H"]["total_values"] - 1
@@ -85,7 +106,13 @@ def test_archive_shape_and_storage_rules(tmp_path, kwargs, message) -> None:
         kwargs["extra"] = {"noise_var": np.array([object()] * 12, dtype=object)}
     if kwargs.get("samples") == 0:
         path = tmp_path / "empty.npz"
-        np.savez(path, H=np.zeros((0, 4), dtype=np.complex128), noise_var=np.zeros(0), timestamps=np.zeros(0), pos=np.zeros((0, 2)))
+        np.savez(
+            path,
+            H=np.zeros((0, 4), dtype=np.complex128),
+            noise_var=np.zeros(0),
+            timestamps=np.zeros(0),
+            pos=np.zeros((0, 2)),
+        )
     else:
         path = _archive(tmp_path / "bad.npz", **kwargs)
     with pytest.raises(ValueError, match=message):
@@ -94,7 +121,9 @@ def test_archive_shape_and_storage_rules(tmp_path, kwargs, message) -> None:
 
 def test_missing_and_mismatched_fields_are_rejected(tmp_path) -> None:
     path = tmp_path / "missing.npz"
-    np.savez(path, H=np.ones((4, 4), dtype=complex), noise_var=np.ones(4), timestamps=np.arange(4.0))
+    np.savez(
+        path, H=np.ones((4, 4), dtype=complex), noise_var=np.ones(4), timestamps=np.arange(4.0)
+    )
     with pytest.raises(ValueError, match="required CAEZ array is missing: pos"):
         caez.audit(path)
     mismatched = _archive(tmp_path / "mismatch.npz", extra={"noise_var": np.ones(5)})
@@ -131,6 +160,8 @@ def test_cli_prints_the_report_and_can_write_it(tmp_path, monkeypatch, capsys) -
     printed = json.loads(capsys.readouterr().out)
     assert printed["sample_count"] == 12
     output = tmp_path / "nested" / "report.json"
-    monkeypatch.setattr("sys.argv", ["caez", str(path), "--chunk-rows", "4", "--output", str(output)])
+    monkeypatch.setattr(
+        "sys.argv", ["caez", str(path), "--chunk-rows", "4", "--output", str(output)]
+    )
     assert caez.main() == 0
     assert json.loads(output.read_text(encoding="utf-8"))["fields"]["H"]["shape"] == [12, 4]

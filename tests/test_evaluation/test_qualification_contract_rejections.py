@@ -5,7 +5,6 @@ from __future__ import annotations
 from copy import deepcopy
 
 import pytest
-
 from evaluation.acceptance.qualification_contract import (
     build_qualification_run_contract,
     verify_qualification_run_contract,
@@ -21,11 +20,31 @@ def test_specification_must_be_an_object() -> None:
 @pytest.mark.parametrize(
     ("mutate", "message"),
     [
-        (lambda s: s["candidate"].update(config_id=s["challenger"]["config_id"]), "config_id values must differ"),
-        (lambda s: s["sampling"].update(path_equivalence_scenarios=[]), "must be a nonempty roster"),
-        (lambda s: s["sampling"].update(path_equivalence_scenarios=[["site-a", "LOS", "episode-01"], ["site-a", "LOS", "episode-01"]]), "must be unique"),
-        (lambda s: s["sampling"].update(bootstrap_seed=-1), "bootstrap_seed must be a nonnegative integer"),
-        (lambda s: s["sampling"].update(bootstrap_draws=10), "bootstrap_draws must be an integer of at least 1000"),
+        (
+            lambda s: s["candidate"].update(config_id=s["challenger"]["config_id"]),
+            "config_id values must differ",
+        ),
+        (
+            lambda s: s["sampling"].update(path_equivalence_scenarios=[]),
+            "must be a nonempty roster",
+        ),
+        (
+            lambda s: s["sampling"].update(
+                path_equivalence_scenarios=[
+                    ["site-a", "LOS", "episode-01"],
+                    ["site-a", "LOS", "episode-01"],
+                ]
+            ),
+            "must be unique",
+        ),
+        (
+            lambda s: s["sampling"].update(bootstrap_seed=-1),
+            "bootstrap_seed must be a nonnegative integer",
+        ),
+        (
+            lambda s: s["sampling"].update(bootstrap_draws=10),
+            "bootstrap_draws must be an integer of at least 1000",
+        ),
     ],
 )
 def test_sampling_and_scope_rules(mutate, message) -> None:
@@ -68,5 +87,7 @@ def test_verification_requires_an_object_with_a_valid_digest_and_schema() -> Non
     with pytest.raises(ValueError, match="contract_sha256 must be a SHA-256 digest"):
         verify_qualification_run_contract(broken)
     unsupported = dict(contract, schema="umcd.other.v1")
-    with pytest.raises(ValueError, match="digest does not match|schema is unsupported|fields differ"):
+    with pytest.raises(
+        ValueError, match="digest does not match|schema is unsupported|fields differ"
+    ):
         verify_qualification_run_contract(unsupported)
