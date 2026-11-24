@@ -128,6 +128,18 @@ Run as pre-registered, in the GPU environment with CUDA hidden. Temporary copies
 
 Reading: the single misses at the committed seeds (ratios 1.014 and 1.047) are rare draws. At a family-wise 99% level each seed has about a 1% chance of a miss, so a single-seed assertion is flaky by design. The committed tests and tolerances are unchanged. A coverage test over a fixed multi-seed set would be the fitting assertion; that is a change to what the test claims, and it needs approval.
 
+## Final native parity on `0fcc20f` (all native tests pass)
+
+After the CDL coverage checks (50 pre-registered seeds per case, at most 2 seeds with a miss) and the RT corrections (structured material manifest read from the identity input; target list aligned with the derived RMS target), the full native suite passes.
+
+- Serial run, CUDA hidden: `1229 passed, 43 skipped, 4003 deselected, 10 warnings in 2147.48s (0:35:47)`; exit 0.
+- Parallel run, 32 workers: `1229 passed, 43 skipped, 10 warnings in 3072.45s (0:51:12)`; exit 0. Slower than serial, because workers oversubscribe the threads of the 64-core host.
+- Parallel run, 16 workers, 2 threads each: `1229 passed, 43 skipped, 10 warnings in 2102.80s (0:35:02)`; exit 0. Roughly the serial time, so pytest-xdist gives little gain here. The wall time is set by a few long tests, not by the worker count.
+
+Skipped tests are optional native tests whose device or dependency is absent from this run. CUDA is hidden for the parity record, as the goal requires. An extra GPU run with CUDA visible is a separate, labelled check and is not part of this record.
+
+Sionna documentation: Sionna RT 2.2.0 is built on Mitsuba 3, which performs the ray-intersection and scene handling; the Mitsuba variant is chosen from the available hardware. So the V100 GPUs do not remove the need for Mitsuba. The claim in this record is therefore the accurate one: a digest-bound NumPy inventory cross-checked by Mitsuba, not an independent Mitsuba oracle.
+
 ## Goal items
 
 1. **Helper wiring.** `scripts/audit_helper_wiring.py` resolves package re-exports and facade re-exports to the defining submodule. The helper count is `254`; `--check` exits 0; `tests/test_scripts/test_audit_helper_wiring.py` passes. Dispositions: 245 manual review, 1 no direct reference, 8 route mapping required. The moved `compose_pusch_intra_slot_hops` is now `receivers.nr.pusch_core.hopping.compose_pusch_intra_slot_hops`.
