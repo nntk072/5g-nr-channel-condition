@@ -69,6 +69,7 @@ def test_reused_pusch_dmrs_estimates_sum_of_serving_and_interfering_channels():
 
 @pytest.mark.native_sionna
 def test_native_multi_node_rt_channel_matches_single_link_and_composes_sources():
+    pytest.importorskip("mitsuba", reason="Sionna RT (Mitsuba) is not installed in this environment")
     import mitsuba as mi
 
     mi.set_variant("llvm_ad_mono_polarized")
@@ -140,6 +141,7 @@ def test_native_multi_node_rt_channel_matches_single_link_and_composes_sources()
 
 @pytest.mark.native_sionna
 def test_native_rt_cochannel_pusch_dmrs_estimate_matches_two_cross_links():
+    pytest.importorskip("mitsuba", reason="Sionna RT (Mitsuba) is not installed in this environment")
     """Exercise native RT links, the network composer, and the NR estimator together."""
     import mitsuba as mi
 
@@ -207,6 +209,7 @@ def test_native_rt_cochannel_pusch_dmrs_estimate_matches_two_cross_links():
 
 @pytest.mark.native_sionna
 def test_free_space_isotropic_link_is_reciprocal_when_tx_and_rx_are_swapped():
+    pytest.importorskip("mitsuba", reason="Sionna RT (Mitsuba) is not installed in this environment")
     import mitsuba as mi
 
     mi.set_variant("llvm_ad_mono_polarized")
