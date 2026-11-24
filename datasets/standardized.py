@@ -213,24 +213,8 @@ def validate_standardized_channel_admission(
             for low, high in applicability.carrier_frequency_ranges_hz
         )
         raise ValueError(prefix + f"carrier_frequency_hz must be within {allowed_ranges}")
-    if profile_model in _FIXED_TDL_MODELS:
-        if 0.5e9 <= carrier_hz <= 7.125e9:
-            frequency_range = "FR1"
-        elif 24.25e9 <= carrier_hz <= 71e9:
-            frequency_range = "FR2"
-        else:
-            raise ValueError(
-                prefix + "fixed TS 38.101-4 TDL profiles require an FR1 or FR2 carrier frequency"
-            )
-        allowed_frequency_ranges = {
-            "FR1" if low <= carrier_hz <= 7.125e9 else "FR2"
-            for low, high in applicability.carrier_frequency_ranges_hz
-            if low <= carrier_hz <= high
-        }
-        if not allowed_frequency_ranges:
-            raise ValueError(
-                prefix + f"fixed TDL-{profile_model} is not applicable in {frequency_range}"
-            )
+    # Every fixed TS 38.101-4 profile is declared only on FR1 or FR2 carrier ranges, so the
+    # carrier-range check above already enforces the FR1/FR2 requirement.
     validate_fixed_tdl_conformance_metadata(profile_model, metadata)
 
     subcarrier_count = metadata.get("num_subcarriers")
