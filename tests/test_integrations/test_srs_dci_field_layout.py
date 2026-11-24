@@ -1,7 +1,9 @@
 """DCI 0_3 field layout and width derivation for SRS requests."""
 
+import numpy as np
 import pytest
 from integrations.sionna.srs import (
+    map_nr_srs_multiport_resource,
     nr_dci_0_3_field_values_from_layout,
     nr_srs_dci_0_3_field_widths_from_configuration,
     nr_srs_dci_0_3_frequency_assignment_widths,
@@ -1436,3 +1438,62 @@ def test_dci_0_3_field_widths_derive_absent_frequency_hopping_and_single_tdra_en
     assert widths["srs_resource_indicator"] == 2
     assert widths["first_downlink_assignment_index"] == 1
     assert widths["second_downlink_assignment_index"] == 0
+
+
+@pytest.mark.parametrize(
+    ("entry_count", "payload", "expected"),
+    [(0, (), None), (1, (), 0)],
+)
+def test_dci_0_3_layout_request_selector_handles_absent_and_single_entry(
+    entry_count, payload, expected
+) -> None:
+    widths = dict.fromkeys(_DCI_0_3_FIELD_ORDER, 0)
+
+    assert (
+        nr_srs_dci_0_3_request_list_index_from_layout(
+            payload, field_widths_bits=widths, request_list_entry_count=entry_count
+        )
+        == expected
+    )
+
+
+def test_dci_0_3_layout_request_selector_rejects_reserved_selector() -> None:
+    widths = dict.fromkeys(_DCI_0_3_FIELD_ORDER, 0)
+    widths["srs_request"] = 2
+
+    with pytest.raises(ValueError, match="reserved codepoint"):
+        nr_srs_dci_0_3_request_list_index_from_layout(
+            (1, 1), field_widths_bits=widths, request_list_entry_count=3
+        )
+
+
+@pytest.mark.parametrize(
+    ("sequences", "ports8_tdm", "four_port_srs_3tx", "error", "message"),
+    [
+        (np.ones((1, 1, 24)), False, False, TypeError, "complex-valued"),
+        (
+            np.ones((1, 1, 24), dtype=np.complex128),
+            1,
+            False,
+            TypeError,
+            "ports8_tdm must be a boolean",
+        ),
+        (np.ones((1, 1, 24), dtype=np.complex128), True, False, ValueError, "requires eight ports"),
+        (np.ones((8, 1, 24), dtype=np.complex128), True, True, ValueError, "cannot combine"),
+    ],
+)
+def test_srs_multiport_mapper_rejects_invalid_port_mode_combinations(
+    sequences, ports8_tdm, four_port_srs_3tx, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        map_nr_srs_multiport_resource(
+            sequences,
+            slot_symbol_count=14,
+            subcarrier_count=48,
+            start_position_offset=1,
+            srs_symbol_count=1,
+            comb_size=2,
+            comb_offset=0,
+            ports8_tdm=ports8_tdm,
+            four_port_srs_3tx=four_port_srs_3tx,
+        )
