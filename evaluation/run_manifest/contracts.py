@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from evaluation.acceptance.qualification_contract import verify_qualification_run_contract
 from evaluation.acquisition_package import (
     MAX_SCHEMA_BYTES,
     _json_bytes,
 )
-from evaluation.qualification_contract import verify_qualification_run_contract
 from evaluation.run_manifest.common import (
     _canonical_json_bytes,
 )
@@ -78,7 +78,7 @@ def _verify_qualification_contract_bindings(
                 "new contract-bound G3 evaluation requires qualification contract v3 or v4"
             )
         design_verification = verify_joint_sample_size_design(contract["sample_size_design"])
-        if design_verification["complete_precision_powered_g3_design"] is not True:
+        if design_verification["complete_precision_powered_design"] is not True:
             raise ValueError("contract-bound G3 evaluation requires a complete powered design")
     if require_raw_path_criteria and contract_schema != ("loslab.g3_qualification_run_contract.v4"):
         raise ValueError(

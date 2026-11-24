@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.joint_acceptance import (
     build_joint_acceptance_family_v2,
     build_joint_acceptance_family_v3,
 )
-from evaluation.propagation_metrics import evaluate_propagation_metrics
+from evaluation.acceptance.propagation_metrics import evaluate_propagation_metrics
 
 _METRIC_NAMES = (
     "first_arrival_delay_s",

@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 from scipy.stats import beta
 
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.joint_acceptance import (
     family_alpha_for_claim,
     validate_joint_acceptance_family,
 )
@@ -236,7 +236,7 @@ def plan_complex_csi_bootstrap_assurance(
         "independent_strata_count": len(expected_strata),
         "scenario_sha256": scenario_digest,
         "seed": seed,
-        "complete_g3_sample_size": None,
+        "complete_sample_size": None,
         "sampling_units_are_scene_clusters": True,
         "limitations": [
             "All cluster-summary distributions are hypothetical and unverified; no measurements or pilot data are read.",

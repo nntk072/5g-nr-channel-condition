@@ -5,14 +5,14 @@ from __future__ import annotations
 import math
 
 import pytest
-from evaluation.cdl_covariance.handheld_ut import (
+from evaluation.covariance.cdl.handheld_ut import (
     cdl_handheld_ut_dual_spatiotemporal_covariance_reference,
     cdl_handheld_ut_spatiotemporal_covariance_reference,
     handheld_ut_dual_geometry,
     handheld_ut_single_v_field_gcs,
     handheld_ut_single_v_geometry,
 )
-from evaluation.cdl_covariance.patterned_rotated_dual_tx_rx import (
+from evaluation.covariance.cdl.patterned_rotated_dual_tx_rx import (
     _local_axes,
 )
 

@@ -7,7 +7,7 @@ import math
 from typing import Any, Sequence
 
 from artifacts.provenance import package_source_sha256, versions
-from evaluation.statistics import (
+from evaluation.scoring.statistics import (
     cluster_binary_error_rate_interval,
     paired_binary_error_comparison,
 )

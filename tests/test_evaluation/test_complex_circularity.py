@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from evaluation.complex_circularity import evaluate_complex_circularity_family
+from evaluation.covariance.complex_circularity import evaluate_complex_circularity_family
 
 
 def test_complex_circularity_scorer_matches_direct_one_tap_formula() -> None:

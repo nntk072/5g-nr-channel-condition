@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from evaluation.joint_acceptance import build_joint_acceptance_family_v3
-from evaluation.propagation_assurance import plan_propagation_bootstrap_assurance
+from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family_v3
+from evaluation.acceptance.propagation_assurance import plan_propagation_bootstrap_assurance
 
 _STRATUM = ("urban", "LOS", "total")
 _METRICS = (
@@ -92,7 +92,7 @@ def test_propagation_assurance_uses_shared_evaluator_and_never_qualifies() -> No
     assert report["schema"] == "loslab.g3_propagation_bootstrap_assurance_planning.v1"
     assert report["qualification_status"] == "NOT_QUALIFIED"
     assert report["admission_possible"] is False
-    assert report["complete_g3_sample_size"] is None
+    assert report["complete_sample_size"] is None
     assert report["joint_acceptance_family"]["claim_count"] == 19
     assert report["joint_acceptance_family"]["per_claim_alpha_bonferroni"] == pytest.approx(
         0.05 / 19

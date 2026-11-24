@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from evaluation.low_confidence import build_low_confidence_audit
+from evaluation.scoring.low_confidence import build_low_confidence_audit
 
 
 def test_low_confidence_audit_uses_frozen_threshold_and_counts_groups_by_strata():

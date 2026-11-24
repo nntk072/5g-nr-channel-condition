@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 from artifacts.provenance import package_source_sha256, versions
-from evaluation.statistics import paired_binary_error_comparison
+from evaluation.scoring.statistics import paired_binary_error_comparison
 from integrations.sionna.cp_margin import run_static_cp_margin_experiment as _run_native
 
 from experiments.link_curves import wilson_score_interval_95

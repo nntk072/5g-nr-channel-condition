@@ -6,7 +6,7 @@ from pathlib import Path
 
 import jsonschema
 import pytest
-from evaluation.tdl_profile_reference import (
+from evaluation.covariance.tdl_profile_reference import (
     fixed_tdl_pdp_reference,
     scalable_tdl_pdp_reference,
 )

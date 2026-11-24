@@ -3,10 +3,10 @@ from __future__ import annotations
 import math
 
 import pytest
-from evaluation.cdl_covariance.joint_tx_rx_dual_tx_rx import (
+from evaluation.covariance.cdl.joint_tx_rx_dual_tx_rx import (
     cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_reference,
 )
-from evaluation.cdl_covariance.rotated_dual_tx_rx import (
+from evaluation.covariance.cdl.rotated_dual_tx_rx import (
     cdl_rotated_dual_tx_rx_spatiotemporal_covariance_reference,
 )
 

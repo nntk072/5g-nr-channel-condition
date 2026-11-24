@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from typing import Any
 
+from evaluation.acceptance.qualification_contract import verify_qualification_run_contract
 from evaluation.acquisition_package import (
     MAX_FILE_BYTES,
     MAX_SCHEMA_BYTES,
@@ -13,7 +14,6 @@ from evaluation.acquisition_package import (
     _read_inventory_file,
     _safe_relative_path,
 )
-from evaluation.qualification_contract import verify_qualification_run_contract
 from evaluation.run_manifest.common import (
     _runtime_identity,
 )

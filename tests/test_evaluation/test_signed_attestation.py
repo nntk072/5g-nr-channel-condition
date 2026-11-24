@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from evaluation.signed_attestation import (
+from evaluation.acceptance.signed_attestation import (
     SCHEMA,
     SIGNATURE_NAMESPACE,
     TRUST_POLICY_SCHEMA,

@@ -8,8 +8,8 @@ from typing import Any
 
 import jsonschema
 import pytest
-from evaluation.joint_acceptance import build_joint_acceptance_family_v4
-from evaluation.path_equivalence_assurance import evaluate_path_equivalence_roster
+from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family_v4
+from evaluation.acceptance.path_equivalence_assurance import evaluate_path_equivalence_roster
 
 
 def _comparison(status: str, candidate: float | None, challenger: float | None) -> dict[str, Any]:

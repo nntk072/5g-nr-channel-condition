@@ -6,8 +6,8 @@ from pathlib import Path
 import jsonschema
 import numpy as np
 import pytest
-from evaluation.complex_csi import evaluate_complex_csi, symmetric_complex_csi_error
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.complex_csi import evaluate_complex_csi, symmetric_complex_csi_error
+from evaluation.acceptance.joint_acceptance import (
     build_joint_acceptance_family,
     build_joint_acceptance_family_v3,
 )

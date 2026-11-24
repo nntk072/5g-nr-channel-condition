@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from evaluation.tdl_covariance_reference import fixed_tdl_first_tap_power_components
-from evaluation.tdl_rician_marginal import (
+from evaluation.covariance.tdl_covariance_reference import fixed_tdl_first_tap_power_components
+from evaluation.covariance.tdl_rician_marginal import (
     rician_normalized_power_cdf,
     score_tdl_rician_marginal_family,
 )

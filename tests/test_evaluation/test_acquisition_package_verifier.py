@@ -10,12 +10,12 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from evaluation.acquisition_package import verify_acquisition_package
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.joint_acceptance import (
     build_joint_acceptance_family,
     build_joint_acceptance_family_v3,
 )
-from evaluation.material_calibration import evaluate_material_calibration
+from evaluation.acceptance.material_calibration import evaluate_material_calibration
+from evaluation.acquisition_package import verify_acquisition_package
 
 PACKAGE_HELPERS = Path(__file__).parents[1] / "test_datasets/test_acquisition_package_v0_2.py"
 _package_factory = runpy.run_path(str(PACKAGE_HELPERS))["_package"]

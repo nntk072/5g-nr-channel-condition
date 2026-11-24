@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 import pytest
-from evaluation.complex_circularity import evaluate_complex_circularity_family
+from evaluation.covariance.complex_circularity import evaluate_complex_circularity_family
 from integrations.sionna.tdl import generate_tdl_frequency_response
 
 _ROOT = Path(__file__).resolve().parents[2]

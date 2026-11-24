@@ -8,6 +8,10 @@ import os
 from pathlib import Path
 from typing import Any, cast
 
+from evaluation.acceptance.joint_acceptance import (
+    family_alpha_for_claim,
+    validate_joint_acceptance_family,
+)
 from evaluation.acquisition.canonical import (
     _canonical_json,
     _canonical_sha256,
@@ -38,10 +42,6 @@ from evaluation.acquisition.index import (
 )
 from evaluation.acquisition.noise import (
     _noise_rms_summary,
-)
-from evaluation.joint_acceptance import (
-    family_alpha_for_claim,
-    validate_joint_acceptance_family,
 )
 
 
@@ -1035,7 +1035,7 @@ def verify_acquisition_package(
             and scorer_digest is not None
         ):
             try:
-                from evaluation.material_calibration import evaluate_material_calibration
+                from evaluation.acceptance.material_calibration import evaluate_material_calibration
 
                 recomputed = evaluate_material_calibration(input_doc)
                 recomputed["prediction_input_sha256"] = scorer_digest

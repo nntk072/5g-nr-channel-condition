@@ -6,7 +6,7 @@ import math
 from collections.abc import Mapping
 from typing import Any
 
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.joint_acceptance import (
     COMPLEX_CSI_CLAIMS,
     FAMILY_SCHEMA_V2,
     FAMILY_SCHEMA_V3,
@@ -651,7 +651,7 @@ def plan_joint_independent_units(
         "sampling_units_are_distinct": True,
         "single_combined_sample_size_is_reported": False,
         "uses_measurement_or_pilot_data": False,
-        "complete_g3_sample_size": None,
+        "complete_sample_size": None,
         "limitations": [
             "All pass probabilities and interval-coverage assumptions are unverified scenario inputs.",
             "Material acquisition units and complex-CSI scene clusters are different sampling units.",

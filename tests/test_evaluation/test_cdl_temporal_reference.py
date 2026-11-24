@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from evaluation.cdl_covariance.temporal_reference import cdl_nlos_temporal_correlation_reference
+from evaluation.covariance.cdl.temporal_reference import cdl_nlos_temporal_correlation_reference
 
 
 @pytest.mark.parametrize(

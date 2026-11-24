@@ -5,7 +5,7 @@ from typing import Any
 
 import numpy as np
 import pytest
-from evaluation.path_equivalence import (
+from evaluation.acceptance.path_equivalence import (
     build_path_equivalence_classes,
     compare_diffuse_stochastic_path_distributions,
     compare_path_equivalence_classes,

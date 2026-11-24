@@ -5,12 +5,12 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from evaluation.prior_shift import (
+from evaluation.scoring.prior_shift import (
     adjust_probabilities_between_priors,
     adjust_probabilities_for_prior_shift,
     validate_prior_shift_spec,
 )
-from evaluation.probability_calibration import (
+from evaluation.scoring.probability_calibration import (
     apply_platt_calibrator,
     fit_group_balanced_platt_calibrator,
     invert_platt_calibrator,

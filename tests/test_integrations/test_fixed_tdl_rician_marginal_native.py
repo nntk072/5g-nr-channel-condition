@@ -12,8 +12,8 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")
 
-from evaluation.tdl_covariance_reference import fixed_tdl_first_tap_power_components  # noqa: E402
-from evaluation.tdl_rician_marginal import score_tdl_rician_marginal_family  # noqa: E402
+from evaluation.covariance.tdl_covariance_reference import fixed_tdl_first_tap_power_components  # noqa: E402
+from evaluation.covariance.tdl_rician_marginal import score_tdl_rician_marginal_family  # noqa: E402
 from integrations.sionna.tdl import generate_tdl_frequency_response  # noqa: E402
 
 _ROOT = Path(__file__).resolve().parents[2]

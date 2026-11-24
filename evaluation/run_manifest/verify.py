@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+from evaluation.acceptance.qualification_contract import verify_qualification_run_contract
+from evaluation.acceptance.signed_attestation import verify_openssh_signature_for_bytes
 from evaluation.acquisition_package import (
     MAX_FILE_BYTES,
     MAX_JSON_ARTIFACT_BYTES,
@@ -23,7 +25,6 @@ from evaluation.joint_evidence_artifact import (
     MAX_INPUT_BYTES,
     verify_joint_evidence_bytes,
 )
-from evaluation.qualification_contract import verify_qualification_run_contract
 from evaluation.run_manifest.common import (
     _canonical_json_bytes,
 )
@@ -67,7 +68,6 @@ from evaluation.run_manifest.sources import (
     _read_rooted_source_file,
     _source_bundle_sha256,
 )
-from evaluation.signed_attestation import verify_openssh_signature_for_bytes
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _V4_AND_LATER = (

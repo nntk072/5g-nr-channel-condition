@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 
 import pytest
-from evaluation.cdl_covariance.spatiotemporal import cdl_spatiotemporal_covariance_reference
+from evaluation.covariance.cdl.spatiotemporal import cdl_spatiotemporal_covariance_reference
 
 
 def test_zero_lag_reference_is_unit_power_hermitian_covariance() -> None:

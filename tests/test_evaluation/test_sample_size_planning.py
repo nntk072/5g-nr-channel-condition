@@ -10,31 +10,31 @@ from typing import Any
 
 import numpy as np
 import pytest
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.joint_acceptance import (
     build_joint_acceptance_family,
     build_joint_acceptance_family_v2,
     build_joint_acceptance_family_v3,
     build_joint_acceptance_family_v4,
 )
-from evaluation.material_calibration import (
+from evaluation.acceptance.material_calibration import (
     MAX_INTERVAL_COVERAGE as EVALUATOR_MAX_INTERVAL_COVERAGE,
 )
-from evaluation.material_calibration import (
+from evaluation.acceptance.material_calibration import (
     MAX_MEDIAN_INTERVAL_WIDTH_DB as EVALUATOR_MAX_MEDIAN_INTERVAL_WIDTH_DB,
 )
-from evaluation.material_calibration import (
+from evaluation.acceptance.material_calibration import (
     MAX_POWER_ERROR_MEDIAN_DB as EVALUATOR_MAX_POWER_ERROR_MEDIAN_DB,
 )
-from evaluation.material_calibration import (
+from evaluation.acceptance.material_calibration import (
     MAX_POWER_ERROR_P95_DB as EVALUATOR_MAX_POWER_ERROR_P95_DB,
 )
-from evaluation.material_calibration import (
+from evaluation.acceptance.material_calibration import (
     MIN_INDEPENDENT_MEASUREMENT_UNITS as EVALUATOR_MIN_INDEPENDENT_MEASUREMENT_UNITS,
 )
-from evaluation.material_calibration import (
+from evaluation.acceptance.material_calibration import (
     MIN_INTERVAL_COVERAGE as EVALUATOR_MIN_INTERVAL_COVERAGE,
 )
-from evaluation.material_calibration import _cluster_bootstrap_intervals
+from evaluation.acceptance.material_calibration import _cluster_bootstrap_intervals
 from evaluation.sample_size_planning import (
     MAX_INTERVAL_COVERAGE,
     MAX_MEDIAN_INTERVAL_WIDTH_DB,
@@ -264,7 +264,7 @@ def test_complex_csi_bootstrap_assurance_matches_joint_family_and_exact_cluster_
     assert result["schema"] == "loslab.g3_complex_csi_bootstrap_assurance_planning.v1"
     assert result["qualification_status"] == "NOT_QUALIFIED"
     assert result["admission_possible"] is False
-    assert result["complete_g3_sample_size"] is None
+    assert result["complete_sample_size"] is None
     assert result["joint_acceptance_family"]["claim_count"] == 7
     assert result["candidate_designs"][0]["joint_assurance_lower_bound_union_bound"] == 0.0
     assert result["candidate_designs"][0]["meets_target_assurance"] is False
@@ -591,7 +591,7 @@ def test_v2_joint_planner_designs_separate_propagation_strata_under_shared_alpha
         "departure_angular_spread_deg",
     }
     assert report["single_combined_sample_size_is_reported"] is False
-    assert report["complete_g3_sample_size"] is None
+    assert report["complete_sample_size"] is None
 
 
 def test_v2_joint_planner_requires_all_propagation_assumptions():
@@ -660,7 +660,7 @@ def test_joint_planner_counts_v3_receiver_claims_without_claiming_complete_desig
     assert result["joint_acceptance_family"]["claim_count"] == 19
     assert result["receiver_impact_design"]["claim_count"] == 4
     assert result["receiver_impact_design"]["complete_precision_powered_design"] is False
-    assert result["complete_g3_sample_size"] is None
+    assert result["complete_sample_size"] is None
 
 
 def test_joint_planner_accepts_v4_path_roster_without_counting_path_episodes_as_claims():
@@ -700,7 +700,7 @@ def test_joint_planner_accepts_v4_path_roster_without_counting_path_episodes_as_
     ]
     assert result["receiver_impact_design"]["claim_count"] == 4
     assert result["propagation_design"]["claim_count"] == 8
-    assert result["complete_g3_sample_size"] is None
+    assert result["complete_sample_size"] is None
 
 
 def test_joint_design_composer_aligns_branch_counts_without_claiming_qualification():
@@ -724,7 +724,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
         "schema": "loslab.g3_joint_sample_size_planning.v1",
         **common,
         "single_combined_sample_size_is_reported": False,
-        "complete_g3_sample_size": None,
+        "complete_sample_size": None,
         "joint_acceptance_family": identity,
         "material_design": {
             "stratum_count": 1,
@@ -831,11 +831,11 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
     ] == [1, 1]
     assert result["all_branch_counts_available"] is True
     assert result["single_combined_sample_size_is_reported"] is False
-    assert result["joint_g3_assurance_lower_bound_union_bound"] == pytest.approx(0.24)
+    assert result["joint_assurance_lower_bound_union_bound"] == pytest.approx(0.24)
     assert result["target_joint_assurance_lower_bound"] == pytest.approx(0.8)
-    assert result["complete_precision_powered_g3_design"] is False
+    assert result["complete_precision_powered_design"] is False
     assert result["admission_possible"] is False
-    assert result["complete_g3_sample_size"] is None
+    assert result["complete_sample_size"] is None
     schema_path = (
         Path(__file__).parents[2]
         / "datasets/schema/joint-sample-size-design-composition.v1.schema.json"
@@ -849,7 +849,7 @@ def test_joint_design_composer_aligns_branch_counts_without_claiming_qualificati
     assert verification["admission_possible"] is False
 
     tampered_bound = dict(result)
-    tampered_bound["joint_g3_assurance_lower_bound_union_bound"] = 0.99
+    tampered_bound["joint_assurance_lower_bound_union_bound"] = 0.99
     tampered_bound.pop("design_sha256")
     tampered_bound["design_sha256"] = hashlib.sha256(
         json.dumps(
@@ -921,7 +921,7 @@ def test_joint_design_composer_rejects_assurance_plan_from_another_family():
             "family_sha256": family["family_sha256"],
         },
         "single_combined_sample_size_is_reported": False,
-        "complete_g3_sample_size": None,
+        "complete_sample_size": None,
     }
     with pytest.raises(ValueError, match="does not match the supplied acceptance family"):
         compose_joint_sample_size_design(

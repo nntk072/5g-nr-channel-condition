@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from evaluation.spherical_angular_power import (
+from evaluation.covariance.spherical_angular_power import (
     global_to_element_local_directions,
     map_element_frame_spherical_power,
     map_spherical_power,

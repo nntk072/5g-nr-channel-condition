@@ -492,7 +492,7 @@ def export_public_release(
         raise ValueError(f"public release manifest must be strict UTF-8 JSON: {error}") from error
     manifest = validate_public_release_manifest(manifest_value)
 
-    from evaluation.signed_attestation import verify_openssh_signature_for_bytes
+    from evaluation.acceptance.signed_attestation import verify_openssh_signature_for_bytes
 
     signature_path = Path(os.path.abspath(manifest_signature_path))
     trust_path = Path(os.path.abspath(trusted_allowed_signers_path))

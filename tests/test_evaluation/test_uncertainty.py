@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import evaluation.uncertainty as uncertainty
+import evaluation.scoring.uncertainty as uncertainty
 import numpy as np
 import pytest
-from evaluation.uncertainty import evaluate_grouped_regression_uncertainty
+from evaluation.scoring.uncertainty import evaluate_grouped_regression_uncertainty
 
 
 def _evaluate(*, calibration_groups: tuple[str, ...] = ("c1", "c2", "c3", "c4")):

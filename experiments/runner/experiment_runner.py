@@ -26,26 +26,26 @@ from datasets.channel import ChannelDataset
 from datasets.split_policy import (
     verify_signed_split_policy_registry_attestation,
 )
-from evaluation.class_support import audit_class_support
-from evaluation.low_confidence import build_low_confidence_audit
-from evaluation.metrics import (
+from evaluation.scoring.class_support import audit_class_support
+from evaluation.scoring.low_confidence import build_low_confidence_audit
+from evaluation.scoring.metrics import (
     binary_metrics,
     block_bootstrap_auc,
     group_split,
     holdout_domain,
     in_domain_split,
 )
-from evaluation.prior_shift import (
+from evaluation.scoring.prior_shift import (
     adjust_probabilities_between_priors,
     adjust_probabilities_for_prior_shift,
     validate_prior_shift_spec,
 )
-from evaluation.probability_calibration import (
+from evaluation.scoring.probability_calibration import (
     apply_platt_calibrator,
     fit_group_balanced_platt_calibrator,
     invert_platt_calibrator,
 )
-from evaluation.statistics import paired_seed_delta
+from evaluation.scoring.statistics import paired_seed_delta
 from learning import fit_complex_cnn, fit_coral_mlp, fit_real_cnn, fit_sklearn
 from models.capacity import capacity_spec, matched_capacity_names
 from propagation.physics import delay_k_proxy_features, observable_features

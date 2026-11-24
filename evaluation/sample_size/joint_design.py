@@ -8,7 +8,7 @@ import math
 from collections.abc import Mapping
 from typing import Any
 
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.joint_acceptance import (
     FAMILY_SCHEMA_V4,
     validate_joint_acceptance_family,
 )
@@ -279,7 +279,7 @@ def compose_joint_sample_size_design(
         raise ValueError("joint plan is missing material or complex-CSI design")
     if (
         joint_plan.get("single_combined_sample_size_is_reported") is not False
-        or joint_plan.get("complete_g3_sample_size") is not None
+        or joint_plan.get("complete_sample_size") is not None
     ):
         raise ValueError(
             "joint plan must keep sampling units separate and combined size unresolved"
@@ -465,15 +465,15 @@ def compose_joint_sample_size_design(
         "all_branch_counts_available": all_counts_available,
         "component_designs_claim_complete_powered_design": component_design_complete,
         "branch_assurance_lower_bounds": assurance_bounds,
-        "joint_g3_assurance_lower_bound_union_bound": joint_assurance_lower,
+        "joint_assurance_lower_bound_union_bound": joint_assurance_lower,
         "target_joint_assurance_lower_bound": target_joint,
         "material_angular_maximum_assumption": {
             "supplied": angular_supplied,
             "compatible_with_material_design": angular_compatible,
             "maximum_units_per_stratum": angular_maximum,
         },
-        "complete_precision_powered_g3_design": complete_powered_design,
-        "complete_g3_sample_size": None,
+        "complete_precision_powered_design": complete_powered_design,
+        "complete_sample_size": None,
         "blockers": blockers,
         "limitations": [
             "Counts are conditional on the exact assumptions and family-bound component plans.",
@@ -530,11 +530,11 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         "all_branch_counts_available",
         "component_designs_claim_complete_powered_design",
         "branch_assurance_lower_bounds",
-        "joint_g3_assurance_lower_bound_union_bound",
+        "joint_assurance_lower_bound_union_bound",
         "target_joint_assurance_lower_bound",
         "material_angular_maximum_assumption",
-        "complete_precision_powered_g3_design",
-        "complete_g3_sample_size",
+        "complete_precision_powered_design",
+        "complete_sample_size",
         "blockers",
         "limitations",
     }
@@ -548,8 +548,8 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         or saved.get("sampling_units_are_distinct") is not True
         or saved.get("single_combined_sample_size_is_reported") is not False
         or not isinstance(saved.get("component_designs_claim_complete_powered_design"), bool)
-        or not isinstance(saved.get("complete_precision_powered_g3_design"), bool)
-        or saved.get("complete_g3_sample_size") is not None
+        or not isinstance(saved.get("complete_precision_powered_design"), bool)
+        or saved.get("complete_sample_size") is not None
     ):
         raise ValueError("G3 joint sample-size design violates its non-qualification contract")
     angular_assumption = saved.get("material_angular_maximum_assumption")
@@ -668,7 +668,7 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         ):
             raise ValueError(f"branch assurance lower bound is invalid for {branch}")
         normalized_bounds.append(float(bound))
-    declared_joint_assurance = saved.get("joint_g3_assurance_lower_bound_union_bound")
+    declared_joint_assurance = saved.get("joint_assurance_lower_bound_union_bound")
     if len(normalized_bounds) == len(assurance_branches):
         expected_joint_assurance = max(0.0, 1.0 - sum(1.0 - bound for bound in normalized_bounds))
         if (
@@ -711,15 +711,13 @@ def verify_joint_sample_size_design(design: Mapping[str, Any]) -> dict[str, Any]
         and angular_assumption.get("supplied") is True
         and angular_assumption.get("compatible_with_material_design") is True
     )
-    if saved["complete_precision_powered_g3_design"] is not expected_complete:
-        raise ValueError(
-            "complete_precision_powered_g3_design is inconsistent with component plans"
-        )
+    if saved["complete_precision_powered_design"] is not expected_complete:
+        raise ValueError("complete_precision_powered_design is inconsistent with component plans")
     return {
         "schema": "loslab.g3_joint_sample_size_design_verification.v1",
         "status": "PASS_DESIGN_INTEGRITY_NOT_QUALIFIED",
         "qualification_status": "NOT_QUALIFIED",
         "admission_possible": False,
         "design_sha256": declared_digest,
-        "complete_precision_powered_g3_design": expected_complete,
+        "complete_precision_powered_design": expected_complete,
     }

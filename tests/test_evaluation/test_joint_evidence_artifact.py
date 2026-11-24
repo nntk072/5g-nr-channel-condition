@@ -9,7 +9,7 @@ from pathlib import Path
 import jsonschema
 import pytest
 from evaluation import joint_evidence_artifact as artifact
-from evaluation import path_equivalence_assurance as path_equivalence_assurance
+from evaluation.acceptance import path_equivalence_assurance as path_equivalence_assurance
 from tests.test_evaluation.joint_evidence_artifact_support import (
     _install_scorers,
     _payload,

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import pytest
-from evaluation.joint_acceptance import build_joint_acceptance_family_v3
-from evaluation.receiver_impact import evaluate_receiver_impact
+from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family_v3
+from evaluation.acceptance.receiver_impact import evaluate_receiver_impact
 
 
 def _records(

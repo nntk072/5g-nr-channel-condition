@@ -7,7 +7,7 @@ from datasets.independent_splits import (
     freeze_split_lock,
     make_independent_split,
 )
-from evaluation.spatial_audit import audit_spatial_buffer
+from evaluation.audits.spatial_audit import audit_spatial_buffer
 
 
 def records():

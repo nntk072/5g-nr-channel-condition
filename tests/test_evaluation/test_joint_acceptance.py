@@ -4,7 +4,7 @@ from copy import deepcopy
 from typing import Any
 
 import pytest
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.joint_acceptance import (
     build_joint_acceptance_family,
     build_joint_acceptance_family_v2,
     build_joint_acceptance_family_v3,
@@ -218,7 +218,7 @@ def test_joint_sample_size_planner_uses_all_claims_and_keeps_units_separate():
     assert report["complex_csi_design"]["stratum_count"] == 2
     assert report["sampling_units_are_distinct"] is True
     assert report["single_combined_sample_size_is_reported"] is False
-    assert report["complete_g3_sample_size"] is None
+    assert report["complete_sample_size"] is None
 
 
 def test_joint_sample_size_planner_rejects_unfavorable_csi_p95_assumption():

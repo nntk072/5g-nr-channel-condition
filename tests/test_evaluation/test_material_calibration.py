@@ -10,16 +10,16 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-from evaluation.joint_acceptance import (
+from evaluation.acceptance.joint_acceptance import (
     build_joint_acceptance_family,
     build_joint_acceptance_family_v3,
 )
-from evaluation.material_calibration import (
+from evaluation.acceptance.material_calibration import (
     SCHEMA,
     SPLIT_MANIFEST_SCHEMA,
     evaluate_material_calibration,
 )
-from evaluation.material_calibration import (
+from evaluation.acceptance.material_calibration import (
     main as material_calibration_main,
 )
 

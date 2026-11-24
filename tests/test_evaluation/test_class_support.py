@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from evaluation.class_support import audit_class_support
+from evaluation.scoring.class_support import audit_class_support
 
 
 def test_reports_each_declared_class_and_independent_group_by_stratum():

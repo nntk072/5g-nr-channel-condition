@@ -11,7 +11,7 @@ from statistics import NormalDist
 from typing import Any
 
 import pytest
-from evaluation.seed_roster import cdl_temporal_velocity_seed_roster
+from evaluation.acceptance.seed_roster import cdl_temporal_velocity_seed_roster
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")

@@ -5,7 +5,7 @@ from typing import cast
 
 import numpy as np
 import pytest
-from evaluation.near_duplicate_audit import (
+from evaluation.audits.near_duplicate_audit import (
     CFRArray,
     ChannelRecord,
     GeometryRecord,

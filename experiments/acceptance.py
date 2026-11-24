@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from evaluation.signed_attestation import verify_openssh_signature_for_bytes
+from evaluation.acceptance.signed_attestation import verify_openssh_signature_for_bytes
 
 # Structural minimum only; task-specific power/precision must be planned separately.
 MIN_INDEPENDENT_ACCEPTANCE_CHANNELS = 20

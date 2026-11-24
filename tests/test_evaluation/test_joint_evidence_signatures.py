@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from evaluation import joint_evidence_artifact as artifact
 from evaluation import joint_evidence_run_manifest as run_manifest
-from evaluation import path_equivalence_assurance as path_equivalence_assurance
+from evaluation.acceptance import path_equivalence_assurance as path_equivalence_assurance
 from tests.test_evaluation.joint_evidence_artifact_support import (
     _install_scorers,
     _payload,

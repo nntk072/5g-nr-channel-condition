@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import sys
 
+from evaluation.acceptance.qualification_contract import verify_qualification_run_contract  # noqa: F401
 from evaluation.acquisition_package import MAX_SCHEMA_BYTES  # noqa: F401
-from evaluation.qualification_contract import verify_qualification_run_contract  # noqa: F401
 from evaluation.run_manifest.build import (
     build_joint_evidence_run_manifest,
 )

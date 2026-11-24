@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from evaluation.joint_evaluation import (
+from evaluation.acceptance.joint_evaluation import (
     evaluate_joint_evidence,
 )
 

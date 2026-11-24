@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from evaluation import joint_evaluation as joint
 from evaluation import joint_evidence_artifact as artifact
 from evaluation import joint_evidence_run_manifest as run_manifest
-from evaluation import path_equivalence_assurance as path_equivalence_assurance
+from evaluation.acceptance import joint_evaluation as joint
+from evaluation.acceptance import path_equivalence_assurance as path_equivalence_assurance
 from tests.test_evaluation.joint_evidence_artifact_support import (
     _install_scorers,
     _legacy_v1_report,
@@ -48,9 +48,9 @@ def test_run_manifest_hashes_and_replays_exact_inventory_bytes(
         run_manifest.INPUT_SCHEMA_V6_RELATIVE_PATH,
         run_manifest.PATH_DIAGNOSTIC_SCHEMA_V2_RELATIVE_PATH,
         run_manifest.QUALIFICATION_CONTRACT_SCHEMA_V4_RELATIVE_PATH,
-        "evaluation/path_equivalence.py",
-        "evaluation/propagation_assurance.py",
-        "evaluation/receiver_assurance.py",
+        "evaluation/acceptance/path_equivalence.py",
+        "evaluation/acceptance/propagation_assurance.py",
+        "evaluation/acceptance/receiver_assurance.py",
     }.issubset(set(run_manifest.EVALUATOR_SOURCE_PATHS))
     assert run_manifest.INPUT_SCHEMA_V4_RELATIVE_PATH not in set(
         run_manifest.V1_EVALUATOR_SOURCE_PATHS

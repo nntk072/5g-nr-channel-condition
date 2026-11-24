@@ -10,7 +10,7 @@ from statistics import NormalDist
 from typing import Any
 
 import pytest
-from evaluation.cdl_covariance.joint_tx_rx_dual_pol import (
+from evaluation.covariance.cdl.joint_tx_rx_dual_pol import (
     cdl_joint_tx_rx_dual_pol_spatiotemporal_covariance_reference,
 )
 

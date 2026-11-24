@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from evaluation.tdl_covariance_reference import (
+from evaluation.covariance.tdl_covariance_reference import (
     fixed_tdl_rayleigh_tap_power_fractions,
     scalable_tdl_rayleigh_tap_power_fractions,
 )
-from evaluation.tdl_rayleigh_marginal import (
+from evaluation.covariance.tdl_rayleigh_marginal import (
     rayleigh_marginal_dkw_radius,
     rayleigh_normalized_power_ks_distance,
     score_rayleigh_tap_marginal_family,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from evaluation.tdl_covariance_reference import (
+from evaluation.covariance.tdl_covariance_reference import (
     fixed_tdl_first_tap_power_components,
     fixed_tdl_rayleigh_tap_indices,
     scalable_tdl_first_tap_covariance_reference,

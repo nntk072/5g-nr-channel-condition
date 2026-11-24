@@ -10,12 +10,12 @@ from typing import Any
 
 import numpy as np
 import pytest
-from evaluation.doppler_spectrum import (
+from evaluation.covariance.doppler_spectrum import (
     cluster_spectrum_cdf,
     jakes_doppler_cdf,
     simultaneous_spectrum_cdf_bounds,
 )
-from evaluation.tdl_covariance_reference import scalable_tdl_rayleigh_tap_indices
+from evaluation.covariance.tdl_covariance_reference import scalable_tdl_rayleigh_tap_indices
 
 _ROOT = Path(__file__).resolve().parents[2]
 _REFERENCE_PATH = _ROOT / "config/reference/SCALABLE_TDL_POWER_DELAY_REFERENCE_2026-10-26.json"

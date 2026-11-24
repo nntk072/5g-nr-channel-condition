@@ -33,7 +33,7 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")
 
-from evaluation.tdl_covariance_reference import (  # noqa: E402
+from evaluation.covariance.tdl_covariance_reference import (  # noqa: E402
     scalable_tdl_first_tap_covariance_reference,
 )
 from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from evaluation.seed_roster import cdl_temporal_velocity_seed_roster
+from evaluation.acceptance.seed_roster import cdl_temporal_velocity_seed_roster
 
 
 def test_cdl_temporal_velocity_roster_assigns_unique_consecutive_seeds() -> None:

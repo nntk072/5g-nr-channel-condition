@@ -31,7 +31,7 @@ _INPUT_FIELDS: dict[tuple[str, str], frozenset[str]] = {
             "received_grid_mask",
         }
     ),
-    ("evaluation.caez_forecast", "CAEZForecastModelInputs"): frozenset({"feature_matrix"}),
+    ("evaluation.scoring.caez_forecast", "CAEZForecastModelInputs"): frozenset({"feature_matrix"}),
 }
 
 _NR_RECEIVER_CONFIG_FIELDS = frozenset(
@@ -200,7 +200,7 @@ def audit_model_input_payload(value: Any) -> Any:
         if config_fields != _NR_RECEIVER_CONFIG_FIELDS:
             raise ValueError("NRPUSCHConfig field roster drifted across the model-input boundary")
 
-    if identity == ("evaluation.caez_forecast", "CAEZForecastModelInputs"):
+    if identity == ("evaluation.scoring.caez_forecast", "CAEZForecastModelInputs"):
         shape = _validated_array(
             value.feature_matrix,
             name="feature_matrix",

@@ -9,11 +9,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from evaluation.tdl_covariance_reference import (
+from evaluation.covariance.tdl_covariance_reference import (
     fixed_tdl_rayleigh_tap_power_fractions,
     scalable_tdl_rayleigh_tap_power_fractions,
 )
-from evaluation.tdl_rayleigh_marginal import score_rayleigh_tap_marginal_family
+from evaluation.covariance.tdl_rayleigh_marginal import score_rayleigh_tap_marginal_family
 from integrations.sionna.tdl import generate_tdl_frequency_response
 
 _ROOT = Path(__file__).resolve().parents[2]

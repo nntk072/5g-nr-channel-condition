@@ -10,7 +10,7 @@ from statistics import NormalDist
 from typing import Any
 
 import pytest
-from evaluation.cdl_covariance.handheld_ut import (
+from evaluation.covariance.cdl.handheld_ut import (
     cdl_handheld_ut_dual_spatiotemporal_covariance_reference,
 )
 

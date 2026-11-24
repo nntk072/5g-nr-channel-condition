@@ -7,10 +7,10 @@ from dataclasses import asdict
 from typing import Any
 
 import pytest
-from evaluation.cdl_covariance.patterned_rotated_dual_tx_rx import (
+from evaluation.covariance.cdl.patterned_rotated_dual_tx_rx import (
     _patterned_vh_basis,
 )
-from evaluation.cdl_covariance.rotated_dual_tx_rx import _unit_direction
+from evaluation.covariance.cdl.rotated_dual_tx_rx import _unit_direction
 
 torch = pytest.importorskip("torch")
 pytest.importorskip("sionna.phy")

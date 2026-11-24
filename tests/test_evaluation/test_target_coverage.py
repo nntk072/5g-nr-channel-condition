@@ -13,7 +13,7 @@ from datasets.targets import (
 from datasets.targets import (
     TargetDefinition as DatasetTargetDefinition,
 )
-from evaluation.target_coverage import (
+from evaluation.scoring.target_coverage import (
     ExpectedInventoryCell,
     TargetDefinition,
     TargetObservation,

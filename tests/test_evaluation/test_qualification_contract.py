@@ -6,8 +6,8 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-from evaluation.joint_acceptance import build_joint_acceptance_family_v4
-from evaluation.qualification_contract import (
+from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family_v4
+from evaluation.acceptance.qualification_contract import (
     build_qualification_run_contract,
     build_qualification_run_contract_v3,
     build_qualification_run_contract_v4,
@@ -162,15 +162,15 @@ def _complete_design(spec: dict[str, object]) -> dict[str, object]:
             "propagation_metrics": 0.99,
             "receiver_impact": 0.99,
         },
-        "joint_g3_assurance_lower_bound_union_bound": 0.96,
+        "joint_assurance_lower_bound_union_bound": 0.96,
         "target_joint_assurance_lower_bound": 0.8,
         "material_angular_maximum_assumption": {
             "supplied": True,
             "compatible_with_material_design": True,
             "maximum_units_per_stratum": 100,
         },
-        "complete_precision_powered_g3_design": True,
-        "complete_g3_sample_size": None,
+        "complete_precision_powered_design": True,
+        "complete_sample_size": None,
         "blockers": [],
         "limitations": ["Synthetic contract unit-test fixture; assumptions are not verified."],
     }
@@ -259,7 +259,7 @@ def test_qualification_contract_v3_rejects_incomplete_design() -> None:
     spec = _spec()
     design = _complete_design(spec)
     design["component_designs_claim_complete_powered_design"] = False
-    design["complete_precision_powered_g3_design"] = False
+    design["complete_precision_powered_design"] = False
     _redigest_design(design)
     spec["sample_size_design"] = design
 

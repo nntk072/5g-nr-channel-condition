@@ -5,7 +5,7 @@ import pytest
 from artifacts.provenance import atomic_json, canonical_hash, package_source_sha256, sha256_file
 from datasets.channel import ChannelDataset
 from datasets.synthetic import debug_multipath
-from evaluation.metrics import (
+from evaluation.scoring.metrics import (
     binary_metrics,
     block_bootstrap_auc,
     group_split,
@@ -13,12 +13,12 @@ from evaluation.metrics import (
     in_domain_split,
     threshold_from_validation,
 )
-from evaluation.paired_link_curves import (
+from evaluation.scoring.paired_link_curves import (
     compare_curves,
     compare_rx_correlation_curves,
     summarize_tdl_profile_sweep,
 )
-from evaluation.statistics import (
+from evaluation.scoring.statistics import (
     cluster_binary_error_rate_interval,
     paired_binary_error_comparison,
     paired_cluster_binary_error_comparison,

@@ -28,7 +28,7 @@ from evaluation.benchmark_partitions import (
     TEST_COHORTS,
     verify_benchmark_manifest_replay,
 )
-from evaluation.metrics import (
+from evaluation.scoring.metrics import (
     threshold_from_validation,
 )
 
