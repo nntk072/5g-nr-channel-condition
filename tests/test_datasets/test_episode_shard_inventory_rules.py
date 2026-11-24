@@ -44,7 +44,7 @@ def _edit(manifest: Path, mutate) -> None:
             lambda d: d.update(layers=[]), "layers must be a nonempty list", id="layers-empty"
         ),
         pytest.param(
-            lambda d: d.update(layers=[l for l in d["layers"] if l["layer"] != "episode"]),
+            lambda d: d.update(layers=[item for item in d["layers"] if item["layer"] != "episode"]),
             "exactly one episode layer",
             id="no-episode",
         ),
