@@ -7,7 +7,70 @@ from integrations.sionna.srs import (
     nr_srs_dci_0_3_frequency_assignment_widths,
     nr_srs_dci_0_3_request_list_index_from_layout,
 )
-from integrations.sionna.srs.srs_constants.dci_0_3 import _DCI_0_3_FIELD_ORDER
+from integrations.sionna.srs.srs_constants.dci_0_3 import (
+    _DCI_0_3_FIELD_ORDER,
+    _nr_srs_dci_0_3_antenna_ports_width,
+)
+
+
+def _dmrs(mapping_type="A", dmrs_type=1, enhanced=False, max_length=1):
+    return {
+        "mapping_type": mapping_type,
+        "dmrs_type": dmrs_type,
+        "dmrs_type_enhanced": enhanced,
+        "max_length": max_length,
+    }
+
+
+def _antenna_width(*, mode="type1a", cells=("cell-a",), transform=None, configs=None):
+    return _nr_srs_dci_0_3_antenna_ports_width(
+        mode=mode,
+        cell_ids=cells,
+        transform_precoding_enabled_by_cell=(
+            {cell: False for cell in cells} if transform is None else transform
+        ),
+        dmrs_port_configuration_by_cell=(
+            {cell: (_dmrs(),) for cell in cells} if configs is None else configs
+        ),
+        full_cell_roster=cells,
+    )
+
+
+def test_antenna_port_width_uses_dmrs_mapping_aggregation_and_transform_precoding() -> None:
+    configs = {
+        "cell-a": (_dmrs("A", 1, max_length=1), _dmrs("B", 2, True, 2)),
+        "cell-b": (_dmrs("A", 1, max_length=2),),
+    }
+    assert _antenna_width(cells=("cell-a", "cell-b"), configs=configs) == 6
+    assert _antenna_width(mode="type2", cells=("cell-a", "cell-b"), configs=configs) == 10
+    assert (
+        _antenna_width(transform={"cell-a": True}, configs={"cell-a": (_dmrs(max_length=2),)}) == 4
+    )
+
+
+@pytest.mark.parametrize(
+    ("overrides", "error", "message"),
+    [
+        ({"mode": "type3"}, ValueError, "antenna_ports_mode"),
+        ({"transform": {}}, ValueError, "must cover"),
+        ({"configs": {"cell-a": ({"mapping_type": "A"},)}}, ValueError, "field roster"),
+        ({"configs": {"cell-a": (_dmrs("C"),)}}, ValueError, "mapping_type"),
+        ({"configs": {"cell-a": (_dmrs(), _dmrs("A", 2))}}, ValueError, "must be unique"),
+        ({"configs": {"cell-a": (_dmrs(dmrs_type=True),)}}, TypeError, "dmrs_type"),
+        ({"configs": {"cell-a": (_dmrs(enhanced=1),)}}, TypeError, "enhanced"),
+        ({"configs": {"cell-a": (_dmrs(max_length=3),)}}, ValueError, "max_length"),
+        (
+            {"transform": {"cell-a": True}, "configs": {"cell-a": (_dmrs(dmrs_type=2),)}},
+            ValueError,
+            "requires DMRS type 1",
+        ),
+    ],
+)
+def test_antenna_port_width_rejects_invalid_dmrs_configuration(overrides, error, message) -> None:
+    arguments = {"cells": ("cell-a",)}
+    arguments.update(overrides)
+    with pytest.raises(error, match=message):
+        _antenna_width(**arguments)
 
 
 def test_dci_0_3_decoder_rejects_malformed_bit_rosters_and_resource_overflow() -> None:
