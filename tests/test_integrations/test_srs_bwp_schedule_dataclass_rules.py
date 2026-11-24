@@ -134,3 +134,135 @@ def test_periodic_cell_schedules_require_consistent_unique_bwp_bindings(
         NRSRSBWPCellPeriodicResourceSetSchedules(
             "cell-0", 0, bounds, (periodic_bwp_schedule, periodic_bwp_schedule)
         )
+
+
+@pytest.mark.parametrize(
+    ("cell_id", "bwp_id", "frequency_bounds", "schedules", "error", "message"),
+    [
+        (" ", 0, None, (), ValueError, "cell_id must be a nonempty string"),
+        ("cell-a", True, None, (), ValueError, "ul_bwp_id must be in"),
+        ("cell-a", 0, None, (), TypeError, "frequency_bounds must be"),
+        (
+            "cell-a",
+            0,
+            NRSRSBWPFrequencyBounds(start_subcarrier=0, size_subcarriers=100),
+            ("invalid",),
+            TypeError,
+            "BWP-validated periodic sets",
+        ),
+    ],
+)
+def test_periodic_cell_schedule_rejects_invalid_context_fields(
+    cell_id, bwp_id, frequency_bounds, schedules, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        NRSRSBWPCellPeriodicResourceSetSchedules(cell_id, bwp_id, frequency_bounds, schedules)
+
+
+@pytest.mark.parametrize(
+    ("slot", "resources", "error", "message"),
+    [
+        (True, (), TypeError, "absolute_slot_index must be an integer"),
+        (-1, (), ValueError, "absolute_slot_index must be nonnegative"),
+        (0, "bad", TypeError, "resources must be an ordered sequence"),
+        (0, (), ValueError, "resources must contain at least one"),
+        (0, ("bad",), TypeError, "resources\\[0\\] must be a mapping"),
+        (0, ({"resource_id": True},), TypeError, "resource_id must be an integer"),
+        (0, ({"resource_id": -1},), ValueError, "unique nonnegative integers"),
+        (
+            0,
+            ({"resource_id": 1}, {"resource_id": 1}),
+            ValueError,
+            "unique nonnegative integers",
+        ),
+        (
+            0,
+            ({"resource_id": 1, "unexpected": True},),
+            ValueError,
+            "unsupported fields",
+        ),
+        (
+            0,
+            ({"resource_id": 1, "allocation": "bad"},),
+            ValueError,
+            "allocation must be a mapping",
+        ),
+        (
+            0,
+            ({"resource_id": 1, "allocation": {"c_srs": 0}},),
+            ValueError,
+            "allocation fields are invalid",
+        ),
+        (
+            0,
+            ({"resource_id": 1, "allocation": {1: 0}},),
+            ValueError,
+            "allocation keys must be strings",
+        ),
+        (
+            0,
+            (
+                {
+                    "resource_id": 1,
+                    "allocation": {
+                        "c_srs": 0,
+                        "transmission_comb": 2,
+                        "b_srs": 0,
+                        "b_hop": 0,
+                        "srs_symbol_count": 1,
+                    },
+                    "timing": "bad",
+                },
+            ),
+            ValueError,
+            "timing must be a mapping",
+        ),
+        (
+            0,
+            (
+                {
+                    "resource_id": 1,
+                    "allocation": {
+                        "c_srs": 0,
+                        "transmission_comb": 2,
+                        "b_srs": 0,
+                        "b_hop": 0,
+                        "srs_symbol_count": 1,
+                    },
+                    "timing": {1: 2},
+                },
+            ),
+            ValueError,
+            "timing keys must be strings",
+        ),
+        (
+            0,
+            (
+                {
+                    "resource_id": 1,
+                    "allocation": {
+                        "c_srs": 0,
+                        "transmission_comb": 2,
+                        "b_srs": 0,
+                        "b_hop": 0,
+                        "srs_symbol_count": 1,
+                    },
+                    "timing": {"unexpected": 2},
+                },
+            ),
+            ValueError,
+            "unsupported fields",
+        ),
+    ],
+)
+def test_periodic_resource_set_rejects_malformed_decoded_resources(
+    slot, resources, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        nr_srs_periodic_resource_set_schedule(
+            slot,
+            0,
+            resources,
+            periodicity_slots=1,
+            slot_offset=0,
+        )
