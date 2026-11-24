@@ -604,6 +604,109 @@ def test_ul_srs_rsrp_rejects_invalid_inputs(
 
 
 @pytest.mark.parametrize(
+    ("power", "mask", "error", "message"),
+    [
+        (
+            np.ones((1, 1)),
+            np.ones((1, 1), dtype=bool),
+            ValueError,
+            "nonempty \\[occasion, branch, RE\\]",
+        ),
+        (
+            np.ones((1, 1, 0)),
+            np.ones((1, 0), dtype=bool),
+            ValueError,
+            "nonempty \\[occasion, branch, RE\\]",
+        ),
+        (np.ones((1, 1, 2)), np.ones((1, 2), dtype=int), ValueError, "must be Boolean"),
+        (np.ones((1, 1, 2)), np.ones((2, 2), dtype=bool), ValueError, "must be Boolean"),
+        (
+            np.ones((2, 1, 2)),
+            np.array([[True, False], [False, False]]),
+            ValueError,
+            "every configured measurement occasion",
+        ),
+    ],
+)
+def test_ul_srs_rsrp_rejects_malformed_power_and_resource_masks(power, mask, error, message):
+    with pytest.raises(error, match=message):
+        measure_ul_srs_rsrp(
+            power,
+            mask,
+            occasion_ids=[f"occasion-{index}" for index in range(power.shape[0])],
+            receiver_branch_ids=[f"branch-{index}" for index in range(power.shape[1])],
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=1e6,
+            power_calibration_sha256="a" * 64,
+        )
+
+
+@pytest.mark.parametrize(
+    ("occasion_ids", "receiver_branch_ids", "error", "message"),
+    [
+        ("occasion-1", ["branch-1"], TypeError, "occasion_ids must be a sequence"),
+        ([""], ["branch-1"], ValueError, "occasion_ids must contain 1 unique canonical IDs"),
+        (
+            ["occasion-1", "occasion-1"],
+            ["branch-1"],
+            ValueError,
+            "occasion_ids must contain 2 unique canonical IDs",
+        ),
+        (
+            ["occasion-1"],
+            [" branch-1"],
+            ValueError,
+            "receiver_branch_ids must contain 1 unique canonical IDs",
+        ),
+        (
+            ["occasion-1"],
+            ["branch-1", "branch-1"],
+            ValueError,
+            "receiver_branch_ids must contain 2 unique canonical IDs",
+        ),
+    ],
+)
+def test_ul_srs_rsrp_requires_canonical_unique_occasion_and_branch_ids(
+    occasion_ids, receiver_branch_ids, error, message
+):
+    with pytest.raises(error, match=message):
+        measure_ul_srs_rsrp(
+            np.ones(
+                (
+                    len(occasion_ids) if isinstance(occasion_ids, list) else 1,
+                    len(receiver_branch_ids),
+                    1,
+                )
+            ),
+            np.ones((len(occasion_ids) if isinstance(occasion_ids, list) else 1, 1), dtype=bool),
+            occasion_ids=occasion_ids,
+            receiver_branch_ids=receiver_branch_ids,
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=1e6,
+            power_calibration_sha256="a" * 64,
+        )
+
+
+@pytest.mark.parametrize(
+    "bandwidth",
+    [True, np.bool_(True), "1e6", float("inf"), float("nan"), 0.0, -1.0],
+)
+def test_ul_srs_rsrp_requires_finite_positive_measurement_bandwidth(bandwidth):
+    with pytest.raises(
+        ValueError, match="measurement_frequency_bandwidth_hz must be finite and positive"
+    ):
+        measure_ul_srs_rsrp(
+            np.ones((1, 1, 1)),
+            np.ones((1, 1), dtype=bool),
+            occasion_ids=["occasion-1"],
+            receiver_branch_ids=["branch-1"],
+            receiver_category="terrestrial_type_1_c",
+            measurement_frequency_bandwidth_hz=bandwidth,
+            power_calibration_sha256="a" * 64,
+        )
+
+
+@pytest.mark.parametrize(
     ("sfn", "subframe", "receiver", "digest"),
     [
         (1024, 0, "terrestrial_type_1_c", "a" * 64),
