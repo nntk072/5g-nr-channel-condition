@@ -240,3 +240,143 @@ def test_scene_identity_requires_complete_local_asset_provenance(
         "asset_count": 3,
         "runtime_versions": {"sionna_rt": "fixture"},
     }
+
+
+def test_scene_identity_fails_closed_for_missing_runtime_asset_or_provenance(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import builtins
+
+    original_import = builtins.__import__
+
+    def no_rt_runtime(name, *args, **kwargs):
+        if name == "sionna.rt":
+            raise ImportError("fixture without RT")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", no_rt_runtime)
+    with pytest.raises(RuntimeError, match="configured Sionna RT runtime"):
+        rt_scene_asset_identity("fixture")
+
+    sionna = ModuleType("sionna")
+    rt = ModuleType("sionna.rt")
+    rt.scene = ModuleType("sionna.rt.scene")
+    rt.scene.missing = str(tmp_path / "missing.xml")
+    sionna.rt = rt
+    monkeypatch.setitem(__import__("sys").modules, "sionna", sionna)
+    monkeypatch.setitem(__import__("sys").modules, "sionna.rt", rt)
+    monkeypatch.setattr(builtins, "__import__", original_import)
+    with pytest.raises(ValueError, match="locally resolvable scene asset closure"):
+        rt_scene_asset_identity("missing")
+
+    scene_path = tmp_path / "incomplete.xml"
+    scene_path.write_text("<scene />", encoding="utf-8")
+    rt.scene.incomplete = str(scene_path)
+    scene_assets = ModuleType("integrations.sionna.scene_assets")
+
+    def incomplete_manifest(path: Path) -> dict[str, Any]:
+        return {"complete": False}
+
+    scene_assets.scene_asset_manifest = incomplete_manifest
+    monkeypatch.setitem(__import__("sys").modules, "integrations.sionna.scene_assets", scene_assets)
+    with pytest.raises(ValueError, match="complete scene asset provenance"):
+        rt_scene_asset_identity("incomplete")
+
+
+def test_authorization_helpers_reject_forged_seals_and_mutated_destinations() -> None:
+    import integrations.sionna.d1_generation_gate as gate
+
+    with pytest.raises(PermissionError, match="only be issued by the gate"):
+        gate.D1GenerationAuthorization("pilot", "0" * 64, None, (), "rt_data", _seal=object())
+
+    request = _pilot_request()
+    authorization = authorize_d1_generation(request, pilot=True)
+    authorization._seal = object()
+    with pytest.raises(PermissionError, match="not issued by the gate"):
+        require_d1_authorization(authorization, request)
+
+    authorization = authorize_d1_generation(request, pilot=True)
+    authorization._destinations = ("/tmp/altered",)
+    with pytest.raises(PermissionError, match="destinations do not match"):
+        require_d1_authorization(authorization, request)
+
+
+@pytest.mark.parametrize(
+    ("generation_request", "message"),
+    [
+        (
+            {"operation": "rt_nr_trajectory", "config": "invalid", "destinations": ["/tmp/x"]},
+            "full config",
+        ),
+        (
+            {
+                "operation": "rt_nr_trajectory",
+                "config": {
+                    "num_steps": 100,
+                    "samples_per_src": 3_000,
+                    "max_depth": 3,
+                    "max_num_paths_per_src": 1_000,
+                    "total_work_units": 300_000,
+                },
+                "destinations": ["/tmp/x"],
+            },
+            "total_work_units must be in",
+        ),
+        (
+            {
+                "operation": "rt_nr_trajectory",
+                "config": {
+                    "num_steps": 1,
+                    "samples_per_src": 1,
+                    "max_depth": 0,
+                    "max_num_paths_per_src": 0,
+                    "total_work_units": 1,
+                },
+                "destinations": ["/tmp/x"],
+            },
+            "max_num_paths_per_src",
+        ),
+    ],
+)
+def test_trajectory_pilot_work_and_path_bounds_are_enforced(
+    generation_request: dict[str, Any], message: str
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        authorize_d1_generation(generation_request, pilot=True)
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"sample_count": 0}, "sample_count"),
+        ({"sample_count": 2, "total_work_units": 1}, "total_work_units must equal"),
+        ({"input_artifact_count": 21}, "input_artifact_count"),
+        ({"total_work_units": True}, "total_work_units must be an integer"),
+    ],
+)
+def test_dmrs_pilot_request_bounds_are_enforced(change: dict[str, Any], message: str) -> None:
+    request = {
+        "operation": "rt_dmrs_observations",
+        "sample_count": 1,
+        "input_artifact_count": 0,
+        "total_work_units": 1,
+        "destinations": ["/tmp/dmrs"],
+    }
+    request.update(change)
+
+    with pytest.raises(ValueError, match=message):
+        authorize_d1_generation(request, pilot=True)
+
+
+def test_json_helpers_accept_valid_objects_and_nested_artifact_paths(tmp_path: Path) -> None:
+    assert _parse_json_object(b'{"decision":"approved"}', label="manifest") == {
+        "decision": "approved"
+    }
+    evidence = tmp_path / "nested"
+    evidence.mkdir()
+    target = evidence / "evidence.json"
+    target.write_text("frozen", encoding="utf-8")
+    assert (
+        _hash_relative_file(tmp_path, "nested/evidence.json")
+        == hashlib.sha256(b"frozen").hexdigest()
+    )
