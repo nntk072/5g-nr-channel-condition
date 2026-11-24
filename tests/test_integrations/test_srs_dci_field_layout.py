@@ -1154,6 +1154,154 @@ def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration
             scheduled_cells_indicator_value=2,
         )
 
+    validation_cases = (
+        ({"cell_set_configs": "not-a-roster"}, TypeError, "ordered sequence"),
+        ({"selected_cell_set_id": None}, ValueError, "multiple cell sets require"),
+        ({"selected_cell_set_id": 8}, ValueError, "identify exactly one configured cell set"),
+        ({"tdra_field_index_list_entry_count": True}, TypeError, "must be an integer"),
+        ({"tdra_field_index_list_entry_count": 0}, ValueError, "must be in \\[1, 4096\\]"),
+        ({"frequency_hopping_enabled_by_cell": "bad"}, TypeError, "must be a mapping"),
+        (
+            {"frequency_hopping_enabled_by_cell": {"cell-3": True}},
+            ValueError,
+            "must cover the full scheduled cell list",
+        ),
+        (
+            {"frequency_hopping_enabled_by_cell": {"cell-3": 1, "cell-4": False}},
+            TypeError,
+            "values must be booleans",
+        ),
+        (
+            {"transform_precoding_enabled_by_cell": "bad"},
+            TypeError,
+            "antenna-port configuration inputs must be mappings",
+        ),
+        (
+            {"transform_precoding_enabled_by_cell": {"cell-3": True}},
+            ValueError,
+            "must cover the full scheduled cell list",
+        ),
+        (
+            {
+                "ptrs_uplink_configured_by_cell": {"cell-3": True, "cell-4": True},
+                "max_pusch_rank_by_cell": None,
+            },
+            TypeError,
+            "must both be supplied",
+        ),
+        (
+            {"max_pusch_rank_by_cell": {"cell-3": 0, "cell-4": 3}},
+            ValueError,
+            "maximum PUSCH rank must be in \\[1, 8\\]",
+        ),
+        (
+            {"p0_pusch_set_list_configured_by_cell": {"cell-3": 1, "cell-4": False}},
+            TypeError,
+            "P0-PUSCH set-list configuration values must be booleans",
+        ),
+        (
+            {"sri_field_present_by_cell": {"cell-3": True, "cell-4": 0}},
+            TypeError,
+            "SRI field-presence values must be booleans",
+        ),
+        (
+            {"olpc_parameter_set_dci_0_1_bits_by_cell": {"cell-3": True, "cell-4": 2}},
+            TypeError,
+            "OLPC indication width.*must be an integer",
+        ),
+        (
+            {"beta_offsets_semi_static_by_cell": {"cell-3": True, "cell-4": 1}},
+            TypeError,
+            "beta-offset configuration values must be booleans",
+        ),
+        ({"harq_ack_codebook_types": ()}, ValueError, "one or two HARQ-ACK codebook types"),
+        (
+            {"harq_ack_codebook_types": ("semi_static", "unknown")},
+            ValueError,
+            "types must be 'semi_static' or 'dynamic'",
+        ),
+        (
+            {"dynamic_harq_ack_two_sub_codebooks_by_codebook": (False,)},
+            ValueError,
+            "state sequences must have equal lengths",
+        ),
+        (
+            {"dynamic_harq_ack_two_sub_codebooks_by_codebook": (False, 1)},
+            TypeError,
+            "two-sub-codebook flags must be booleans",
+        ),
+        (
+            {
+                "harq_ack_codebook_types": ("semi_static", "dynamic"),
+                "dynamic_harq_ack_two_sub_codebooks_by_codebook": (True, False),
+            },
+            ValueError,
+            "semi-static HARQ-ACK cannot configure dynamic sub-codebooks",
+        ),
+        (
+            {"channel_access_config_entry_count_by_cell": {"cell-3": True, "cell-4": 0}},
+            TypeError,
+            "entry count.*must be an integer",
+        ),
+        (
+            {"channel_access_config_entry_count_by_cell": {"cell-3": 65, "cell-4": 0}},
+            ValueError,
+            "entry counts must be in \\[0, 64\\]",
+        ),
+        (
+            {"harq_process_number_size_bits_by_cell": {"cell-3": 3, "cell-4": 6}},
+            ValueError,
+            "HARQ-process widths must be in \\[0, 5\\]",
+        ),
+        (
+            {"max_schedulable_pusch_count_by_cell": {"cell-3": 2, "cell-4": 0}},
+            ValueError,
+            "schedulable PUSCH counts must be in \\[1, 64\\]",
+        ),
+        (
+            {"redundancy_version_bits_by_cell": {"cell-3": 2, "cell-4": 3}},
+            ValueError,
+            "redundancy-version widths must be in \\[0, 2\\]",
+        ),
+        (
+            {"priority_indicator_configured": 1},
+            TypeError,
+            "priority_indicator_configured must be a boolean",
+        ),
+        (
+            {"minimum_scheduling_offset_configured": 1},
+            TypeError,
+            "minimum_scheduling_offset_configured must be a boolean",
+        ),
+        (
+            {"measurement_gap_cancellation_configured": 1},
+            TypeError,
+            "measurement_gap_cancellation_configured must be a boolean",
+        ),
+        (
+            {"request_list_entry_count": True},
+            TypeError,
+            "request_list_entry_count must be an integer",
+        ),
+        (
+            {"request_list_entry_count": 17},
+            ValueError,
+            "request_list_entry_count must be in \\[0, 16\\]",
+        ),
+        ({"srs_offset_list": "bad"}, TypeError, "must be an ordered sequence or None"),
+        ({"srs_offset_list": ()}, ValueError, "must contain 1..8 configured entries"),
+        ({"srs_offset_list": ((0,),)}, ValueError, "one index per scheduled cell"),
+        ({"srs_offset_list": ((0, True),)}, ValueError, "indexes must be integers in \\[0, 7\\]"),
+        ({"report_trigger_size": True}, TypeError, "report_trigger_size must be an integer"),
+        ({"report_trigger_size": 7}, ValueError, "report_trigger_size must be in \\[0, 6\\]"),
+    )
+    for changes, error, message in validation_cases:
+        arguments = {**resolver_inputs, **changes}
+        with pytest.raises(error, match=message):
+            nr_srs_dci_0_3_field_widths_from_configuration(
+                **arguments, scheduled_cells_indicator_value=2
+            )
+
 
 def test_dci_0_3_field_widths_derive_absent_frequency_hopping_and_single_tdra_entry() -> None:
     field_names = (
