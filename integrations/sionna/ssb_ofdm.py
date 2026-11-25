@@ -301,8 +301,6 @@ def nr_ssb_ofdm_modulate_radio_frame(
     if scs_hz not in _SCS_TO_MU:
         raise ValueError("unsupported SSB subcarrier spacing")
     sample_rate_hz = fft_length * scs_hz
-    if sample_rate_hz % 200:
-        raise ValueError("sample rate must represent an exact 5 ms half-frame")
     half_frame_samples = sample_rate_hz // 200
 
     waveform = np.zeros(2 * half_frame_samples, dtype=np.complex128)
