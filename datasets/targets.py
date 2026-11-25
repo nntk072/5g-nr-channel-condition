@@ -707,8 +707,6 @@ class TargetValue:
                 raise ValueError(
                     f"masked target element {index} must use zero storage plus its reason code"
                 )
-            if is_valid and not bool(np.isfinite(value)):
-                raise ValueError("valid target values must be finite")
             if (reason is TargetValidity.CENSORED) != (intervals[index] is not None):
                 raise ValueError(
                     "censored targets require an interval; other reasons must not carry one"

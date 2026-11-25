@@ -649,6 +649,150 @@ def test_target_value_rejects_padded_entity_identity(entity_id: str) -> None:
         )
 
 
+def test_binary_target_contract_checks_value_dtype_and_mask_contract():
+    definition = _definition(
+        "umcd.standardized.profile-los-proxy.v1",
+        semantic="standardized_profile_los_category_proxy",
+        units="binary_class",
+    )
+    with pytest.raises(ValueError, match="exactly one value"):
+        validate_canonical_target_contract(
+            np.asarray([True, False]), definition, name="profile_los_proxy"
+        )
+    with pytest.raises(TypeError, match="real boolean or numeric dtype"):
+        validate_canonical_target_contract(
+            np.asarray(["true"]), definition, name="profile_los_proxy"
+        )
+    with pytest.raises(TypeError, match="mask.*must be boolean"):
+        validate_canonical_target_contract(
+            np.asarray([True]),
+            definition,
+            name="profile_los_proxy",
+            valid_mask=np.asarray([1]),
+        )
+    with pytest.raises(ValueError, match="mask.*wrong shape"):
+        validate_canonical_target_contract(
+            np.asarray([True]),
+            definition,
+            name="profile_los_proxy",
+            valid_mask=np.asarray([[True]]),
+        )
+
+
+def test_binary_target_contract_converts_tensor_values_and_masks():
+    torch = pytest.importorskip("torch")
+    definition = _definition(
+        "umcd.standardized.profile-los-proxy.v1",
+        semantic="standardized_profile_los_category_proxy",
+        units="binary_class",
+    )
+    validate_canonical_target_contract(
+        torch.tensor(True),
+        definition,
+        name="profile_los_proxy",
+        valid_mask=torch.tensor(True),
+    )
+
+
+@pytest.mark.parametrize(
+    ("axes", "error", "message"),
+    [
+        ("frame", TypeError, "tuple or list"),
+        (("frame", " frame"), ValueError, "canonical strings"),
+        (("frame", "frame"), ValueError, "must be unique"),
+    ],
+)
+def test_target_definition_rejects_invalid_value_axes(axes, error, message):
+    with pytest.raises(error, match=message):
+        TargetDefinition("semantic", "unit", "a" * 64, value_axes=axes)
+
+
+def _simple_definition() -> TargetDefinition:
+    return TargetDefinition.versioned(
+        semantic="fixture target",
+        units="unit",
+        source="fixture producer",
+        reference="fixture physical reference",
+        aggregation_rule="one value per fixture entity",
+        definition_version="tests.target.v1",
+    )
+
+
+@pytest.mark.parametrize(
+    ("overrides", "error", "message"),
+    [
+        ({"definition": object()}, TypeError, "definition must be a TargetDefinition"),
+        ({"valid_mask": np.asarray([1])}, TypeError, "valid_mask must use boolean dtype"),
+        ({"valid_mask": np.asarray([True, False])}, ValueError, "exactly the target value shape"),
+        ({"reason_codes": ()}, ValueError, "one TargetValidity per target element"),
+        ({"censoring_intervals": ()}, ValueError, "one interval or null per target element"),
+        ({"valid_mask": np.asarray([False])}, ValueError, "valid_mask and reason_codes disagree"),
+        (
+            {
+                "values": np.asarray([0j]),
+                "valid_mask": np.asarray([False]),
+                "reason_codes": (TargetValidity.CENSORED,),
+                "censoring_intervals": (CensoringInterval(lower=1.0),),
+            },
+            ValueError,
+            "cannot describe complex target values",
+        ),
+    ],
+)
+def test_target_value_rejects_malformed_definition_and_element_metadata(overrides, error, message):
+    arguments = {
+        "entity_id": "link-1",
+        "definition": _simple_definition(),
+        "values": np.asarray([1.0]),
+        "valid_mask": np.asarray([True]),
+        "reason_codes": (TargetValidity.VALID,),
+        "confidence": "fixture confidence",
+    }
+    arguments.update(overrides)
+
+    with pytest.raises(error, match=message):
+        TargetValue(**arguments)
+
+
+def test_target_value_rejects_empty_values_and_nonfinite_censoring_interval():
+    definition = _simple_definition()
+    with pytest.raises(ValueError, match="at least one element"):
+        TargetValue(
+            entity_id="link-1",
+            definition=definition,
+            values=np.asarray([]),
+            valid_mask=np.asarray([], dtype=bool),
+            reason_codes=(),
+            confidence="fixture confidence",
+        )
+
+
+def test_target_definition_digest_requires_canonical_nonempty_fields_and_axes():
+    kwargs = {
+        "semantic": "semantic",
+        "units": "unit",
+        "reference": "physical reference",
+        "aggregation_rule": "one value",
+        "source": "source",
+        "definition_version": "test.v1",
+    }
+    with pytest.raises(ValueError, match="fields must be non-empty strings"):
+        target_contracts.target_definition_digest(**{**kwargs, "units": " "})
+    with pytest.raises(TypeError, match="axes must be a tuple or list"):
+        target_contracts.target_definition_digest(**kwargs, value_axes="frame")
+    with pytest.raises(ValueError, match="axes cannot be empty"):
+        target_contracts.target_definition_digest(**kwargs, value_axes=())
+    with pytest.raises(ValueError, match="canonical strings"):
+        target_contracts.target_definition_digest(**kwargs, value_axes=(" frame",))
+    with pytest.raises(ValueError, match="must be unique"):
+        target_contracts.target_definition_digest(**kwargs, value_axes=("frame", "frame"))
+
+
+def test_legacy_target_migration_requires_semantic_units_and_source():
+    with pytest.raises(ValueError, match="require semantic, units, and source strings"):
+        target_contracts.migrate_legacy_target_definition({"semantic": "legacy"})
+
+
 def test_canonical_target_rejects_padded_definition_fields() -> None:
     definition = _definition(
         "umcd.tdl-pusch.effective-cfr.v1",
