@@ -156,3 +156,12 @@ def test_calibration_fit_returns_a_positive_slope_report() -> None:
     assert report["slope"] > 0
     assert calibrated.shape == raw.shape
     assert copy.deepcopy(report)["schema"] == "loslab.group_platt_calibrator.v1"
+
+
+def test_calibration_fit_rejects_nonpositive_slope() -> None:
+    raw = [0.9, 0.8, 0.2, 0.1]
+    labels = [0, 0, 1, 1]
+    groups = ["a", "b", "c", "d"]
+
+    with pytest.raises(ValueError, match="nonfinite or nonpositive Platt slope"):
+        fit_group_balanced_platt_calibrator(raw, labels, groups)
