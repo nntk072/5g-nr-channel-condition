@@ -30,6 +30,7 @@ from datasets.observations import (
     FrequencyDomainObservation,
     LinkedFrequencyDomainObservation,
 )
+from datasets.time_axis import MultiSourceTimeAlignment, align_time_axes
 from tests.test_datasets.umcd_schema_support import (
     _bundle,
     _episode,
@@ -185,6 +186,153 @@ def test_physical_channel_view_rejects_non_real_carrier_scalars(carrier):
     channel = _bundle().channel_views[0]
     with pytest.raises(TypeError, match="real numeric scalar"):
         replace(channel, carrier_hz=carrier)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "error", "message"),
+    [
+        ("view_id", "", ValueError, "view_id must be"),
+        ("link_id", " padded ", ValueError, "link_id must be"),
+        ("channel", np.ones((1, 2, 3)), ValueError, "channel must be finite complex"),
+        ("channel", np.ones((1, 1, 2, 3)), ValueError, "channel must be finite complex"),
+        (
+            "channel",
+            np.full((1, 1, 2, 3), np.inf + 0j),
+            ValueError,
+            "channel must be finite complex",
+        ),
+        ("rx_port_ids", (), ValueError, "must be non-empty strings"),
+        ("tx_port_ids", ("gNB-H", "gNB-H"), ValueError, "port IDs must be unique"),
+        ("rx_port_ids", (" padded ",), ValueError, "must be non-empty strings"),
+        (
+            "valid_mask",
+            np.ones((1, 1, 2, 3), dtype=np.uint8),
+            ValueError,
+            "valid_mask must be boolean",
+        ),
+        (
+            "valid_mask",
+            np.ones((1, 1, 2, 2), dtype=np.bool_),
+            ValueError,
+            "valid_mask must be boolean",
+        ),
+        (
+            "subcarrier_offsets_hz",
+            np.asarray([-1.0, 0.0]),
+            ValueError,
+            "complete final channel axis",
+        ),
+        (
+            "subcarrier_offsets_hz",
+            np.asarray([-1.0, np.nan, 1.0]),
+            ValueError,
+            "complete final channel axis",
+        ),
+        ("subcarrier_offsets_hz", np.asarray([-1.0, -2.0, 0.0]), ValueError, "strictly increasing"),
+        ("subcarrier_offsets_hz", np.asarray([-2.0, -1.0, 1.0]), ValueError, "include DC"),
+        ("carrier_hz", 0.0, ValueError, "carrier_hz must be finite and positive"),
+        ("delay_reference", "absolute", TypeError, "ChannelDelayReference"),
+        ("power_scale", "absolute", TypeError, "ChannelPowerScale"),
+        ("axes", ("rx_port", "frame", "tx_port", "subcarrier"), ValueError, "canonical named-axis"),
+        ("source_time_alignment_sha256", "A" * 64, ValueError, "lowercase SHA-256"),
+    ],
+)
+def test_physical_channel_view_rejects_invalid_axis_and_reference_contracts(
+    field, value, error, message
+):
+    channel = _bundle().channel_views[0]
+    with pytest.raises(error, match=message):
+        replace(channel, **{field: value})
+
+
+def test_physical_channel_view_rejects_channel_port_axis_count_mismatch():
+    channel = _bundle().channel_views[0]
+    with pytest.raises(ValueError, match="leading axes disagree"):
+        replace(channel, rx_port_ids=("extra-port", "another-port"))
+
+
+def test_physical_channel_view_requires_explicit_recipe_for_relative_delay():
+    channel = _bundle().channel_views[0]
+    with pytest.raises(ValueError, match="normalization_recipe"):
+        replace(channel, delay_reference=ChannelDelayReference.RELATIVE)
+
+
+def test_physical_channel_view_validation_binds_to_episode_contract():
+    bundle = _bundle()
+    channel = bundle.channel_views[0]
+    altered_offsets = channel.subcarrier_offsets_hz.copy()
+    altered_offsets[0] -= 1.0
+    mismatches = (
+        (
+            replace(channel, frame_times_s=tuple(value + 1 for value in channel.frame_times_s)),
+            "frame times",
+        ),
+        (replace(channel, carrier_hz=channel.carrier_hz + 1), "carrier"),
+        (replace(channel, subcarrier_offsets_hz=altered_offsets), "frequency offsets"),
+        (
+            replace(channel, rx_port_ids=tuple("unbound-rx" for _ in channel.rx_port_ids)),
+            "RX port IDs",
+        ),
+        (
+            replace(
+                channel,
+                tx_port_ids=tuple(
+                    f"unbound-tx-{index}" for index in range(len(channel.tx_port_ids))
+                ),
+            ),
+            "TX port IDs",
+        ),
+    )
+    for invalid, message in mismatches:
+        with pytest.raises(ValueError, match=message):
+            invalid.validate_for(bundle.episode)
+
+    with pytest.raises(ValueError, match="source-time digest requires episode"):
+        replace(channel, source_time_alignment_sha256="a" * 64).validate_for(bundle.episode)
+
+    times = bundle.episode.frame_times_s
+    alignment = MultiSourceTimeAlignment(
+        reference_times_s=times,
+        source_alignments=(("source-a", align_time_axes(times, times, tolerance_s=0.0)),),
+    )
+    aligned_episode = replace(bundle.episode, source_time_alignment=alignment)
+    with pytest.raises(ValueError, match="must match the episode alignment report"):
+        channel.validate_for(aligned_episode)
+    replace(channel, source_time_alignment_sha256=alignment.sha256).validate_for(aligned_episode)
+
+
+def test_phase_comparison_reports_axis_delay_and_power_mismatches():
+    channel = _bundle().channel_views[0]
+    calibrated = replace(channel, phase_gauge_id="shared-gauge")
+
+    with pytest.raises(TypeError, match="two PhysicalChannelView"):
+        phase_comparison_disposition(object(), calibrated)
+    assert (
+        phase_comparison_disposition(calibrated, replace(calibrated, link_id="other-link"))
+        is PhaseComparisonDisposition.AXIS_MISMATCH
+    )
+    assert (
+        phase_comparison_disposition(
+            calibrated,
+            replace(
+                calibrated,
+                delay_reference=ChannelDelayReference.RELATIVE,
+                normalization_recipe="explicit-reference",
+            ),
+        )
+        is PhaseComparisonDisposition.DELAY_REFERENCE_MISMATCH
+    )
+    assert (
+        phase_comparison_disposition(
+            calibrated,
+            replace(
+                calibrated,
+                power_scale=ChannelPowerScale.NORMALIZED,
+                normalization_recipe="explicit-reference",
+            ),
+        )
+        is PhaseComparisonDisposition.POWER_REFERENCE_MISMATCH
+    )
 
 
 def test_frequency_receiver_observation_roundtrip_is_separate_and_inference_only(tmp_path):
