@@ -46,6 +46,26 @@ def test_package_source_hash_skips_missing_packages_and_pycache(
     assert provenance.package_source_sha256() != digest
 
 
+def test_package_source_hash_handles_missing_package_directories(monkeypatch, tmp_path: Path) -> None:
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    (artifacts / "provenance.py").write_bytes(b"module")
+    monkeypatch.setattr(provenance, "__file__", str(artifacts / "provenance.py"))
+
+    assert len(provenance.package_source_sha256()) == 64
+
+
+def test_package_source_hash_skips_pycache_only_package(monkeypatch, tmp_path: Path) -> None:
+    artifacts = tmp_path / "artifacts"
+    cache = tmp_path / "datasets" / "__pycache__"
+    artifacts.mkdir()
+    cache.mkdir(parents=True)
+    (cache / "ignored.py").write_bytes(b"ignored")
+    monkeypatch.setattr(provenance, "__file__", str(artifacts / "provenance.py"))
+
+    assert len(provenance.package_source_sha256()) == 64
+
+
 def test_versions_prefers_combined_sionna_rt_distribution(monkeypatch) -> None:
     calls: list[str] = []
 
