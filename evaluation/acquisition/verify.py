@@ -547,8 +547,6 @@ def verify_acquisition_package(
                     errors.append(
                         f"angular {angular_id} has missing bins and cannot support a complete pattern"
                     )
-                if not isinstance(theta, list) or not isinstance(phi, list):
-                    continue
                 if not (
                     math.isclose(float(theta[0]), 0.0, rel_tol=0.0, abs_tol=1e-12)
                     and math.isclose(float(theta[-1]), 180.0, rel_tol=0.0, abs_tol=1e-12)
@@ -562,8 +560,6 @@ def verify_acquisition_package(
                     continue
                 power = record.get("power_per_bin_w")
                 solid_angle = record.get("solid_angle_sr")
-                if not isinstance(power, list) or not isinstance(solid_angle, list):
-                    continue
                 if any(
                     isinstance(value, bool)
                     or not isinstance(value, (int, float))
@@ -606,10 +602,12 @@ def verify_acquisition_package(
     for record in csi.values():
         require_ids(record, "sample_id", samples, f"csi {record['csi_id']}")
         require_file_refs(record, "file_ids", f"csi {record['csi_id']}")
-        require_file_refs(
-            record.get("h_floor", {}), "noise_input_file_ids", f"csi {record['csi_id']}.h_floor"
-        )
         h_floor = record.get("h_floor")
+        require_file_refs(
+            h_floor if isinstance(h_floor, dict) else {},
+            "noise_input_file_ids",
+            f"csi {record['csi_id']}.h_floor",
+        )
         noise_input_file_ids = (
             h_floor.get("noise_input_file_ids", []) if isinstance(h_floor, dict) else []
         )

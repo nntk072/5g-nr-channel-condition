@@ -436,6 +436,50 @@ def test_v2_evaluator_metrics_are_recomputed_from_bound_scorer_input(tmp_path: P
     )
 
 
+def test_csi_noise_floor_combines_multiple_independent_noise_files(tmp_path: Path):
+    package_path = _make_package(tmp_path, "acquisition-package.v0.4")
+    package = json.loads(package_path.read_text(encoding="utf-8"))
+    original = next(item for item in package["files"] if item["file_id"] == "file.noise.input")
+    duplicate = dict(original)
+    duplicate.update(file_id="file.noise.input.second", path="files/noise-input-second.npy")
+    package["files"].append(duplicate)
+    rights = next(
+        item for item in package["per_file_rights"] if item["file_id"] == original["file_id"]
+    )
+    package["per_file_rights"].append({**rights, "file_id": duplicate["file_id"]})
+    package["csi_measurements"][0]["h_floor"]["noise_input_file_ids"].append(duplicate["file_id"])
+    package["csi_measurements"][0]["h_floor"]["amplitude_linear"] = 1.7677669529663689
+    noise_path = tmp_path / duplicate["path"]
+    noise_stream = io.BytesIO()
+    noise = np.zeros(4, dtype=np.complex128)
+    np.save(noise_stream, noise.reshape((1, 1, 2, 2)))
+    data = noise_stream.getvalue()
+    noise_path.write_bytes(data)
+    duplicate["size_bytes"] = len(data)
+    duplicate["sha256"] = hashlib.sha256(data).hexdigest()
+    package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "consistent_proposal_only", _error_text(report)
+
+
+def test_csi_noise_floor_rejects_all_zero_noise_measurements(tmp_path: Path):
+    package_path = _make_package(tmp_path, "acquisition-package.v0.4")
+    package = json.loads(package_path.read_text(encoding="utf-8"))
+    noise_stream = io.BytesIO()
+    np.save(noise_stream, np.zeros((1, 1, 2, 2), dtype=np.complex128))
+    _put(tmp_path, package, "file.noise.input", noise_stream.getvalue())
+    package_path.write_text(json.dumps(package, indent=2), encoding="utf-8")
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "noise measurements must derive a finite, strictly positive complex RMS" in _error_text(
+        report
+    )
+
+
 def test_crosswalk_pointer_and_output_stratum_join_are_checked(tmp_path: Path):
     package_path = _make_package(tmp_path)
     package = json.loads(package_path.read_text())

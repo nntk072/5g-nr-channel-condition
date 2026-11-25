@@ -370,6 +370,131 @@ def _set_boolean_solid_angle(record: dict[str, Any]) -> None:
 
 SEMANTIC_BREADTH_CASES = [
     pytest.param(
+        _set_csi(lambda r: r.update(h_floor=[])),
+        "amplitude_linear must be finite and strictly positive",
+        id="csi-h-floor-not-an-object",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d.update(attestations=[])),
+        "references unknown attestation",
+        id="legacy-attestations-not-an-object",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["samples"][0].update(campaign_id="campaign.absent")),
+        "campaign_id references unknown ID",
+        id="sample-campaign-absent",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["samples"][0].update(instrument_id="instrument.absent")),
+        "instrument_id references unknown ID",
+        id="sample-instrument-absent",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d.update(evaluator_binding=[])),
+        "evaluator binding",
+        id="evaluator-binding-not-an-object",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["evaluator_binding"].update(input_contract="unsupported")),
+        "scorer input schema does not match evaluator input contract",
+        id="evaluator-input-contract-unsupported",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"][0].update(acquisition_sample_id=None)),
+        "crosswalk acquisition_sample_id is not in package samples",
+        id="crosswalk-acquisition-sample-id-not-string",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(material_id=7)),
+        "material mapping must assign every package specimen exactly once",
+        id="mapping-nonstring-material-id",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(specimen_ids=[7])),
+        "material mapping must assign every package specimen exactly once",
+        id="mapping-nonstring-specimen-id",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["row_crosswalk"][0].update(acquisition_sample_id="sample.absent")
+        ),
+        "crosswalk acquisition_sample_id is not in package samples",
+        id="crosswalk-unknown-acquisition-sample",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["row_crosswalk"][0].update(angular_measurement_id="angular.absent")
+        ),
+        "crosswalk angular_measurement_id is not in package angular_measurements",
+        id="crosswalk-unknown-angular-measurement",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["angular_measurements"][0].update(sample_id="sample.other")),
+        "crosswalk angular measurement belongs to a different acquisition sample",
+        id="crosswalk-angular-measurement-wrong-sample",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["samples"][0].update(unit_id="unit.absent")),
+        "crosswalk acquisition sample references an unknown measurement unit",
+        id="crosswalk-unknown-measurement-unit",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["incidence_groups"][0].update(sample_ids=[])),
+        "crosswalk row sample is absent from scorer input group",
+        id="crosswalk-sample-not-in-scorer-group",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"][0].update(polarization="H")),
+        "crosswalk polarization differs from scorer input row",
+        id="crosswalk-polarization-drift",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d.update(incidence_groups=[])),
+        "crosswalk incidence_group_id is absent from scorer input groups",
+        id="crosswalk-scorer-group-missing",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["incidence_groups"][0].update(incidence_angle_deg=30.0)),
+        "scorer input row angle differs from incidence group",
+        id="scorer-group-angle-drift",
+    ),
+    pytest.param(
+        _rewrite_scorer(
+            lambda d: d["full_split_manifest"].update(test_sample_assignments="malformed")
+        ),
+        "crosswalk sample is absent from embedded split-manifest assignments",
+        id="split-assignment-records-not-an-array",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["test_predictions"][0].update(incidence_angle_deg=30.0)),
+        "scorer input row angle differs from split assignment",
+        id="scorer-row-angle-differs-from-assignment",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"].append(dict(d["row_crosswalk"][0]))),
+        "row_crosswalk repeats angular_measurement_id",
+        id="crosswalk-repeats-angular-measurement",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"][0].update(angular_measurement_id=None)),
+        "crosswalk angular_measurement_id is not in package angular_measurements",
+        id="crosswalk-angular-measurement-id-not-string",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["row_crosswalk"].append(
+                {**d["row_crosswalk"][0], "material_id": "material.other"}
+            )
+        ),
+        "one evaluator sample is mapped to multiple output strata",
+        id="crosswalk-evaluator-sample-output-stratum-drift",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"].append(dict(d["row_crosswalk"][0]))),
+        "row_crosswalk repeats an input_row_pointer",
+        id="crosswalk-repeats-input-pointer",
+    ),
+    pytest.param(
         _rewrite_scorer(
             lambda d: d["full_split_manifest"]["test_sample_assignments"].append(
                 dict(d["full_split_manifest"]["test_sample_assignments"][0])
@@ -540,6 +665,62 @@ def test_verifier_rejects_nonfinite_angular_cells(tmp_path: Path) -> None:
 
     assert report["status"] == "inconsistent"
     assert "must be finite and nonnegative" in _error_text(report)
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_rejects_overflowing_number_in_embedded_split_manifest(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    scorer = _file_document(tmp_path, package, "file.scorer.input")
+    scorer["full_split_manifest"]["nonfinite"] = float("inf")
+    encoded = json.dumps(scorer, sort_keys=True).encode("utf-8").replace(b"Infinity", b"1e999")
+    _put(tmp_path, package, "file.scorer.input", encoded)
+    package["evaluator_binding"].pop("split_manifest")
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "cannot canonicalize embedded split manifest" in _error_text(report)
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_skips_non_object_material_mapping_rows(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    mapping = _file_document(tmp_path, package, "file.material.mapping")
+    mapping["materials"].append(None)
+    _rewrite_file(tmp_path, package, "file.material.mapping", mapping)
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "consistent_proposal_only", _error_text(report)
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_skips_untyped_optional_attestation_rows(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    package["attestations"]["malformed"] = "not-an-object"
+    package["external_attestations"][0]["attestation_type"] = 7
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "consistent_proposal_only"
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_skips_missing_bin_semantics_when_field_is_not_an_array(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    _set_angular(lambda record: record.update(missing_bin_indices=None))(tmp_path, package)
+    _rewrite_scorer(
+        lambda document: document["test_predictions"][0].update(missing_angular_bin_indices=None)
+    )(tmp_path, package)
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "has missing bins and cannot support a complete pattern" not in _error_text(report)
 
 
 @pytest.mark.parametrize(
