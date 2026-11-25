@@ -359,6 +359,63 @@ def test_scenario_gbsm_reader_rejects_extra_manifest_fields(tmp_path) -> None:
         read_scenario_gbsm_run(tmp_path, pointer)
 
 
+def test_scenario_gbsm_reader_requires_the_canonical_manifest_path(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="noncanonical-manifest", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    relocated = tmp_path / "relocated-manifest.json"
+    relocated.write_bytes((tmp_path / pointer.relative_path).read_bytes())
+
+    with pytest.raises(ValueError, match="not at its canonical run path"):
+        read_scenario_gbsm_run(tmp_path, relocated)
+
+
+def test_scenario_gbsm_reader_compares_run_id_with_its_pointer(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="run-id-pointer", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    manifest = json.loads((tmp_path / pointer.relative_path).read_text())
+    manifest["run_id"] = "different-run-id"
+    core = {key: manifest[key] for key in ("schema", "schema_version", "run_id", "records")}
+    digest = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    manifest["content_sha256"] = digest
+    relative_path = (
+        f"scenario_gbsm/manifests/{hashlib.sha256(manifest['run_id'].encode()).hexdigest()}.json"
+    )
+    manifest_path = tmp_path / relative_path
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n")
+    changed_pointer = replace(pointer, relative_path=relative_path, content_sha256=digest)
+
+    with pytest.raises(ValueError, match="run ID disagrees with its pointer"):
+        read_scenario_gbsm_run(tmp_path, changed_pointer)
+
+
+def test_scenario_gbsm_reader_rejects_malformed_record_references(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="malformed-record-reference", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    manifest = json.loads((tmp_path / pointer.relative_path).read_text())
+    manifest["records"][0]["content_sha256"] = "not-a-sha256"
+    core = {key: manifest[key] for key in ("schema", "schema_version", "run_id", "records")}
+    digest = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    manifest["content_sha256"] = digest
+    (tmp_path / pointer.relative_path).write_text(
+        json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n"
+    )
+    changed_pointer = replace(pointer, content_sha256=digest)
+
+    with pytest.raises(ValueError, match="manifest record reference is malformed"):
+        read_scenario_gbsm_run(tmp_path, changed_pointer)
+
+
 def test_scenario_gbsm_reader_rejects_blank_manifest_run_id(tmp_path) -> None:
     run = scenario_gbsm_run_from_channel(
         _native_channel(), run_id="blank-manifest-id", sample_ids=["drop-000"]
@@ -416,6 +473,58 @@ def test_scenario_gbsm_reader_rejects_wrong_archive_members(tmp_path) -> None:
     pointer = _replace_first_object_payload(tmp_path, pointer, stream.getvalue())
 
     with pytest.raises(ValueError, match="archive fields are invalid"):
+        read_scenario_gbsm_run(tmp_path, pointer)
+
+
+def test_scenario_gbsm_reader_rejects_archive_member_count_drift(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="extra-archive-member", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    stream = io.BytesIO()
+    np.savez_compressed(
+        stream,
+        h_path=np.asarray([1]),
+        tau_s=np.asarray([1]),
+        cfr=np.asarray([1]),
+        subcarrier_offsets_hz=np.asarray([1]),
+        metadata_json=np.asarray([1], dtype=np.uint8),
+        extra=np.asarray([1]),
+    )
+    pointer = _replace_first_object_payload(tmp_path, pointer, stream.getvalue())
+
+    with pytest.raises(ValueError, match="archive exceeds its member contract"):
+        read_scenario_gbsm_run(tmp_path, pointer)
+
+
+def test_scenario_gbsm_reader_rejects_unknown_record_schema(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="unknown-record-schema", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    stream = io.BytesIO()
+    metadata = {
+        "schema": "umcd.scenario_gbsm_record.unknown",
+        "sample_id": "drop-000",
+        "run_id": "unknown-record-schema",
+        "sample_index": 0,
+        "scenario": "UMi",
+        "scenario_los": False,
+        "metadata": {},
+    }
+    np.savez_compressed(
+        stream,
+        h_path=np.zeros((1,)),
+        tau_s=np.zeros((1,)),
+        cfr=np.zeros((1,)),
+        subcarrier_offsets_hz=np.zeros((1,)),
+        metadata_json=np.frombuffer(
+            json.dumps(metadata, sort_keys=True, separators=(",", ":")).encode(), dtype=np.uint8
+        ),
+    )
+    pointer = _replace_first_object_payload(tmp_path, pointer, stream.getvalue())
+
+    with pytest.raises(ValueError, match="unsupported scenario GBSM record"):
         read_scenario_gbsm_run(tmp_path, pointer)
 
 
