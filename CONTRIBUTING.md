@@ -42,9 +42,14 @@ Run a gate with `./tools/check <gate>`. Before opening a change, run `lock`,
   place a version appears, as a `vN` suffix on the schema file.
 - Native Sionna tests are marked `native_sionna` and need the Sionna environment;
   the default gates skip them. Say in the change which native tests you ran.
-- The fast pull-request CI covers the default 5G NR tests. The `Nightly full
-  coverage` workflow runs the full neural, boosted and native PHY suite with the
-  100% branch-coverage gate; it also supports manual dispatch.
+- Fast pull-request and branch-push checks run in both GitHub Actions and
+  GitLab CI. The `Nightly full coverage` workflow/job runs the full neural,
+  boosted and native PHY suite with the 100% branch-coverage gate; it supports
+  manual dispatch in both systems.
+- GitHub schedules the nightly workflow at 03:17 UTC. GitLab uses the same
+  schedule rule in `.gitlab-ci.yml`; create a GitLab pipeline schedule for the
+  desired branch at 03:17 UTC. A GitLab **Run pipeline** action also runs the
+  full coverage job without starting the fast checks.
 - Signed-attestation tests are marked `evidence_integrity` and are outside the
   default 5G NR behavior and coverage gates. Run them explicitly with
   `python -m pytest --no-cov -o addopts= -m evidence_integrity` when changing

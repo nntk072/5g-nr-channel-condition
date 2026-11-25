@@ -1,0 +1,113 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    # Avoid duplicate branch and merge-request pipelines.
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+stages:
+  - verify
+  - checks
+  - nightly
+
+variables:
+  GIT_DEPTH: "0"
+  UV_CACHE_DIR: "$CI_PROJECT_DIR/.cache/uv"
+  UV_PYTHON: "3.12"
+
+default:
+  image: ghcr.io/astral-sh/uv:0.13.10-python3.12-trixie
+  interruptible: true
+  before_script:
+    # Match the GitHub runner's command-line tools for tests that invoke git or ssh-keygen.
+    - command -v git >/dev/null && command -v ssh-keygen >/dev/null || (apt-get update && apt-get install -y --no-install-recommends git openssh-client && rm -rf /var/lib/apt/lists/*)
+    - uv --version
+  cache:
+    key:
+      prefix: "uv-$CI_JOB_NAME"
+      files:
+        - uv.lock
+    paths:
+      - .cache/uv/
+
+.fast-rules: &fast-rules
+  - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH'
+
+lockfile:
+  stage: verify
+  script:
+    - ./tools/check lock
+  rules: *fast-rules
+
+lint:
+  stage: checks
+  needs: [lockfile]
+  script:
+    - uv sync --locked --extra dev
+    - ./tools/check lint
+  rules: *fast-rules
+
+typecheck:
+  stage: checks
+  needs: [lockfile]
+  script:
+    - uv sync --locked --extra dev
+    - ./tools/check typecheck
+  rules: *fast-rules
+
+architecture:
+  stage: checks
+  needs: [lockfile]
+  script:
+    - uv sync --locked --extra dev
+    - ./tools/check architecture
+  rules: *fast-rules
+
+core-tests:
+  stage: checks
+  needs: [lockfile]
+  script:
+    - uv sync --locked --extra dev
+    - ./tools/check test
+  rules: *fast-rules
+
+documentation:
+  stage: checks
+  needs: [lockfile]
+  script:
+    - uv sync --locked --extra dev --extra docs
+    - ./tools/check docs
+  rules: *fast-rules
+
+build:
+  stage: checks
+  needs: [lockfile]
+  script:
+    - uv sync --locked --extra dev
+    - ./tools/check build
+  rules: *fast-rules
+
+nightly-full-coverage:
+  stage: nightly
+  timeout: 150 minutes
+  interruptible: false
+  script:
+    - uv sync --locked --extra dev --extra boosting --extra sionna --no-install-package torch
+    - uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+    - |
+      set -o pipefail
+      ./tools/check neural 2>&1 | tee neural-test-output.txt
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - neural-test-output.txt
+      - .coverage*
+  # Create a GitLab pipeline schedule for the desired branch at 03:17 UTC.
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
