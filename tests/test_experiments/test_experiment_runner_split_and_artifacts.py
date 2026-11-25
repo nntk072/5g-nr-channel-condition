@@ -9,6 +9,7 @@ import subprocess
 from pathlib import Path
 
 import experiments.runner as runner_module
+import experiments.runner.experiment_runner as experiment_runner_impl
 import numpy as np
 import pytest
 from artifacts.provenance import canonical_hash
@@ -22,6 +23,123 @@ from experiments.runner import (
     verify_validation_threshold_selection_record,
 )
 from propagation.physics import observable_features
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"phase_randomization_seed": True}, "phase_randomization_seed"),
+        ({"label_permutation_seed": -1}, "label_permutation_seed"),
+        ({"row_shuffle_seed": 2**63}, "row_shuffle_seed"),
+        ({"low_confidence_margin": 0.5}, "low_confidence_margin"),
+        ({"benchmark_manifest_path": "manifest.json"}, "benchmark cohort mode requires"),
+        (
+            {
+                "benchmark_manifest_path": "manifest.json",
+                "benchmark_declaration_path": "declaration.json",
+                "benchmark_declaration_signature_path": "declaration.sig",
+                "benchmark_declaration_allowed_signers_path": "allowed_signers",
+                "benchmark_declaration_signer_id": "reviewer",
+                "benchmark_dataset_names": ("dataset",),
+                "benchmark_test_cohort": "test",
+                "build_cache_root": "cache",
+            },
+            "direct dataset snapshots, not build cache",
+        ),
+        (
+            {
+                "benchmark_manifest_path": "manifest.json",
+                "benchmark_declaration_path": "declaration.json",
+                "benchmark_declaration_signature_path": "declaration.sig",
+                "benchmark_declaration_allowed_signers_path": "allowed_signers",
+                "benchmark_declaration_signer_id": "reviewer",
+                "benchmark_dataset_names": ("dataset",),
+                "benchmark_test_cohort": "test",
+            },
+            "verified signed split lock",
+        ),
+        (
+            {
+                "benchmark_manifest_path": "manifest.json",
+                "benchmark_declaration_path": "declaration.json",
+                "benchmark_declaration_signature_path": "declaration.sig",
+                "benchmark_declaration_allowed_signers_path": "allowed_signers",
+                "benchmark_declaration_signer_id": "reviewer",
+                "benchmark_dataset_names": ("first", "extra"),
+                "benchmark_test_cohort": "test",
+                "split_lock_path": "split.json",
+                "split_signature_path": "split.sig",
+                "trusted_split_signers_path": "split_signers",
+                "split_signer_id": "split-reviewer",
+            },
+            "dataset names must uniquely match ordered dataset paths",
+        ),
+        ({"split_lock_path": "split.json"}, "signed split mode requires"),
+        (
+            {
+                "split_lock_path": "split.json",
+                "split_signature_path": "split.sig",
+                "trusted_split_signers_path": "allowed_signers",
+                "split_signer_id": "reviewer",
+                "holdout": "held-out",
+            },
+            "holdout cannot be combined with a signed split lock",
+        ),
+    ],
+)
+def test_experiment_runner_rejects_invalid_preflight_combinations(
+    tmp_path: Path, overrides: dict[str, object], message: str
+) -> None:
+    source = tmp_path / "dataset.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=123).save(source)
+    with pytest.raises(ValueError, match=message):
+        experiment_runner_impl._run_experiment_impl((source,), tmp_path / "run", **overrides)
+
+
+def test_experiment_runner_rejects_symlink_output_root(tmp_path: Path) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    output = tmp_path / "run-link"
+    output.symlink_to(target, target_is_directory=True)
+
+    with pytest.raises(ValueError, match="must not be a symlink"):
+        experiment_runner_impl._run_experiment_impl((tmp_path / "unused.npz",), output)
+
+
+def test_experiment_runner_rejects_unknown_observation_route(tmp_path: Path) -> None:
+    source = tmp_path / "dataset.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=321).save(source)
+
+    with pytest.raises(ValueError, match="observation must be ideal_cfr, comb_ls, or precomputed"):
+        experiment_runner_impl._run_experiment_impl(
+            (source,), tmp_path / "run", observation="unknown", methods=("logreg",)
+        )
+
+
+def test_experiment_runner_requires_the_full_model_trio_for_matched_capacity(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "dataset.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=654).save(source)
+
+    with pytest.raises(ValueError, match="requires raw_mlp, cnn, and cvnn"):
+        experiment_runner_impl._run_experiment_impl(
+            (source,), tmp_path / "run", capacity="matched", methods=("cnn",)
+        )
+
+
+def test_experiment_runner_rejects_unknown_model_methods(tmp_path: Path) -> None:
+    source = tmp_path / "dataset.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=987).save(source)
+
+    with pytest.raises(ValueError, match="Unknown method unknown"):
+        experiment_runner_impl._run_experiment_impl(
+            (source,),
+            tmp_path / "run",
+            methods=("unknown",),
+            seeds=(11,),
+            bootstrap=2,
+        )
 
 
 def test_validation_threshold_record_binds_only_selection_partition_data() -> None:
