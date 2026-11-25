@@ -103,3 +103,38 @@ def test_sweep_requires_matching_batch_counts(tmp_path: Path) -> None:
     curves["tdl-D"]["configuration"]["matched_realization_checks"] = []
     with pytest.raises(ValueError, match="matched batch count differs from TDL-A"):
         summarize_tdl_profile_sweep(_write_all(tmp_path, curves))
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        pytest.param("configuration", "configuration differs unexpectedly", id="configuration"),
+        pytest.param("seed", "batch seeds differ from TDL-A", id="seed"),
+        pytest.param("noise", "noise_real_seed differs from TDL-A", id="noise"),
+        pytest.param("channel", "channel truth unexpectedly matches", id="channel"),
+        pytest.param("point-count", "SNR grid differs from TDL-A", id="point-count"),
+        pytest.param("snr", "SNR values or frame counts differ from TDL-A", id="snr"),
+    ],
+)
+def test_sweep_rejects_mismatched_profile_metadata_and_grids(
+    tmp_path: Path, change: str, message: str
+) -> None:
+    curves = _full_set()
+    treatment = curves["tdl-B"] = copy.deepcopy(curves["tdl-B"])
+    config = treatment["configuration"]
+    check = config["matched_realization_checks"][0]
+    if change == "configuration":
+        config["speed_mps"] = 6.0
+    elif change == "seed":
+        check["seed"] = 2
+    elif change == "noise":
+        check["noise_real_seed"] = 9
+    elif change == "channel":
+        check["channel_truth_sha256"] = "channel-A"
+    elif change == "point-count":
+        treatment["points"] = []
+    elif change == "snr":
+        treatment["points"][0]["snr_db"] = 13.0
+
+    with pytest.raises(ValueError, match=message):
+        summarize_tdl_profile_sweep(_write_all(tmp_path, curves))
