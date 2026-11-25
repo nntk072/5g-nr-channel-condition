@@ -8,6 +8,7 @@ from typing import Any
 
 import jsonschema
 import pytest
+from evaluation.acceptance import path_equivalence_assurance as assurance
 from evaluation.acceptance.joint_acceptance import (
     build_joint_acceptance_family_v3,
     build_joint_acceptance_family_v4,
@@ -766,6 +767,40 @@ def test_roster_verifies_and_reports_joint_family_reference() -> None:
         "family_id": "v4",
         "family_sha256": family["family_sha256"],
     }
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        (
+            "path_equivalence_bidirectional_coverage_min",
+            0.9,
+            "criterion is unsupported",
+        ),
+        ("path_equivalence_admission_possible", True, "must remain diagnostic-only"),
+    ],
+)
+def test_roster_rechecks_joint_family_diagnostic_contract(
+    monkeypatch: pytest.MonkeyPatch, field: str, value: Any, message: str
+) -> None:
+    expected = [("site-family-a", "LOS", "episode-1")]
+    family = build_joint_acceptance_family_v4(
+        family_id="v4",
+        material_expected_strata=[("concrete", "V", "20deg")],
+        complex_csi_expected_strata=[("site-family-a", "LOS")],
+        propagation_expected_strata=[("site-family-a", "LOS", "total")],
+        receiver_impact_expected_strata=[("site-family-a", "LOS")],
+        path_equivalence_expected_scenarios=expected,
+    )
+    family[field] = value
+    monkeypatch.setattr(assurance, "validate_joint_acceptance_family", lambda _family: family)
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", _comparison("PASS", 1.0, 1.0))],
+            expected_scenarios=expected,
+            joint_acceptance_family=family,
+        )
 
 
 def test_roster_rejects_a_joint_family_with_a_different_path_roster() -> None:

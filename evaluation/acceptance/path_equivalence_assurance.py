@@ -525,21 +525,6 @@ def evaluate_path_equivalence_roster(
         status = _validate_comparison_coverage(comparison, key)
         candidate = comparison.get("candidate_bidirectional_coverage")
         challenger = comparison.get("challenger_bidirectional_coverage")
-        if status not in {
-            "PASS",
-            "FAIL",
-            "UNRESOLVED_NO_RELEVANT_CLASSES",
-            "NOT_ASSESSABLE_NO_CLASSES",
-        }:
-            raise ValueError(f"unsupported path-coverage status for {key}: {status!r}")
-        for value, name in ((candidate, "candidate"), (challenger, "challenger")):
-            if value is not None and (
-                isinstance(value, bool)
-                or not isinstance(value, (int, float))
-                or not math.isfinite(float(value))
-                or not 0.0 <= float(value) <= 1.0
-            ):
-                raise ValueError(f"{name} coverage for {key} must be in [0, 1] or null")
         counter = by_stratum[(key[0], key[1])]
         counter["episodes"] += 1
         bucket = (
