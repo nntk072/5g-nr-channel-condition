@@ -71,8 +71,6 @@ def evaluate_complex_circularity_family(
         raise ValueError("each tap must have positive finite power")
     scaled = complex_values / scale[None, :]
     power = np.mean(np.abs(scaled) ** 2, axis=0)
-    if not np.isfinite(power).all() or np.any(power <= 0.0):
-        raise ValueError("each tap must have positive finite power")
 
     draw_count = values.shape[0]
     critical_z = NormalDist().inv_cdf(1.0 - float(familywise_alpha) / (2.0 * claim_count))
