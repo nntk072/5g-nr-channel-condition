@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from evaluation.scoring import statistics
 from evaluation.scoring.statistics import (
     cluster_binary_error_rate_interval,
     paired_cluster_binary_error_comparison,
@@ -152,6 +153,33 @@ def test_family_comparison_needs_two_groups_and_bounded_grids() -> None:
         paired_cluster_binary_error_family_comparison(*two_groups, seed=-1)
     with pytest.raises(ValueError, match="draws must be a positive integer"):
         paired_cluster_binary_error_family_comparison(*two_groups, draws=0)
+
+
+@pytest.mark.parametrize(
+    ("control", "treatment", "groups", "message"),
+    [
+        ([True, False], [False], ["a", "b"], "nonempty aligned outcomes"),
+        ([1, False], [False, False], ["a", "b"], "only boolean outcomes"),
+        ([True, False], [False, False], ["a", " "], "group IDs must be non-empty strings"),
+    ],
+)
+def test_family_comparison_rejects_malformed_point_inputs(control, treatment, groups, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        paired_cluster_binary_error_family_comparison(
+            [control], [treatment], [groups], draws=100
+        )
+
+
+def test_family_comparison_enforces_independent_group_grid_limit(monkeypatch) -> None:
+    monkeypatch.setattr(statistics, "_MAX_FAMILY_GRID_CELLS", 1)
+
+    with pytest.raises(ValueError, match="independent-group-by-SNR grid exceeds the 1-cell"):
+        paired_cluster_binary_error_family_comparison(
+            [[True, False, True, False]],
+            [[False, False, True, True]],
+            [["a", "a", "b", "b"]],
+            draws=1,
+        )
 
 
 def test_family_comparison_reports_one_row_per_snr_point() -> None:

@@ -7,6 +7,8 @@ import math
 
 import numpy as np
 
+_MAX_FAMILY_GRID_CELLS = 5_000_000
+
 
 def paired_seed_delta(
     rows: list[dict],
@@ -322,10 +324,15 @@ def paired_cluster_binary_error_family_comparison(
     assert expected_groups is not None
     if len(expected_groups) < 2:
         raise ValueError("at least two independent groups are required for cluster bootstrap")
-    if len(expected_groups) * point_count > 5_000_000:
-        raise ValueError("independent-group-by-SNR grid exceeds the 5,000,000-cell memory limit")
-    if draws * point_count > 5_000_000:
-        raise ValueError("bootstrap draw-by-SNR grid exceeds the 5,000,000-cell memory limit")
+    if len(expected_groups) * point_count > _MAX_FAMILY_GRID_CELLS:
+        raise ValueError(
+            "independent-group-by-SNR grid exceeds the "
+            f"{_MAX_FAMILY_GRID_CELLS:,}-cell memory limit"
+        )
+    if draws * point_count > _MAX_FAMILY_GRID_CELLS:
+        raise ValueError(
+            f"bootstrap draw-by-SNR grid exceeds the {_MAX_FAMILY_GRID_CELLS:,}-cell memory limit"
+        )
 
     control_matrix = np.stack(control_counts, axis=1)
     treatment_matrix = np.stack(treatment_counts, axis=1)
