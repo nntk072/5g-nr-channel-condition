@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from propagation import physics as physics_module
 from propagation.identifiability import path_parameter_fisher_diagnostics
 from propagation.physics import (
     add_estimation_noise,
@@ -84,6 +85,20 @@ def test_delay_proxy_rejects_unrepresentable_power() -> None:
     huge = np.full((1, 1, 8), 1e200 + 0j)
     with pytest.raises(ValueError, match="not representable in float64"):
         delay_k_proxy_features(huge)
+
+
+def test_delay_proxy_rejects_nonfinite_derived_features(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        physics_module.np.fft,
+        "ifft",
+        lambda value, axis: np.full(value.shape, complex(float("inf"), 0.0)),
+    )
+
+    with (
+        np.errstate(over="ignore", invalid="ignore", divide="ignore"),
+        pytest.raises(ValueError, match="produced nonfinite features"),
+    ):
+        delay_k_proxy_features(np.ones((1, 1, 8), dtype=np.complex128))
 
 
 def test_fisher_diagnostics_validate_every_declared_input() -> None:
