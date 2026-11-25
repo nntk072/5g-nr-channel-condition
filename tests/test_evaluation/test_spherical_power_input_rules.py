@@ -43,6 +43,18 @@ def test_local_directions_require_equal_finite_shapes() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    "boolean_array",
+    [np.array([True, False]), np.array([1, False], dtype=object)],
+    ids=["boolean-dtype", "nested-object"],
+)
+def test_direction_inputs_reject_boolean_arrays(boolean_array) -> None:
+    with pytest.raises(ValueError, match="not booleans"):
+        global_to_element_local_directions(
+            boolean_array, np.array([0.0, 0.0]), orientation_rad=[0.0, 0.0, 0.0]
+        )
+
+
 def test_identity_orientation_leaves_directions_unchanged() -> None:
     zenith, azimuth = global_to_element_local_directions(
         np.array([0.3, 1.2]), np.array([0.4, -0.7]), orientation_rad=[0.0, 0.0, 0.0]
@@ -67,6 +79,18 @@ def test_cell_solid_angles_form_the_full_sphere() -> None:
             id="zenith-order",
         ),
         pytest.param(
+            [0.0, math.pi, math.pi],
+            FULL_AZIMUTH,
+            "zenith edges must be strictly increasing",
+            id="zenith-nonincreasing-with-valid-endpoint",
+        ),
+        pytest.param(
+            FULL_ZENITH,
+            [-math.pi, 0.0, -math.pi],
+            "azimuth edges must be strictly increasing",
+            id="azimuth-nonincreasing",
+        ),
+        pytest.param(
             FULL_ZENITH,
             [-math.pi, 0.0, math.pi / 2],
             "azimuth edges must span exactly 2\\*pi",
@@ -84,6 +108,14 @@ def test_angular_grid_must_be_a_full_sphere(zenith_edges, azimuth_edges, message
     with pytest.raises(ValueError, match=message):
         spherical_cell_solid_angles(
             np.asarray(zenith_edges, float), np.asarray(azimuth_edges, float)
+        )
+
+
+def test_angular_grid_rejects_rounded_zero_area_cells() -> None:
+    with pytest.raises(ValueError, match="positive full-sphere cells"):
+        spherical_cell_solid_angles(
+            np.array([0.0, 1e-20, math.pi]),
+            np.array([-math.pi, 0.0, math.pi]),
         )
 
 
