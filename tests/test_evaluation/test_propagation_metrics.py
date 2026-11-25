@@ -240,3 +240,114 @@ def test_total_component_cannot_be_marked_not_applicable() -> None:
     metrics = {name: _masked("not_applicable", "not present") for name in _METRIC_NAMES}
     with pytest.raises(ValueError, match="total-component metrics"):
         _run([_row("cluster-a", "episode-a", metrics), _row("cluster-b", "episode-b", metrics)])
+
+
+@pytest.mark.parametrize(
+    ("records", "expected", "options", "message"),
+    [
+        ([], [("family-a", "LOS", "total")], {}, "records must be nonempty"),
+        ([_row("c", "e")], [], {}, "expected_strata must be nonempty"),
+        ([_row("c", "e")], [("family-a", "bad", "total")], {}, "expected strata must be"),
+        (
+            [_row("c", "e")],
+            [("family-a", "LOS", "total"), ("family-a", "LOS", "total")],
+            {},
+            "duplicate expected stratum",
+        ),
+        ([_row("c", "e")], [("family-a", "LOS", "total")], {"bootstrap_seed": True}, "bootstrap_seed"),
+        ([_row("c", "e")], [("family-a", "LOS", "total")], {"bootstrap_draws": 999}, "bootstrap_draws"),
+        ([_row("c", "e")], [("family-a", "LOS", "total")], {"effective_bandwidth_hz": 0}, "must be positive"),
+    ],
+)
+def test_propagation_metric_design_inputs_fail_closed(records, expected, options, message):
+    kwargs = {"expected_strata": expected, "effective_bandwidth_hz": 100e6, "bootstrap_draws": 1000}
+    kwargs.update(options)
+    with pytest.raises(ValueError, match=message):
+        evaluate_propagation_metrics(records, **kwargs)
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda row: row.update(condition="bad"), "condition must be LOS or NLOS"),
+        (lambda row: row.update(component="bad"), "component must be total"),
+        (lambda row: row.update(candidate_configuration_id=" "), "configuration IDs are required"),
+        (lambda row: row["metrics"].update(extra={}), "metrics must contain exactly"),
+        (lambda row: row["metrics"].update(first_arrival_delay_s=[]), "must be an object"),
+    ],
+)
+def test_propagation_metric_rows_reject_invalid_rosters_and_design(mutate, message):
+    row = _row("cluster-a", "episode-a")
+    mutate(row)
+    with pytest.raises(ValueError, match=message):
+        _run([row])
+
+
+def test_duplicate_episode_and_mixed_configuration_pairs_are_rejected():
+    duplicate = [_row("cluster-a", "episode-a"), _row("cluster-a", "episode-a")]
+    with pytest.raises(ValueError, match="duplicate episode ID"):
+        _run(duplicate)
+    mixed = [_row("cluster-a", "episode-a"), _row("cluster-b", "episode-b")]
+    mixed[1]["challenger_configuration_id"] = "challenger-v2"
+    with pytest.raises(ValueError, match="must match across records"):
+        _run(mixed)
+
+
+def test_metric_value_states_and_independent_cluster_floor_are_reported():
+    invalid_state = _row("cluster-a", "episode-a")
+    invalid_state["metrics"]["rms_delay_spread_s"]["availability"] = "unknown"
+    with pytest.raises(ValueError, match="availability is invalid"):
+        _run([invalid_state])
+
+    missing_resolved_value = _row("cluster-a", "episode-a")
+    missing_resolved_value["metrics"]["rms_delay_spread_s"]["candidate"] = None
+    with pytest.raises(ValueError, match="needs two values and no masking reason"):
+        _run([missing_resolved_value])
+
+    masked_value = _row("cluster-a", "episode-a")
+    masked_value["metrics"]["rms_delay_spread_s"] = {
+        "candidate": 1.0,
+        "challenger": None,
+        "availability": "unresolved",
+        "reason": "missing estimate",
+    }
+    with pytest.raises(ValueError, match="masked .* values must both be null"):
+        _run([masked_value])
+
+    report = _run([_row("cluster-a", "episode-a")])
+    assert _metric(report, "first_arrival_delay_s")["unresolved_reason"] == (
+        "fewer than two resolved independent clusters"
+    )
+
+
+@pytest.mark.parametrize("invalid", [True, "not numeric"])
+def test_resolved_metric_values_must_be_real_numbers(invalid):
+    records = [_row("cluster-a", "episode-a"), _row("cluster-b", "episode-b")]
+    records[0]["metrics"]["rms_delay_spread_s"]["candidate"] = invalid
+    with pytest.raises(ValueError, match="must be a finite real number"):
+        _run(records)
+
+
+def test_row_identity_requires_nonempty_family_cluster_and_episode():
+    row = _row("cluster-a", "episode-a")
+    row["episode_id"] = " "
+    with pytest.raises(ValueError, match="family_id, cluster_id, and episode_id"):
+        _run([row])
+
+
+def test_overflowing_normalized_error_is_rejected():
+    records = [_row("cluster-a", "episode-a"), _row("cluster-b", "episode-b")]
+    records[0]["metrics"]["first_arrival_delay_s"] = _resolved(1e308, -1e308)
+    with pytest.raises(ValueError, match="normalized error is not finite"):
+        _run(records)
+
+
+def test_all_clusters_failing_uses_unit_clopper_pearson_upper_bound():
+    records = [_row("cluster-a", "episode-a"), _row("cluster-b", "episode-b")]
+    for row in records:
+        for name in _METRIC_NAMES:
+            row["metrics"][name] = _resolved(0.0, 1e6)
+    report = _run(records)
+    result = _metric(report, "arrival_angular_spread_deg")
+    assert result["clusters_with_any_error_above_tolerance"] == 2
+    assert result["cluster_failure_one_sided_exact_upper_bound"] == 1.0
