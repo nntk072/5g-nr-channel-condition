@@ -11,6 +11,7 @@ import pytest
 from evaluation import joint_evidence_artifact as artifact
 from evaluation import joint_evidence_run_manifest as run_manifest
 from evaluation.acceptance import path_equivalence_assurance as path_equivalence_assurance
+from evaluation.run_manifest import verify as verify_module
 from tests.test_evaluation.joint_evidence_artifact_support import (
     _install_scorers,
     _payload,
@@ -386,6 +387,59 @@ def test_signed_run_report_verifier_rejects_malformed_report_roots(
     report_path.write_bytes(payload)
 
     with pytest.raises(ValueError, match=message):
+        run_manifest.verify_joint_evidence_run_report_signature(
+            report_path,
+            tmp_path / "report.sig",
+            tmp_path / "allowed_signers",
+            signer_id="reviewer",
+        )
+
+
+def test_signed_run_report_verifier_builds_a_schema_bound_receipt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_scorers(monkeypatch)
+    source = tmp_path / "joint-input.json"
+    saved = tmp_path / "joint-report.json"
+    _write_canonical(source, _payload())
+    artifact._write_new_artifact(saved, artifact.evaluate_joint_evidence_file(source))
+    manifest_path = tmp_path / "run-manifest.json"
+    _write_run_manifest(manifest_path, source, saved)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
+    report_path = tmp_path / "verification-report.json"
+    _write_canonical(report_path, report)
+    monkeypatch.setattr(
+        verify_module,
+        "verify_openssh_signature_for_bytes",
+        lambda *_args, **_kwargs: {
+            "namespace": verify_module.RUN_VERIFICATION_REPORT_SIGNATURE_NAMESPACE,
+            "signer_id": "reviewer",
+            "signature_sha256": "a" * 64,
+            "allowed_signers_sha256": "b" * 64,
+        },
+    )
+
+    receipt = run_manifest.verify_joint_evidence_run_report_signature(
+        report_path,
+        tmp_path / "report.sig",
+        tmp_path / "allowed_signers",
+        signer_id="reviewer",
+    )
+
+    assert receipt["status"] == "SIGNATURE_VERIFIED"
+    assert receipt["qualification_status"] == "NOT_QUALIFIED"
+    assert receipt["run_id"] == report["run_id"]
+    assert receipt["report_schema_sha256"] == report["report_schema_sha256"]
+
+    original_read = verify_module._read_bounded_regular_file
+
+    def invalid_receipt_schema(path, *, limit: int, description: str) -> bytes:
+        if description == "report signature receipt schema":
+            return b'{"type":"object","required":["unavailable"]}'
+        return original_read(path, limit=limit, description=description)
+
+    monkeypatch.setattr(verify_module, "_read_bounded_regular_file", invalid_receipt_schema)
+    with pytest.raises(ValueError, match="receipt violates schema"):
         run_manifest.verify_joint_evidence_run_report_signature(
             report_path,
             tmp_path / "report.sig",
