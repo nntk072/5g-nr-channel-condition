@@ -64,6 +64,14 @@ def test_network_receiver_implementation_identity_rejects_uninspectable_methods(
         _receiver_implementation_identity(BuiltinMethodReceiver())
 
 
+def test_network_receiver_implementation_identity_requires_both_methods():
+    class MissingDecoder:
+        demodulate_slot_waveform = _FakePUSCHReceiver.demodulate_slot_waveform
+
+    with pytest.raises(ValueError, match="callable decode_pusch"):
+        _receiver_implementation_identity(MissingDecoder())
+
+
 def test_real_noise_profile_normalizes_integer_and_float_profiles():
     profile = _real_noise_profile(torch, (1, 0.25), rx_count=2, device="cpu")
 
@@ -734,6 +742,345 @@ def test_network_receiver_requires_positive_integer_tensor_limit(maximum):
             _FakePUSCHReceiver(),
             noise_variance_w_per_re=(0.04,),
             max_tensor_elements=maximum,
+        )
+
+
+def test_network_receiver_rejects_device_or_dtype_mismatches():
+    composition, noisy = _network_waveform()
+    mismatch = replace(noisy, noise_waveform=noisy.noise_waveform.to(torch.complex128))
+    with pytest.raises(ValueError, match="share dtype and device"):
+        decode_noisy_network_pusch(
+            composition,
+            mismatch,
+            _FakePUSCHReceiver(),
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+def test_network_receiver_rejects_non_record_inputs():
+    _, noisy = _network_waveform()
+    with pytest.raises(TypeError, match="result objects"):
+        decode_noisy_network_pusch(None, noisy, _FakePUSCHReceiver())
+
+
+def test_network_receiver_rejects_invalid_demodulator_grid():
+    class InvalidGridReceiver(_FakePUSCHReceiver):
+        def demodulate_slot_waveform(self, waveform):
+            return torch.ones((1, 1), dtype=torch.complex64)
+
+    composition, noisy = _network_waveform()
+    with pytest.raises(ValueError, match="invalid NR resource grid"):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            InvalidGridReceiver(),
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+def test_network_receiver_rejects_oversized_decoder_outputs():
+    class LargeOutputReceiver(_FakePUSCHReceiver):
+        def decode_pusch(self, received_grid, noise_variance):
+            return torch.zeros((1, 1, 100), dtype=torch.bool), torch.tensor([[True]])
+
+    composition, noisy = _network_waveform()
+    with pytest.raises(ValueError, match="receiver outputs exceed"):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            LargeOutputReceiver(),
+            noise_variance_w_per_re=(0.04,),
+            max_tensor_elements=50,
+        )
+
+
+@pytest.mark.parametrize(
+    ("waveforms", "options", "receiver", "message"),
+    [
+        (torch.ones((1, 1, 1, 1, 8)), {}, _FakePUSCHReceiver(), "complex PyTorch tensor"),
+        (
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            {},
+            _FakePUSCHReceiver(),
+            "nonempty.*axes",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64),
+            {"max_output_elements": 10},
+            _FakePUSCHReceiver(),
+            "set max_output_elements",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64),
+            {},
+            object(),
+            "resource_grid metadata",
+        ),
+    ],
+)
+def test_network_pusch_workflow_rejects_invalid_preflight_inputs(
+    waveforms, options, receiver, message
+):
+    with pytest.raises((TypeError, ValueError), match=message):
+        run_network_pusch_receiver(
+            waveforms,
+            receiver,
+            link_start_samples=((0,),),
+            capture_num_samples=8,
+            sample_rate_hz=4.0,
+            noise_variance_w_per_sample=(0.02,),
+            noise_seed=19,
+            composition_options=options,
+        )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"capture_num_samples": True}, "capture_num_samples"),
+        ({"noise_seed": True}, "noise_seed"),
+        ({"max_tensor_elements": False}, "tensor ceilings"),
+        ({"composition_options": []}, "composition_options"),
+    ],
+)
+def test_network_pusch_workflow_rejects_invalid_scalar_controls(kwargs, message):
+    arguments = {
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 8,
+        "sample_rate_hz": 4.0,
+        "noise_variance_w_per_sample": (0.02,),
+        "noise_seed": 19,
+    }
+    arguments.update(kwargs)
+    with pytest.raises((TypeError, ValueError), match=message):
+        run_network_pusch_receiver(
+            torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64),
+            _FakePUSCHReceiver(),
+            **arguments,
+        )
+
+
+def test_network_pusch_workflow_requires_positive_grid_dimensions():
+    class InvalidGridMetadataReceiver(_FakePUSCHReceiver):
+        pass
+
+    InvalidGridMetadataReceiver.metadata = {
+        **_FakePUSCHReceiver.metadata,
+        "resource_grid": {**_FakePUSCHReceiver.metadata["resource_grid"], "fft_size": True},
+    }
+    with pytest.raises(ValueError, match="positive OFDM dimensions"):
+        run_network_pusch_receiver(
+            torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64),
+            InvalidGridMetadataReceiver(),
+            link_start_samples=((0,),),
+            capture_num_samples=8,
+            sample_rate_hz=4.0,
+            noise_variance_w_per_sample=(0.02,),
+            noise_seed=19,
+        )
+
+
+@pytest.mark.parametrize(
+    ("transmit", "taps", "overrides", "message"),
+    [
+        (
+            torch.ones((1, 1, 1, 8)),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            {},
+            "nonempty complex",
+        ),
+        (
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            object(),
+            {},
+            "channel_fir_taps must be a complex MIMO FIR",
+        ),
+        (
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 129), dtype=torch.complex64),
+            {},
+            "axes, tap count, or dtype",
+        ),
+        (
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            {"composition_options": {"link_filter_taps": None}},
+            "already applied before composition",
+        ),
+        (
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            {"sample_rate_hz": float("inf")},
+            "sample_rate_hz",
+        ),
+        (
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            {"noise_seed": True},
+            "noise_seed",
+        ),
+        (
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            {"link_start_samples": object()},
+            "link_start_samples must contain integer sample offsets",
+        ),
+        (
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            {"link_start_samples": ((0.5,),)},
+            r"integer \[rx, tx\] matrix",
+        ),
+    ],
+)
+def test_transmitter_pusch_workflow_rejects_invalid_inputs(transmit, taps, overrides, message):
+    arguments = {
+        "tx_iq_gain_imbalance_db": (0.0,),
+        "tx_iq_phase_imbalance_rad": (0.0,),
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 8,
+        "sample_rate_hz": 4.0,
+        "noise_variance_w_per_sample": (0.02,),
+        "noise_seed": 19,
+        "noise_variance_w_per_re": (0.04,),
+    }
+    arguments.update(overrides)
+    with pytest.raises((TypeError, ValueError), match=message):
+        run_network_pusch_from_transmitters(transmit, taps, _FakePUSCHReceiver(), **arguments)
+
+
+def test_transmitter_pusch_workflow_requires_receiver_resource_grid():
+    with pytest.raises(ValueError, match="resource_grid metadata"):
+        run_network_pusch_from_transmitters(
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            object(),
+            tx_iq_gain_imbalance_db=(0.0,),
+            tx_iq_phase_imbalance_rad=(0.0,),
+            link_start_samples=((0,),),
+            capture_num_samples=8,
+            sample_rate_hz=4.0,
+            noise_variance_w_per_sample=(0.02,),
+            noise_seed=19,
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"max_tensor_elements": True}, "tensor ceilings"),
+        ({"capture_num_samples": 0}, "capture_num_samples"),
+        ({"composition_options": []}, "composition_options"),
+        ({"composition_options": {"max_output_elements": 10}}, "set max_output_elements"),
+        (
+            {"channel_fir_taps": torch.full((1, 1, 1, 1, 1), complex(float("inf"), 0))},
+            "must be finite",
+        ),
+    ],
+)
+def test_transmitter_pusch_workflow_rejects_invalid_controls(overrides, message):
+    transmit = torch.ones((1, 1, 1, 8), dtype=torch.complex64)
+    taps = overrides.pop("channel_fir_taps", torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64))
+    arguments = {
+        "tx_iq_gain_imbalance_db": (0.0,),
+        "tx_iq_phase_imbalance_rad": (0.0,),
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 8,
+        "sample_rate_hz": 4.0,
+        "noise_variance_w_per_sample": (0.02,),
+        "noise_seed": 19,
+        "noise_variance_w_per_re": (0.04,),
+    }
+    arguments.update(overrides)
+    with pytest.raises((TypeError, ValueError), match=message):
+        run_network_pusch_from_transmitters(transmit, taps, _FakePUSCHReceiver(), **arguments)
+
+
+def test_transmitter_pusch_workflow_rejects_invalid_receiver_grid_dimensions():
+    class InvalidGridReceiver(_FakePUSCHReceiver):
+        pass
+
+    InvalidGridReceiver.metadata = {
+        **_FakePUSCHReceiver.metadata,
+        "resource_grid": {**_FakePUSCHReceiver.metadata["resource_grid"], "fft_size": 0},
+    }
+    with pytest.raises(ValueError, match="positive OFDM dimensions"):
+        run_network_pusch_from_transmitters(
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            InvalidGridReceiver(),
+            tx_iq_gain_imbalance_db=(0.0,),
+            tx_iq_phase_imbalance_rad=(0.0,),
+            link_start_samples=((0,),),
+            capture_num_samples=8,
+            sample_rate_hz=4.0,
+            noise_variance_w_per_sample=(0.02,),
+            noise_seed=19,
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+def test_network_receiver_reports_missing_pytorch_installation(monkeypatch):
+    import builtins
+
+    original_import = builtins.__import__
+
+    def import_without_torch(name, *args, **kwargs):
+        if name == "torch":
+            raise ImportError("test fixture blocks torch import")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_torch)
+    with pytest.raises(RuntimeError, match="Install PyTorch"):
+        run_network_pusch_receiver(
+            None,
+            None,
+            link_start_samples=(),
+            capture_num_samples=1,
+            sample_rate_hz=1.0,
+            noise_variance_w_per_sample=(),
+            noise_seed=0,
+        )
+    with pytest.raises(RuntimeError, match="Install PyTorch"):
+        decode_noisy_network_pusch(None, None, None)
+    with pytest.raises(RuntimeError, match="Install PyTorch"):
+        run_network_pusch_from_transmitters(
+            None,
+            None,
+            None,
+            tx_iq_gain_imbalance_db=(),
+            tx_iq_phase_imbalance_rad=(),
+            link_start_samples=(),
+            capture_num_samples=1,
+            sample_rate_hz=1.0,
+            noise_variance_w_per_sample=(),
+            noise_seed=0,
+        )
+
+
+def test_network_receiver_schema_validation_rejects_invalid_report(monkeypatch):
+    import jsonschema
+
+    class InvalidReportValidator:
+        @staticmethod
+        def check_schema(schema):
+            return None
+
+        def __init__(self, schema):
+            self.schema = schema
+
+        def iter_errors(self, report):
+            return [type("Error", (), {"message": "invalid fixture report"})()]
+
+    monkeypatch.setattr(jsonschema, "Draft202012Validator", InvalidReportValidator)
+    composition, noisy = _network_waveform()
+    with pytest.raises(ValueError, match="invalid fixture report"):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            _FakePUSCHReceiver(),
+            noise_variance_w_per_re=(0.04,),
         )
 
 
