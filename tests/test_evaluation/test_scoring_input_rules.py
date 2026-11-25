@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from evaluation.scoring import metrics as metrics_module
 from evaluation.scoring.metrics import (
     binary_metrics,
     block_bootstrap_auc,
@@ -67,6 +68,24 @@ def test_threshold_defaults_when_no_point_is_valid() -> None:
         threshold_from_validation(np.array([1, 1]), np.array([0.1, 0.9]))
 
 
+def test_threshold_uses_half_when_roc_has_no_finite_candidates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import sklearn.metrics
+
+    monkeypatch.setattr(
+        sklearn.metrics,
+        "roc_curve",
+        lambda *_args, **_kwargs: (
+            np.array([0.0, 1.0]),
+            np.array([0.0, 1.0]),
+            np.array([np.inf, np.inf]),
+        ),
+    )
+
+    assert threshold_from_validation(np.array([0, 1]), np.array([0.1, 0.9])) == 0.5
+
+
 def test_binary_metrics_reject_empty_labels() -> None:
     with pytest.raises(ValueError, match="labels must be nonempty"):
         binary_metrics(np.array([]), np.array([]))
@@ -79,3 +98,18 @@ def test_bootstrap_needs_blocks_and_enough_draws() -> None:
         block_bootstrap_auc(y, p, np.array([0, 0, 0, 0]))
     with pytest.raises(ValueError, match="Need >=2 blocks, >=10 draws"):
         block_bootstrap_auc(y, p, np.array([0, 0, 1, 1]), draws=5)
+
+
+def test_bootstrap_rejects_too_few_two_class_resamples(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FirstGroupOnly:
+        def integers(self, low: int, high: int, *, size: int):
+            return np.zeros(size, dtype=np.int64)
+
+    monkeypatch.setattr(metrics_module.np.random, "default_rng", lambda _seed: FirstGroupOnly())
+    with pytest.raises(ValueError, match="Too few bootstrap replicates contain both classes"):
+        block_bootstrap_auc(
+            np.array([0, 0, 1, 1]),
+            np.array([0.1, 0.2, 0.8, 0.9]),
+            np.array(["negative", "negative", "positive", "positive"]),
+            draws=10,
+        )
