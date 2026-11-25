@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+import numpy as np
 from evaluation.sample_size import binomial
 from evaluation.sample_size.binomial import (
     _exact_binomial_failure_design,
@@ -107,6 +108,34 @@ def test_angular_maximum_design_special_cases() -> None:
         )
         >= 1
     )
+
+
+def test_angular_maximum_design_corrects_upward_floating_rounding(monkeypatch) -> None:
+    monkeypatch.setattr(binomial.math, "floor", lambda _value: 3)
+
+    assert (
+        _maximum_angular_units_for_pass_probability(
+            planned_unit_pass_probability=0.5, minimum_pass_probability=0.25
+        )
+        == 2
+    )
+
+
+def test_angular_maximum_design_corrects_downward_floating_rounding(monkeypatch) -> None:
+    monkeypatch.setattr(binomial.math, "floor", lambda _value: 1)
+
+    assert (
+        _maximum_angular_units_for_pass_probability(
+            planned_unit_pass_probability=0.5, minimum_pass_probability=0.25
+        )
+        == 2
+    )
+
+
+def test_exact_binomial_critical_failures_accepts_empty_count_vectors() -> None:
+    result = binomial._exact_binomial_critical_failures(np.array([], dtype=int), per_comparison_alpha=0.05)
+
+    assert result.size == 0
 
 
 def test_exact_binomial_design_finds_a_powered_minimal_design() -> None:
