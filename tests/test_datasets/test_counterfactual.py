@@ -1,6 +1,11 @@
+from dataclasses import replace
+
 import numpy as np
 import pytest
-from datasets.counterfactual import remove_direct_path_component
+from datasets.counterfactual import (
+    remove_direct_path_component,
+    validate_direct_path_ablation_source,
+)
 from datasets.path_oracle import (
     PathOracleTable,
     PathSolveStatus,
@@ -61,6 +66,18 @@ def _paths():
         delay_s=np.array([1e-8, 2e-8, 3e-8]),
         complex_gain=np.array([1 + 2j, 0.25 - 0.5j, 0.75 + 0.1j]),
         interaction_order=np.array([0, 1, 1]),
+    )
+
+
+def _ablation():
+    return remove_direct_path_component(
+        _paths(),
+        frequency_offset_hz=np.array([-1e6, 0.0, 1e6]),
+        carrier_hz=3.5e9,
+        registry=_registry(),
+        parent_subject_id="episode-parent",
+        base_child_id="base-view",
+        ablated_child_id="ablated-view",
     )
 
 
@@ -297,3 +314,121 @@ def test_direct_path_ablation_matches_close_delay_coherent_reference():
         result.full_cfr[0] - result.without_direct_cfr[0], contributions[:2].sum(axis=0), atol=1e-14
     )
     assert result.removed_direct_path_count.tolist() == [2]
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "error", "message"),
+    [
+        ("parent_subject_id", "", ValueError, "canonical non-empty string"),
+        ("base_child_id", " padded ", ValueError, "canonical non-empty string"),
+        ("split", "", ValueError, "canonical non-empty string"),
+        ("ablated_child_id", "base-view", ValueError, "distinct IDs"),
+        ("path_table_sha256", "A" * 64, ValueError, "lowercase SHA-256"),
+        ("carrier_hz", True, TypeError, "real numeric scalar"),
+        ("carrier_hz", "3.5e9", TypeError, "real numeric scalar"),
+        ("carrier_hz", np.inf, ValueError, "finite and positive"),
+        ("carrier_hz", 0.0, ValueError, "finite and positive"),
+        ("frequency_offset_hz", np.asarray([True]), TypeError, "real numeric data"),
+        (
+            "frequency_offset_hz",
+            np.asarray([], dtype=np.float64),
+            ValueError,
+            "non-empty finite vector",
+        ),
+        ("frequency_offset_hz", np.asarray([np.nan]), ValueError, "non-empty finite vector"),
+        ("frequency_offset_hz", np.asarray([1.0, 0.0]), ValueError, "strictly increasing"),
+        ("frame_indices", np.asarray([0.0, 0.0]), TypeError, "integer vector"),
+        ("rx_port_indices", np.asarray([[0], [0]]), TypeError, "integer vector"),
+        (
+            "full_cfr",
+            np.ones((2, 2), dtype=np.complex128),
+            ValueError,
+            r"shape \(path_group, frequency\)",
+        ),
+        ("link_ids", ("link-a", "link-a"), ValueError, "uniquely match CFR rows"),
+        ("frame_indices", np.asarray([-1, 0]), ValueError, "uniquely match CFR rows"),
+        ("removed_direct_path_count", np.asarray([1]), ValueError, "match path groups"),
+        ("removed_direct_path_count", np.asarray([0, -1]), ValueError, "match path groups"),
+        ("full_cfr", np.full((2, 3), np.inf + 0j), ValueError, "CFR arrays must be finite"),
+    ],
+)
+def test_direct_path_ablation_record_rejects_invalid_fields(field, value, error, message):
+    ablation = _ablation()
+    with pytest.raises(error, match=message):
+        replace(ablation, **{field: value})
+
+
+def test_direct_path_ablation_source_validation_replays_and_preserves_legacy_v1():
+    table = _paths()
+    ablation = _ablation()
+    validate_direct_path_ablation_source(table, ablation)
+    validate_direct_path_ablation_source(table, replace(ablation, carrier_hz=None))
+
+    with pytest.raises(TypeError, match="PathOracleTable and DirectPathAblation"):
+        validate_direct_path_ablation_source(object(), ablation)
+    with pytest.raises(ValueError, match="source digest differs"):
+        validate_direct_path_ablation_source(table, replace(ablation, path_table_sha256="f" * 64))
+    with pytest.raises(ValueError, match="group roster differs"):
+        validate_direct_path_ablation_source(
+            table, replace(ablation, link_ids=("different", "link-b"))
+        )
+    changed = ablation.full_cfr.copy()
+    changed[0, 0] += 1
+    with pytest.raises(ValueError, match="do not replay"):
+        validate_direct_path_ablation_source(table, replace(ablation, full_cfr=changed))
+
+
+@pytest.mark.parametrize(
+    ("frequencies", "error", "message"),
+    [
+        (np.asarray([True]), TypeError, "non-empty real vector"),
+        (np.asarray([], dtype=np.float64), TypeError, "non-empty real vector"),
+        (np.asarray([np.nan]), ValueError, "finite and strictly increasing"),
+    ],
+)
+def test_direct_path_ablation_rejects_invalid_frequency_arrays(frequencies, error, message):
+    with pytest.raises(error, match=message):
+        remove_direct_path_component(
+            _paths(),
+            frequency_offset_hz=frequencies,
+            carrier_hz=3.5e9,
+            registry=_registry(),
+            parent_subject_id="episode-parent",
+            base_child_id="base-view",
+            ablated_child_id="ablated-view",
+        )
+
+
+def test_direct_path_ablation_rejects_invalid_table_and_registry_inputs():
+    with pytest.raises(TypeError, match="PathOracleTable"):
+        remove_direct_path_component(
+            object(),
+            frequency_offset_hz=np.array([0.0]),
+            carrier_hz=3.5e9,
+            registry=_registry(),
+            parent_subject_id="episode-parent",
+            base_child_id="base-view",
+            ablated_child_id="ablated-view",
+        )
+
+    with pytest.raises(TypeError, match="SplitPolicyRegistry"):
+        remove_direct_path_component(
+            _paths(),
+            frequency_offset_hz=np.array([0.0]),
+            carrier_hz=3.5e9,
+            registry=object(),
+            parent_subject_id="episode-parent",
+            base_child_id="base-view",
+            ablated_child_id="ablated-view",
+        )
+
+    with pytest.raises(ValueError, match="both ablation children must be registered"):
+        remove_direct_path_component(
+            _paths(),
+            frequency_offset_hz=np.array([0.0]),
+            carrier_hz=3.5e9,
+            registry=_registry(),
+            parent_subject_id="episode-parent",
+            base_child_id="missing-base",
+            ablated_child_id="ablated-view",
+        )

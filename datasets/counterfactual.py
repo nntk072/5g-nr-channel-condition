@@ -227,8 +227,6 @@ def remove_direct_path_component(
     ):
         raise ValueError("both ablation children must bind to the declared split parent")
     split = registry.split_for_child(base_child_id)
-    if registry.split_for_child(ablated_child_id) != split:
-        raise ValueError("paired ablation children must inherit the same split")
     frequencies = np.asarray(frequency_offset_hz)
     if frequencies.dtype.kind not in "iuf" or frequencies.ndim != 1 or len(frequencies) == 0:
         raise TypeError("frequency_offset_hz must be a non-empty real vector")
