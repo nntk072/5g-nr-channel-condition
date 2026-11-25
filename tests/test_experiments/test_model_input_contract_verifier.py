@@ -6,11 +6,13 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import numpy as np
 import pytest
 from artifacts.provenance import canonical_hash
+from experiments.runner import contracts as contract_module
 from experiments.runner.contracts import (
     build_model_input_artifact_contract,
     verify_model_input_artifact_contract,
@@ -199,6 +201,48 @@ def test_contract_feature_digest_must_match_sidecar_contents(tmp_path: Path) -> 
     sidecar.write_text(json.dumps(payload), encoding="utf-8")
 
     with pytest.raises(ValueError, match="digest does not match its contents"):
+        _verify(sidecar, model, kwargs)
+
+
+def test_contract_route_must_match_the_declared_feature_transform(tmp_path: Path) -> None:
+    sidecar, model, contract, kwargs = _bind(tmp_path)
+    payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    feature = payload["model_input_artifact_contract"]["feature_contract"]
+    feature["feature_transform"] = "flattened_real_imag_cfr_v1"
+    payload["model_input_artifact_contract"]["feature_contract_sha256"] = canonical_hash(feature)
+    sidecar.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="does not match an audited feature route"):
+        _verify(sidecar, model, kwargs)
+
+
+def test_sidecar_metadata_change_during_read_is_rejected(tmp_path: Path, monkeypatch) -> None:
+    sidecar, model, _, kwargs = _bind(tmp_path)
+    original_fstat = contract_module.os.fstat
+    calls = 0
+
+    def change_on_second_stat(fd):
+        nonlocal calls
+        calls += 1
+        result = original_fstat(fd)
+        values = {
+            name: getattr(result, name)
+            for name in (
+                "st_dev",
+                "st_ino",
+                "st_mode",
+                "st_nlink",
+                "st_size",
+                "st_mtime_ns",
+                "st_ctime_ns",
+            )
+        }
+        if calls == 2:
+            values["st_mtime_ns"] += 1
+        return SimpleNamespace(**values)
+
+    monkeypatch.setattr(contract_module.os, "fstat", change_on_second_stat)
+    with pytest.raises(ValueError, match="changed during bounded read"):
         _verify(sidecar, model, kwargs)
 
 
@@ -457,3 +501,237 @@ def test_label_permutation_replay_rejects_other_targets(tmp_path: Path) -> None:
     )
     with pytest.raises(ValueError):
         _verify(sidecar, model, kwargs, target_values=1 - _rows_vector(1))
+
+
+def test_label_permutation_replay_rejects_incomplete_targets(tmp_path: Path) -> None:
+    targets = _rows_vector(1)
+    sidecar, model, _, kwargs = _bind(
+        tmp_path,
+        method="label_permuted",
+        target_values=targets,
+        label_permutation_seed=3,
+        label_permutation_run_seed=4,
+    )
+    with pytest.raises(ValueError, match="verification inputs are incomplete"):
+        _verify(sidecar, model, kwargs, target_values=targets[:-1])
+
+
+def test_row_shuffle_replay_requires_matching_source_feature_shape(tmp_path: Path) -> None:
+    source = _matrix()
+    sidecar, model, _, kwargs = _bind(
+        tmp_path,
+        method="row_shuffled",
+        source_method_input=source,
+        feature_permutation_seed=3,
+        feature_permutation_run_seed=4,
+    )
+    with pytest.raises(ValueError, match="verification inputs are incomplete"):
+        _verify(sidecar, model, kwargs, source_method_input=source[:, :3])
+
+
+def test_source_vocabulary_replay_requires_complete_roster(tmp_path: Path) -> None:
+    sources = _ids("s", 3)
+    sidecar, model, _, kwargs = _bind(tmp_path, method="source_only", source_values=sources)
+    with pytest.raises(ValueError, match="verification inputs are incomplete"):
+        _verify(sidecar, model, kwargs, source_values=sources[:-1])
+
+
+def test_metadata_vocabulary_replay_requires_all_named_rosters(tmp_path: Path) -> None:
+    values = {"group": _ids("g", 3), "domain": _ids("d", 2), "source": _ids("s", 4)}
+    sidecar, model, _, kwargs = _bind(tmp_path, method="metadata_only", metadata_values=values)
+    with pytest.raises(ValueError, match="verification inputs are incomplete"):
+        _verify(sidecar, model, kwargs, metadata_values={"group": values["group"]})
+
+
+def test_group_only_replay_requires_method_input_and_partitions(tmp_path: Path) -> None:
+    values = {"group": _ids("g", 3)}
+    sidecar, model, _, kwargs = _bind(tmp_path, method="group_only", metadata_values=values)
+    with pytest.raises(ValueError, match="verification inputs are incomplete"):
+        verify_model_input_artifact_contract(
+            sidecar,
+            model,
+            method_input=None,
+            partition_indices=None,
+            metadata_values=values,
+        )
+
+
+def test_oracle_leak_replay_rejects_incomplete_target_roster(tmp_path: Path) -> None:
+    targets = _rows_vector(2)
+    sidecar, model, _, kwargs = _bind(tmp_path, method="oracle_label_leak", target_values=targets)
+    with pytest.raises(ValueError, match="verification inputs are incomplete"):
+        _verify(sidecar, model, kwargs, target_values=targets[:-1])
+
+
+def test_metadata_vocabulary_transform_must_replay_from_exact_rosters(tmp_path: Path) -> None:
+    values = {"group": _ids("g", 3), "domain": _ids("d", 2), "source": _ids("s", 4)}
+    sidecar, model, _, kwargs = _bind(tmp_path, method="metadata_only", metadata_values=values)
+    payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    contract = payload["model_input_artifact_contract"]
+    contract["feature_contract"]["metadata_vocabulary_transform"]["vocabulary"][0] = [
+        "domain",
+        "tampered",
+    ]
+    contract["feature_contract_sha256"] = canonical_hash(contract["feature_contract"])
+    sidecar.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="does not replay from training IDs"):
+        _verify(sidecar, model, kwargs, metadata_values=values)
+
+
+def test_valid_registry_digest_is_retained_during_contract_replay(tmp_path: Path) -> None:
+    sidecar, model, _, kwargs = _bind(tmp_path)
+    payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    payload["model_input_artifact_contract"]["split"]["registry_sha256"] = "e" * 64
+    sidecar.write_text(json.dumps(payload), encoding="utf-8")
+
+    assert _verify(sidecar, model, kwargs)["status"] == "PASS_MODEL_INPUT_ARTIFACT_BINDING"
+
+
+def _disable_contract_schema(monkeypatch: pytest.MonkeyPatch) -> None:
+    import jsonschema
+
+    monkeypatch.setattr(
+        jsonschema.Draft202012Validator, "iter_errors", lambda self, instance: iter(())
+    )
+
+
+def _save_contract_edit(sidecar: Path, edit) -> None:
+    payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    contract = payload["model_input_artifact_contract"]
+    edit(contract)
+    sidecar.write_text(json.dumps(payload), encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("edit", "message"),
+    [
+        (lambda contract: contract.update(extra="field"), "fields or schema are invalid"),
+        (
+            lambda contract: contract["feature_contract"].update(extra="field"),
+            "feature contract fields are invalid",
+        ),
+        (
+            lambda contract: contract["feature_contract"].update(method=7),
+            "method must be a string",
+        ),
+        (
+            lambda contract: contract["training_input_files"].clear(),
+            "invalid training file roster",
+        ),
+        (
+            lambda contract: contract["split"].update(extra="field"),
+            "split binding is invalid",
+        ),
+        (
+            lambda contract: contract["split"].update(train_rows=0),
+            "split counts must be positive integers",
+        ),
+        (
+            lambda contract: contract["split"].update(calibration_rows=True),
+            "calibration split count must be positive",
+        ),
+        (
+            lambda contract: contract["split"].update(calibration_rows=0),
+            "calibration split count must be positive",
+        ),
+        (
+            lambda contract: contract["split"].update(indices_sha256="bad"),
+            "split digest is invalid",
+        ),
+        (
+            lambda contract: contract["split"].update(registry_sha256="bad"),
+            "registry digest is invalid",
+        ),
+    ],
+)
+def test_contract_semantic_guards_run_after_schema_validation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, edit, message: str
+) -> None:
+    sidecar, model, _, kwargs = _bind(tmp_path)
+    _disable_contract_schema(monkeypatch)
+    _save_contract_edit(sidecar, edit)
+
+    with pytest.raises(ValueError, match=message):
+        _verify(sidecar, model, kwargs)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("supervision_transform", None, "lacks its supervision transform"),
+        ("supervision_transform", {"base_seed": True, "run_seed": 4}, "seeds must be integers"),
+    ],
+)
+def test_label_permutation_contract_checks_transform_seeds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, field: str, value, message: str
+) -> None:
+    targets = _rows_vector(1)
+    sidecar, model, _, kwargs = _bind(
+        tmp_path,
+        method="label_permuted",
+        target_values=targets,
+        label_permutation_seed=3,
+        label_permutation_run_seed=4,
+    )
+    _disable_contract_schema(monkeypatch)
+
+    def edit(contract):
+        contract["feature_contract"][field] = value
+        contract["feature_contract_sha256"] = canonical_hash(contract["feature_contract"])
+
+    _save_contract_edit(sidecar, edit)
+    with pytest.raises(ValueError, match=message):
+        _verify(sidecar, model, kwargs, target_values=targets)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("feature_row_permutation", None, "lacks its permutation"),
+        (
+            "feature_row_permutation",
+            {"base_seed": True, "run_seed": 4},
+            "seeds must be integers",
+        ),
+        (
+            "feature_row_permutation",
+            {"base_seed": 3, "run_seed": 4, "permutation_sha256": "0" * 64},
+            "does not replay from source observations",
+        ),
+    ],
+)
+def test_row_shuffle_contract_checks_permutation_replay(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, field: str, value, message: str
+) -> None:
+    source = _matrix()
+    sidecar, model, _, kwargs = _bind(
+        tmp_path,
+        method="row_shuffled",
+        source_method_input=source,
+        feature_permutation_seed=3,
+        feature_permutation_run_seed=4,
+    )
+    _disable_contract_schema(monkeypatch)
+
+    def edit(contract):
+        contract["feature_contract"][field] = value
+        contract["feature_contract_sha256"] = canonical_hash(contract["feature_contract"])
+
+    _save_contract_edit(sidecar, edit)
+    with pytest.raises(ValueError, match=message):
+        _verify(sidecar, model, kwargs, source_method_input=source)
+
+
+def test_isolated_metadata_contract_transform_must_replay(tmp_path: Path, monkeypatch) -> None:
+    values = {"group": _ids("g", 3)}
+    sidecar, model, _, kwargs = _bind(tmp_path, method="group_only", metadata_values=values)
+    _disable_contract_schema(monkeypatch)
+
+    def edit(contract):
+        contract["feature_contract"]["metadata_vocabulary_transform"]["vocabulary"][0] = "bad"
+        contract["feature_contract_sha256"] = canonical_hash(contract["feature_contract"])
+
+    _save_contract_edit(sidecar, edit)
+    with pytest.raises(ValueError, match="does not replay from training IDs"):
+        _verify(sidecar, model, kwargs, metadata_values=values)
