@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 
 import pytest
+from evaluation.covariance.cdl import joint_tx_rx_dual_pol as dual_pol_module
 from evaluation.covariance.cdl.joint_tx_rx import (
     cdl_joint_tx_rx_spatiotemporal_covariance_reference,
 )
@@ -86,4 +87,30 @@ def test_reference_rejects_out_of_contract_inputs(
             velocity,
             tx_count=tx_count,
             rx_element_count=rx_element_count,
+        )
+
+
+def test_horizontal_reference_rejects_unsupported_component_kind(monkeypatch: pytest.MonkeyPatch):
+    document = {
+        "profiles": [
+            {
+                "profile_model": "A",
+                "components": [{"component": "unsupported", "power_db": 0.0}],
+                "xpr_db": 0.0,
+                "cluster_spreads_deg": {"asa": 0.0, "zsa": 0.0, "asd": 0.0, "zsd": 0.0},
+            }
+        ]
+    }
+    dual_pol_module._horizontal_diffuse_block.cache_clear()
+    monkeypatch.setattr(dual_pol_module, "_reference_document", lambda: document)
+
+    with pytest.raises(ValueError, match="unsupported CDL component kind"):
+        dual_pol_module._horizontal_diffuse_block(
+            "A",
+            (123.0, 4.0, 5.0),
+            carrier_frequency_hz=3.7e9,
+            lag_s=0.13,
+            tx_count=1,
+            rx_element_count=1,
+            element_spacing_wavelengths=0.5,
         )
