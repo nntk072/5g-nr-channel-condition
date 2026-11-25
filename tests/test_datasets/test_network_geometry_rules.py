@@ -9,6 +9,7 @@ from datasets.network import (
     DirectedLink,
     LinkDirection,
     LinkRole,
+    NetworkEpisode,
     NetworkNode,
     NodePoseTimeline,
     NodeRole,
@@ -115,6 +116,14 @@ def test_node_requires_typed_role_position_and_chains() -> None:
             position_world_m=(0.0, 0.0, 1.0),
             rf_chain_count=0,
         )
+    with pytest.raises(TypeError, match="real numeric coordinates"):
+        NetworkNode(
+            node_id="n",
+            role=NodeRole.GNB,
+            array_id="a",
+            position_world_m=None,
+            rf_chain_count=1,
+        )
 
 
 def test_directed_link_requires_distinct_nodes_typed_enums_and_port_maps() -> None:
@@ -153,6 +162,8 @@ def test_pose_timeline_checks_identity_shapes_and_frames() -> None:
         NodePoseTimeline(**{**kwargs, "node_ids": ("a", "a")})
     with pytest.raises(ValueError, match="positions_world_m must be finite"):
         NodePoseTimeline(**{**kwargs, "positions_world_m": np.zeros((2, 3))})
+    with pytest.raises(ValueError, match="orientations_local_to_world must be finite with shape"):
+        NodePoseTimeline(**{**kwargs, "orientations_local_to_world": np.zeros((2, 2, 3))})
 
 
 def test_timeline_lookups_reject_unknown_nodes_and_frames() -> None:
@@ -170,3 +181,75 @@ def test_timeline_lookups_reject_unknown_nodes_and_frames() -> None:
         timeline.position("missing", 0)
     with pytest.raises(KeyError):
         timeline.orientation("missing", 0)
+
+
+def _episode(**overrides) -> NetworkEpisode:
+    arrays = (
+        _array(array_id="a", port_ids=("p0", "p1")),
+        _array(array_id="b", port_ids=("p0", "p1")),
+    )
+    nodes = (
+        NetworkNode("tx", NodeRole.GNB, "a", (0.0, 0.0, 0.0), 2),
+        NetworkNode("rx", NodeRole.UE, "b", (1.0, 0.0, 0.0), 2),
+    )
+    link = DirectedLink("l", "tx", "rx", (0,), (0,), LinkDirection.DOWNLINK, LinkRole.SERVING)
+    values = {
+        "episode_id": "e",
+        "split_group_id": "s",
+        "family_id": "f",
+        "carrier_hz": 3.5e9,
+        "arrays": arrays,
+        "nodes": nodes,
+        "links": (link,),
+        "frame_times_s": (0.0, 1.0),
+        "subcarrier_offsets_hz": np.asarray([-1.0, 0.0, 1.0]),
+    }
+    values.update(overrides)
+    return NetworkEpisode(**values)
+
+
+def test_episode_rejects_timeline_and_split_lineage_mismatches() -> None:
+    episode = _episode()
+    positions = np.asarray([[node.position_world_m for node in episode.nodes]] * 2)
+    orientations = np.broadcast_to(np.eye(3), (2, 2, 3, 3)).copy()
+    timeline = NodePoseTimeline(
+        node_ids=("tx", "rx"),
+        frame_times_s=(0.0, 1.0),
+        positions_world_m=positions,
+        orientations_local_to_world=orientations,
+    )
+    with pytest.raises(TypeError, match="pose_timeline must be a NodePoseTimeline"):
+        _episode(pose_timeline=object())
+    with pytest.raises(ValueError, match="pose timeline frame times"):
+        _episode(
+            pose_timeline=NodePoseTimeline(
+                ("tx", "rx"),
+                (0.0, 2.0),
+                positions,
+                orientations,
+            )
+        )
+    with pytest.raises(ValueError, match="pose timeline node IDs"):
+        _episode(
+            pose_timeline=NodePoseTimeline(
+                ("rx", "tx"),
+                (0.0, 1.0),
+                positions,
+                orientations,
+            )
+        )
+    with pytest.raises(ValueError, match="initial pose position"):
+        _episode(
+            pose_timeline=NodePoseTimeline(
+                ("tx", "rx"),
+                (0.0, 1.0),
+                positions + 1.0,
+                orientations,
+            )
+        )
+    accepted = _episode(pose_timeline=timeline)
+    assert accepted.pose_timeline is timeline
+    with pytest.raises(ValueError, match="canonical namespace/id pairs"):
+        _episode(split_leakage_relations=(("unknown", "scene-1"),))
+    with pytest.raises(ValueError, match="must be unique"):
+        _episode(split_leakage_relations=(("site", "site-1"), ("site", "site-1")))
