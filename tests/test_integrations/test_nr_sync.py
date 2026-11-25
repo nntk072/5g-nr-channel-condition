@@ -1,9 +1,11 @@
 """Standards-sequence and controlled blind NR cell-acquisition tests."""
 
+from types import SimpleNamespace
 from typing import cast
 
 import numpy as np
 import pytest
+from integrations.sionna import nr_sync as nr_sync_module
 from integrations.sionna.nr_sync import (
     MAX_PSS_SEARCH_CELLS,
     NRSyncNotFoundError,
@@ -240,6 +242,284 @@ def test_nr_sync_rejects_invalid_identity_and_capture() -> None:
             cyclic_prefix_length=32,
             sampling_frequency_hz=7_680_000.0,
         )
+
+
+def test_sync_sequence_and_ofdm_modulator_reject_invalid_contracts() -> None:
+    with pytest.raises(ValueError, match="nid2"):
+        nr_sss_sequence(1, True)
+    with pytest.raises(ValueError, match="fft_size"):
+        modulate_nr_sync_symbol(nr_pss_sequence(0), fft_size=True, cyclic_prefix_length=16)
+    with pytest.raises(TypeError, match="cyclic_prefix_length must be an integer"):
+        modulate_nr_sync_symbol(nr_pss_sequence(0), fft_size=256, cyclic_prefix_length=True)
+    with pytest.raises(ValueError, match="cyclic_prefix_length must be in"):
+        modulate_nr_sync_symbol(nr_pss_sequence(0), fft_size=256, cyclic_prefix_length=256)
+    with pytest.raises(ValueError, match="fractional_delay_samples"):
+        modulate_nr_sync_symbol(
+            nr_pss_sequence(0),
+            fft_size=256,
+            cyclic_prefix_length=32,
+            fractional_delay_samples=0.5,
+        )
+    with pytest.raises(ValueError, match="127 BPSK values"):
+        modulate_nr_sync_symbol(np.ones(126, dtype=np.int8), fft_size=256, cyclic_prefix_length=32)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "error", "message"),
+    [
+        ({"sampling_frequency_hz": 0.0}, ValueError, "sampling_frequency_hz"),
+        ({"minimum_score": 1.1}, ValueError, "minimum_score"),
+        ({"cfo_hypotheses_hz": ()}, ValueError, "at least one CFO hypothesis"),
+        ({"cfo_hypotheses_hz": (float("nan"),)}, ValueError, "CFO hypotheses must be finite"),
+        (
+            {"fractional_timing_hypotheses_samples": ()},
+            ValueError,
+            "fractional timing hypotheses must be unique",
+        ),
+        (
+            {"fractional_timing_hypotheses_samples": (0.0, 0.0)},
+            ValueError,
+            "fractional timing hypotheses must be unique",
+        ),
+        ({"max_search_cells": True}, TypeError, "max_search_cells must be an integer"),
+        ({"max_search_cells": MAX_PSS_SEARCH_CELLS + 1}, ValueError, "hard ceiling"),
+        ({"cfo_guard_samples": True}, TypeError, "cfo_guard_samples must be an integer"),
+        ({"cfo_guard_samples": 32}, ValueError, "cfo_guard_samples must be in"),
+    ],
+)
+def test_pss_detection_rejects_invalid_search_controls(overrides, error, message) -> None:
+    capture = modulate_nr_sync_symbol(nr_pss_sequence(0), fft_size=256, cyclic_prefix_length=32)
+    arguments = {
+        "fft_size": 256,
+        "cyclic_prefix_length": 32,
+        "sampling_frequency_hz": 7_680_000.0,
+    }
+    arguments.update(overrides)
+
+    with pytest.raises(error, match=message):
+        detect_nr_pss(capture, **arguments)
+
+
+@pytest.mark.parametrize(
+    ("variance", "error", "message"),
+    [
+        (True, TypeError, "not booleans"),
+        (0.0, ValueError, "finite and positive"),
+        ([1.0, 2.0, 3.0], ValueError, "one value per receive chain"),
+        ([1.0, False], TypeError, "not booleans"),
+        (["bad", "ok"], TypeError, "values must be real numbers"),
+    ],
+)
+def test_pss_and_sss_reject_invalid_per_chain_noise_variance(variance, error, message) -> None:
+    pss = modulate_nr_sync_symbol(nr_pss_sequence(0), fft_size=256, cyclic_prefix_length=32)
+    with pytest.raises(error, match=message):
+        detect_nr_pss(
+            np.stack((pss, pss)),
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+            noise_variance=variance,
+        )
+
+
+def test_sss_decoder_rejects_empty_energy_and_invalid_channel_estimates() -> None:
+    empty = np.zeros(256 + 32, dtype=np.complex128)
+    with pytest.raises(ValueError, match="insufficient energy"):
+        decode_nr_sss_symbol(empty, nid2=0, fft_size=256, cyclic_prefix_length=32)
+
+    sss = modulate_nr_sync_symbol(nr_sss_sequence(5, 1), fft_size=256, cyclic_prefix_length=32)
+    with pytest.raises(ValueError, match="channel_estimate must have shape"):
+        decode_nr_sss_symbol(
+            sss,
+            nid2=1,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            channel_estimate=np.ones((2, 127), dtype=np.complex128),
+        )
+    with pytest.raises(ValueError, match="insufficient energy"):
+        decode_nr_sss_symbol(
+            sss,
+            nid2=1,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            channel_estimate=np.zeros(127, dtype=np.complex128),
+        )
+
+
+def test_sss_decoder_rejects_invalid_identity_frame_and_nonfinite_channel() -> None:
+    symbol = modulate_nr_sync_symbol(nr_sss_sequence(5, 1), fft_size=256, cyclic_prefix_length=32)
+    with pytest.raises(ValueError, match="nid2"):
+        decode_nr_sss_symbol(symbol, nid2=True, fft_size=256, cyclic_prefix_length=32)
+    with pytest.raises(ValueError, match="one OFDM symbol"):
+        decode_nr_sss_symbol(symbol[:-1], nid2=1, fft_size=256, cyclic_prefix_length=32)
+    invalid_channel = np.ones(127, dtype=np.complex128)
+    invalid_channel[0] = complex(float("nan"), 0.0)
+    with pytest.raises(ValueError, match="channel_estimate must have shape"):
+        decode_nr_sss_symbol(
+            symbol,
+            nid2=1,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            channel_estimate=invalid_channel,
+        )
+
+
+def test_pss_and_cell_acquisition_reject_nonfinite_and_unrepresentable_inputs() -> None:
+    pss = modulate_nr_sync_symbol(nr_pss_sequence(0), fft_size=256, cyclic_prefix_length=32)
+    nonfinite = pss.copy()
+    nonfinite[0] = complex(float("inf"), 0.0)
+    with pytest.raises(ValueError, match="only finite complex samples"):
+        detect_nr_pss(
+            nonfinite,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+        )
+    with pytest.raises(ValueError, match="shorter than one PSS OFDM symbol"):
+        detect_nr_pss(
+            pss[:16],
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+        )
+    with pytest.raises(ValueError, match="sampling_frequency_hz must be finite"):
+        detect_nr_pss(
+            pss,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=10**1000,
+        )
+    with pytest.raises(ValueError, match="only finite complex samples"):
+        acquire_nr_cell(
+            np.tile(nonfinite, 3),
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+        )
+
+
+def test_pss_cp_refinement_rejects_zero_cyclic_prefix_correlation() -> None:
+    fft_size, cp_length = 256, 32
+    pss = modulate_nr_sync_symbol(
+        nr_pss_sequence(0), fft_size=fft_size, cyclic_prefix_length=cp_length
+    )
+    pss[:cp_length] = 0.0
+
+    with pytest.raises(NRSyncNotFoundError, match="insufficient energy for CFO refinement"):
+        detect_nr_pss(
+            pss,
+            fft_size=fft_size,
+            cyclic_prefix_length=cp_length,
+            sampling_frequency_hz=7_680_000.0,
+            minimum_score=0.0,
+        )
+
+
+def test_pss_fractional_refinement_handles_zero_energy_match() -> None:
+    capture = np.zeros(256 + 32, dtype=np.complex128)
+    with pytest.raises(NRSyncNotFoundError, match="insufficient energy for CFO refinement"):
+        detect_nr_pss(
+            capture,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+            minimum_score=0.0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"minimum_sss_score": 1.1}, "minimum_sss_score"),
+        ({"sampling_frequency_hz": 0.0}, "sampling_frequency_hz"),
+        ({"max_search_cells": 0}, "max_search_cells must be positive"),
+        ({"max_search_cells": MAX_PSS_SEARCH_CELLS + 1}, "hard ceiling"),
+        ({"cfo_hypotheses_hz": ()}, "CFO hypotheses must be a nonempty sequence"),
+    ],
+)
+def test_cell_acquisition_rejects_invalid_search_limits(overrides, message) -> None:
+    capture = make_nr_sync_burst(12, 2)
+    arguments = {
+        "fft_size": 256,
+        "cyclic_prefix_length": 32,
+        "sampling_frequency_hz": 7_680_000.0,
+    }
+    arguments.update(overrides)
+
+    with pytest.raises(ValueError, match=message):
+        acquire_nr_cell(capture, **arguments)
+
+
+def test_cell_acquisition_combines_multiple_receive_chains() -> None:
+    capture = make_nr_sync_burst(12, 2)
+    detection = acquire_nr_cell(
+        np.stack((capture, 0.5 * capture)),
+        fft_size=256,
+        cyclic_prefix_length=32,
+        sampling_frequency_hz=7_680_000.0,
+        noise_variance=(0.1, 0.2),
+    )
+
+    assert detection.physical_cell_id == 3 * 12 + 2
+    assert detection.sss_score > 0.9
+
+
+def test_cell_acquisition_rejects_a_weak_sss_match() -> None:
+    rng = np.random.default_rng(43)
+    capture = make_nr_sync_burst(12, 2)
+    symbol_length = 256 + 32
+    sss_start = 2 * symbol_length
+    capture[sss_start : sss_start + symbol_length] = rng.standard_normal(
+        symbol_length
+    ) + 1j * rng.standard_normal(symbol_length)
+
+    with pytest.raises(NRSyncNotFoundError, match="SSS score .* below minimum"):
+        acquire_nr_cell(
+            capture,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+            minimum_sss_score=0.99,
+        )
+
+
+def test_cell_acquisition_rejects_pss_result_without_room_for_sss(monkeypatch) -> None:
+    monkeypatch.setattr(
+        nr_sync_module,
+        "detect_nr_pss",
+        lambda *_args, **_kwargs: SimpleNamespace(sample_offset=1),
+    )
+    capture = np.ones(3 * (256 + 32), dtype=np.complex128)
+
+    with pytest.raises(ValueError, match="capture ends before the SSS symbol"):
+        acquire_nr_cell(
+            capture,
+            fft_size=256,
+            cyclic_prefix_length=32,
+            sampling_frequency_hz=7_680_000.0,
+        )
+
+
+@pytest.mark.parametrize("success", (False, True))
+def test_pss_fractional_refinement_keeps_coarse_match_when_not_better(
+    monkeypatch, success: bool
+) -> None:
+    monkeypatch.setattr(
+        nr_sync_module,
+        "minimize_scalar",
+        lambda *_args, **_kwargs: SimpleNamespace(success=success, fun=0.0, x=0.25),
+    )
+    capture = modulate_nr_sync_symbol(nr_pss_sequence(1), fft_size=256, cyclic_prefix_length=32)
+
+    detection = detect_nr_pss(
+        capture,
+        fft_size=256,
+        cyclic_prefix_length=32,
+        sampling_frequency_hz=7_680_000.0,
+    )
+
+    assert detection.nid2 == 1
+    assert detection.fractional_sample_offset == 0.0
 
 
 def test_pss_sss_acquisition_rejects_real_valued_capture_arrays():

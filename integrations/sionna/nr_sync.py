@@ -520,8 +520,6 @@ def acquire_nr_cell(
     if samples.ndim == 1:
         samples = samples[None, :]
     variances = _noise_variance_by_chain(noise_variance, samples.shape[0])
-    if samples.shape[0] == 0:
-        raise ValueError("capture must contain at least one receive chain")
     pss = detect_nr_pss(
         # Exclude candidate PSS positions too late to leave room for SSS at
         # SS/PBCH symbol index 2. Searching the trailing SSS/PBCH symbols as
