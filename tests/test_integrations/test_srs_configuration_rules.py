@@ -90,6 +90,43 @@ def test_srs_port_cyclic_shift_indices_follow_comb_specific_port_spacing(
 
 
 @pytest.mark.parametrize(
+    ("ports", "comb", "ports8_tdm", "expected"),
+    [
+        pytest.param(
+            tuple(range(1000, 1008)), 8, False, (0, 0, 0, 0, 3, 3, 3, 3), id="eight-port-comb8"
+        ),
+        pytest.param((1000, 1001, 1002, 1003), 8, False, (0, 0, 3, 3), id="four-port-comb8"),
+        pytest.param(
+            tuple(range(1000, 1008)),
+            4,
+            False,
+            (0, 0, 3, 3, 6, 6, 9, 9),
+            id="eight-port-comb4",
+        ),
+        pytest.param(
+            tuple(range(1000, 1008)),
+            8,
+            True,
+            (0, 0, 0, 0, 3, 3, 3, 3),
+            id="eight-port-tdm-comb8",
+        ),
+    ],
+)
+def test_srs_port_cyclic_shifts_cover_six_and_twelve_shift_mappings(
+    ports, comb, ports8_tdm, expected
+) -> None:
+    assert (
+        nr_srs_port_cyclic_shift_indices(
+            ports,
+            transmission_comb=comb,
+            base_cyclic_shift=0,
+            ports8_tdm=ports8_tdm,
+        )
+        == expected
+    )
+
+
+@pytest.mark.parametrize(
     ("kwargs", "error", "message"),
     [
         pytest.param(
