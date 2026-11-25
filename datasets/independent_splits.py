@@ -206,8 +206,6 @@ def audit_group_leakage(split: IndependentSplit, records: Sequence[Mapping[str, 
             raise ValueError(
                 f"scene-group leakage or changed group identity for sample {sample_id}"
             )
-        if group_id in observed and observed[group_id] != expected:
-            raise ValueError(f"group appears in multiple splits: {group_id}")
         observed[group_id] = expected
     if set(observed) != set(split.group_to_split):
         raise ValueError("records do not cover exactly the groups in the frozen split")
