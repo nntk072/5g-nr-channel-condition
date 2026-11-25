@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 import math
 from statistics import NormalDist
 
@@ -52,6 +54,65 @@ def test_tampered_reference_bytes_fail_the_frozen_digest(tmp_path, monkeypatch) 
         cdl_spatial_covariance_reference("A")
 
 
+def _patch_reference_document(tmp_path, monkeypatch, mutate):
+    document = json.loads(four_element.REFERENCE_PATH.read_bytes())
+    mutate(document)
+    payload = json.dumps(document, sort_keys=True, separators=(",", ":")).encode()
+    path = tmp_path / "reference.json"
+    path.write_bytes(payload)
+    monkeypatch.setattr(four_element, "REFERENCE_PATH", path)
+    monkeypatch.setattr(four_element, "REFERENCE_SHA256", hashlib.sha256(payload).hexdigest())
+
+
+def test_reference_rejects_wrong_frozen_source_identity(tmp_path, monkeypatch):
+    _patch_reference_document(
+        tmp_path,
+        monkeypatch,
+        lambda document: document.update(source_sha256="0" * 64),
+    )
+
+    with pytest.raises(ValueError, match="source digest differs"):
+        cdl_spatial_covariance_reference("A")
+
+
+@pytest.mark.parametrize(
+    ("model", "mutate", "message"),
+    [
+        (
+            "D",
+            lambda profile: profile["components"].reverse(),
+            "single specular component first",
+        ),
+        (
+            "D",
+            lambda profile: profile["components"][1].update(component="other"),
+            "diffuse component roster is inconsistent",
+        ),
+        (
+            "A",
+            lambda profile: profile["components"][0].update(component="specular"),
+            "NLOS profile must contain only diffuse components",
+        ),
+        ("A", lambda profile: profile.update(cluster_count=0), "cluster count differs"),
+        (
+            "A",
+            lambda profile: profile["components"][0]["angles_deg"].update(aoa=float("nan")),
+            "covariance reference must be finite",
+        ),
+    ],
+    ids=["los-first", "los-roster", "nlos-specular", "cluster-count", "nonfinite"],
+)
+def test_reference_rejects_inconsistent_profile_rows(tmp_path, monkeypatch, model, mutate, message):
+    def update(document):
+        profile = next(row for row in document["profiles"] if row["profile_model"] == model)
+        mutate(profile)
+
+    _patch_reference_document(tmp_path, monkeypatch, update)
+
+    with pytest.raises(ValueError, match=message):
+        cdl_spatial_covariance_reference(model)
+
+
 def _draws(reference: np.ndarray, count: int, seed: int) -> np.ndarray:
     rng = np.random.default_rng(seed)
     factor = np.linalg.cholesky(reference + 1e-12 * np.eye(4))
@@ -71,6 +132,13 @@ def test_sampled_covariance_claims_bracket_the_reference_with_bounded_width() ->
     assert diagonal["reference"] == pytest.approx(1.0)
     z_value = NormalDist().inv_cdf(1.0 - 0.01 / 32.0)
     assert diagonal["half_width"] == pytest.approx(diagonal["standard_error"] * z_value, rel=1e-12)
+
+
+def test_claim_family_assertion_guards_the_frozen_coordinate_roster(monkeypatch):
+    monkeypatch.setattr(four_element, "range", lambda *_args: iter(()), raising=False)
+
+    with pytest.raises(AssertionError, match="must contain 16 coordinates"):
+        cdl_spatial_covariance_claims(np.ones((2, 4), dtype=complex), np.eye(4, dtype=complex))
 
 
 def test_wrong_reference_fails_containment_and_is_counted() -> None:
