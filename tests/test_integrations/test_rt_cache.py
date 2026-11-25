@@ -561,3 +561,48 @@ def test_rt_cache_store_rejects_dataset_identity_mismatch(tmp_path):
 
     with pytest.raises(ValueError, match="does not match"):
         store_rt_dataset(tmp_path, _dataset(foreign), expected)
+
+
+def test_rt_cache_load_rejects_invalid_manifest_field_types(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["sample_count"] = True
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="manifest schema or key mismatch"):
+        load_rt_dataset(tmp_path, identity)
+
+
+def test_rt_cache_load_rejects_foreign_embedded_identity(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    foreign = _identity()
+    foreign["inputs"]["seed"] = 10
+    foreign["cache_key_sha256"] = rt_cache.canonical_hash(foreign["inputs"])
+    foreign_dataset = _dataset(foreign)
+    foreign_payload_path = tmp_path / "foreign.npz"
+    foreign_dataset.save(foreign_payload_path)
+    foreign_payload = foreign_payload_path.read_bytes()
+    payload_path.write_bytes(foreign_payload)
+
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["payload_sha256"] = hashlib.sha256(foreign_payload).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="generation identity"):
+        load_rt_dataset(tmp_path, identity)
+
+
+def test_rt_cache_load_rejects_generation_report_hash_mismatch(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["generation_report_sha256"] = "a" * 64
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="generation report hash mismatch"):
+        load_rt_dataset(tmp_path, identity)
