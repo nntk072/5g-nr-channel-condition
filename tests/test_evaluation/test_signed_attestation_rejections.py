@@ -13,6 +13,7 @@ import shutil
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -896,3 +897,123 @@ def test_signed_attestation_cli_reports_success_and_failure(
         main(arguments)
     assert excinfo.value.code == 2
     assert "error: attestation envelope fields do not match" in capsys.readouterr().err
+
+
+def _changed_stat(info, **changes):
+    values = {
+        name: getattr(info, name)
+        for name in (
+            "st_dev",
+            "st_ino",
+            "st_mode",
+            "st_nlink",
+            "st_size",
+            "st_mtime_ns",
+            "st_ctime_ns",
+        )
+    }
+    values.update(changes)
+    return SimpleNamespace(**values)
+
+
+def test_bounded_reader_detects_path_replacement_during_open(tmp_path, monkeypatch):
+    path = tmp_path / "input.json"
+    path.write_bytes(b"{}")
+    real_lstat = signed_attestation.os.lstat
+    calls = 0
+
+    def replace_on_second_stat(target):
+        nonlocal calls
+        calls += 1
+        info = real_lstat(target)
+        return _changed_stat(info, st_size=info.st_size + 1) if calls == 2 else info
+
+    monkeypatch.setattr(signed_attestation.os, "lstat", replace_on_second_stat)
+
+    with pytest.raises(ValueError, match="changed while opening"):
+        signed_attestation._read_single_link_file(path, limit=16, label="fixture")
+
+
+def test_bounded_reader_detects_growth_after_initial_stat(tmp_path, monkeypatch):
+    path = tmp_path / "input.json"
+    path.write_bytes(b"x")
+    monkeypatch.setattr(signed_attestation.os, "read", lambda _fd, _size: b"too large")
+
+    with pytest.raises(ValueError, match="exceeds 1 bytes"):
+        signed_attestation._read_single_link_file(path, limit=1, label="fixture")
+
+
+def test_bounded_reader_detects_file_and_path_changes_after_read(tmp_path, monkeypatch):
+    path = tmp_path / "input.json"
+    path.write_bytes(b"{}")
+    real_fstat = signed_attestation.os.fstat
+    calls = 0
+
+    def changed_second_fstat(descriptor):
+        nonlocal calls
+        calls += 1
+        info = real_fstat(descriptor)
+        return _changed_stat(info, st_mtime_ns=info.st_mtime_ns + 1) if calls == 2 else info
+
+    monkeypatch.setattr(signed_attestation.os, "fstat", changed_second_fstat)
+    with pytest.raises(ValueError, match="changed while being read"):
+        signed_attestation._read_single_link_file(path, limit=16, label="fixture")
+
+    monkeypatch.undo()
+    real_lstat = signed_attestation.os.lstat
+    calls = 0
+
+    def changed_third_lstat(target):
+        nonlocal calls
+        calls += 1
+        info = real_lstat(target)
+        return _changed_stat(info, st_ino=info.st_ino + 1) if calls == 3 else info
+
+    monkeypatch.setattr(signed_attestation.os, "lstat", changed_third_lstat)
+    with pytest.raises(ValueError, match="path changed while being read"):
+        signed_attestation._read_single_link_file(path, limit=16, label="fixture")
+
+
+def test_attested_subject_must_exist_in_package_file_inventory(tmp_path):
+    package_path, envelope_path, *_ = _make_signed_inputs(tmp_path)
+    package = json.loads(package_path.read_bytes())
+    envelope = json.loads(envelope_path.read_bytes())
+    package["files"] = []
+    package_bytes = _canonical_bytes(package)
+    envelope["package_sha256"] = hashlib.sha256(package_bytes).hexdigest()
+
+    with pytest.raises(ValueError, match="is absent from package inventory"):
+        signed_attestation._validate_attestation(package, package_bytes, _canonical_bytes(envelope))
+
+
+def test_trusted_signer_policy_must_include_the_envelope_principal():
+    identity = {
+        "signer_id": "reviewer@example.org",
+        "signing_organization": "Example independent institution",
+        "attestation_type": "rights_review",
+        "signer_role": "reviewer",
+    }
+    policy = {
+        "schema": signed_attestation.TRUST_POLICY_SCHEMA,
+        "policy_id": "empty-policy",
+        "signers": [],
+    }
+
+    with pytest.raises(ValueError, match="absent from the trusted role policy"):
+        signed_attestation._authorize_signer(identity, _canonical_bytes(policy))
+
+
+@pytest.mark.usefixtures("consistent_package")
+def test_attestation_set_rejects_type_roster_disagreement(tmp_path, monkeypatch):
+    package, envelopes, trusted, policy = _make_signed_set(tmp_path)
+    package_doc = json.loads(package.read_bytes())
+    reports = [
+        {"attestation_id": item["attestation_id"], "attestation_type": "rights_review"}
+        for item in package_doc["external_attestations"]
+    ]
+    monkeypatch.setattr(
+        signed_attestation, "_verify_one_attestation", lambda *_args, **_kwargs: reports.pop(0)
+    )
+
+    with pytest.raises(ValueError, match="types differ from package external attestation types"):
+        verify_signed_attestation_set(package, envelopes, trusted, policy)
