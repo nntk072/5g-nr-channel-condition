@@ -230,8 +230,6 @@ class EpisodeBundle:
         source_paths = self.path_oracle
         ablation_children: set[str] = set()
         for item in direct_path_ablations:
-            if source_paths is None:
-                raise ValueError("direct-path ablation source path-oracle layer is missing")
             if item.parent_subject_id != self.episode.episode_id:
                 raise ValueError("direct-path ablation parent must match the episode ID")
             if item.carrier_hz is not None and item.carrier_hz != self.episode.carrier_hz:
@@ -401,8 +399,6 @@ def _stable_file_bytes(path: Path, *, label: str, max_bytes: int | None = None) 
             request_size = 1024 * 1024
             if max_bytes is not None:
                 request_size = min(request_size, max_bytes + 1 - size)
-                if request_size <= 0:
-                    raise ValueError(f"{label} exceeds the configured byte limit")
             chunk = os.read(descriptor, request_size)
             if not chunk:
                 break

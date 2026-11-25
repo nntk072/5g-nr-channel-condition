@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 from datasets.episode_store import EpisodeBundle
+from datasets.path_oracle import rms_delay_spread_target
 from datasets.targets import (
     _CANONICAL_TARGET_CONTRACTS,
     _CANONICAL_TARGET_PROVENANCE,
@@ -68,6 +70,19 @@ def test_provenance_record_identities_must_be_unique() -> None:
         )
 
 
+def test_provenance_subject_layer_must_exist_in_bundle() -> None:
+    bundle = _bundle()
+    record = replace(_provenance_record(), subject_layer="scenario_gbsm")
+    with pytest.raises(ValueError, match="subject_layer must identify a populated bundle layer"):
+        EpisodeBundle(
+            bundle.episode,
+            bundle.path_oracle,
+            bundle.channel_views,
+            bundle.targets,
+            provenance_records=(record,),
+        )
+
+
 def test_scenario_gbsm_records_must_be_typed_and_single() -> None:
     bundle = _bundle()
     with pytest.raises(TypeError, match="scenario_gbsm_records must contain scenario GBSM records"):
@@ -110,6 +125,114 @@ def test_direct_path_ablations_must_be_typed() -> None:
             bundle.targets,
             direct_path_ablations=("not-an-ablation",),
         )
+
+
+def test_receiver_bundle_rejects_unrecognized_linked_observation_runtime_type() -> None:
+    bundle = _bundle()
+    binding = SimpleNamespace(
+        link_id=bundle.episode.links[0].link_id,
+        frame_index=0,
+        observation=SimpleNamespace(sample_id="synthetic-sample"),
+    )
+    with pytest.raises(TypeError, match="supported linked contract"):
+        EpisodeBundle(
+            bundle.episode,
+            bundle.path_oracle,
+            (),
+            (),
+            receiver_observations=(binding,),  # type: ignore[arg-type]
+        )
+
+
+def test_receiver_sample_ids_must_be_unique_across_episode_frames() -> None:
+    from tests.test_datasets.umcd_schema_support import _dynamic_episode, _receiver_binding
+
+    binding = _receiver_binding()
+    second_frame = replace(binding, frame_index=1)
+    with pytest.raises(ValueError, match="sample IDs must be unique"):
+        EpisodeBundle(
+            _dynamic_episode(),
+            None,
+            (),
+            (),
+            receiver_observations=(binding, second_frame),
+        )
+
+
+def test_target_frequency_and_rms_replay_contracts_match_episode() -> None:
+    from tests.test_datasets.test_umcd_store_integrity import (
+        _episode_bundle,
+        _versioned_complex_cfr_target,
+    )
+
+    bundle = _episode_bundle()
+    frequency_target = replace(
+        _versioned_complex_cfr_target(),
+        entity_id=bundle.episode.links[0].link_id,
+        values=np.asarray([1.0 + 0.0j, 2.0 + 0.0j]),
+        valid_mask=np.asarray([True, True]),
+        reason_codes=(TargetValidity.VALID, TargetValidity.VALID),
+        censoring_intervals=(None, None),
+    )
+    with pytest.raises(ValueError, match="effective-subcarrier axis must match"):
+        EpisodeBundle(bundle.episode, bundle.path_oracle, (), (frequency_target,))
+
+    assert bundle.path_oracle is not None
+    valid_rms = rms_delay_spread_target(
+        bundle.path_oracle,
+        link_id=bundle.episode.links[0].link_id,
+        frame_count=len(bundle.episode.frame_times_s),
+    )
+    assert (
+        EpisodeBundle(bundle.episode, bundle.path_oracle, (), (valid_rms,)).targets[0] is valid_rms
+    )
+
+    episode_entity_rms = replace(valid_rms, entity_id=bundle.episode.episode_id)
+    with pytest.raises(ValueError, match="per-frame numeric target must identify an episode link"):
+        EpisodeBundle(bundle.episode, bundle.path_oracle, (), (episode_entity_rms,))
+
+    wrong_frame_count = replace(
+        valid_rms,
+        values=np.asarray([0.0, 1.0]),
+        valid_mask=np.asarray([True, True]),
+        reason_codes=(TargetValidity.VALID, TargetValidity.VALID),
+        censoring_intervals=(None, None),
+    )
+    with pytest.raises(ValueError, match="per-frame numeric target shape"):
+        EpisodeBundle(bundle.episode, bundle.path_oracle, (), (wrong_frame_count,))
+
+    mismatched_values = replace(valid_rms, values=valid_rms.values + 1.0)
+    with pytest.raises(ValueError, match="must exactly replay"):
+        EpisodeBundle(bundle.episode, bundle.path_oracle, (), (mismatched_values,))
+
+
+def test_direct_path_ablation_bindings_preserve_parent_grid_and_unique_children() -> None:
+    from tests.test_datasets.test_umcd_store_integrity import (
+        _episode_bundle_with_counterfactual,
+    )
+
+    bundle = _episode_bundle_with_counterfactual()
+    ablation = bundle.direct_path_ablations[0]
+
+    with pytest.raises(ValueError, match="require their source path-oracle layer"):
+        replace(bundle, path_oracle=None, targets=())
+
+    with pytest.raises(ValueError, match="parent must match the episode ID"):
+        replace(
+            bundle,
+            direct_path_ablations=(replace(ablation, parent_subject_id="other-episode"),),
+        )
+
+    legacy_grid_mismatch = replace(
+        ablation,
+        carrier_hz=None,
+        frequency_offset_hz=ablation.frequency_offset_hz + 1.0,
+    )
+    with pytest.raises(ValueError, match="frequency grid differs from episode grid"):
+        replace(bundle, direct_path_ablations=(legacy_grid_mismatch,))
+
+    with pytest.raises(ValueError, match="child IDs must be unique"):
+        replace(bundle, direct_path_ablations=(ablation, ablation))
 
 
 def _visibility_target(version: str, *, entity_id: str = "gNB-1-to-UE-1", values=(1.0,)):
