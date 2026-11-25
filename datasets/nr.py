@@ -185,8 +185,6 @@ class NRObservation:
             and mask.device != self.received_grid.device
         ):
             raise ValueError("received_grid_mask must be on the same device as received_grid")
-        if len(estimate_shape) != 7:
-            raise ValueError("channel estimate must have seven named axes")
         if estimate_shape[:3] != grid_shape[:3] or estimate_shape[5] != grid_shape[3]:
             raise ValueError("received grid and channel estimate batch/antenna/symbol axes differ")
         if not isinstance(self.fft_bin_indices, tuple):
@@ -280,8 +278,6 @@ class LinkedNRObservation:
             raise TypeError("observation must be an NRObservation")
         if self.observation.received_grid.shape[0] != 1:
             raise ValueError("a linked observation must contain exactly one batch item")
-        if self.observation.channel_estimate.h_hat.shape[0] != 1:
-            raise ValueError("a linked channel estimate must contain exactly one batch item")
 
 
 @dataclass(frozen=True, slots=True)

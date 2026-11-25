@@ -12,6 +12,7 @@ from datasets.nr import (
     LinkedNRObservation,
     NRChannelRecord,
     NRObservation,
+    NRReceiverInferenceRecord,
     NRTrajectory,
     TargetDefinition,
 )
@@ -191,6 +192,7 @@ def test_receiver_output_factory_preserves_the_authoritative_fft_bin_mapping():
         (np.asarray([False, True]), TypeError, "integer"),
         (np.asarray([[0, 1]]), ValueError, "one-dimensional"),
         ([0, 1.5], TypeError, "only integers"),
+        (7, TypeError, "one-dimensional integer sequence"),
     ],
 )
 def test_receiver_output_factory_rejects_coerced_fft_bin_mappings(indices, exception, message):
@@ -1550,4 +1552,111 @@ def test_nr_record_store_detects_tampering_and_sample_id_mutation(tmp_path):
                 provenance={"scene_hash": "sha256:abc"},
                 target_definitions=record.target_definitions,
             ),
+        )
+
+
+def test_nr_receiver_inference_record_keeps_identity_outside_single_sample_payload():
+    batched_inputs = make_observation().model_inputs()
+    with pytest.raises(ValueError, match="exactly one received-grid sample"):
+        NRReceiverInferenceRecord("episode", "link", 0, "sample", batched_inputs)
+
+    inputs = make_single_record(
+        "single-input", targets={"label": np.asarray(1)}
+    ).observation.model_inputs()
+    record = NRReceiverInferenceRecord("episode", "link", 0, "sample", inputs)
+    assert record.model_inputs is inputs
+    with pytest.raises(ValueError, match="episode_id"):
+        NRReceiverInferenceRecord(" episode", "link", 0, "sample", inputs)
+    with pytest.raises(ValueError, match="frame_index"):
+        NRReceiverInferenceRecord("episode", "link", -1, "sample", inputs)
+    with pytest.raises(TypeError, match="model_inputs must be NRModelInputs"):
+        NRReceiverInferenceRecord("episode", "link", 0, "sample", object())
+
+
+def test_torch_received_grid_mask_must_share_the_grid_device():
+    torch = pytest.importorskip("torch")
+    base = make_observation()
+    estimate = NRChannelEstimate(
+        h_hat=torch.zeros((2, 1, 2, 1, 1, 14, 24), dtype=torch.complex64),
+        error_variance=torch.zeros((1, 1, 1, 1, 1, 14, 24), dtype=torch.float32),
+        pilot_mask=torch.zeros((1, 1, 14, 24), dtype=torch.bool),
+        metadata={"receiver": "device-mismatch-test"},
+    )
+
+    with pytest.raises(ValueError, match="same device as received_grid"):
+        NRObservation(
+            sample_id="device-mismatch",
+            received_grid=torch.zeros((2, 1, 2, 14, 24), dtype=torch.complex64),
+            channel_estimate=estimate,
+            fft_bin_indices=tuple(range(24)),
+            receiver_config=base.receiver_config,
+            received_grid_mask=torch.empty((2, 1, 2, 14, 24), dtype=torch.bool, device="meta"),
+        )
+
+
+def test_reference_transport_block_tensor_and_integrity_guards():
+    torch = pytest.importorskip("torch")
+    bits = np.asarray([[1, 0, 1], [0, 1, 0]], dtype=np.uint8)
+    record = make_single_record(
+        "reference-bits",
+        targets={"target": torch.asarray([1.0])},
+        target_masks={},
+        reference_transport_block_bits=bits,
+    )
+    tensor_provenance = dict(record.provenance)
+    tensor_provenance["reference_transport_block_shape"] = list(bits.shape)
+    tensor_record = NRChannelRecord(
+        observation=record.observation,
+        targets=record.targets,
+        target_masks=record.target_masks,
+        provenance=tensor_provenance,
+        target_definitions=record.target_definitions,
+        target_reason_codes=record.target_reason_codes,
+        reference_transport_block_bits=torch.asarray(bits),
+    )
+    np.testing.assert_array_equal(tensor_record.reference_transport_block_bits, bits)
+    tensor_record.validate_reference_transport_block_integrity()
+
+    corrupted = tensor_record.reference_transport_block_bits
+    corrupted.setflags(write=True)
+    corrupted[0, 0] = 0
+    with pytest.raises(ValueError, match="differs from its provenance shape/digest"):
+        tensor_record.validate_reference_transport_block_integrity()
+
+    with pytest.raises(ValueError, match="provenance requires its payload array"):
+        make_single_record(
+            "missing-reference-bits",
+            targets={"target": np.asarray([1.0])},
+            target_masks={},
+            provenance_overrides={"reference_transport_block_shape": [2, 3]},
+        )
+
+
+def test_torch_target_support_and_unexpected_target_audit_paths():
+    torch = pytest.importorskip("torch")
+    record = make_single_record(
+        "torch-support",
+        targets={"scalar": torch.asarray([1.0, 0.0])},
+        target_masks={"scalar": torch.asarray([True, False])},
+        target_reason_codes={"scalar": (TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE)},
+    )
+    trajectory = NRTrajectory("torch-support-route", (0.0,), (record,))
+    assert trajectory.target_support_counts("scalar")["selected_element_count"] == 1
+
+    with pytest.raises(ValueError, match="contains undeclared targets"):
+        audit_nr_trajectory_target_support(
+            (("train", "site", trajectory),), (("train", "site", "other-target"),)
+        )
+
+
+def test_torch_target_must_be_nonempty_and_reason_codes_must_match_target_elements():
+    torch = pytest.importorskip("torch")
+    with pytest.raises(ValueError, match="must be non-empty"):
+        make_single_record("empty-torch-target", targets={"scalar": torch.asarray([])})
+    with pytest.raises(ValueError, match="one TargetValidity per target element"):
+        make_single_record(
+            "bad-reason-count",
+            targets={"scalar": np.asarray([1.0, 0.0])},
+            target_masks={"scalar": np.asarray([True, False])},
+            target_reason_codes={"scalar": (TargetValidity.VALID,)},
         )
