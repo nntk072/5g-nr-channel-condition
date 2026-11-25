@@ -75,3 +75,94 @@ def test_complex_cnn_rejects_real_or_nonfinite_inputs() -> None:
     values[0, 0, 0] = complex(np.nan, 0)
     with pytest.raises(ValueError, match="finite"):
         complex_parts(values)
+
+
+@pytest.mark.parametrize(
+    ("option", "value", "message"),
+    [
+        ("epochs", 0, "epochs must be a positive integer"),
+        ("epochs", True, "epochs must be a positive integer"),
+        ("patience", 0, "patience must be a positive integer"),
+        ("batch_size", 0, "batch_size must be a positive integer"),
+        ("learning_rate", float("nan"), "learning_rate must be finite and positive"),
+        ("learning_rate", 0.0, "learning_rate must be finite and positive"),
+        ("device", "tpu", "device must be cpu or a CUDA device"),
+    ],
+)
+def test_complex_cnn_rejects_invalid_training_options(option, value, message) -> None:
+    fit_complex_cnn, *_ = complex_cnn_api()
+    train = np.ones((4, 1, 8), dtype=np.complex64)
+    labels = np.asarray([0, 1, 0, 1])
+    options = {"epochs": 1, "patience": 1, "batch_size": 4}
+    options[option] = value
+
+    with pytest.raises(ValueError, match=message):
+        fit_complex_cnn(train, labels, train, labels, **options)
+
+
+@pytest.mark.parametrize(
+    ("train_labels", "validation_labels", "validation_shape", "message"),
+    [
+        (np.asarray([0, 1, 2, 1]), np.asarray([0, 1, 0, 1]), (4, 1, 8), "binary values"),
+        (np.asarray([0, 1, 0]), np.asarray([0, 1, 0, 1]), (4, 1, 8), "match their observation"),
+        (np.asarray([0, 0, 0, 0]), np.asarray([0, 1, 0, 1]), (4, 1, 8), "both classes"),
+        (np.asarray([0, 1, 0, 1]), np.asarray([0, 0, 0, 0]), (4, 1, 8), "both classes"),
+        (np.asarray([0, 1, 0, 1]), np.asarray([0, 1, 0, 1]), (4, 2, 8), "shapes differ"),
+    ],
+)
+def test_complex_cnn_rejects_misaligned_training_and_validation_data(
+    train_labels, validation_labels, validation_shape, message
+) -> None:
+    fit_complex_cnn, *_ = complex_cnn_api()
+    train = np.ones((4, 1, 8), dtype=np.complex64)
+    validation = np.ones(validation_shape, dtype=np.complex64)
+
+    with pytest.raises(ValueError, match=message):
+        fit_complex_cnn(train, train_labels, validation, validation_labels, epochs=1)
+
+
+def test_complex_cnn_stops_after_patience_without_validation_improvement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    torch = pytest.importorskip("torch")
+    import learning.complex_cnn as trainer
+    from torch import nn
+
+    class ConstantModel(nn.Module):
+        def __init__(self, _links: int, _capacity: str) -> None:
+            super().__init__()
+            self.logits = nn.Parameter(torch.tensor([0.0, 0.0]))
+
+        def forward(self, real, _imag):
+            return self.logits.expand(len(real), -1)
+
+    monkeypatch.setattr(trainer, "build_complex_cnn", ConstantModel)
+    train = np.ones((4, 1, 8), dtype=np.complex64)
+    labels = np.asarray([0, 1, 0, 1])
+
+    _predictor, diagnostics = trainer.fit_complex_cnn(
+        train, labels, train, labels, epochs=5, patience=1, batch_size=4
+    )
+
+    assert diagnostics["epoch_count"] == 2
+
+
+def test_complex_cnn_requires_finite_validation_checkpoint(monkeypatch: pytest.MonkeyPatch) -> None:
+    torch = pytest.importorskip("torch")
+    import learning.complex_cnn as trainer
+    from torch import nn
+
+    class NonfiniteModel(nn.Module):
+        def __init__(self, _links: int, _capacity: str) -> None:
+            super().__init__()
+            self.logits = nn.Parameter(torch.tensor([float("nan"), 0.0]))
+
+        def forward(self, real, _imag):
+            return self.logits.expand(len(real), -1)
+
+    monkeypatch.setattr(trainer, "build_complex_cnn", NonfiniteModel)
+    train = np.ones((4, 1, 8), dtype=np.complex64)
+    labels = np.asarray([0, 1, 0, 1])
+
+    with pytest.raises(RuntimeError, match="did not produce a finite validation checkpoint"):
+        trainer.fit_complex_cnn(train, labels, train, labels, epochs=3, patience=1, batch_size=4)
