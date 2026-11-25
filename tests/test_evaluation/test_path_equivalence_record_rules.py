@@ -26,6 +26,11 @@ def _mutated(**changes: Any) -> dict[str, Any]:
         pytest.param({"interaction_type_masks": [1.5]}, "must be integers", id="mask-float"),
         pytest.param({"interaction_type_masks": [-1]}, "must be nonnegative", id="mask-negative"),
         pytest.param(
+            {"interaction_vertices_m": [[1.0, 2.0, 3.0], [4.0, 5.0]]},
+            "only real numeric values",
+            id="vertex-ragged",
+        ),
+        pytest.param(
             {"interaction_vertices_m": [[1.0, 2.0]]},
             "shape \\(interaction_slots, 3\\)",
             id="vertex-shape",
@@ -36,7 +41,11 @@ def _mutated(**changes: Any) -> dict[str, Any]:
         pytest.param({"theta_t_rad": "north"}, "must be numeric", id="theta-type"),
         pytest.param({"theta_t_rad": float("inf")}, "must be finite", id="theta-inf"),
         pytest.param({"absolute_delay_s": -1e-9}, "nonnegative", id="delay-negative"),
+        pytest.param({"absolute_delay_s": True}, "nonnegative", id="delay-boolean"),
         pytest.param({"absolute_delay_s": float("nan")}, "nonnegative", id="delay-nan"),
+        pytest.param(
+            {"coefficient_real": True}, "finite real and imaginary", id="coefficient-boolean"
+        ),
         pytest.param(
             {"coefficient_real": float("nan")}, "finite real and imaginary", id="coefficient-nan"
         ),
@@ -63,6 +72,14 @@ def test_tolerances_must_be_finite_and_positive() -> None:
             [_path(0)],
             resolution_id="r",
             vertex_tolerance_m=0.0,
+            delay_tolerance_s=1e-10,
+            direction_tolerance_rad=0.01,
+        )
+    with pytest.raises(ValueError, match="must be a finite positive number"):
+        build_path_equivalence_classes(
+            [_path(0)],
+            resolution_id="r",
+            vertex_tolerance_m=True,
             delay_tolerance_s=1e-10,
             direction_tolerance_rad=0.01,
         )
@@ -93,6 +110,15 @@ def test_cfr_contributions_must_share_one_frequency_grid() -> None:
         _build([first, second])
 
 
+def test_array_conversion_failure_is_reported_as_invalid_geometry() -> None:
+    class InvalidArray:
+        def __array__(self, dtype=None, copy=None):
+            raise ValueError("fixture rejects array conversion")
+
+    with pytest.raises(ValueError, match="rectangular real-valued array"):
+        _build([_mutated(interaction_vertices_m=InvalidArray())])
+
+
 def test_diffuse_summary_rejects_malformed_diffuse_records() -> None:
     with pytest.raises(ValueError, match="sequence of path records"):
         summarize_diffuse_stochastic_paths("not-paths")
@@ -102,6 +128,31 @@ def test_diffuse_summary_rejects_malformed_diffuse_records() -> None:
         summarize_diffuse_stochastic_paths([_diffuse_path(0, delay_s=-1.0)])
     with pytest.raises(ValueError, match="finite real and imaginary values"):
         summarize_diffuse_stochastic_paths([_diffuse_path(0, delay_s=1e-9, power=float("inf"))])
+    with pytest.raises(ValueError, match="finite real angles"):
+        summarize_diffuse_stochastic_paths(
+            [{**_diffuse_path(0, delay_s=1e-9), "theta_t_rad": True}]
+        )
+    with pytest.raises(ValueError, match="finite zenith and azimuth angles"):
+        summarize_diffuse_stochastic_paths([{**_diffuse_path(0, delay_s=1e-9), "theta_t_rad": 4.0}])
+    with pytest.raises(ValueError, match="diffuse path power must be finite"):
+        summarize_diffuse_stochastic_paths(
+            [{**_diffuse_path(0, delay_s=1e-9), "coefficient_real": 1e308}]
+        )
+
+
+def test_diffuse_summary_reports_empty_and_circular_azimuth_support() -> None:
+    empty = summarize_diffuse_stochastic_paths([])
+    assert empty["status"] == "NO_DIFFUSE_PATHS"
+    assert empty["unweighted_quantiles"]["delay_s"] is None
+    paths = [
+        _diffuse_path(0, delay_s=1e-9, phi_t=0.0),
+        _diffuse_path(1, delay_s=1e-9, phi_t=np.pi),
+    ]
+
+    summary = summarize_diffuse_stochastic_paths(paths)
+
+    assert summary is not None
+    assert summary["unweighted_quantiles"]["tx_azimuth_offset_rad"] is None
 
 
 def test_diffuse_summary_reports_quantiles_for_valid_paths() -> None:
