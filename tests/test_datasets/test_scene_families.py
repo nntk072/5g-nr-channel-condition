@@ -16,6 +16,7 @@ from datasets.scene_families import (
     validate_scene_family_registry,
 )
 from datasets.split_policy import SplitParentType, SplitSubject, derive_split_components
+from scripts import sample_scene_families as scene_family_cli
 from scripts.sample_scene_families import main as sample_scene_families_main
 
 
@@ -167,3 +168,35 @@ def test_scene_family_cli_retains_shortfalls_and_refuses_overwrite(tmp_path: Pat
         sample_scene_families_main(
             ["--seed", "410", "--candidates-per-family", "1", "--output", str(output)]
         )
+
+
+def test_scene_family_cli_reports_registry_validation_errors(tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        scene_family_cli,
+        "load_scene_family_registry",
+        lambda _path: (_ for _ in ()).throw(ValueError("registry fixture rejected")),
+    )
+
+    with pytest.raises(SystemExit) as error:
+        sample_scene_families_main(
+            ["--seed", "410", "--output", str(tmp_path / "report.json")]
+        )
+
+    assert error.value.code == 2
+    assert "registry fixture rejected" in capsys.readouterr().err
+
+
+def test_scene_family_cli_handles_no_replace_race(tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        scene_family_cli,
+        "_publish_no_replace",
+        lambda *_args: (_ for _ in ()).throw(FileExistsError("concurrent writer")),
+    )
+
+    with pytest.raises(SystemExit) as error:
+        sample_scene_families_main(
+            ["--seed", "410", "--output", str(tmp_path / "report.json")]
+        )
+
+    assert error.value.code == 2
+    assert "refusing to overwrite existing report" in capsys.readouterr().err
