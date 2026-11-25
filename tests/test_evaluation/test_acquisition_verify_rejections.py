@@ -63,6 +63,15 @@ def _rewrite_output(mutate: Callable[[dict[str, Any]], None]) -> Mutation:
     return apply
 
 
+def _rewrite_mapping(mutate: Callable[[dict[str, Any]], None]) -> Mutation:
+    def apply(root: Path, package: dict[str, Any]) -> None:
+        document = _file_document(root, package, "file.material.mapping")
+        mutate(document)
+        _rewrite_file(root, package, "file.material.mapping", document)
+
+    return apply
+
+
 def _package_edit(mutate: Callable[[dict[str, Any]], None]) -> Mutation:
     def apply(root: Path, package: dict[str, Any]) -> None:
         mutate(package)
@@ -360,6 +369,49 @@ def _set_boolean_solid_angle(record: dict[str, Any]) -> None:
 
 
 SEMANTIC_BREADTH_CASES = [
+    pytest.param(
+        _rewrite_scorer(
+            lambda d: d["full_split_manifest"]["test_sample_assignments"].append(
+                dict(d["full_split_manifest"]["test_sample_assignments"][0])
+            )
+        ),
+        "duplicate or invalid test sample assignments",
+        id="split-assignments-duplicate-sample",
+    ),
+    pytest.param(
+        _rewrite_scorer(
+            lambda d: d["full_split_manifest"]["groups"].append(
+                dict(d["full_split_manifest"]["groups"][0])
+            )
+        ),
+        "duplicate or invalid group IDs",
+        id="split-groups-duplicate-id",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["incidence_groups"].append(dict(d["incidence_groups"][0]))),
+        "duplicate or invalid incidence group IDs",
+        id="scorer-groups-duplicate-id",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"].append(dict(d["materials"][0]))),
+        "duplicate material_id entries",
+        id="mapping-duplicate-material-and-specimen",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(specimen_ids=["specimen.absent"])),
+        "references an unknown specimen_id",
+        id="mapping-unknown-specimen",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(material_claims=[])),
+        "does not include the mapped specimen material_claim",
+        id="mapping-claim-differs",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(evidence_file_ids=["file.absent"])),
+        "references an unknown evidence file",
+        id="mapping-unknown-evidence-file",
+    ),
     pytest.param(
         _package_edit(lambda d: [item.update(size_bytes="12") for item in d["files"]]),
         "size_bytes must be an integer",
