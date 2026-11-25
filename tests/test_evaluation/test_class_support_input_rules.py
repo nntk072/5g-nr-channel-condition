@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 from evaluation.scoring.class_support import audit_class_support
 
@@ -34,6 +35,21 @@ def _audit(**overrides):
             r"each expected stratum must be a \(split_id, family_id\) tuple",
             id="stratum-shape",
         ),
+        pytest.param(
+            {"expected_strata": [("train", "family-a"), ("train", "family-a")]},
+            "expected_strata must be unique",
+            id="duplicate-strata",
+        ),
+        pytest.param(
+            {"expected_strata": [(" train", "family-a")]},
+            "expected split IDs must be nonempty canonical strings",
+            id="noncanonical-split",
+        ),
+        pytest.param(
+            {"expected_strata": [("train", " family-a")]},
+            "expected family IDs must be nonempty canonical strings",
+            id="noncanonical-family",
+        ),
     ],
 )
 def test_class_support_rejects_malformed_rosters(overrides, message) -> None:
@@ -44,3 +60,10 @@ def test_class_support_rejects_malformed_rosters(overrides, message) -> None:
 def test_class_support_accepts_a_well_formed_roster() -> None:
     report = _audit()
     assert report is not None
+
+
+def test_class_support_rejects_unhashable_observed_labels() -> None:
+    labels = np.empty(1, dtype=object)
+    labels[0] = [0]
+    with pytest.raises(ValueError, match="observed class labels must be hashable scalars"):
+        _audit(labels=labels, independent_group_ids=["group0"], split_ids=["train"], family_ids=["family-a"])
