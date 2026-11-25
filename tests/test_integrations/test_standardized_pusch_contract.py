@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import sys
+from builtins import __import__ as builtin_import
 from types import ModuleType, SimpleNamespace
 
 import integrations.sionna.standardized_pusch as standardized_pusch
@@ -82,6 +83,140 @@ def test_standardized_pusch_rejects_invalid_run_and_generation_contracts(
 ):
     with pytest.raises(error, match=message):
         _build(run, **overrides)
+
+
+def test_standardized_pusch_reports_missing_torch(monkeypatch):
+    def no_torch_import(name, *args, **kwargs):
+        if name == "torch":
+            raise ImportError("torch unavailable in fixture")
+        return builtin_import(name, *args, **kwargs)
+
+    monkeypatch.setattr("builtins.__import__", no_torch_import)
+    with pytest.raises(RuntimeError, match="Install PyTorch and Sionna PHY"):
+        _build(_validation_run())
+
+
+def _install_fake_grid(monkeypatch, *, effective_subcarriers=8):
+    class Transform:
+        def __init__(self, **_kwargs):
+            pass
+
+        def __call__(self, value):
+            return value
+
+    ofdm = ModuleType("sionna.phy.ofdm")
+    ofdm.OFDMDemodulator = Transform
+    ofdm.OFDMModulator = Transform
+    monkeypatch.setitem(sys.modules, "sionna.phy.ofdm", ofdm)
+    grid = SimpleNamespace(
+        cyclic_prefix_length=2,
+        fft_size=8,
+        num_effective_subcarriers=effective_subcarriers,
+    )
+    monkeypatch.setattr(
+        standardized_pusch,
+        "SionnaPUSCHLSReceiver",
+        lambda *_args, **_kwargs: SimpleNamespace(resource_grid=grid),
+    )
+
+
+def _metadata_run(*metadata_values):
+    records = tuple(
+        SimpleNamespace(
+            cfr=np.zeros((1, 1, 1, 1, 1, 8), dtype=np.complex64),
+            sample_id=f"sample-{index}",
+            sample_index=index,
+            metadata={
+                "subcarrier_spacing_hz": spacing,
+                "carrier_frequency_hz": carrier,
+            },
+        )
+        for index, (spacing, carrier) in enumerate(metadata_values)
+    )
+    run = object.__new__(StandardizedChannelRun)
+    object.__setattr__(run, "records", records)
+    return run
+
+
+def test_standardized_pusch_requires_full_band_resource_grid(monkeypatch):
+    pytest.importorskip("torch")
+    _install_fake_grid(monkeypatch, effective_subcarriers=6)
+
+    with pytest.raises(ValueError, match="requires a full-band grid"):
+        _build(_metadata_run((15_000.0, 3.5e9)))
+
+
+def test_standardized_pusch_requires_common_run_carrier_and_spacing(monkeypatch):
+    pytest.importorskip("torch")
+    _install_fake_grid(monkeypatch)
+
+    run = _metadata_run((15_000.0, 3.5e9), (30_000.0, 3.5e9))
+    with pytest.raises(ValueError, match="common carrier and subcarrier spacing"):
+        _build(run)
+
+
+def test_standardized_pusch_rejects_unexpected_transport_block_shape(monkeypatch):
+    torch = pytest.importorskip("torch")
+    _install_fake_grid(monkeypatch)
+
+    class Receiver:
+        resource_grid = SimpleNamespace(
+            cyclic_prefix_length=2,
+            fft_size=8,
+            num_effective_subcarriers=8,
+        )
+
+        def transmit(self, *_args, **_kwargs):
+            return torch.zeros((1, 1, 1, 1, 8)), torch.zeros((1, 3), dtype=torch.uint8)
+
+    monkeypatch.setattr(
+        standardized_pusch,
+        "SionnaPUSCHLSReceiver",
+        lambda *_args, **_kwargs: Receiver(),
+    )
+
+    with pytest.raises(RuntimeError, match="unexpected transport-block shape"):
+        _build(_metadata_run((15_000.0, 3.5e9)))
+
+
+def test_standardized_pusch_rejects_zero_ideal_cfr_signal_power(monkeypatch):
+    torch = pytest.importorskip("torch")
+
+    class Transform:
+        def __init__(self, **_kwargs):
+            pass
+
+        def __call__(self, value):
+            return value
+
+    ofdm = ModuleType("sionna.phy.ofdm")
+    ofdm.OFDMDemodulator = Transform
+    ofdm.OFDMModulator = Transform
+    monkeypatch.setitem(sys.modules, "sionna.phy.ofdm", ofdm)
+
+    class Receiver:
+        resource_grid = SimpleNamespace(
+            cyclic_prefix_length=2,
+            effective_subcarrier_ind=np.arange(8),
+            fft_size=8,
+            num_effective_subcarriers=8,
+            num_ofdm_symbols=1,
+        )
+
+        def transmit(self, *_args, **_kwargs):
+            grid = torch.zeros((1, 1, 1, 1, 8), dtype=torch.complex64)
+            bits = torch.zeros((1, 1, 3), dtype=torch.uint8)
+            return grid, bits
+
+    monkeypatch.setattr(
+        standardized_pusch,
+        "SionnaPUSCHLSReceiver",
+        lambda *_args, **_kwargs: Receiver(),
+    )
+    run = _metadata_run((30_000.0, 3.5e9))
+
+    with pytest.raises(ValueError, match="zero or invalid PUSCH signal power"):
+        _build(run, channel_mode="ideal_cfr")
 
 
 def test_phase_noise_without_linewidth_is_identity_and_rejects_missing_node_axes():
