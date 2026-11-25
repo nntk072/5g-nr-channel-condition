@@ -479,3 +479,65 @@ def test_trajectory_reader_rejects_payload_identity_mutations(tmp_path, mutate, 
 
     with pytest.raises(ValueError, match=message):
         read_nr_trajectory(tmp_path, updated)
+
+
+def _npy_array_bytes(array: np.ndarray) -> bytes:
+    buffer = io.BytesIO()
+    np.save(buffer, array, allow_pickle=True)
+    return buffer.getvalue()
+
+
+@pytest.mark.parametrize(
+    ("members", "message"),
+    [
+        ((), "unique nonempty members"),
+        ((("metadata.txt", b"not an array"),), "members must be NPY arrays"),
+        (
+            (("unsupported.npy", b"\x93NUMPY\x03\x00" + bytes(200)),),
+            "unsupported NPY format version",
+        ),
+        (
+            (("objects.npy", _npy_array_bytes(np.asarray([object()], dtype=object))),),
+            "numeric, non-object dtypes",
+        ),
+    ],
+)
+def test_shard_inventory_rejects_invalid_npz_member_contracts(tmp_path, members, message):
+    stored = write_nr_record(tmp_path, _record("invalid-npz-members"))
+    archive_path = tmp_path / stored.relative_path
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, payload in members:
+            archive.writestr(name, payload)
+
+    with pytest.raises(ValueError, match=message):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_rejects_duplicate_npz_member_names(tmp_path):
+    stored = write_nr_record(tmp_path, _record("duplicate-npz-members"))
+    archive_path = tmp_path / stored.relative_path
+    value = _npy_array_bytes(np.asarray([1.0]))
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("duplicate.npy", value)
+        archive.writestr("duplicate.npy", value)
+
+    with pytest.raises(ValueError, match="unique nonempty members"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_memory_estimator_accepts_supported_npy_version_two(tmp_path):
+    path = tmp_path / "arrays.npz"
+    buffer = io.BytesIO()
+    array = np.asarray([1.0, 2.0], dtype=np.float64)
+    np.lib.format.write_array_header_2_0(
+        buffer,
+        {"descr": array.dtype.str, "fortran_order": False, "shape": array.shape},
+    )
+    buffer.write(array.tobytes())
+    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("values.npy", buffer.getvalue())
+    stored = NRStoredRecord("npy-version-two", "0" * 64, "arrays.npz")
+
+    estimate = nr_store._nr_record_memory_estimate(tmp_path, stored, max_shard_bytes=10_000_000)
+
+    assert estimate > path.stat().st_size
