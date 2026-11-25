@@ -126,6 +126,19 @@ def test_rt_identity_manifest_digest_and_completeness_must_match_metadata() -> N
         _derive({"scene_asset_manifest": _manifest(complete=False, asset_set_sha256="a" * 64)})
 
 
+def test_generation_report_rejects_conflicting_manifests_with_the_same_digest() -> None:
+    complete = _manifest()
+    incomplete = _manifest(complete=False, asset_set_sha256=complete["asset_set_sha256"])
+
+    with pytest.raises(ValueError, match="conflicting scene manifests"):
+        _derive(
+            {
+                "scene_asset_manifest": complete,
+                "components": [{"scene_asset_manifest": incomplete}],
+            }
+        )
+
+
 def _with_report_check(report: Any) -> None:
     from datasets.split_lineage import _scene_geometry_asset_manifests
 

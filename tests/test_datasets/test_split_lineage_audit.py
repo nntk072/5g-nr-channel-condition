@@ -177,6 +177,11 @@ def test_split_lineage_rejects_unknown_leakage_namespaces_and_invalid_positions(
     with pytest.raises(ValueError, match="split_positions_m must contain finite numbers"):
         derive_channel_dataset_split_evidence((invalid_position,), spatial_buffer_m=1.0)
 
+    metadata["split_positions_m"] = [0.0, 1.0]
+    invalid_shape = _with_metadata(name, base, metadata)
+    with pytest.raises(ValueError, match="split_positions_m must be one 3D point"):
+        derive_channel_dataset_split_evidence((invalid_shape,), spatial_buffer_m=1.0)
+
 
 def test_generation_report_components_can_contain_nested_reports() -> None:
     from datasets.split_lineage import _scene_geometry_asset_manifests
