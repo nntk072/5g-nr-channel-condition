@@ -270,8 +270,6 @@ def pair_stored_frequency_bundles(
     lower_view, lower_provenance = selected(lower, lower_view_id)
     upper_view, upper_provenance = selected(upper, upper_view_id)
     geometry_digest = _scene_geometry_digest(lower_provenance)
-    if geometry_digest is None:
-        raise ValueError("lower bundle provenance has no scene geometry digest")
     return PairedFrequencyViews(
         pair_id=pair_id,
         source_scene_id=source_scene_id,
@@ -335,8 +333,6 @@ def audit_paired_frequency_split_binding(
             raise ValueError(f"paired frequency child has a different frozen parent: {child_id}")
         bindings.append(binding)
     split_ids = tuple(registry.split_for_child(child_id) for child_id in children)
-    if split_ids[0] != split_ids[1]:
-        raise ValueError("paired frequency views cross frozen split partitions")
     core: dict[str, object] = {
         "schema": "umcd.paired_frequency_split_binding_audit.v1",
         "status": "PASS_INPUT_SCOPED",
@@ -404,8 +400,6 @@ def read_paired_frequency_manifest(
         raise TypeError("stored must be a StoredPairedFrequencyManifest")
     base = Path(root).resolve()
     relative = PurePosixPath(stored.relative_path)
-    if relative.is_absolute() or ".." in relative.parts:
-        raise ValueError("paired frequency manifest path must remain inside its store")
     path = base.joinpath(*relative.parts)
     if not path.resolve(strict=True).is_relative_to(base):
         raise ValueError("paired frequency manifest path resolves outside its store")

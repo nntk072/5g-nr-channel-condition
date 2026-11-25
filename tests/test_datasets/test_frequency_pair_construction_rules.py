@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import dataclasses
 
+import numpy as np
 import pytest
+from datasets.channel_view import ChannelDelayReference, ChannelPowerScale
 from datasets.frequency_pair import StoredPairedFrequencyManifest
 from tests.test_datasets.test_frequency_pair import _pair, _provenance, _view
 
@@ -88,6 +90,39 @@ def test_pair_requires_typed_views_and_provenance() -> None:
         _replace(upper_view={"view_id": "not-a-view"})
     with pytest.raises(TypeError, match="requires its UMCDRunProvenance"):
         _replace(lower_provenance={"record_id": "not-a-record"})
+
+
+def test_pair_channel_provenance_must_describe_oracle_channels() -> None:
+    provenance = dataclasses.replace(_provenance("run-3p5", 3.5e9), subject_layer="targets")
+    with pytest.raises(ValueError, match="must describe oracle_channels"):
+        _replace(lower_provenance=provenance)
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {
+            "frame_times_s": (0.0, 1.0),
+            "channel": np.ones((2, 1, 1, 3), dtype=np.complex64),
+            "valid_mask": np.ones((2, 1, 1, 3), dtype=bool),
+        },
+        {"tx_port_ids": ("gNB-H",)},
+        {
+            "delay_reference": ChannelDelayReference.RELATIVE,
+            "normalization_recipe": "normalized per view",
+        },
+        {
+            "power_scale": ChannelPowerScale.NORMALIZED,
+            "normalization_recipe": "normalized per view",
+        },
+        {"normalization_recipe": "different-recipe"},
+    ],
+    ids=["frame-times", "tx-ports", "delay-reference", "power-scale", "normalization"],
+)
+def test_pair_rejects_each_incompatible_view_contract(change) -> None:
+    upper = _view("view-28", 28e9)
+    with pytest.raises(ValueError, match="share link, time, port, delay, and power contracts"):
+        _replace(upper_view=dataclasses.replace(upper, **change))
 
 
 @pytest.mark.parametrize(
