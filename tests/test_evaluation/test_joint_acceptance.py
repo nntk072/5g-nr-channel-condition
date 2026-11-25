@@ -319,3 +319,15 @@ def test_v4_joint_family_rejects_path_roster_tampering_and_duplicates():
                 ],
             }
         )
+
+
+def test_v4_joint_family_requires_path_scenarios_to_be_a_sequence():
+    with pytest.raises(ValueError, match="expected scenarios must be a nonempty list"):
+        build_joint_acceptance_family_v4(
+            family_id="protocol-v4",
+            material_expected_strata=[("concrete", "V", "20deg")],
+            complex_csi_expected_strata=[("site-a", "LOS")],
+            propagation_expected_strata=[("site-a", "LOS", "total")],
+            receiver_impact_expected_strata=[("site-a", "LOS")],
+            path_equivalence_expected_scenarios="site-a/LOS/episode-1",
+        )
