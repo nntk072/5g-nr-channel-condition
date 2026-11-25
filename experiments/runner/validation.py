@@ -200,8 +200,6 @@ def _source_only_features(
     ):
         raise ValueError("source-only training indices are invalid")
     vocabulary = tuple(sorted({str(value) for value in values[train_indices]}))
-    if not vocabulary:
-        raise ValueError("source-only training vocabulary cannot be empty")
     column_by_value = {value: index for index, value in enumerate(vocabulary)}
     features = np.zeros((len(values), len(vocabulary)), dtype=np.float32)
     for row, value in enumerate(values):

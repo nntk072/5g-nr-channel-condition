@@ -546,7 +546,9 @@ def test_unsupported_cohort_report_names_reasons_and_external_dependencies() -> 
     assert "rights review and measurement validity evidence" in report[1]["external_dependencies"]
 
 
-def test_locked_split_indices_resolves_child_rows_through_parent_bindings() -> None:
+def test_locked_split_indices_resolves_child_rows_through_parent_bindings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from datasets.channel import ChannelDataset
     from datasets.split_policy import (
         SplitChildBinding,
@@ -645,6 +647,77 @@ def test_locked_split_indices_resolves_child_rows_through_parent_bindings() -> N
     )
     with pytest.raises(ValueError, match="canonical split_subject_id"):
         _locked_split_indices(padded_data, registry)
+
+    absent_metadata = list(data.metadata)
+    absent_metadata[0] = {"split_subject_id": "absent-parent"}
+    absent_data = ChannelDataset(
+        h=data.h,
+        y=data.y,
+        group=data.group,
+        domain=data.domain,
+        source=data.source,
+        metadata=tuple(absent_metadata),
+    )
+    with pytest.raises(ValueError, match="absent from signed lock"):
+        _locked_split_indices(absent_data, registry)
+
+    partial_data = ChannelDataset(
+        h=data.h[:2],
+        y=data.y[:2],
+        group=data.group[:2],
+        domain=data.domain[:2],
+        source=data.source[:2],
+        metadata=data.metadata[:2],
+    )
+    with pytest.raises(ValueError, match="does not cover every signed split parent"):
+        _locked_split_indices(partial_data, registry)
+
+    padded_source = np.asarray(data.source, dtype=object)
+    padded_source[0] = " padded "
+    invalid_source_data = ChannelDataset(
+        h=data.h,
+        y=data.y,
+        group=data.group,
+        domain=data.domain,
+        source=padded_source,
+        metadata=data.metadata,
+    )
+    with pytest.raises(ValueError, match="canonical source and domain IDs"):
+        _locked_split_indices(invalid_source_data, registry)
+
+    split_by_parent = {
+        parent.subject_id: registry.split_for_parent(parent.subject_id) for parent in parents
+    }
+    different_partitions = next(
+        (first, second)
+        for first in parents
+        for second in parents
+        if split_by_parent[first.subject_id] != split_by_parent[second.subject_id]
+    )
+    crossing_groups = np.asarray(data.group, dtype=object)
+    first_row = subjects.index(different_partitions[0].subject_id)
+    second_row = subjects.index(different_partitions[1].subject_id)
+    crossing_groups[first_row] = "crossing-partitions"
+    crossing_groups[second_row] = "crossing-partitions"
+    crossing_group_data = ChannelDataset(
+        h=data.h,
+        y=data.y,
+        group=crossing_groups,
+        domain=data.domain,
+        source=data.source,
+        metadata=data.metadata,
+    )
+    with pytest.raises(ValueError, match="group crosses signed split partitions"):
+        _locked_split_indices(crossing_group_data, registry)
+
+    with monkeypatch.context() as patched:
+        patched.setattr(type(registry), "split_for_parent", lambda _self, _subject: "other")
+        with pytest.raises(ValueError, match="unsupported locked split partition"):
+            _locked_split_indices(data, registry)
+
+    monkeypatch.setattr(type(registry), "split_for_parent", lambda _self, _subject: "train")
+    with pytest.raises(ValueError, match="must resolve non-empty train, validation, and test"):
+        _locked_split_indices(data, registry)
 
 
 def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None:
