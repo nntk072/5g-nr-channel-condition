@@ -8,7 +8,10 @@ from typing import Any
 
 import jsonschema
 import pytest
-from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family_v4
+from evaluation.acceptance.joint_acceptance import (
+    build_joint_acceptance_family_v3,
+    build_joint_acceptance_family_v4,
+)
 from evaluation.acceptance.path_equivalence_assurance import evaluate_path_equivalence_roster
 
 
@@ -232,6 +235,193 @@ def test_solver_budget_cannot_be_attached_to_legacy_precomputed_comparisons() ->
         )
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("candidate_configuration_id", 7, "nonempty canonical string"),
+        ("vertex_tolerance_m", True, "finite positive number"),
+        ("noise_power_per_re_w", 0.0, "finite positive number"),
+    ],
+)
+def test_raw_configuration_rejects_invalid_identity_and_numeric_fields(
+    field: str, value: Any, message: str
+) -> None:
+    configuration = _raw_configuration()
+    configuration[field] = value
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_path_equivalence_roster(
+            [_raw_record()],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+            comparison_configuration=configuration,
+        )
+
+
+@pytest.mark.parametrize(
+    ("path", "message"),
+    [
+        (None, "candidate raw paths must contain path objects"),
+        ({**_raw_path(0), "path_kind": "diffuse"}, "candidate raw path kind is unsupported"),
+    ],
+)
+def test_budget_bound_raw_path_inventory_rejects_invalid_records(path, message: str) -> None:
+    record = _raw_record()
+    record["candidate_paths"] = [path]
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_path_equivalence_roster(
+            [record],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+            comparison_configuration=_raw_configuration(),
+            solver_budget_provenance=_solver_budget(),
+        )
+
+
+def test_no_class_comparison_requires_consistent_optional_counts() -> None:
+    comparison = {
+        "schema": "loslab.path_equivalence_comparison.v1",
+        "status": "NO_CLASSES_NOT_ASSESSABLE",
+        "admission_possible": False,
+        "class_coverage_status": "NOT_ASSESSABLE_NO_CLASSES",
+        "matched_classes": [],
+        "candidate_only_relevant_classes": [],
+        "challenger_only_relevant_classes": [],
+        "candidate_relevant_class_count": True,
+    }
+
+    with pytest.raises(ValueError, match="invalid candidate_relevant_class_count"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+    comparison["candidate_relevant_class_count"] = 0
+    result = evaluate_path_equivalence_roster(
+        [_record("episode-1", comparison)],
+        expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+    )
+    assert result["scenarios"][0]["class_coverage_status"] == "NOT_ASSESSABLE_NO_CLASSES"
+
+
+def test_no_class_comparison_rejects_a_fabricated_directional_coverage() -> None:
+    comparison = {
+        "schema": "loslab.path_equivalence_comparison.v1",
+        "status": "NO_CLASSES_NOT_ASSESSABLE",
+        "admission_possible": False,
+        "class_coverage_status": "NOT_ASSESSABLE_NO_CLASSES",
+        "matched_classes": [],
+        "candidate_only_relevant_classes": [],
+        "challenger_only_relevant_classes": [],
+        "candidate_bidirectional_coverage": 0.0,
+    }
+
+    with pytest.raises(ValueError, match="internally inconsistent"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        (lambda report: report.update(status="unsupported"), "unsupported diagnostic status"),
+        (
+            lambda report: report.update(coefficient_relative_tolerance=-0.1),
+            "coefficient tolerance is invalid",
+        ),
+    ],
+)
+def test_comparison_coverage_rejects_unsupported_status_and_tolerance(change, message: str):
+    comparison = _comparison("PASS", 1.0, 1.0)
+    change(comparison)
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+
+def test_comparison_counts_must_be_nonnegative_integers() -> None:
+    comparison = _comparison("PASS", 1.0, 1.0)
+    comparison["candidate_relevant_class_count"] = True
+
+    with pytest.raises(
+        ValueError, match="candidate_relevant_class_count must be a nonnegative integer"
+    ):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+
+@pytest.mark.parametrize(
+    ("edit", "message"),
+    [
+        (lambda comparison: comparison.update(matched_classes=()), "class rosters must be lists"),
+        (
+            lambda comparison: comparison.update(matched_class_pair_count=0),
+            "matched-pair count disagrees",
+        ),
+        (
+            lambda comparison: comparison["matched_classes"].__setitem__(0, None),
+            "matched-class record is invalid",
+        ),
+        (
+            lambda comparison: comparison["matched_classes"][0].update(
+                candidate_receiver_relevance={"receiver_relevant": 1}
+            ),
+            "matched-class relevance is invalid",
+        ),
+        (
+            lambda comparison: comparison["matched_classes"][0].pop("geometry_and_channel_deltas"),
+            "matched-class deltas are missing",
+        ),
+        (
+            lambda comparison: comparison["candidate_only_relevant_classes"][0][
+                "receiver_relevance"
+            ].update(receiver_relevant=False),
+            "unmatched roster contains an irrelevant class",
+        ),
+    ],
+)
+def test_comparison_class_rosters_reject_malformed_rows(edit, message: str) -> None:
+    comparison = _comparison("FAIL", 0.5, 1.0)
+    edit(comparison)
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+
+@pytest.mark.parametrize(
+    ("edit", "message"),
+    [
+        (lambda row: row.update(condition="UNKNOWN"), "condition must be LOS or NLOS"),
+        (lambda row: row.pop("comparison"), "each legacy record needs a comparison result"),
+        (
+            lambda row: row["comparison"].update(schema="other"),
+            "comparison has an unsupported schema",
+        ),
+        (
+            lambda row: row["comparison"].update(admission_possible=True),
+            "must remain diagnostic-only",
+        ),
+    ],
+)
+def test_roster_rejects_unsupported_legacy_row_contracts(edit, message: str) -> None:
+    row = _record("episode-1", _comparison("PASS", 1.0, 1.0))
+    edit(row)
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_path_equivalence_roster(
+            [row], expected_scenarios=[("site-family-a", "LOS", "episode-1")]
+        )
+
+
 def test_raw_roster_rejects_supplied_comparison_and_unbound_fields() -> None:
     record = _raw_record()
     record["comparison"] = _comparison("PASS", 1.0, 1.0)
@@ -313,6 +503,141 @@ def test_roster_preserves_no_class_case_as_unresolved_diagnostic() -> None:
     assert result["status"] == "ROSTER_PATH_COVERAGE_DIAGNOSTIC_UNRESOLVED"
     assert result["all_expected_episodes_pass"] is False
     assert result["scenarios"][0]["class_coverage_status"] == "NOT_ASSESSABLE_NO_CLASSES"
+
+
+def test_unresolved_comparison_requires_null_directional_coverage() -> None:
+    comparison = _comparison("UNRESOLVED_NO_RELEVANT_CLASSES", None, None)
+    comparison["candidate_relevant_class_count"] = 0
+    comparison["challenger_relevant_class_count"] = 0
+    comparison["matched_class_pair_count"] = 0
+    comparison["matched_classes"] = []
+    result = evaluate_path_equivalence_roster(
+        [_record("episode-1", comparison)],
+        expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+    )
+
+    assert result["scenarios"][0]["candidate_bidirectional_coverage"] is None
+    assert result["status"] == "ROSTER_PATH_COVERAGE_DIAGNOSTIC_UNRESOLVED"
+
+
+def test_coefficient_diagnostic_rejects_invalid_error_and_unexpected_decision() -> None:
+    comparison = _comparison("PASS", 1.0, 1.0)
+    comparison["matched_classes"][0]["geometry_and_channel_deltas"][
+        "aggregate_coefficient_relative_error"
+    ] = True
+    comparison["coefficient_relative_tolerance"] = 0.1
+
+    with pytest.raises(ValueError, match="coefficient error must be finite"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+    comparison = _comparison("PASS", 1.0, 1.0)
+    comparison["matched_classes"][0]["coefficient_criterion_pass"] = True
+    with pytest.raises(ValueError, match="unexpected coefficient criterion"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+
+def test_coefficient_diagnostic_checks_decisions_counts_and_status() -> None:
+    comparison = _comparison("PASS", 1.0, 1.0)
+    item = comparison["matched_classes"][0]
+    item["geometry_and_channel_deltas"]["aggregate_coefficient_relative_error"] = 0.2
+    item["coefficient_criterion_pass"] = True
+    comparison["coefficient_relative_tolerance"] = 0.1
+    comparison["coefficient_criterion_assessable_class_pairs"] = 1
+    comparison["coefficient_criterion_failed_class_pairs"] = 1
+    comparison["coefficient_criterion_status"] = "FAIL"
+
+    with pytest.raises(ValueError, match="criterion result disagrees"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+    item["coefficient_criterion_pass"] = False
+    comparison["coefficient_criterion_assessable_class_pairs"] = 0
+    with pytest.raises(ValueError, match="counts disagree"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+    comparison["coefficient_criterion_assessable_class_pairs"] = 1
+    comparison["coefficient_criterion_status"] = "PASS"
+    with pytest.raises(ValueError, match="status disagrees"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+
+def test_comparison_rejects_inconsistent_challenger_roster_count() -> None:
+    comparison = _comparison("PASS", 1.0, 1.0)
+    comparison["challenger_relevant_class_count"] += 1
+
+    with pytest.raises(ValueError, match="challenger relevant-class count"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+
+def test_coefficient_diagnostic_rejects_a_decision_for_an_irrelevant_pair() -> None:
+    comparison = _comparison("UNRESOLVED_NO_RELEVANT_CLASSES", 0.5, 1.0)
+    item = comparison["matched_classes"][0]
+    item["candidate_receiver_relevance"]["receiver_relevant"] = False
+    item["challenger_receiver_relevance"]["receiver_relevant"] = False
+    item["geometry_and_channel_deltas"]["aggregate_coefficient_relative_error"] = 0.0
+    item["coefficient_criterion_pass"] = False
+    comparison["coefficient_relative_tolerance"] = 0.1
+    comparison["coefficient_criterion_assessable_class_pairs"] = 0
+    comparison["coefficient_criterion_failed_class_pairs"] = 0
+    comparison["coefficient_criterion_status"] = "NOT_ASSESSABLE_NO_RELEVANT_MATCHED_CLASSES"
+    comparison["candidate_relevant_class_count"] = 0
+    comparison["challenger_relevant_class_count"] = 0
+    comparison["candidate_bidirectional_coverage"] = None
+    comparison["challenger_bidirectional_coverage"] = None
+    comparison["candidate_only_relevant_classes"] = []
+    comparison["challenger_only_relevant_classes"] = []
+
+    with pytest.raises(ValueError, match="irrelevant matched class"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+    item.pop("coefficient_criterion_pass")
+    result = evaluate_path_equivalence_roster(
+        [_record("episode-1", comparison)],
+        expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+    )
+    assert result["scenarios"][0]["class_coverage_status"] == "UNRESOLVED_NO_RELEVANT_CLASSES"
+
+
+def test_comparison_rejects_non_object_unmatched_class() -> None:
+    comparison = _comparison("FAIL", 0.5, 1.0)
+    comparison["candidate_only_relevant_classes"] = [None]
+
+    with pytest.raises(ValueError, match="unmatched-class record is invalid"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
+
+
+def test_comparison_rejects_a_status_that_disagrees_with_valid_coverage() -> None:
+    comparison = _comparison("PASS", 1.0, 1.0)
+    comparison["class_coverage_status"] = "FAIL"
+
+    with pytest.raises(ValueError, match="coverage status disagrees"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", comparison)],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
+        )
 
 
 def test_roster_rejects_missing_duplicate_or_misreported_episode() -> None:
@@ -457,6 +782,22 @@ def test_roster_rejects_a_joint_family_with_a_different_path_roster() -> None:
         evaluate_path_equivalence_roster(
             [_record("episode-1", _comparison("PASS", 1.0, 1.0))],
             expected_scenarios=expected,
+            joint_acceptance_family=family,
+        )
+
+
+def test_path_equivalence_roster_requires_joint_family_v4() -> None:
+    family = build_joint_acceptance_family_v3(
+        family_id="v3",
+        material_expected_strata=[("concrete", "V", "20deg")],
+        complex_csi_expected_strata=[("site-family-a", "LOS")],
+        propagation_expected_strata=[("site-family-a", "LOS", "total")],
+        receiver_impact_expected_strata=[("site-family-a", "LOS")],
+    )
+    with pytest.raises(ValueError, match="requires joint acceptance family v4"):
+        evaluate_path_equivalence_roster(
+            [_record("episode-1", _comparison("PASS", 1.0, 1.0))],
+            expected_scenarios=[("site-family-a", "LOS", "episode-1")],
             joint_acceptance_family=family,
         )
 
