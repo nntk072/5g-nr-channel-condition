@@ -145,3 +145,166 @@ def test_rt_paths_at_times_reject_invalid_sampling_times(times, message):
             SimpleNamespace(fft_size=4, num_ofdm_symbols=2, subcarrier_spacing=15e3),
             times,
         )
+
+
+def test_rt_cfr_adapter_rejects_invalid_path_resource_grid_and_tensor_contracts():
+    grid = SimpleNamespace(fft_size=8, num_ofdm_symbols=14, subcarrier_spacing=30e3)
+    with pytest.raises(TypeError, match="Paths.cfr"):
+        paths_to_nr_ofdm_channel(object(), grid)
+    with pytest.raises(ValueError, match="batch_size must be positive"):
+        paths_to_nr_ofdm_channel(FakePaths(), grid, batch_size=0)
+    with pytest.raises(TypeError, match="num_time_steps must be an integer"):
+        paths_to_nr_ofdm_channel(FakePaths(), grid, num_time_steps=True)
+    with pytest.raises(ValueError, match="num_time_steps must be one static snapshot"):
+        paths_to_nr_ofdm_channel(FakePaths(), grid, num_time_steps=2)
+    with pytest.raises(ValueError, match="sampling_frequency_hz"):
+        paths_to_nr_ofdm_channel(FakePaths(), grid, sampling_frequency_hz=float("nan"))
+    with pytest.raises(TypeError, match="normalization options"):
+        paths_to_nr_ofdm_channel(FakePaths(), grid, normalize=True, normalize_delays=1)
+    with pytest.raises(ValueError, match="device must be"):
+        paths_to_nr_ofdm_channel(FakePaths(), grid, device="")
+    with pytest.raises(ValueError, match="FFT size"):
+        paths_to_nr_ofdm_channel(
+            FakePaths(), SimpleNamespace(fft_size=True, num_ofdm_symbols=1, subcarrier_spacing=1)
+        )
+    with pytest.raises(ValueError, match="symbol sizes"):
+        paths_to_nr_ofdm_channel(
+            FakePaths(), SimpleNamespace(fft_size=8, num_ofdm_symbols=True, subcarrier_spacing=1)
+        )
+    with pytest.raises(ValueError, match="subcarrier_spacing"):
+        paths_to_nr_ofdm_channel(
+            FakePaths(),
+            SimpleNamespace(fft_size=8, num_ofdm_symbols=1, subcarrier_spacing=float("inf")),
+        )
+
+    class InvalidCfr:
+        def __init__(self, response):
+            self.response = response
+
+        def cfr(self, **_kwargs):
+            return self.response
+
+    for response, error, message in (
+        (np.ones((1,)), TypeError, "complex tensor"),
+        (torch.ones((1, 1), dtype=torch.complex64), ValueError, "unexpected"),
+        (torch.ones((1, 1, 1, 1, 1, 4), dtype=torch.complex64), ValueError, "unexpected"),
+    ):
+        with pytest.raises(error, match=message):
+            paths_to_nr_ofdm_channel(InvalidCfr(response), grid)
+
+
+def test_rt_explicit_time_adapter_validates_cir_axes_and_path_state():
+    grid = SimpleNamespace(fft_size=4, num_ofdm_symbols=2, subcarrier_spacing=15e3)
+    with pytest.raises(TypeError, match="Paths.cir"):
+        paths_to_nr_ofdm_channel_at_times(object(), grid, (0.0, 1.0))
+    with pytest.raises(ValueError, match="positive integer"):
+        paths_to_nr_ofdm_channel_at_times(FakeTimedPaths(), grid, (0.0, 1.0), batch_size=0)
+    with pytest.raises(ValueError, match="device must be"):
+        paths_to_nr_ofdm_channel_at_times(FakeTimedPaths(), grid, (0.0, 1.0), device="")
+    with pytest.raises(ValueError, match="FFT size"):
+        paths_to_nr_ofdm_channel_at_times(
+            FakeTimedPaths(),
+            SimpleNamespace(fft_size=0, num_ofdm_symbols=2, subcarrier_spacing=1),
+            (0.0, 1.0),
+        )
+    with pytest.raises(ValueError, match="OFDM symbol count"):
+        paths_to_nr_ofdm_channel_at_times(
+            FakeTimedPaths(),
+            SimpleNamespace(fft_size=4, num_ofdm_symbols=0, subcarrier_spacing=1),
+            (0.0, 1.0),
+        )
+    with pytest.raises(ValueError, match="subcarrier_spacing"):
+        paths_to_nr_ofdm_channel_at_times(
+            FakeTimedPaths(),
+            SimpleNamespace(fft_size=4, num_ofdm_symbols=2, subcarrier_spacing=True),
+            (0.0, 1.0),
+        )
+
+    class CustomTimedPaths:
+        doppler = np.zeros((1, 1, 1))
+        valid = np.ones((1, 1, 1), dtype=np.bool_)
+
+        def __init__(self, coefficients, delays):
+            self.coefficients = coefficients
+            self.delays = delays
+
+        def cir(self, **_kwargs):
+            return self.coefficients, self.delays
+
+    with pytest.raises(ValueError, match="path coefficient axes"):
+        paths_to_nr_ofdm_channel_at_times(
+            CustomTimedPaths(np.ones((1, 1, 1), dtype=np.complex64), np.zeros((1, 1, 1))),
+            grid,
+            (0.0, 1.0),
+        )
+    with pytest.raises(ValueError, match="axes do not align"):
+        paths_to_nr_ofdm_channel_at_times(
+            CustomTimedPaths(
+                np.ones((1, 1, 1, 1, 1, 1), dtype=np.complex64),
+                np.zeros((2, 1, 1)),
+            ),
+            grid,
+            (0.0, 1.0),
+        )
+    with pytest.raises(ValueError, match="nonfinite coefficients or delays"):
+        paths_to_nr_ofdm_channel_at_times(
+            CustomTimedPaths(
+                np.asarray([np.nan + 0j]).reshape(1, 1, 1, 1, 1, 1),
+                np.zeros((1, 1, 1)),
+            ),
+            grid,
+            (0.0, 1.0),
+        )
+    invalid_doppler = CustomTimedPaths(
+        np.ones((1, 1, 1, 1, 1, 1), dtype=np.complex64), np.zeros((1, 1, 1))
+    )
+    invalid_doppler.doppler = np.asarray([np.nan]).reshape(1, 1, 1)
+    with pytest.raises(ValueError, match="nonfinite Doppler"):
+        paths_to_nr_ofdm_channel_at_times(invalid_doppler, grid, (0.0, 1.0))
+
+    class DetachedArray:
+        def __init__(self, value):
+            self.value = value
+
+        def detach(self):
+            return self
+
+        def cpu(self):
+            return self
+
+        def numpy(self):
+            return self.value
+
+    class DetachOnlyArray:
+        def __init__(self, value):
+            self.value = value
+
+        def detach(self):
+            return DetachedArray(self.value)
+
+    detached_paths = CustomTimedPaths(
+        np.ones((1, 1, 1, 1, 1, 1), dtype=np.complex64), np.zeros((1, 1, 1))
+    )
+    detached_paths.doppler = DetachOnlyArray(np.zeros((1, 1, 1)))
+    result = paths_to_nr_ofdm_channel_at_times(detached_paths, grid, (0.0, 1.0))
+    assert result.channel.shape[-2:] == (2, 4)
+
+
+@pytest.mark.parametrize("adapter", ["cfr", "cir"])
+def test_rt_adapters_report_missing_torch_dependency(monkeypatch, adapter):
+    import builtins
+
+    actual_import = builtins.__import__
+
+    def missing_torch(name, *args, **kwargs):
+        if name == "torch":
+            raise ImportError("test optional dependency absence")
+        return actual_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", missing_torch)
+    grid = SimpleNamespace(fft_size=4, num_ofdm_symbols=2, subcarrier_spacing=15e3)
+    with pytest.raises(RuntimeError, match="Install the optional PyTorch/Sionna integration"):
+        if adapter == "cfr":
+            paths_to_nr_ofdm_channel(FakePaths(), grid)
+        else:
+            paths_to_nr_ofdm_channel_at_times(FakeTimedPaths(), grid, (0.0, 1.0))
