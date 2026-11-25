@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import scripts.pair_stored_frequency_views as pair_cli
 from datasets.channel_view import ChannelDelayReference, ChannelPowerScale, PhysicalChannelView
 from datasets.episode_store import EpisodeBundle, write_episode_bundle
 from datasets.network import (
@@ -189,3 +190,48 @@ def test_cli_workflow_rejects_split_lineage_before_publication(tmp_path):
             upper_view_id="view-high",
         )
     assert not list((store / "manifests").glob("paired_frequency_views/**/*.json"))
+
+
+def test_bundle_reference_rejects_malformed_digest() -> None:
+    with pytest.raises(ValueError, match="64 lowercase hexadecimal"):
+        pair_cli._bundle_ref("episode", "A" * 64)
+
+
+def test_command_line_parses_all_pair_inputs(monkeypatch, capsys, tmp_path) -> None:
+    observed = {}
+    result = {"status": "PASS_INPUT_SCOPED", "qualification_status": "NOT_QUALIFIED"}
+
+    def fake_pair(**kwargs):
+        observed.update(kwargs)
+        return result
+
+    monkeypatch.setattr(pair_cli, "pair_stored_frequency_views", fake_pair)
+    arguments = [
+        "--store",
+        str(tmp_path / "store"),
+        "--split-registry",
+        str(tmp_path / "split.json"),
+        "--pair-id",
+        "pair-1",
+        "--source-scene-id",
+        "scene-1",
+        "--parent-episode-id",
+        "drop-1",
+        "--lower-episode-id",
+        "lower-1",
+        "--lower-bundle-sha256",
+        "a" * 64,
+        "--lower-view-id",
+        "view-low",
+        "--upper-episode-id",
+        "upper-1",
+        "--upper-bundle-sha256",
+        "b" * 64,
+        "--upper-view-id",
+        "view-high",
+    ]
+
+    assert pair_cli.main(arguments) == 0
+    assert observed["pair_id"] == "pair-1"
+    assert observed["store_root"] == tmp_path / "store"
+    assert json.loads(capsys.readouterr().out) == result
