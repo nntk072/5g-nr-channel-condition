@@ -7,6 +7,7 @@ import subprocess
 from copy import deepcopy
 from pathlib import Path
 
+import experiments.acceptance as acceptance_module
 import pytest
 from experiments.acceptance import (
     SNR_CURVE_BOOTSTRAP_DRAWS,
@@ -365,6 +366,80 @@ def test_contract_loader_rejects_file_aliases(tmp_path: Path, alias_kind: str) -
 
     with pytest.raises(ValueError, match=expected):
         load_snr_acceptance_contract(alias_path)
+
+
+def test_contract_loader_requires_signature_and_reviewer_policy_options_together(
+    tmp_path: Path,
+) -> None:
+    contract_path = tmp_path / "missing-contract.json"
+    with pytest.raises(ValueError, match="must be supplied together"):
+        load_snr_acceptance_contract(contract_path, signature_path=tmp_path / "contract.sig")
+    with pytest.raises(ValueError, match="must be supplied together"):
+        load_snr_acceptance_contract(contract_path, reviewer_policy_path=tmp_path / "policy.json")
+    with pytest.raises(ValueError, match="requires a signed acceptance contract"):
+        load_snr_acceptance_contract(
+            contract_path,
+            reviewer_policy_path=tmp_path / "policy.json",
+            reviewer_policy_signature_path=tmp_path / "policy.sig",
+            trusted_reviewer_allowed_signers_path=tmp_path / "policy.allowed",
+            reviewer_policy_signer_id="custodian",
+        )
+
+
+def test_contract_loader_rejects_duplicate_keys_invalid_roots_and_missing_v3_policy(
+    tmp_path: Path,
+) -> None:
+    contract_path = tmp_path / "contract.json"
+    contract_path.write_bytes(b'{"schema":"first","schema":"second"}')
+    with pytest.raises(ValueError, match="duplicate key"):
+        load_snr_acceptance_contract(contract_path)
+
+    contract_path.write_text("[]", encoding="utf-8")
+    with pytest.raises(ValueError, match="root must be an object"):
+        load_snr_acceptance_contract(contract_path)
+
+    contract_path.write_text(
+        json.dumps(_execution_bound_criteria(), sort_keys=True, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="v3 requires independent reviewer-policy admission"):
+        load_snr_acceptance_contract(contract_path)
+
+
+def test_signed_loader_requires_canonical_bytes_and_timestamped_policy_contract(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    contract_path = tmp_path / "contract.json"
+    contract_path.write_text(json.dumps(_criteria(), indent=2), encoding="utf-8")
+    signature_options = {
+        "signature_path": tmp_path / "contract.sig",
+        "trusted_allowed_signers_path": tmp_path / "acceptance.allowed",
+        "signer_id": "reviewer",
+    }
+    with pytest.raises(ValueError, match="canonical sorted compact JSON"):
+        load_snr_acceptance_contract(contract_path, **signature_options)
+
+    _write_acceptance = json.dumps(_criteria(), sort_keys=True, separators=(",", ":"))
+    contract_path.write_text(_write_acceptance, encoding="utf-8")
+    monkeypatch.setattr(
+        acceptance_module,
+        "verify_openssh_signature_for_bytes",
+        lambda *_args, **_kwargs: {
+            "namespace": "umcd-snr-acceptance-v1",
+            "signer_id": "reviewer",
+            "signature_sha256": "a" * 64,
+            "allowed_signers_sha256": "b" * 64,
+        },
+    )
+    with pytest.raises(ValueError, match="requires timestamped contract v2 or v3"):
+        load_snr_acceptance_contract(
+            contract_path,
+            **signature_options,
+            reviewer_policy_path=tmp_path / "policy.json",
+            reviewer_policy_signature_path=tmp_path / "policy.sig",
+            trusted_reviewer_allowed_signers_path=tmp_path / "policy.allowed",
+            reviewer_policy_signer_id="custodian",
+        )
 
 
 def test_timestamped_acceptance_contract_verifies_real_openssh_signature(
