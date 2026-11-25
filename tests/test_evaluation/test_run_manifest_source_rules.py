@@ -38,6 +38,15 @@ def test_rooted_reads_return_captured_bytes_only_when_requested(tmp_path: Path) 
     assert relative == "data.txt" and data == b"abc" and size == 3 and len(digest) == 64
 
 
+def test_rooted_source_read_rejects_missing_capture(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+):
+    monkeypatch.setattr(sources, "_read_inventory_file", lambda *_args, **_kwargs: (None, 0, ""))
+
+    with pytest.raises(ValueError, match="source file was not captured"):
+        _read_rooted_source_file(tmp_path, "missing.txt", limit=10)
+
+
 def test_source_root_must_be_a_directory(tmp_path: Path) -> None:
     file_path = tmp_path / "file.txt"
     file_path.write_text("x", encoding="utf-8")
