@@ -1348,3 +1348,13 @@ def test_episode_bundle_shard_reader_handles_empty_manifest_inventory(tmp_path):
     (tmp_path / "manifests" / "episodes").mkdir(parents=True)
 
     assert list(iter_episode_bundle_shards(tmp_path, max_shard_bytes=1024)) == []
+
+
+def test_episode_bundle_reader_accepts_sufficient_shard_byte_ceiling(tmp_path):
+    store = tmp_path / "reader-budget-success-store"
+    bundle = _episode_bundle()
+    stored = write_episode_bundle(store, bundle)
+
+    loaded = read_episode_bundle(store, stored, max_shard_bytes=10_000_000)
+
+    assert loaded.episode.episode_id == bundle.episode.episode_id

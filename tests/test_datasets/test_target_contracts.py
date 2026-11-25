@@ -793,6 +793,59 @@ def test_legacy_target_migration_requires_semantic_units_and_source():
         target_contracts.migrate_legacy_target_definition({"semantic": "legacy"})
 
 
+@pytest.mark.parametrize(
+    ("fields", "message"),
+    [
+        ({"reference": "unspecified_legacy"}, "explicit physical reference"),
+        ({"aggregation_rule": "unspecified_legacy"}, "explicit aggregation rule"),
+        ({"definition_version": "unversioned_legacy"}, "explicit version"),
+    ],
+)
+def test_target_definition_requires_reference_aggregation_and_version(fields, message):
+    arguments = {
+        "semantic": "fixture target",
+        "units": "unit",
+        "source": "fixture producer",
+        "reference": "fixture physical reference",
+        "aggregation_rule": "one value per fixture entity",
+        "definition_version": "tests.target.v1",
+    }
+    arguments.update(fields)
+    definition = TargetDefinition.versioned(**arguments)
+
+    with pytest.raises(ValueError, match=message):
+        definition.require_versioned()
+
+
+def test_unavailable_reason_counts_and_definition_digest_input_validation():
+    target = TargetValue(
+        entity_id="link-1",
+        definition=_simple_definition(),
+        values=np.asarray([1.0, 0.0]),
+        valid_mask=np.asarray([True, False]),
+        reason_codes=(TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE),
+        confidence="fixture confidence",
+    )
+    assert target.unavailable_counts == {TargetValidity.NOT_OBSERVABLE: 1}
+    assert len(target_contracts.definition_digest("canonical target text")) == 64
+
+    with pytest.raises(ValueError, match="canonical_definition must be a non-empty string"):
+        target_contracts.definition_digest(" ")
+    with pytest.raises(ValueError, match="canonical_definition must be a non-empty string"):
+        target_contracts.definition_digest(None)
+
+
+@pytest.mark.parametrize("reference", [None, "", "unspecified_legacy"])
+def test_legacy_target_migration_marks_unrecorded_physical_reference(reference):
+    payload = {"semantic": "legacy", "units": "unit", "source": "source"}
+    if reference is not None:
+        payload["reference"] = reference
+
+    migrated = target_contracts.migrate_legacy_target_definition(payload)
+
+    assert migrated.reference == "not recorded by legacy target schema v1"
+
+
 def test_canonical_target_rejects_padded_definition_fields() -> None:
     definition = _definition(
         "umcd.tdl-pusch.effective-cfr.v1",

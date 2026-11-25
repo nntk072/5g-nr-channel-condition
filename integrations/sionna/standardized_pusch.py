@@ -354,8 +354,6 @@ def build_standardized_pusch_dmrs_records(
                 transmit_grid = ideal_demodulator(transmit_waveform)
             received_clean = transmit_grid[:, 0, 0].unsqueeze(1) * h[None, :, None, :]
             received_clean = received_clean.unsqueeze(1)
-            if received_clean.shape[2] != rx_antennas:
-                raise RuntimeError("receive-antenna axis changed during PUSCH channel application")
             channel_response = h[:, None, :].expand(
                 rx_antennas,
                 int(grid.num_ofdm_symbols),
