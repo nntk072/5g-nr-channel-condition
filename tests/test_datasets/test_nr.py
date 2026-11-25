@@ -695,6 +695,142 @@ def test_nr_trajectory_rejects_noncanonical_identity(trajectory_id):
         NRTrajectory(trajectory_id, (0.0,), (record,))
 
 
+def test_nr_observation_rejects_duplicate_fft_bin_mapping():
+    with pytest.raises(ValueError, match="fft_bin_indices must be unique"):
+        make_observation(fft_bin_indices=(0,) * 24)
+
+
+@pytest.mark.parametrize(
+    ("link_id", "frame_index", "observation", "message"),
+    [
+        ("link", True, None, "frame_index must be an integer"),
+        ("link", 0, object(), "observation must be an NRObservation"),
+        ("link", 0, make_observation(), "exactly one batch item"),
+    ],
+)
+def test_linked_nr_observation_rejects_invalid_frame_binding(
+    link_id, frame_index, observation, message
+):
+    with pytest.raises((TypeError, ValueError), match=message):
+        LinkedNRObservation(link_id, frame_index, observation)
+
+
+def test_linked_nr_observation_accepts_single_item_binding():
+    observation = make_single_record(
+        "single-linked-observation", targets={"target": np.asarray(1.0)}
+    ).observation
+
+    linked = LinkedNRObservation("link", 0, observation)
+
+    assert linked.observation.sample_id == "single-linked-observation"
+
+
+def test_nr_record_rejects_missing_provenance_and_bad_target_definitions():
+    record = make_single_record("empty-provenance", targets={"target": np.asarray(1.0)})
+    with pytest.raises(ValueError, match="provenance must not be empty"):
+        replace(record, provenance={})
+
+    record = make_single_record("bad-definition", targets={"target": np.asarray(1.0)})
+    with pytest.raises(TypeError, match="TargetDefinition values"):
+        replace(record, target_definitions={"target": object()})
+
+
+def test_nr_record_rejects_non_boolean_scalar_mask():
+    with pytest.raises(TypeError, match="target mask 'target' must have boolean dtype"):
+        make_single_record(
+            "integer-mask",
+            targets={"target": np.asarray(1.0)},
+            target_masks={"target": 1},
+        )
+
+    record = make_single_record(
+        "boolean-mask",
+        targets={"target": np.asarray(1.0)},
+        target_masks={"target": True},
+    )
+    assert record.target_masks["target"] is True
+
+
+def test_nr_target_definition_axes_must_match_target_rank():
+    record = make_single_record("bad-axis-rank", targets={"metric": np.asarray(1.0)})
+    definition = TargetDefinition.versioned(
+        semantic="synthetic scalar metric",
+        units="fixture unit",
+        source="NR dataset test fixture",
+        reference="deterministic in-memory fixture values",
+        aggregation_rule="one scalar value",
+        definition_version="tests.nr.fixture.scalar.v1",
+        value_axes=("element",),
+    )
+
+    with pytest.raises(ValueError, match="rank must match its declared value axes"):
+        replace(
+            record, target_definitions={"metric": definition}
+        ).require_versioned_target_definitions()
+
+
+def test_trajectory_target_accessors_reject_unknown_target_names():
+    record = make_single_record("unknown-target-step", targets={"known": np.asarray(1.0)})
+    trajectory = NRTrajectory("unknown-target-route", (0.0,), (record,))
+
+    with pytest.raises(KeyError, match="unknown trajectory target: missing"):
+        trajectory.target_series("missing")
+    with pytest.raises(KeyError, match="unknown trajectory target: missing"):
+        trajectory.target_reason_series("missing")
+    with pytest.raises(KeyError, match="unknown trajectory target: missing"):
+        trajectory.target_support_counts("missing")
+
+
+def test_trajectory_rejects_mixed_receiver_configurations():
+    first = make_single_record("config-first", targets={"target": np.asarray(1.0)})
+    second = make_single_record("config-second", targets={"target": np.asarray(1.0)})
+    second_observation = replace(
+        second.observation,
+        receiver_config=NRPUSCHConfig(n_size_bwp=4, subcarrier_spacing_khz=30),
+    )
+
+    with pytest.raises(ValueError, match="same receiver config"):
+        NRTrajectory(
+            "mixed-config-route",
+            (0.0, 1.0),
+            (first, replace(second, observation=second_observation)),
+        )
+
+
+@pytest.mark.parametrize(
+    ("assignments", "expected_cells", "error", "message"),
+    [
+        ((), (), ValueError, "expected_cells must declare"),
+        ((), (("split", "family"),), ValueError, "each expected cell must be"),
+        (((),), (("split", "family", "target"),), ValueError, "each assignment must be"),
+        (
+            (("split", "family", object()),),
+            (("split", "family", "target"),),
+            TypeError,
+            "trajectory must be an NRTrajectory",
+        ),
+    ],
+)
+def test_nr_target_support_audit_rejects_malformed_rosters(
+    assignments, expected_cells, error, message
+):
+    with pytest.raises(error, match=message):
+        audit_nr_trajectory_target_support(assignments, expected_cells)
+
+
+def test_nr_target_support_audit_requires_expected_cell_for_each_assignment():
+    trajectory = NRTrajectory(
+        "undeclared-route",
+        (0.0,),
+        (make_single_record("undeclared-sample", targets={"target": np.asarray(1.0)}),),
+    )
+
+    with pytest.raises(ValueError, match="has no expected coverage cells"):
+        audit_nr_trajectory_target_support(
+            (("split", "family", trajectory),), (("other", "family", "target"),)
+        )
+
+
 def test_nr_record_round_trip_is_lossless_pickle_free_and_content_addressed(tmp_path):
     observation = make_observation()
     reference_bits = np.asarray([[1, 0, 1, 1, 0]], dtype=np.uint8)

@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import datasets.targets as target_contracts
 import numpy as np
 import pytest
@@ -10,6 +12,26 @@ from datasets.targets import (
     validate_canonical_target_contract,
 )
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
+
+
+def test_target_definition_rejects_digest_that_does_not_bind_its_fields():
+    definition = TargetDefinition.versioned(
+        semantic="synthetic digest-bound metric",
+        units="fixture unit",
+        source="target contract test",
+        reference="fixed fixture value",
+        aggregation_rule="preserve scalar value",
+        definition_version="tests.target-contract.digest.v1",
+    )
+
+    with pytest.raises(ValueError, match="SHA-256 does not match"):
+        replace(definition, definition_sha256="0" * 64).require_versioned()
+
+
+def test_censoring_interval_serializes_open_bounds():
+    interval = CensoringInterval(lower=None, upper=2.5)
+
+    assert interval.to_dict() == {"lower": None, "upper": 2.5}
 
 
 def _definition(version: str, *, semantic: str, units: str) -> TargetDefinition:
