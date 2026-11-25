@@ -152,6 +152,122 @@ def test_registry_rejects_invalid_odbl_policy_and_missing_family() -> None:
         validate_scene_family_registry(missing_family)
 
 
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda value: value.update(extra=True), "unexpected top-level fields"),
+        (lambda value: value.update(schema="future"), "unsupported scene-family registry schema"),
+        (
+            lambda value: value.update(qualification_status="QUALIFIED"),
+            "cannot claim qualification",
+        ),
+        (lambda value: value.update(taxonomy={}), "complete ordered S00–S11"),
+        (lambda value: value["taxonomy"][0].update(extra=True), "taxonomy row fields are invalid"),
+        (lambda value: value["taxonomy"][0].update(role="  "), "canonical nonempty string"),
+        (lambda value: value.update(evidence=[]), "must bind source evidence"),
+        (lambda value: value["evidence"][0].update(extra=True), "evidence row fields are invalid"),
+        (lambda value: value["evidence"][0].update(sha256="A" * 64), "lowercase SHA-256 digest"),
+        (lambda value: value.update(candidates={}), "candidates must be an array"),
+        (lambda value: value["candidates"].append(None), "scene candidate fields are invalid"),
+        (
+            lambda value: value["candidates"].append(copy.deepcopy(value["candidates"][0])),
+            "duplicate scene candidate ID",
+        ),
+        (lambda value: value["candidates"][0].update(family_id="unknown"), "unknown scene family"),
+        (lambda value: value["candidates"][0].update(scene_id=" "), "canonical nonempty string"),
+        (
+            lambda value: value["candidates"][0].update(source_kind="unknown"),
+            "unsupported scene source kind",
+        ),
+        (
+            lambda value: value["candidates"][0].update(geometry_asset_sha256="0"),
+            "lowercase SHA-256 digest",
+        ),
+        (
+            lambda value: value["candidates"][0].update(source_record_sha256="0" * 64),
+            "not bound by registry evidence",
+        ),
+        (
+            lambda value: value["candidates"][0].update(internal_research_status="unknown"),
+            "invalid internal research status",
+        ),
+        (
+            lambda value: value["candidates"][0].update(public_release_status="allowed"),
+            "invalid public release status",
+        ),
+        (
+            lambda value: value["candidates"][0].update(qualification_status="PASS"),
+            "cannot claim scientific qualification",
+        ),
+        (
+            lambda value: next(
+                row for row in value["candidates"] if row["candidate_id"] == "odbl:etoile"
+            ).update(license="CC0"),
+            "ODbL scene candidate",
+        ),
+    ],
+)
+def test_scene_registry_rejects_invalid_catalogue_and_candidate_contracts(mutate, message):
+    registry = load_scene_family_registry()
+    mutate(registry)
+
+    with pytest.raises(ValueError, match=message):
+        validate_scene_family_registry(registry)
+
+
+@pytest.mark.parametrize(
+    ("seed", "count", "message"),
+    [
+        (True, 1, "seed must be a nonnegative integer"),
+        (-1, 1, "seed must be a nonnegative integer"),
+        (2**128, 1, "seed must be a nonnegative integer"),
+        (1, True, "candidates_per_family must be a positive integer"),
+        (1, 0, "candidates_per_family must be a positive integer"),
+    ],
+)
+def test_scene_candidate_sampler_rejects_invalid_bounds(seed, count, message):
+    with pytest.raises(ValueError, match=message):
+        sample_scene_candidates(
+            load_scene_family_registry(), seed=seed, candidates_per_family=count
+        )
+
+
+@pytest.mark.parametrize(
+    ("candidate_ids", "message"),
+    [
+        (["procedural:city41", "procedural:city41"], "must not contain duplicates"),
+        (["unknown"], "unknown scene candidate"),
+    ],
+)
+def test_scene_candidate_relations_reject_invalid_candidate_rosters(candidate_ids, message):
+    with pytest.raises(ValueError, match=message):
+        scene_candidate_split_relations(load_scene_family_registry(), candidate_ids)
+
+
+def test_scene_family_loader_rejects_duplicate_json_keys(tmp_path: Path) -> None:
+    path = tmp_path / "duplicate.json"
+    path.write_text('{"schema":"one","schema":"two"}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="duplicate JSON key: schema"):
+        load_scene_family_registry(path)
+
+
+@pytest.mark.parametrize(
+    ("candidate_id", "digest", "message"),
+    [
+        ("unknown", "a" * 64, "unknown scene candidate"),
+        ("procedural:city41", "invalid", "lowercase SHA-256 digest"),
+    ],
+)
+def test_scene_candidate_metadata_rejects_unbound_identity(candidate_id, digest, message):
+    with pytest.raises(ValueError, match=message):
+        scene_candidate_split_metadata(
+            load_scene_family_registry(),
+            candidate_id=candidate_id,
+            actual_geometry_asset_sha256=digest,
+        )
+
+
 def test_scene_family_cli_retains_shortfalls_and_refuses_overwrite(tmp_path: Path) -> None:
     output = tmp_path / "scene-sample.json"
     assert (
@@ -170,7 +286,9 @@ def test_scene_family_cli_retains_shortfalls_and_refuses_overwrite(tmp_path: Pat
         )
 
 
-def test_scene_family_cli_reports_registry_validation_errors(tmp_path: Path, monkeypatch, capsys) -> None:
+def test_scene_family_cli_reports_registry_validation_errors(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
     monkeypatch.setattr(
         scene_family_cli,
         "load_scene_family_registry",
@@ -178,9 +296,7 @@ def test_scene_family_cli_reports_registry_validation_errors(tmp_path: Path, mon
     )
 
     with pytest.raises(SystemExit) as error:
-        sample_scene_families_main(
-            ["--seed", "410", "--output", str(tmp_path / "report.json")]
-        )
+        sample_scene_families_main(["--seed", "410", "--output", str(tmp_path / "report.json")])
 
     assert error.value.code == 2
     assert "registry fixture rejected" in capsys.readouterr().err
@@ -194,9 +310,7 @@ def test_scene_family_cli_handles_no_replace_race(tmp_path: Path, monkeypatch, c
     )
 
     with pytest.raises(SystemExit) as error:
-        sample_scene_families_main(
-            ["--seed", "410", "--output", str(tmp_path / "report.json")]
-        )
+        sample_scene_families_main(["--seed", "410", "--output", str(tmp_path / "report.json")])
 
     assert error.value.code == 2
     assert "refusing to overwrite existing report" in capsys.readouterr().err
