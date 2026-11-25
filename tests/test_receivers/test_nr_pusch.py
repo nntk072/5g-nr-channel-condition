@@ -290,6 +290,19 @@ def _build_hopped_estimator_fixture():
     return plan, dmrs, mapped, first_data, second_data
 
 
+def _run_hopped_estimator(plan, dmrs, mapped, **overrides):
+    data_mask = overrides.pop("data_mask", mapped.data_mask)
+    return estimate_demap_pusch_intra_slot_hop(
+        plan.metadata,
+        dmrs,
+        data_mask=data_mask,
+        allocation_metadata=mapped.metadata,
+        received_allocation_grid=mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis],
+        noise_variance=0.0,
+        **overrides,
+    )
+
+
 def test_pusch_hop_estimator_demapper_round_trips_mapper_order_on_flat_channel():
     plan, dmrs, mapped, first_data, second_data = _build_hopped_estimator_fixture()
     channel = np.complex128(0.75 + 0.5j)
@@ -514,6 +527,165 @@ def test_pusch_hop_estimator_demapper_rejects_invalid_noise(noise, exception, me
             received_allocation_grid=received,
             noise_variance=noise,
         )
+
+
+@pytest.mark.parametrize(
+    ("dmrs_change", "allocation_change", "message"),
+    [
+        (lambda metadata: metadata.update(schema="unsupported"), None, "unsupported hop DM-RS"),
+        (
+            lambda metadata: metadata.update(dmrs_plan_sha256="0" * 64),
+            None,
+            "different timing plan",
+        ),
+        (
+            None,
+            lambda metadata: metadata.update(schema="unsupported"),
+            "unsupported hopped-allocation",
+        ),
+        (None, lambda metadata: metadata.update(qualification="QUALIFIED"), "NOT_QUALIFIED"),
+        (
+            None,
+            lambda metadata: metadata.update(dmrs_plan_sha256="0" * 64),
+            "different timing plan",
+        ),
+        (None, lambda metadata: metadata.update(dmrs_grid_sha256="0" * 64), "different DM-RS grid"),
+        (
+            None,
+            lambda metadata: metadata.update(one_port_zero_cdm_group_without_data=False),
+            "one-CDM-group scope",
+        ),
+        (
+            None,
+            lambda metadata: metadata.update(pt_rs_and_other_puncturing="supported"),
+            "no-puncturing scope",
+        ),
+    ],
+)
+def test_pusch_hop_estimator_demapper_rejects_metadata_contract_drift(
+    dmrs_change, allocation_change, message
+):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    if dmrs_change is not None:
+        metadata = dict(dmrs.metadata)
+        dmrs_change(metadata)
+        dmrs = NRPUSCHIntraSlotHopDMRSGrid(dmrs.pilot_mask, dmrs.pilot_grid, metadata)
+    allocation = dict(mapped.metadata)
+    if allocation_change is not None:
+        allocation_change(allocation)
+
+    with pytest.raises(ValueError, match=message):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=allocation,
+            received_allocation_grid=mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis],
+            noise_variance=0.0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "exception", "message"),
+    [
+        ({"dmrs_grid": object()}, TypeError, "generated NRPUSCHIntraSlotHopDMRSGrid"),
+        ({"num_cdm_groups_without_data": True}, TypeError, "must be an integer"),
+        ({"pt_rs_enabled": 1}, TypeError, "must be a Boolean"),
+        ({"data_mask": np.ones((10, 12), dtype=np.uint8)}, TypeError, "Boolean NumPy array"),
+        ({"puncture_mask": np.ones((10, 12), dtype=np.uint8)}, TypeError, "Boolean NumPy array"),
+        ({"puncture_mask": np.zeros((9, 12), dtype=np.bool_)}, ValueError, "match data_mask shape"),
+    ],
+)
+def test_pusch_hop_estimator_demapper_rejects_invalid_controls(kwargs, exception, message):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    received = mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis]
+    kwargs = dict(kwargs)
+    args = {
+        "plan_metadata": plan.metadata,
+        "dmrs_grid": kwargs.pop("dmrs_grid", dmrs),
+        "data_mask": kwargs.pop("data_mask", mapped.data_mask),
+        "allocation_metadata": mapped.metadata,
+        "received_allocation_grid": received,
+        "noise_variance": 0.0,
+    }
+    with pytest.raises(exception, match=message):
+        estimate_demap_pusch_intra_slot_hop(**args, **kwargs)
+
+
+@pytest.mark.parametrize(
+    ("mask", "message"),
+    [
+        ("wrong_shape", "active allocation span"),
+        ("overlap", "overlaps DM-RS"),
+    ],
+)
+def test_pusch_hop_estimator_demapper_rejects_malformed_data_mask(mask, message):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    data_mask = mapped.data_mask.copy()
+    if mask == "wrong_shape":
+        data_mask = data_mask[:-1]
+    else:
+        data_mask[tuple(np.argwhere(dmrs.pilot_mask[2:12])[0])] = True
+
+    with pytest.raises(ValueError, match=message):
+        _run_hopped_estimator(plan, dmrs, mapped, data_mask=data_mask)
+
+
+@pytest.mark.parametrize(
+    ("received", "message"),
+    [
+        ("not_array", "must be a NumPy array"),
+        ("wrong_rank", r"must have \[batch, rx, rx_ant, symbol, subcarrier\] axes"),
+        ("zero_leading", r"must have \[batch, rx, rx_ant, symbol, subcarrier\] axes"),
+        ("real", "complex64 or complex128"),
+    ],
+)
+def test_pusch_hop_estimator_demapper_rejects_invalid_received_shapes(received, message):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+    grid = mapped.allocation_grid[np.newaxis, np.newaxis, np.newaxis]
+    invalid = {
+        "not_array": object(),
+        "wrong_rank": grid.reshape(10, 12),
+        "zero_leading": np.empty((0, 1, 1, 10, 12), dtype=np.complex128),
+        "real": grid.real,
+    }[received]
+    with pytest.raises((TypeError, ValueError), match=message):
+        estimate_demap_pusch_intra_slot_hop(
+            plan.metadata,
+            dmrs,
+            data_mask=mapped.data_mask,
+            allocation_metadata=mapped.metadata,
+            received_allocation_grid=invalid,
+            noise_variance=0.0,
+        )
+
+
+@pytest.mark.parametrize("limit", (True, 0, 1.5))
+def test_pusch_hop_estimator_demapper_rejects_invalid_output_budget(limit):
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+
+    with pytest.raises(ValueError, match="max_output_elements must be a positive integer"):
+        _run_hopped_estimator(plan, dmrs, mapped, max_output_elements=limit)
+
+
+def test_pusch_hop_estimator_demapper_enforces_output_budget():
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+
+    with pytest.raises(ValueError, match="exceed max_output_elements"):
+        _run_hopped_estimator(plan, dmrs, mapped, max_output_elements=1)
+
+
+def test_pusch_hop_estimator_demapper_accepts_empty_puncture_mask():
+    plan, dmrs, mapped, _, _ = _build_hopped_estimator_fixture()
+
+    result = _run_hopped_estimator(
+        plan,
+        dmrs,
+        mapped,
+        puncture_mask=np.zeros(mapped.data_mask.shape, dtype=np.bool_),
+    )
+
+    assert result.metadata["puncturing"] == "not_supported"
 
 
 def test_pusch_config_accepts_bwp_offset_inside_wider_carrier_grid():

@@ -205,8 +205,6 @@ def estimate_demap_pusch_intra_slot_hop(
     for hop_offset, hop_count in hop_slices:
         hop_data_mask = data_mask[hop_offset : hop_offset + hop_count]
         coordinates = np.argwhere(hop_data_mask.T)
-        if coordinates.size == 0:
-            raise ValueError("each hop must expose at least one data RE")
         data_subcarriers = coordinates[:, 0]
         data_symbols = coordinates[:, 1]
         absolute_local_symbols = hop_offset + data_symbols
@@ -232,8 +230,6 @@ def estimate_demap_pusch_intra_slot_hop(
                 received.dtype,
                 copy=False,
             )
-            if bool((np.abs(reference) == 0).any()):
-                raise ValueError("DM-RS reference contains a zero-valued pilot")
             hop_estimate[..., selected] = received[..., rx_symbol, chosen_subcarriers] / reference
             hop_variance_factor[selected] = 1.0 / np.square(np.abs(reference))
         estimate_parts.append(hop_estimate)
