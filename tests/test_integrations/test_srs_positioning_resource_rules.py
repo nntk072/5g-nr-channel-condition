@@ -10,6 +10,10 @@ from integrations.sionna.srs.srs_configuration import (
     map_nr_srs_positioning_multiport_resource,
     map_nr_srs_positioning_resource,
 )
+from integrations.sionna.srs.srs_constants.sequences import (
+    _largest_prime_below,
+    _normalized_multiport_beta,
+)
 
 BASE: dict[str, Any] = {
     "slot_symbol_count": 14,
@@ -29,6 +33,21 @@ def _sequence(length: int = 6) -> np.ndarray:
 
 def test_valid_positioning_resource_maps() -> None:
     assert map_nr_srs_positioning_resource(_sequence(), **BASE) is not None
+
+
+def test_multiport_beta_rejects_non_boolean_three_tx_switch() -> None:
+    with pytest.raises(TypeError, match="four_port_srs_3tx must be a boolean"):
+        _normalized_multiport_beta(1.0, 4, 1)
+
+
+def test_multiport_beta_must_be_finite_and_positive() -> None:
+    with pytest.raises(ValueError, match="beta_srs must be a finite positive real number"):
+        _normalized_multiport_beta(float("nan"), 4, False)
+
+
+def test_largest_prime_requires_sequence_length_above_three() -> None:
+    with pytest.raises(ValueError, match="sequence length must exceed 3"):
+        _largest_prime_below(2)
 
 
 @pytest.mark.parametrize(
