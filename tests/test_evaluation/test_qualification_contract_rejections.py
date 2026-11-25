@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from copy import deepcopy
 
+import evaluation.acceptance.qualification_contract as contract_module
 import pytest
 from evaluation.acceptance.qualification_contract import (
+    _validate_sample_size_design_binding,
     build_qualification_run_contract,
+    build_qualification_run_contract_v3,
+    build_qualification_run_contract_v4,
     verify_qualification_run_contract,
 )
-from tests.test_evaluation.test_qualification_contract import _spec
+from tests.test_evaluation.test_qualification_contract import _complete_design, _spec
 
 
 def test_specification_must_be_an_object() -> None:
@@ -91,3 +95,122 @@ def test_verification_requires_an_object_with_a_valid_digest_and_schema() -> Non
         ValueError, match="digest does not match|schema is unsupported|fields differ"
     ):
         verify_qualification_run_contract(unsupported)
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    (
+        ("incomplete", "requires a complete precision- and power-based design"),
+        ("family", "acceptance family differs from contract"),
+        ("branches", "branch_designs must be an object"),
+        ("strata", "sample-size strata differ"),
+        ("floor", "powered design requirement is below the evaluator floor"),
+        ("planned", "below its powered design requirement"),
+    ),
+)
+def test_sample_size_design_binding_rejects_contract_drift(
+    monkeypatch, change: str, message: str
+) -> None:
+    spec = _spec()
+    base = build_qualification_run_contract(spec)
+    design = _complete_design(spec)
+    monkeypatch.setattr(
+        contract_module,
+        "verify_joint_sample_size_design",
+        lambda _design: {"complete_precision_powered_design": change != "incomplete"},
+    )
+    if change == "family":
+        design["joint_acceptance_family"] = {"family_id": "other", "family_sha256": "0" * 64}
+    elif change == "branches":
+        design["branch_designs"] = []
+    elif change == "strata":
+        design["branch_designs"]["complex_csi"]["required_units_by_stratum"][0]["stratum"] = [
+            "different-site",
+            "LOS",
+        ]
+    elif change == "floor":
+        design["branch_designs"]["complex_csi"]["required_units_by_stratum"][0][
+            "required_units"
+        ] = 1
+    elif change == "planned":
+        design["branch_designs"]["complex_csi"]["required_units_by_stratum"][0][
+            "required_units"
+        ] = 61
+
+    with pytest.raises(ValueError, match=message):
+        _validate_sample_size_design_binding(base, design)
+
+
+def test_v3_specification_requires_its_exact_field_roster() -> None:
+    with pytest.raises(TypeError, match="specification must be an object"):
+        build_qualification_run_contract_v3([])
+    with pytest.raises(TypeError, match="specification must be an object"):
+        build_qualification_run_contract_v4([])
+
+    spec = _spec()
+    with pytest.raises(ValueError, match="specification fields differ"):
+        build_qualification_run_contract_v3(spec)
+
+    v4_spec = _spec()
+    v4_spec["sample_size_design"] = _complete_design(v4_spec)
+    v4_spec["unexpected"] = True
+    with pytest.raises(ValueError, match="qualification v4 specification fields differ"):
+        build_qualification_run_contract_v4(v4_spec)
+
+    spec["sample_size_design"] = _complete_design(spec)
+    spec["unexpected"] = True
+    with pytest.raises(ValueError, match="specification fields differ"):
+        build_qualification_run_contract_v3(spec)
+
+
+def test_verifier_rejects_unsupported_schema_with_a_valid_digest() -> None:
+    contract = build_qualification_run_contract(_spec())
+    contract["schema"] = "loslab.qualification_run_contract.v99"
+    contract.pop("contract_sha256")
+    contract["contract_sha256"] = contract_module._digest(contract)
+
+    with pytest.raises(ValueError, match="schema is unsupported"):
+        verify_qualification_run_contract(contract)
+
+
+def _redigest_contract(contract: dict) -> None:
+    contract.pop("contract_sha256", None)
+    contract["contract_sha256"] = contract_module._digest(contract)
+
+
+def _v3_contract() -> dict:
+    spec = _spec()
+    spec["sample_size_design"] = _complete_design(spec)
+    return build_qualification_run_contract_v3(spec)
+
+
+def test_verifier_rejects_frozen_field_roster_drift_with_valid_digest() -> None:
+    contract = build_qualification_run_contract(_spec())
+    del contract["source_identity"]
+    _redigest_contract(contract)
+
+    with pytest.raises(ValueError, match="fields differ from its frozen schema"):
+        verify_qualification_run_contract(contract)
+
+
+def test_verifier_rejects_malformed_embedded_design_and_digest_binding() -> None:
+    contract = _v3_contract()
+    contract["sample_size_design"] = []
+    _redigest_contract(contract)
+    with pytest.raises(ValueError, match="sample_size_design must be an object"):
+        verify_qualification_run_contract(contract)
+
+    contract = _v3_contract()
+    contract["sample_size_design_sha256"] = "0" * 64
+    _redigest_contract(contract)
+    with pytest.raises(ValueError, match="sample_size_design_sha256 differs"):
+        verify_qualification_run_contract(contract)
+
+
+def test_verifier_reconstructs_every_frozen_contract_field() -> None:
+    contract = build_qualification_run_contract(_spec())
+    contract["qualification_status"] = "PASS"
+    _redigest_contract(contract)
+
+    with pytest.raises(ValueError, match="differs from deterministic reconstruction"):
+        verify_qualification_run_contract(contract)

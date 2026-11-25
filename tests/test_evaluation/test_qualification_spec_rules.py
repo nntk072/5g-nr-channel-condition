@@ -103,3 +103,43 @@ def test_specification_fields_are_typed_and_scoped(mutate, error, message) -> No
 def test_verification_checks_the_contract_shape(contract, message) -> None:
     with pytest.raises((TypeError, ValueError), match=message):
         verify_qualification_run_contract(contract)
+
+
+def test_qualification_contract_rejects_path_roster_and_stratum_shape_drift() -> None:
+    spec = _spec()
+    spec["sampling"]["path_equivalence_scenarios"] = [["site-a", "NLOS", "episode-01"]]
+    with pytest.raises(ValueError, match="must exactly match the acceptance family"):
+        build_qualification_run_contract(spec)
+
+    spec = _spec()
+    spec["sampling"]["planned_units_by_stratum"]["complex_csi"][0]["extra"] = True
+    with pytest.raises(ValueError, match="rows must contain exactly"):
+        build_qualification_run_contract(spec)
+
+    spec = _spec()
+    duplicate = deepcopy(spec["sampling"]["planned_units_by_stratum"]["complex_csi"][0])
+    spec["sampling"]["planned_units_by_stratum"]["complex_csi"].append(duplicate)
+    with pytest.raises(ValueError, match="contains duplicate strata"):
+        build_qualification_run_contract(spec)
+
+
+def test_qualification_contract_family_validator_guards_internal_rosters(monkeypatch) -> None:
+    import evaluation.acceptance.qualification_contract as contract_module
+
+    original = contract_module.validate_joint_acceptance_family
+    family = _spec()["joint_acceptance_family"]
+    monkeypatch.setattr(
+        contract_module,
+        "validate_joint_acceptance_family",
+        lambda _family: {**family, "material_expected_strata": []},
+    )
+    with pytest.raises(ValueError, match="no expected roster for material_calibration"):
+        build_qualification_run_contract(_spec())
+
+    monkeypatch.setattr(
+        contract_module,
+        "validate_joint_acceptance_family",
+        lambda _family: {**original(_family), "schema": "loslab.joint_acceptance_family.v3"},
+    )
+    with pytest.raises(ValueError, match="requires acceptance-family v4"):
+        build_qualification_run_contract(_spec())
