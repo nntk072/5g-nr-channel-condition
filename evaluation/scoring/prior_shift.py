@@ -120,7 +120,12 @@ def adjust_probabilities_for_prior_shift(
     scores = np.asarray(probabilities, dtype=np.float64)
     labels_raw = np.asarray(training_labels)
     groups = np.asarray(training_group_ids, dtype=object)
-    if scores.ndim != 1 or not np.all(np.isfinite(scores)) or np.any((scores < 0) | (scores > 1)):
+    if (
+        scores.ndim != 1
+        or scores.size == 0
+        or not np.all(np.isfinite(scores))
+        or np.any((scores < 0) | (scores > 1))
+    ):
         raise ValueError("probabilities must be a finite one-dimensional vector in [0, 1]")
     if labels_raw.ndim != 1 or groups.ndim != 1 or labels_raw.shape != groups.shape:
         raise ValueError(

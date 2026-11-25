@@ -80,6 +80,30 @@ def test_adjustment_requires_valid_training_only_roster(labels, groups, message)
         )
 
 
+@pytest.mark.parametrize(
+    "probabilities",
+    [
+        np.array([], dtype=float),
+        np.array([[0.5]]),
+        np.array([np.nan]),
+        np.array([1.5]),
+    ],
+    ids=["empty", "two-dimensional", "nonfinite", "out-of-range"],
+)
+def test_training_prior_adjustment_rejects_invalid_probability_vectors(probabilities):
+    with pytest.raises(ValueError, match="probabilities must be a finite one-dimensional vector"):
+        adjust_probabilities_for_prior_shift(
+            probabilities, np.array([0, 1]), np.array(["group0", "group1"]), _spec()
+        )
+
+
+@pytest.mark.parametrize("labels", [np.array([], dtype=int), np.array([0, 2])])
+def test_training_prior_adjustment_requires_nonempty_binary_labels(labels):
+    groups = np.array([f"group{index}" for index in range(len(labels))])
+    with pytest.raises(ValueError, match="training labels must be a nonempty binary vector"):
+        adjust_probabilities_for_prior_shift(np.array([0.5]), labels, groups, _spec())
+
+
 def test_prior_shift_declaration_and_report_match_versioned_schemas():
     jsonschema = pytest.importorskip("jsonschema")
     spec_schema = json.loads(
