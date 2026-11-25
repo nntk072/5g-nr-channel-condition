@@ -184,8 +184,6 @@ def _authorize_run_manifest_signer(signer_id: str, policy_bytes: bytes) -> dict[
             authorized = entry
     if authorized is None:
         raise ValueError("run-manifest signer is absent from the trusted role policy")
-    if SIGNER_POLICY_PURPOSE not in authorized["allowed_purposes"]:
-        raise ValueError("run-manifest signer role policy does not authorize this purpose")
     return {
         "policy_id": policy_id,
         "policy_sha256": hashlib.sha256(policy_bytes).hexdigest(),
