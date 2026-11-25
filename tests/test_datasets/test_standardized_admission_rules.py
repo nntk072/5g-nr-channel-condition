@@ -111,7 +111,7 @@ def test_tdl_parameter_table_identity_must_belong_to_tdl_records() -> None:
             {
                 "parameter_table_sha256": None,
                 "parameter_table_source": "TR 38.901:19.2:CDL-A.json",
-                "parameter_table": "CDL-A.json",
+                "parameter_table": float("nan"),
             },
             "source identity is inconsistent",
         ),
@@ -137,6 +137,36 @@ def test_cdl_parameter_table_identity_is_accepted_when_fully_bound() -> None:
     )
     metadata["parameter_table_binding_sha256"] = cdl_parameter_table_binding_sha256(metadata)
     _admit(StandardizedFamily.CDL, "A", metadata)
+
+
+def test_cdl_parameter_table_binding_rejects_non_json_numeric_values() -> None:
+    from datasets.standardized_specs import cdl_parameter_table_binding_sha256
+
+    with pytest.raises(ValueError, match="binding is incomplete or invalid"):
+        cdl_parameter_table_binding_sha256(
+            {
+                "profile_model": "A",
+                "spec_version": "19.2",
+                "parameter_table": float("nan"),
+                "parameter_table_source": "TR 38.901:19.2:CDL-A.json",
+                "parameter_table_sha256": "a" * 64,
+            }
+        )
+
+
+def test_cdl_parameter_table_binding_rejects_noncanonical_digest() -> None:
+    from datasets.standardized_specs import cdl_parameter_table_binding_sha256
+
+    with pytest.raises(ValueError, match="binding is incomplete or invalid"):
+        cdl_parameter_table_binding_sha256(
+            {
+                "profile_model": "A",
+                "spec_version": "19.2",
+                "parameter_table": "CDL-A.json",
+                "parameter_table_source": "TR 38.901:19.2:CDL-A.json",
+                "parameter_table_sha256": "A" * 64,
+            }
+        )
 
 
 @pytest.mark.parametrize(

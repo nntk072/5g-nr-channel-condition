@@ -284,6 +284,23 @@ def test_fixed_tdl_annex_b_doppler_case_mismatches_are_rejected(
         )
 
 
+def test_fixed_tdl_conformance_case_rejects_nonfinite_metadata() -> None:
+    metadata = _metadata(model="A30", carrier_hz=3.5e9)
+    metadata.update(
+        {
+            "fixed_profile_spec_version": "19.2.2",
+            "fixed_profile_conformance_case": "TDLA30-5",
+            "min_speed_mps": 0.0,
+            "max_speed_mps": 1.0,
+            "maximum_doppler_hz": float("nan"),
+        }
+    )
+    with pytest.raises(ValueError, match="requires finite maximum_doppler_hz"):
+        validate_standardized_channel_admission(
+            StandardizedFamily.TDL, "A30", _channel().h_path[0], metadata
+        )
+
+
 def test_channel_adapter_batch_round_trip_is_immutable_and_preserves_profile_semantics(
     tmp_path,
 ) -> None:
