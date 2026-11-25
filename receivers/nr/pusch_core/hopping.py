@@ -328,10 +328,6 @@ def dehop_pusch_intra_slot_received_grid(
         first_start_crb - carrier_start,
         second_start_crb - carrier_start,
     )
-    if any(
-        offset < 0 or (offset + allocation_rbs) * 12 > carrier_width for offset in relative_offsets
-    ):
-        raise ValueError("PUSCH hop allocations must fit within the declared carrier grid")
     allocation_shape = hop_metadata.get("allocation_grid_shape")
     carrier_shape = hop_metadata.get("carrier_grid_shape")
     if (
