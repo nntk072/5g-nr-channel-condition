@@ -69,3 +69,72 @@ def test_experiment_config_dispatches_resolved_options(tmp_path, monkeypatch, ca
     }
     assert options["low_confidence_margin"] == 0.08
     assert json.loads(capsys.readouterr().out) == {"status": "ok"}
+
+
+def test_experiment_config_rejects_wrong_schema(tmp_path, monkeypatch) -> None:
+    config = tmp_path / "experiment.yaml"
+    config.write_text("schema: other.v1\ninputs: [data.npz]\noutput: run\n", encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["run_channel_experiment", "--config", str(config)])
+
+    with pytest.raises(ValueError, match="schema must be loslab.experiment.v1"):
+        main()
+
+
+def test_experiment_cli_dispatches_input_list_and_options(monkeypatch, capsys) -> None:
+    calls = []
+
+    def fake_run(inputs, output, **options):
+        calls.append((inputs, output, options))
+        return {"status": "ok"}
+
+    monkeypatch.setattr("experiments.runner.run_experiment", fake_run)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "run_channel_experiment",
+            "--input",
+            "one.npz",
+            "two.npz",
+            "--output",
+            "run",
+            "--phase",
+            "--attempt-index",
+            "3",
+        ],
+    )
+
+    main()
+
+    inputs, output, options = calls[0]
+    assert inputs == ["one.npz", "two.npz"]
+    assert output == "run"
+    assert options["include_phase"] is True
+    assert options["attempt_index"] == 3
+    assert options["prior_shift"] is None
+    assert json.loads(capsys.readouterr().out) == {"status": "ok"}
+
+
+def test_experiment_cli_requires_input_and_output(monkeypatch) -> None:
+    monkeypatch.setattr("sys.argv", ["run_channel_experiment"])
+
+    with pytest.raises(SystemExit, match="2"):
+        main()
+
+
+def test_config_accepts_single_input_string(monkeypatch, tmp_path):
+    config = tmp_path / "single-input.yaml"
+    config.write_text(
+        "schema: loslab.experiment.v1\ninput: data.npz\noutput: run\n", encoding="utf-8"
+    )
+    calls = []
+    monkeypatch.setattr(
+        "experiments.runner.run_experiment",
+        lambda inputs, output, **options: (
+            calls.append((inputs, output, options)) or {"status": "ok"}
+        ),
+    )
+    monkeypatch.setattr("sys.argv", ["run_channel_experiment", "--config", str(config)])
+
+    main()
+
+    assert calls[0][0] == ["data.npz"]
