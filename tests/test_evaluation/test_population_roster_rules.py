@@ -77,3 +77,22 @@ def test_observed_vectors_must_align_and_be_canonical() -> None:
         )
     with pytest.raises(ValueError, match="must be canonical"):
         audit_expected_population(_roster(), **{**kwargs, "observed_domain_ids": [" scene-a"]})
+
+
+def test_observed_roster_reports_each_frozen_identity_mismatch() -> None:
+    report = audit_expected_population(
+        _roster(),
+        observed_sample_ids=["sample-1"],
+        observed_family_ids=["wrong-family"],
+        observed_domain_ids=["scene-a"],
+        observed_group_ids=["episode-1"],
+    )
+
+    assert report["identity_mismatches"] == [
+        {
+            "unit_id": "sample-1",
+            "field": "family_id",
+            "expected": "munich",
+            "observed": "wrong-family",
+        }
+    ]
