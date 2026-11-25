@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from types import SimpleNamespace
 
 import pytest
 from evaluation.acceptance import path_equivalence_roster_cli as roster_cli
@@ -126,6 +127,59 @@ def test_reader_enforces_the_size_limit(tmp_path, monkeypatch) -> None:
     source = _write(tmp_path / "big.json", _payload())
     monkeypatch.setattr(roster_cli, "_MAX_INPUT_BYTES", 32)
     with pytest.raises(ValueError, match="size limit"):
+        roster_cli._read_input(source)
+
+
+def test_reader_refuses_growth_past_limit_during_read(tmp_path, monkeypatch) -> None:
+    source = _write(tmp_path / "growing.json", _payload())
+    monkeypatch.setattr(roster_cli, "_MAX_INPUT_BYTES", 1)
+    real_fstat = roster_cli.os.fstat
+    calls = {"fstat": 0, "read": 0}
+
+    def stale_small_stat(descriptor):
+        calls["fstat"] += 1
+        result = real_fstat(descriptor)
+        if calls["fstat"] == 1:
+            return SimpleNamespace(
+                st_dev=result.st_dev,
+                st_ino=result.st_ino,
+                st_mode=result.st_mode,
+                st_nlink=result.st_nlink,
+                st_size=0,
+                st_mtime_ns=result.st_mtime_ns,
+                st_ctime_ns=result.st_ctime_ns,
+            )
+        return result
+
+    def file_grows(_descriptor, _size):
+        calls["read"] += 1
+        return b"xx" if calls["read"] == 1 else b""
+
+    monkeypatch.setattr(roster_cli.os, "fstat", stale_small_stat)
+    monkeypatch.setattr(roster_cli.os, "read", file_grows)
+
+    with pytest.raises(ValueError, match="size limit"):
+        roster_cli._read_input(source)
+
+
+def test_reader_refuses_file_replaced_during_read(tmp_path, monkeypatch) -> None:
+    source = _write(tmp_path / "replaced.json", _payload())
+    real_stat = roster_cli.os.stat
+
+    def changed_stat(path, *, follow_symlinks=True):
+        result = real_stat(path, follow_symlinks=follow_symlinks)
+        return SimpleNamespace(
+            st_dev=result.st_dev,
+            st_ino=result.st_ino + 1,
+            st_mode=result.st_mode,
+            st_nlink=result.st_nlink,
+            st_size=result.st_size,
+            st_mtime_ns=result.st_mtime_ns,
+            st_ctime_ns=result.st_ctime_ns,
+        )
+
+    monkeypatch.setattr(roster_cli.os, "stat", changed_stat)
+    with pytest.raises(ValueError, match="changed while it was being read"):
         roster_cli._read_input(source)
 
 
