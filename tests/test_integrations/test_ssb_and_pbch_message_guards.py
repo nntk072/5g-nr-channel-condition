@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 from integrations.sionna import pbch_dmrs
 from integrations.sionna.pbch_mib import (
+    PBCHMIB,
     PBCHMessageClassExtension,
     nr_bcch_bch_message_parse,
     nr_bcch_bch_message_serialize,
@@ -19,6 +20,26 @@ def test_pbch_dmrs_coordinate_count_invariant(monkeypatch: pytest.MonkeyPatch) -
 
     with pytest.raises(RuntimeError, match="coordinate count is inconsistent"):
         pbch_dmrs._pbch_dmrs_coordinates(0)
+
+
+def test_bcch_bch_message_serializer_accepts_mib_alternative() -> None:
+    message = PBCHMIB(
+        system_frame_number_msb=3,
+        subcarrier_spacing_common="scs30or120",
+        ssb_subcarrier_offset=7,
+        dmrs_type_a_position="pos3",
+        control_resource_set_zero=11,
+        search_space_zero=14,
+        cell_barred="barred",
+        intra_freq_reselection="notAllowed",
+        spare=1,
+    )
+
+    encoded = nr_bcch_bch_message_serialize(message)
+
+    assert encoded.shape == (24,)
+    assert encoded[0] == 0
+    assert nr_bcch_bch_message_parse(encoded) == message
 
 
 def test_epre_ratio_must_be_zero_or_three_db() -> None:
