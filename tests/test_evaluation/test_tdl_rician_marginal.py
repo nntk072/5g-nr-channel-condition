@@ -93,3 +93,66 @@ def test_rician_family_rejects_invalid_samples_or_reference(
 ) -> None:
     with pytest.raises(ValueError, match=message):
         score_tdl_rician_marginal_family(samples, reference)
+
+
+@pytest.mark.parametrize(
+    ("powers", "diffuse", "specular", "error", "message"),
+    [
+        (np.asarray([], dtype=np.float64), 1.0, 0.0, ValueError, "nonempty real vector"),
+        (np.asarray([True]), 1.0, 0.0, ValueError, "nonempty real vector"),
+        (np.asarray([1 + 1j]), 1.0, 0.0, ValueError, "nonempty real vector"),
+        (np.asarray([[1.0]]), 1.0, 0.0, ValueError, "nonempty real vector"),
+        (np.asarray([np.nan]), 1.0, 0.0, ValueError, "finite nonnegative"),
+        (np.asarray([-0.1]), 1.0, 0.0, ValueError, "finite nonnegative"),
+        (np.asarray([1.0]), 0.0, 0.0, ValueError, "diffuse_power must be positive"),
+        (np.asarray([1.0]), 1.0, -0.1, ValueError, "specular_power must be nonnegative"),
+        (np.asarray([1.0]), True, 0.0, TypeError, "diffuse_power must be a real number"),
+        (np.asarray([1.0]), np.inf, 0.0, ValueError, "diffuse_power must be finite"),
+        (np.asarray([1.0]), 1e308, 1e308, ValueError, "total first-tap power must be finite"),
+    ],
+)
+def test_rician_cdf_rejects_invalid_power_inputs(powers, diffuse, specular, error, message):
+    with pytest.raises(error, match=message):
+        rician_normalized_power_cdf(powers, diffuse_power=diffuse, specular_power=specular)
+
+
+def test_rician_family_rejects_empty_noncanonical_or_nonfinite_contracts():
+    with pytest.raises(ValueError, match="nonempty model mapping"):
+        score_tdl_rician_marginal_family({}, {})
+    with pytest.raises(ValueError, match="model identities"):
+        score_tdl_rician_marginal_family(
+            {" D10": np.ones(8, dtype=np.complex128)}, {" D10": (0.2, 0.8)}
+        )
+    with pytest.raises(ValueError, match="alpha must be in"):
+        score_tdl_rician_marginal_family(
+            {"D10": np.ones(8, dtype=np.complex128)}, {"D10": (0.2, 0.8)}, alpha=1.0
+        )
+    with pytest.raises(ValueError, match="maximum_simultaneous_cdf_error must be in"):
+        score_tdl_rician_marginal_family(
+            {"D10": np.ones(8, dtype=np.complex128)},
+            {"D10": (0.2, 0.8)},
+            maximum_simultaneous_cdf_error=0.0,
+        )
+    with pytest.raises(ValueError, match="samples must be finite"):
+        score_tdl_rician_marginal_family({"D10": np.asarray([np.inf + 1j])}, {"D10": (0.2, 0.8)})
+    with pytest.raises(ValueError, match="reference powers must be"):
+        score_tdl_rician_marginal_family(
+            {"D10": np.ones(8, dtype=np.complex128)}, {"D10": [0.2, 0.8]}
+        )
+    with (
+        np.errstate(over="ignore"),
+        pytest.raises(ValueError, match="normalized first-tap powers must be finite"),
+    ):
+        score_tdl_rician_marginal_family({"D10": np.asarray([1e308 + 0j])}, {"D10": (0.2, 0.8)})
+    with pytest.raises(ValueError, match="total first-tap power must be finite"):
+        score_tdl_rician_marginal_family(
+            {"D10": np.ones(8, dtype=np.complex128)}, {"D10": (1e308, 1e308)}
+        )
+
+
+def test_rician_cdf_rejects_nonfinite_scipy_output(monkeypatch):
+    import evaluation.covariance.tdl_rician_marginal as rician
+
+    monkeypatch.setattr(rician.ncx2, "cdf", lambda *_args, **_kwargs: np.asarray([np.nan]))
+    with pytest.raises(ValueError, match="CDF parameters exceed"):
+        rician_normalized_power_cdf(np.asarray([1.0]), diffuse_power=0.5, specular_power=0.5)

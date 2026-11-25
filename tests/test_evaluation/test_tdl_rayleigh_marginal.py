@@ -84,3 +84,72 @@ def test_family_scorer_rejects_duplicate_or_out_of_range_tap_identity() -> None:
         score_rayleigh_tap_marginal_family(samples, ((0, 0.5), (0, 0.5)))
     with pytest.raises(ValueError, match="exceeds"):
         score_rayleigh_tap_marginal_family(samples, ((2, 0.5),))
+
+
+@pytest.mark.parametrize(
+    ("draw_count", "family_count", "alpha", "error", "message"),
+    [
+        (True, 1, 0.01, ValueError, "draw_count must be a positive integer"),
+        (0, 1, 0.01, ValueError, "draw_count must be a positive integer"),
+        (1, False, 0.01, ValueError, "family_tap_count must be a positive integer"),
+        (1, 0, 0.01, ValueError, "family_tap_count must be a positive integer"),
+        (1, 1, True, TypeError, "alpha must be a real number"),
+        (1, 1, np.nan, ValueError, "alpha must be finite and in"),
+    ],
+)
+def test_rayleigh_dkw_radius_rejects_invalid_parameters(
+    draw_count, family_count, alpha, error, message
+):
+    with pytest.raises(error, match=message):
+        rayleigh_marginal_dkw_radius(draw_count, family_count, alpha=alpha)
+
+
+def test_rayleigh_distance_rejects_invalid_vector_power_and_overflow():
+    with pytest.raises(ValueError, match="nonempty complex vector"):
+        rayleigh_normalized_power_ks_distance(
+            np.asarray([], dtype=np.complex128), expected_mean_power=1
+        )
+    with pytest.raises(ValueError, match="finite complex values"):
+        rayleigh_normalized_power_ks_distance(np.asarray([np.inf + 0j]), expected_mean_power=1)
+    with pytest.raises(TypeError, match="expected_mean_power must be a real number"):
+        rayleigh_normalized_power_ks_distance(np.asarray([1j]), expected_mean_power=True)
+    with pytest.raises(ValueError, match="expected_mean_power must be finite and positive"):
+        rayleigh_normalized_power_ks_distance(np.asarray([1j]), expected_mean_power=np.inf)
+    with (
+        np.errstate(over="ignore"),
+        pytest.raises(ValueError, match="normalized sample powers must be finite"),
+    ):
+        rayleigh_normalized_power_ks_distance(np.asarray([1e308 + 0j]), expected_mean_power=0.5)
+
+
+def test_rayleigh_family_rejects_invalid_shapes_limits_and_power_rosters():
+    with pytest.raises(ValueError, match=r"nonempty \[draw, native_tap\] axes"):
+        score_rayleigh_tap_marginal_family(np.zeros((0, 1), dtype=np.complex128), ((0, 1.0),))
+    with pytest.raises(ValueError, match="finite complex values"):
+        score_rayleigh_tap_marginal_family(np.asarray([[np.nan + 0j]]), ((0, 1.0),))
+    with pytest.raises(TypeError, match="maximum_simultaneous_cdf_error must be a real number"):
+        score_rayleigh_tap_marginal_family(
+            np.ones((8, 1), dtype=np.complex128), ((0, 1.0),), maximum_simultaneous_cdf_error=True
+        )
+    with pytest.raises(ValueError, match="maximum_simultaneous_cdf_error must be finite"):
+        score_rayleigh_tap_marginal_family(
+            np.ones((8, 1), dtype=np.complex128), ((0, 1.0),), maximum_simultaneous_cdf_error=1.0
+        )
+    with pytest.raises(ValueError, match="nonempty sequence"):
+        score_rayleigh_tap_marginal_family(np.ones((8, 1), dtype=np.complex128), ())
+    with pytest.raises(ValueError, match="rows must be"):
+        score_rayleigh_tap_marginal_family(np.ones((8, 1), dtype=np.complex128), ((0, 1.0, 2),))
+    with pytest.raises(ValueError, match="nonnegative integers"):
+        score_rayleigh_tap_marginal_family(np.ones((8, 1), dtype=np.complex128), ((True, 1.0),))
+    with pytest.raises(TypeError, match="expected tap powers must be real"):
+        score_rayleigh_tap_marginal_family(np.ones((8, 1), dtype=np.complex128), ((0, True),))
+    with pytest.raises(ValueError, match="finite and positive"):
+        score_rayleigh_tap_marginal_family(np.ones((8, 1), dtype=np.complex128), ((0, np.inf),))
+    with pytest.raises(ValueError, match="family_tap_count must be an integer"):
+        score_rayleigh_tap_marginal_family(
+            np.ones((8, 1), dtype=np.complex128), ((0, 1.0),), family_tap_count=0
+        )
+    scored = score_rayleigh_tap_marginal_family(
+        np.ones((8, 1), dtype=np.complex128), ((0, 1.0),), family_tap_count=2
+    )
+    assert scored[0].confidence_radius == rayleigh_marginal_dkw_radius(8, 2)

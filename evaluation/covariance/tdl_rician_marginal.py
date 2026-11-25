@@ -43,8 +43,6 @@ def rician_normalized_power_cdf(
         raise ValueError("normalized_power must contain finite nonnegative values")
     diffuse = _positive_power(diffuse_power, "diffuse_power")
     specular = _nonnegative_power(specular_power, "specular_power")
-    if diffuse <= 0.0:
-        raise ValueError("diffuse_power must be positive for a Rician marginal")
     scale = diffuse + specular
     if not math.isfinite(scale):
         raise ValueError("total first-tap power must be finite")
