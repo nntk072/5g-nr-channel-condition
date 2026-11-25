@@ -450,6 +450,17 @@ def test_scenario_gbsm_reader_checks_record_identity_against_manifest(tmp_path) 
         read_scenario_gbsm_run(tmp_path, pointer)
 
 
+def test_episode_store_enforces_compressed_scenario_layer_limit(tmp_path, monkeypatch) -> None:
+    record = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="episode-layer-limit", sample_ids=["drop-000"]
+    ).records[0]
+    bundle = scenario_gbsm_episode_bundle(record)
+    monkeypatch.setattr(scenario_gbsm_store, "_record_bytes", lambda _record: b"too large")
+    monkeypatch.setattr(scenario_gbsm_store, "MAX_SCENARIO_GBSM_OBJECT_BYTES", 1)
+    with pytest.raises(ValueError, match="compressed byte ceiling"):
+        write_episode_bundle(tmp_path, bundle)
+
+
 def test_scenario_gbsm_episode_rejects_split_group_drift() -> None:
     record = scenario_gbsm_run_from_channel(
         _native_channel(), run_id="pilot-umix", sample_ids=["drop-000"]

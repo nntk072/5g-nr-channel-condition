@@ -263,8 +263,6 @@ def iter_episode_bundle_shards(
             )
             for episode_id, digest, relative_path, estimated_bytes in cursor:
                 estimated = int(estimated_bytes)
-                if estimated > max_shard_bytes:
-                    raise ValueError(f"episode bundle {episode_id!r} exceeds max_shard_bytes")
                 if batch and batch_bytes + estimated > max_shard_bytes:
                     yield tuple(read_episode_bundle(base, item) for item in batch)
                     batch = []
