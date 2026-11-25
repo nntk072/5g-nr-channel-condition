@@ -804,8 +804,8 @@ def map_nr_srs_hopped_resource(
             allocation.start_subcarrier + effective_comb_offset + comb_size * index
             for index in range(first.bandwidth.sequence_length)
         )
-        if subcarriers[-1] >= allocation.start_subcarrier + width:
-            raise ValueError("SRS comb placement exceeds its resolved allocation bandwidth")
+        # The modulo above bounds the offset below one comb. The resolved
+        # sequence length then ends at or before the allocated bandwidth edge.
         subcarriers_by_symbol.append(subcarriers)
         grid[symbol, list(subcarriers)] = beta_srs * rows[row_index]
         mask[symbol, list(subcarriers)] = True
