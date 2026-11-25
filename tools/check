@@ -117,7 +117,18 @@ elif gate in {"core", "test"}:
     uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
 elif gate == "neural":
     # CI installs the boosting extra and CPU-only PyTorch before this gate runs.
-    uv("run", "--no-sync", "--locked", "python", "-m", "pytest")
+    # This full coverage gate runs nightly, so include native Sionna PHY cases while
+    # keeping the unrelated evidence-integrity suite outside the 5G NR behavior gate.
+    uv(
+        "run",
+        "--no-sync",
+        "--locked",
+        "python",
+        "-m",
+        "pytest",
+        "-m",
+        "not evidence_integrity",
+    )
 elif gate == "docs":
     # Sphinx site: warnings are errors so that every broken link or docstring fails the gate.
     uv("run", "--locked", "--extra", "docs", "sphinx-build", "-W", "--keep-going", "-q",

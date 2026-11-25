@@ -166,15 +166,15 @@ def test_pair_manifest_reader_checks_canonical_encoding_and_view_roster(tmp_path
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(document, sort_keys=True, separators=(",", ":")))
     with pytest.raises(ValueError, match="exactly two channel views"):
-        read_paired_frequency_manifest(
-            tmp_path, new_stored, lower_bundle=low, upper_bundle=high
-        )
+        read_paired_frequency_manifest(tmp_path, new_stored, lower_bundle=low, upper_bundle=high)
 
 
 def test_pair_manifest_reader_rejects_path_escape_and_wrong_stored_type(tmp_path):
     _, _, _, stored = _stored_pair(tmp_path)
     with pytest.raises(TypeError, match="StoredPairedFrequencyManifest"):
-        read_paired_frequency_manifest(tmp_path, object(), lower_bundle=object(), upper_bundle=object())
+        read_paired_frequency_manifest(
+            tmp_path, object(), lower_bundle=object(), upper_bundle=object()
+        )
     path = tmp_path / stored.relative_path
     path.unlink()
     outside = tmp_path.parent / "outside-pair-manifest.json"
@@ -209,7 +209,9 @@ def test_frequency_pair_private_normalizers_reject_or_preserve_supported_shapes(
         physical_config={"trajectory": {"carrier_hz": 3.5e9}, "carrier_hz": 99.0},
     )
     assert frequency_pair._bound_carrier_hz(with_trajectory) == 3.5e9
-    without_geometry = replace(base, physical_config={"carrier_hz": base.physical_config["carrier_hz"]})
+    without_geometry = replace(
+        base, physical_config={"carrier_hz": base.physical_config["carrier_hz"]}
+    )
     assert frequency_pair._scene_geometry_digest(without_geometry) is None
     for carrier in (True, "3.5 GHz"):
         invalid = replace(base, physical_config={"carrier_hz": carrier})
@@ -231,7 +233,9 @@ def test_pair_split_audit_rejects_invalid_registry_relationships():
         SplitSubject("audit-extra-b", SplitParentType.NETWORK_EPISODE, "F04-RT-DYNAMIC"),
     )
     missing_parent = make_split_policy_registry(
-        tuple(subject for key, subject in registry.subjects.items() if key != pair.parent_episode_id)
+        tuple(
+            subject for key, subject in registry.subjects.items() if key != pair.parent_episode_id
+        )
         + (SplitSubject("unrelated", SplitParentType.NETWORK_EPISODE, "F04-RT-DYNAMIC"),),
         policy=registry.policy,
     )
@@ -244,9 +248,7 @@ def test_pair_split_audit_rejects_invalid_registry_relationships():
         "F04-RT-DYNAMIC",
         (LeakageRelation(LeakageNamespace.SCENE_REALIZATION, pair.source_scene_id),),
     )
-    wrong_type_registry = make_split_policy_registry(
-        (wrong_type, *extras), policy=registry.policy
-    )
+    wrong_type_registry = make_split_policy_registry((wrong_type, *extras), policy=registry.policy)
     with pytest.raises(ValueError, match="must be a network episode"):
         audit_paired_frequency_split_binding(pair, wrong_type_registry)
 

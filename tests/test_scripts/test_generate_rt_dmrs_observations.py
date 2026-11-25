@@ -108,8 +108,7 @@ def test_nr_observe_cli_reports_authorization_failure_without_building_output(
         domain=np.asarray(["scene", "scene"]),
         source=np.asarray(["sionna_rt", "sionna_rt"]),
         metadata=tuple(
-            {"grid_config": {"n_subcarriers": 16, "spacing_hz": 30_000.0}}
-            for _ in range(2)
+            {"grid_config": {"n_subcarriers": 16, "spacing_hz": 30_000.0}} for _ in range(2)
         ),
     ).save(source_path)
     monkeypatch.setattr(

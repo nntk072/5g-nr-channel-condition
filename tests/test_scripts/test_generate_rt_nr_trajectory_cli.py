@@ -50,7 +50,9 @@ def test_trajectory_cli_reports_missing_spec(tmp_path, monkeypatch, capsys) -> N
         ),
     ],
 )
-def test_trajectory_cli_reports_invalid_spec_payloads(tmp_path, monkeypatch, capsys, payload, message):
+def test_trajectory_cli_reports_invalid_spec_payloads(
+    tmp_path, monkeypatch, capsys, payload, message
+):
     spec = tmp_path / "invalid.json"
     spec.write_text(json.dumps(payload), encoding="utf-8")
     monkeypatch.setattr("sys.argv", _argv(spec, tmp_path / "store", "--pilot"))

@@ -292,9 +292,7 @@ def test_group_bootstrap_rejects_peak_index_limit(monkeypatch):
         ("test_stratum", ["only-one"], ValueError, "test_stratum must"),
     ],
 )
-def test_grouped_uncertainty_rejects_invalid_evaluation_options(
-    field, value, exception, message
-):
+def test_grouped_uncertainty_rejects_invalid_evaluation_options(field, value, exception, message):
     options = {
         "calibration_target": [0.0, 1.0],
         "calibration_prediction": [0.0, 1.0],

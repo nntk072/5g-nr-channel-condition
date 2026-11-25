@@ -163,11 +163,11 @@ def test_family_comparison_needs_two_groups_and_bounded_grids() -> None:
         ([True, False], [False, False], ["a", " "], "group IDs must be non-empty strings"),
     ],
 )
-def test_family_comparison_rejects_malformed_point_inputs(control, treatment, groups, message) -> None:
+def test_family_comparison_rejects_malformed_point_inputs(
+    control, treatment, groups, message
+) -> None:
     with pytest.raises(ValueError, match=message):
-        paired_cluster_binary_error_family_comparison(
-            [control], [treatment], [groups], draws=100
-        )
+        paired_cluster_binary_error_family_comparison([control], [treatment], [groups], draws=100)
 
 
 def test_family_comparison_enforces_independent_group_grid_limit(monkeypatch) -> None:

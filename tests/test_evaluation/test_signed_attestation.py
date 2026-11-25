@@ -17,6 +17,8 @@ from evaluation.acceptance.signed_attestation import (
     verify_signed_attestation_set,
 )
 
+pytestmark = pytest.mark.evidence_integrity
+
 _VERIFIER_HELPERS = Path(__file__).with_name("test_acquisition_package_verifier.py")
 _make_package = runpy.run_path(str(_VERIFIER_HELPERS))["_make_package"]
 

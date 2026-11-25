@@ -489,6 +489,46 @@ def test_cli_builds_and_prints_a_summary(tmp_path: Path, monkeypatch, capsys) ->
     assert (tmp_path / "cli" / "registry.json").exists()
 
 
+def test_cli_omits_build_node_when_report_has_no_cached_node(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    monkeypatch.setattr(
+        builder,
+        "build_candidate_split_registry",
+        lambda *_args, **_kwargs: {
+            "status": "PASS",
+            "registry_sha256": "registry-digest",
+            "registry_file_sha256": "file-digest",
+        },
+    )
+
+    assert (
+        main(
+            [
+                "--dataset",
+                "scene=scene.npz",
+                "--policy",
+                "policy.json",
+                "--spatial-buffer-m",
+                "0",
+                "--registry-output",
+                str(tmp_path / "registry.json"),
+                "--report-output",
+                str(tmp_path / "report.json"),
+            ]
+        )
+        == 0
+    )
+
+    summary = json.loads(capsys.readouterr().out)
+    assert summary == {
+        "status": "PASS",
+        "registry_sha256": "registry-digest",
+        "registry_file_sha256": "file-digest",
+        "report": str(tmp_path / "report.json"),
+    }
+
+
 def test_cli_maps_build_errors_to_exit_status_two(tmp_path: Path, capsys) -> None:
     datasets, _policy_path = _fixture(tmp_path)
     argv = [

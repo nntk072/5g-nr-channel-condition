@@ -102,9 +102,7 @@ def test_regular_file_reader_rejects_nonregular_open_descriptor(monkeypatch, tmp
     monkeypatch.setattr(
         artifact.os,
         "fstat",
-        lambda _descriptor: os.stat_result(
-            (stat.S_IFIFO, 1, 1, 1, 0, 0, 0, 0, 0, 0)
-        ),
+        lambda _descriptor: os.stat_result((stat.S_IFIFO, 1, 1, 1, 0, 0, 0, 0, 0, 0)),
     )
     with pytest.raises(ValueError, match="single-link regular file"):
         artifact._read_regular_file(path, limit=10, label="probe")
@@ -166,7 +164,9 @@ def test_frozen_preflight_rejects_colliding_paths(tmp_path: Path, collision: str
     source.write_bytes(b"{}")
     contract.write_bytes(b"{}")
     artifact_path = source if collision == "input" else tmp_path / "artifact.json"
-    receipt_path = tmp_path / "artifact.json" if collision == "outputs" else tmp_path / "receipt.json"
+    receipt_path = (
+        tmp_path / "artifact.json" if collision == "outputs" else tmp_path / "receipt.json"
+    )
     with pytest.raises(ValueError, match="must be distinct"):
         artifact.run_frozen_qualification_evaluation(source, contract, artifact_path, receipt_path)
 
@@ -181,7 +181,11 @@ def test_frozen_preflight_refuses_existing_outputs(tmp_path: Path):
 @pytest.mark.parametrize(
     ("contract_bytes", "exception", "message"),
     [
-        (b'{"schema": "loslab.qualification_run_contract.v3"}', ValueError, "canonical compact JSON"),
+        (
+            b'{"schema": "loslab.qualification_run_contract.v3"}',
+            ValueError,
+            "canonical compact JSON",
+        ),
         (b'{"schema":3}\n', ValueError, "requires contract v3 or v4"),
         (b'{"schema":"unsupported"}\n', ValueError, "requires contract v3 or v4"),
     ],
@@ -254,7 +258,9 @@ def test_frozen_preflight_detects_input_digest_drift_while_building_receipt(
         "_validate_joint_evaluator_input_schema",
         lambda *_args, **_kwargs: run_manifest.INPUT_SCHEMA_V4_RELATIVE_PATH,
     )
-    monkeypatch.setattr(run_manifest, "_verify_qualification_contract_bindings", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        run_manifest, "_verify_qualification_contract_bindings", lambda *_args, **_kwargs: None
+    )
     monkeypatch.setattr(run_manifest, "_runtime_identity", lambda: {})
     monkeypatch.setattr(
         artifact,

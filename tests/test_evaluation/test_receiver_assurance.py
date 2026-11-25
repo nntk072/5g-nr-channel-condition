@@ -148,10 +148,19 @@ def test_receiver_assurance_probability_validation(value: Any):
         ("urban", {}, "keys must be"),
         (("urban", "INVALID"), {}, "keys must be"),
         (("urban", "LOS"), {"extra": 1}, "must contain cluster outcomes"),
-        (("urban", "LOS"), {"assumed_cluster_outcomes": [], "probabilities": []}, "nonempty sequence"),
         (
             ("urban", "LOS"),
-            {"assumed_cluster_outcomes": [_scenario()[("urban", "LOS")]["assumed_cluster_outcomes"][0]], "probabilities": []},
+            {"assumed_cluster_outcomes": [], "probabilities": []},
+            "nonempty sequence",
+        ),
+        (
+            ("urban", "LOS"),
+            {
+                "assumed_cluster_outcomes": [
+                    _scenario()[("urban", "LOS")]["assumed_cluster_outcomes"][0]
+                ],
+                "probabilities": [],
+            },
             "match the outcome atoms",
         ),
         (
@@ -187,7 +196,12 @@ def test_receiver_assurance_probability_validation(value: Any):
         ),
         (
             ("urban", "LOS"),
-            {"assumed_cluster_outcomes": [_scenario()[("urban", "LOS")]["assumed_cluster_outcomes"][0]], "probabilities": [0.5]},
+            {
+                "assumed_cluster_outcomes": [
+                    _scenario()[("urban", "LOS")]["assumed_cluster_outcomes"][0]
+                ],
+                "probabilities": [0.5],
+            },
             "sum to one",
         ),
     ],

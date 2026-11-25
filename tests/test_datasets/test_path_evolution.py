@@ -212,42 +212,57 @@ def test_path_evolution_rejects_invalid_roots_frames_gauges_and_limits():
 def test_pair_cost_reports_gates_and_physical_descriptor_fallback():
     previous = evolution._PathDescriptor(0, 1.0, 1 + 0j, 0.0, (0.0, 0.0), None, ((1, 2, 3),))
     same = evolution._PathDescriptor(1, 1.1, 1 + 0j, 1.0, (0.1, 0.0), None, ((1, 2, 3),))
-    assert evolution._pair_cost(
-        previous,
-        same,
-        max_delay_change_s=1.0,
-        max_angle_change_rad=1.0,
-        max_doppler_change_hz=2.0,
-    )[1] == "delay_and_interaction_signature_angles_doppler"
-    assert evolution._pair_cost(
-        previous,
-        evolution._PathDescriptor(1, 3.0, 1 + 0j, 1.0, (0.1, 0.0), None, ((1, 2, 3),)),
-        max_delay_change_s=1.0,
-        max_angle_change_rad=1.0,
-        max_doppler_change_hz=2.0,
-    ) is None
-    assert evolution._pair_cost(
-        previous,
-        evolution._PathDescriptor(1, 1.1, 1 + 0j, 1.0, (2.0, 0.0), None, ((1, 2, 3),)),
-        max_delay_change_s=1.0,
-        max_angle_change_rad=1.0,
-        max_doppler_change_hz=2.0,
-    ) is None
-    assert evolution._pair_cost(
-        previous,
-        evolution._PathDescriptor(1, 1.1, 1 + 0j, 4.0, (0.1, 0.0), None, ((1, 2, 3),)),
-        max_delay_change_s=1.0,
-        max_angle_change_rad=1.0,
-        max_doppler_change_hz=2.0,
-    ) is None
+    assert (
+        evolution._pair_cost(
+            previous,
+            same,
+            max_delay_change_s=1.0,
+            max_angle_change_rad=1.0,
+            max_doppler_change_hz=2.0,
+        )[1]
+        == "delay_and_interaction_signature_angles_doppler"
+    )
+    assert (
+        evolution._pair_cost(
+            previous,
+            evolution._PathDescriptor(1, 3.0, 1 + 0j, 1.0, (0.1, 0.0), None, ((1, 2, 3),)),
+            max_delay_change_s=1.0,
+            max_angle_change_rad=1.0,
+            max_doppler_change_hz=2.0,
+        )
+        is None
+    )
+    assert (
+        evolution._pair_cost(
+            previous,
+            evolution._PathDescriptor(1, 1.1, 1 + 0j, 1.0, (2.0, 0.0), None, ((1, 2, 3),)),
+            max_delay_change_s=1.0,
+            max_angle_change_rad=1.0,
+            max_doppler_change_hz=2.0,
+        )
+        is None
+    )
+    assert (
+        evolution._pair_cost(
+            previous,
+            evolution._PathDescriptor(1, 1.1, 1 + 0j, 4.0, (0.1, 0.0), None, ((1, 2, 3),)),
+            max_delay_change_s=1.0,
+            max_angle_change_rad=1.0,
+            max_doppler_change_hz=2.0,
+        )
+        is None
+    )
     fallback = evolution._PathDescriptor(1, 1.1, 1 + 0j, None, None, None, None)
-    assert evolution._pair_cost(
-        previous,
-        fallback,
-        max_delay_change_s=1.0,
-        max_angle_change_rad=1.0,
-        max_doppler_change_hz=2.0,
-    )[1] == "physical_descriptor_fallback"
+    assert (
+        evolution._pair_cost(
+            previous,
+            fallback,
+            max_delay_change_s=1.0,
+            max_angle_change_rad=1.0,
+            max_doppler_change_hz=2.0,
+        )[1]
+        == "physical_descriptor_fallback"
+    )
 
 
 def test_path_evolution_report_requires_audit_value():
@@ -299,9 +314,9 @@ def test_path_evolution_handles_current_path_cost_ties_and_separated_costs(delay
 
 def test_path_evolution_keeps_best_of_separated_candidate_costs():
     table = _table((0, 1), (0, 1, 3), (1e-8, 1.1e-8, 1.9e-8))
-    transition = audit_path_evolution(
-        table, {0: 0.0, 1: 0.1}, max_delay_change_s=1e-8
-    ).transitions[0]
+    transition = audit_path_evolution(table, {0: 0.0, 1: 0.1}, max_delay_change_s=1e-8).transitions[
+        0
+    ]
     assert transition.status == "compared"
     assert len(transition.associations) == 1
     assert transition.associations[0].current_path_row == 1

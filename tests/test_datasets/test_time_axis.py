@@ -131,9 +131,17 @@ def test_named_source_alignment_rejects_invalid_report_shapes_and_claims():
     [
         ((), ValueError, "at least one named source"),
         ((("rx",),), TypeError, "entries must be"),
-        (((" rx ", align_time_axes((0.0,), (0.0,), tolerance_s=0.0)),), ValueError, "canonical strings"),
+        (
+            ((" rx ", align_time_axes((0.0,), (0.0,), tolerance_s=0.0)),),
+            ValueError,
+            "canonical strings",
+        ),
         ((("rx", object()),), TypeError, "must be a TimeAxisAlignment"),
-        ((("rx", align_time_axes((1.0,), (1.0,), tolerance_s=0.0)),), ValueError, "shared reference axis"),
+        (
+            (("rx", align_time_axes((1.0,), (1.0,), tolerance_s=0.0)),),
+            ValueError,
+            "shared reference axis",
+        ),
         (
             (
                 ("rx", align_time_axes((0.0,), (0.0,), tolerance_s=0.0)),

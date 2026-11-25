@@ -254,9 +254,24 @@ def test_total_component_cannot_be_marked_not_applicable() -> None:
             {},
             "duplicate expected stratum",
         ),
-        ([_row("c", "e")], [("family-a", "LOS", "total")], {"bootstrap_seed": True}, "bootstrap_seed"),
-        ([_row("c", "e")], [("family-a", "LOS", "total")], {"bootstrap_draws": 999}, "bootstrap_draws"),
-        ([_row("c", "e")], [("family-a", "LOS", "total")], {"effective_bandwidth_hz": 0}, "must be positive"),
+        (
+            [_row("c", "e")],
+            [("family-a", "LOS", "total")],
+            {"bootstrap_seed": True},
+            "bootstrap_seed",
+        ),
+        (
+            [_row("c", "e")],
+            [("family-a", "LOS", "total")],
+            {"bootstrap_draws": 999},
+            "bootstrap_draws",
+        ),
+        (
+            [_row("c", "e")],
+            [("family-a", "LOS", "total")],
+            {"effective_bandwidth_hz": 0},
+            "must be positive",
+        ),
     ],
 )
 def test_propagation_metric_design_inputs_fail_closed(records, expected, options, message):

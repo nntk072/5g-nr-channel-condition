@@ -135,9 +135,7 @@ def test_segment_visibility_classifies_clear_and_blocked_segments(monkeypatch):
 def test_segment_visibility_can_skip_boundary_probes_and_detect_disagreement(monkeypatch):
     _install_fake_native_modules(monkeypatch)
     scene = SimpleNamespace(mi_scene=_FakeScene(hit=False))
-    result = los_oracle.segment_visibility(
-        scene, (0, 0, 0), (0, 1, 0), boundary_probe_m=0.0
-    )
+    result = los_oracle.segment_visibility(scene, (0, 0, 0), (0, 1, 0), boundary_probe_m=0.0)
     assert result.state is los_oracle.SegmentVisibilityState.VISIBLE
     assert result.boundary_probe_blocked == ()
     assert scene.mi_scene.probe_calls == 0
@@ -145,21 +143,15 @@ def test_segment_visibility_can_skip_boundary_probes_and_detect_disagreement(mon
     ambiguous_scene = SimpleNamespace(
         mi_scene=_FakeScene(probe_results=(False, True, False, False))
     )
-    ambiguous = los_oracle.segment_visibility(
-        ambiguous_scene, (0, 0, 0), (0, 1, 0)
-    )
+    ambiguous = los_oracle.segment_visibility(ambiguous_scene, (0, 0, 0), (0, 1, 0))
     assert ambiguous.state is los_oracle.SegmentVisibilityState.AMBIGUOUS
     assert ambiguous.visible is None
 
 
 @pytest.mark.parametrize("normal", [(0, 0, 0), (float("nan"), 0, 0)])
-def test_segment_visibility_marks_invalid_or_grazing_surface_normals_ambiguous(
-    monkeypatch, normal
-):
+def test_segment_visibility_marks_invalid_or_grazing_surface_normals_ambiguous(monkeypatch, normal):
     _install_fake_native_modules(monkeypatch)
-    scene = SimpleNamespace(
-        mi_scene=_FakeScene(hit=True, probe_results=(True,) * 4, normal=normal)
-    )
+    scene = SimpleNamespace(mi_scene=_FakeScene(hit=True, probe_results=(True,) * 4, normal=normal))
     result = los_oracle.segment_visibility(scene, (0, 0, 0), (0, 1, 0))
     assert result.state is los_oracle.SegmentVisibilityState.AMBIGUOUS
     assert result.incidence_cosine == 0.0

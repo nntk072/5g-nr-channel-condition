@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
 import numpy as np
+import pytest
 from evaluation.sample_size import binomial
 from evaluation.sample_size.binomial import (
     _exact_binomial_failure_design,
@@ -133,7 +133,9 @@ def test_angular_maximum_design_corrects_downward_floating_rounding(monkeypatch)
 
 
 def test_exact_binomial_critical_failures_accepts_empty_count_vectors() -> None:
-    result = binomial._exact_binomial_critical_failures(np.array([], dtype=int), per_comparison_alpha=0.05)
+    result = binomial._exact_binomial_critical_failures(
+        np.array([], dtype=int), per_comparison_alpha=0.05
+    )
 
     assert result.size == 0
 

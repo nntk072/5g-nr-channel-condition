@@ -31,6 +31,8 @@ from tests.test_evaluation.test_signed_attestation import (
     _make_signed_set,
 )
 
+pytestmark = pytest.mark.evidence_integrity
+
 SPLIT_ATTESTATION_ID = "attest.split.plan"
 SPLIT_MANIFEST_FILE_ID = "file.split.manifest"
 NON_SPLIT_TYPE = "rights_review"

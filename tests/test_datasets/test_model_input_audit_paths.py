@@ -34,10 +34,22 @@ def _nr_inputs(**changes):
     ("changes", "error", "message"),
     [
         ({"receiver_config": object()}, TypeError, "audited NRPUSCHConfig contract"),
-        ({"h_hat": np.ones((1, 1, 2, 1, 1, 1, 8), dtype=np.complex64)}, ValueError, "batch/antenna/symbol axes"),
+        (
+            {"h_hat": np.ones((1, 1, 2, 1, 1, 1, 8), dtype=np.complex64)},
+            ValueError,
+            "batch/antenna/symbol axes",
+        ),
         ({"pilot_mask": np.ones((1, 1, 1, 7), dtype=bool)}, ValueError, "pilot_mask must match"),
-        ({"error_variance": np.ones((1, 1, 1, 1, 1, 1, 7), dtype=np.float32)}, ValueError, "broadcastable to h_hat"),
-        ({"received_grid_mask": np.ones((1, 1, 1, 1, 7), dtype=bool)}, ValueError, "received_grid_mask must match"),
+        (
+            {"error_variance": np.ones((1, 1, 1, 1, 1, 1, 7), dtype=np.float32)},
+            ValueError,
+            "broadcastable to h_hat",
+        ),
+        (
+            {"received_grid_mask": np.ones((1, 1, 1, 1, 7), dtype=bool)},
+            ValueError,
+            "received_grid_mask must match",
+        ),
         ({"fft_bin_indices": [0, 1, 2, 3, 4, 5, 6, 7]}, TypeError, "tuple of integer FFT-bin"),
         ({"fft_bin_indices": (0, 1, 2, 3, 4, 5, 6, True)}, TypeError, "tuple of integer FFT-bin"),
         ({"fft_bin_indices": (0, 1, 2, 3, 4, 5, 6, 8)}, ValueError, "uniquely map"),

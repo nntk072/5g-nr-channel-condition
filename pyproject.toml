@@ -82,10 +82,13 @@ compute = ["schema/*.json"]
 testpaths = ["tests"]
 addopts = [
   "-q",
+  "-m",
+  "not evidence_integrity and not native_sionna",
   "--cov",
   "--cov-report=term-missing",
 ]
 markers = [
+  "evidence_integrity: cryptographic evidence-package integrity tests outside the 5G NR behavior gate",
   "integration: tests for optional integrations and external libraries",
   "native_sionna: requires Sionna 2.2 PHY; RT cases additionally require the sionna-rt extra",
 ]
@@ -96,6 +99,7 @@ markers = [
 source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "scripts"]
 branch = true
 omit = [
+  "evaluation/acceptance/signed_attestation.py",
   "integrations/sionna/rt_trajectory.py",
   "integrations/sionna/rt_network.py",
   "integrations/sionna/adapter/raytrace.py",

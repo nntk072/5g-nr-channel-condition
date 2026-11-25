@@ -66,4 +66,9 @@ def test_class_support_rejects_unhashable_observed_labels() -> None:
     labels = np.empty(1, dtype=object)
     labels[0] = [0]
     with pytest.raises(ValueError, match="observed class labels must be hashable scalars"):
-        _audit(labels=labels, independent_group_ids=["group0"], split_ids=["train"], family_ids=["family-a"])
+        _audit(
+            labels=labels,
+            independent_group_ids=["group0"],
+            split_ids=["train"],
+            family_ids=["family-a"],
+        )

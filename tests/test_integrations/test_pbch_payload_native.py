@@ -241,9 +241,7 @@ def test_payload_scrambling_requires_an_integer_candidate_count(candidate_count)
 )
 def test_payload_scrambling_rejects_malformed_bit_vectors(payload, message) -> None:
     with pytest.raises(ValueError, match=message):
-        nr_pbch_payload_scramble(
-            payload, 0, 0, max_candidate_blocks_per_half_frame=8
-        )
+        nr_pbch_payload_scramble(payload, 0, 0, max_candidate_blocks_per_half_frame=8)
 
 
 def test_payload_generation_checks_sfn_against_mib_bits() -> None:

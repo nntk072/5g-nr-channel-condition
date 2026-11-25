@@ -270,6 +270,7 @@ def pair_stored_frequency_bundles(
     lower_view, lower_provenance = selected(lower, lower_view_id)
     upper_view, upper_provenance = selected(upper, upper_view_id)
     geometry_digest = _scene_geometry_digest(lower_provenance)
+    assert geometry_digest is not None
     return PairedFrequencyViews(
         pair_id=pair_id,
         source_scene_id=source_scene_id,

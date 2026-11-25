@@ -127,7 +127,9 @@ def test_rt_data_cli_dispatches_to_content_addressed_cache_when_requested(
     assert "GEOMETRY-LABELED RT" in capsys.readouterr().out
 
 
-def test_rt_data_cli_rejects_empty_production_approval_digest(monkeypatch, tmp_path, capsys) -> None:
+def test_rt_data_cli_rejects_empty_production_approval_digest(
+    monkeypatch, tmp_path, capsys
+) -> None:
     monkeypatch.setattr(
         "sys.argv",
         [
@@ -145,7 +147,10 @@ def test_rt_data_cli_rejects_empty_production_approval_digest(monkeypatch, tmp_p
         main()
 
     assert error.value.code == 2
-    assert "--qualification-approval-sha256 is required with production approval" in capsys.readouterr().err
+    assert (
+        "--qualification-approval-sha256 is required with production approval"
+        in capsys.readouterr().err
+    )
 
 
 def test_rt_data_cli_reports_failure_to_persist_generation_diagnostic(
@@ -158,9 +163,7 @@ def test_rt_data_cli_reports_failure_to_persist_generation_diagnostic(
     failure_path = tmp_path / "failed.npz.failure.json"
 
     def fail_generation(_config, *, seed, **_kwargs):
-        raise sionna2.RaytraceGenerationError(
-            "No NLOS samples", {"status": "insufficient_samples"}
-        )
+        raise sionna2.RaytraceGenerationError("No NLOS samples", {"status": "insufficient_samples"})
 
     monkeypatch.setattr(sionna2, "generate_raytraced", fail_generation)
     monkeypatch.setattr(sionna2, "authorize_rt_data_generation", lambda *_args, **_kwargs: object())
@@ -186,7 +189,9 @@ def test_rt_data_cli_routes_authorization_errors_to_argument_parser(monkeypatch,
         "authorize_rt_data_generation",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError("invalid pilot request")),
     )
-    monkeypatch.setattr("sys.argv", ["generate_rt_dataset", "--pilot", "--output", str(tmp_path / "out.npz")])
+    monkeypatch.setattr(
+        "sys.argv", ["generate_rt_dataset", "--pilot", "--output", str(tmp_path / "out.npz")]
+    )
 
     with pytest.raises(SystemExit) as error:
         main()

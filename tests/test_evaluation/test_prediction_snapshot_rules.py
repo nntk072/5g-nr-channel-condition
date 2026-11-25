@@ -69,7 +69,9 @@ def test_snapshot_detects_a_file_that_changes_while_opening(tmp_path: Path, monk
         uncertainty_io._read_prediction_snapshot(source)
 
 
-def test_snapshot_enforces_byte_limit_if_file_grows_during_read(tmp_path: Path, monkeypatch) -> None:
+def test_snapshot_enforces_byte_limit_if_file_grows_during_read(
+    tmp_path: Path, monkeypatch
+) -> None:
     source = tmp_path / "growing.csv"
     source.write_bytes(b"x")
     monkeypatch.setattr(uncertainty_io, "_MAX_PREDICTION_FILE_BYTES", 4)

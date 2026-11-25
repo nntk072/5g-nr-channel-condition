@@ -390,9 +390,7 @@ def test_material_value_normalizes_numpy_and_code_constants():
 
         return inner
 
-    nested_code = next(
-        value for value in outer.__code__.co_consts if isinstance(value, CodeType)
-    )
+    nested_code = next(value for value in outer.__code__.co_consts if isinstance(value, CodeType))
     assert "code" in scene_assets_module._code_constant(nested_code)
     assert scene_assets_module._code_constant((b"a", Ellipsis)) == [
         {"bytes_hex": "61"},
@@ -512,9 +510,7 @@ def test_material_callback_manifest_serializes_callable_global():
     callback = cast(dict[str, Any], sionna_scene_material_manifest(scene))["materials"][
         "wall-material"
     ]["frequency_update_callback"]
-    assert callback["referenced_globals"]["_CALLBACK_GLOBAL_CALLABLE"][
-        "callable_qualname"
-    ] == "len"
+    assert callback["referenced_globals"]["_CALLBACK_GLOBAL_CALLABLE"]["callable_qualname"] == "len"
     _CALLBACK_GLOBAL_CYCLE["self"] = _CALLBACK_GLOBAL_CYCLE
     material = SimpleNamespace(
         name="wall-material",

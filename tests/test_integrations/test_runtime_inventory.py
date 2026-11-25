@@ -474,10 +474,16 @@ def test_runtime_inventory_cli_writes_new_output_and_stdout(tmp_path, monkeypatc
     report = {"status": "fixture"}
     monkeypatch.setattr(runtime_inventory, "build_runtime_inventory", lambda *_a, **_k: report)
     output = tmp_path / "inventory.json"
-    assert runtime_inventory.main(["--repository-root", str(tmp_path), "--output", str(output)]) == 0
+    assert (
+        runtime_inventory.main(["--repository-root", str(tmp_path), "--output", str(output)]) == 0
+    )
     assert json.loads(output.read_text()) == report
 
-    monkeypatch.setattr(runtime_inventory.sys, "stdout", SimpleNamespace(buffer=SimpleNamespace(write=lambda data: captured.append(data))))
+    monkeypatch.setattr(
+        runtime_inventory.sys,
+        "stdout",
+        SimpleNamespace(buffer=SimpleNamespace(write=lambda data: captured.append(data))),
+    )
     captured = []
     assert runtime_inventory.main(["--repository-root", str(tmp_path)]) == 0
     assert json.loads(captured[0]) == report

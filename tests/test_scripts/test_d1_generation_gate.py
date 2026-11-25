@@ -403,14 +403,18 @@ def test_standalone_rt_dmrs_builder_serializes_authorized_fixture_dataset(
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     calls = {}
-    monkeypatch.setattr(module, "build_rt_dmrs_generation_request", lambda *args, **kwargs: {"fixture": True})
+    monkeypatch.setattr(
+        module, "build_rt_dmrs_generation_request", lambda *args, **kwargs: {"fixture": True}
+    )
 
     def fake_authorize(request, **kwargs):
         calls["authorization"] = (request, kwargs)
         return object()
 
     monkeypatch.setattr(module, "authorize_d1_generation", fake_authorize)
-    monkeypatch.setattr(module, "build_rt_dmrs_observation_dataset", lambda datasets, **kwargs: observed)
+    monkeypatch.setattr(
+        module, "build_rt_dmrs_observation_dataset", lambda datasets, **kwargs: observed
+    )
     monkeypatch.setattr(module, "versions", lambda: {"git_sha": "fixture-sha"})
     monkeypatch.setattr(module, "package_source_sha256", lambda: "fixture-source-digest")
     monkeypatch.setattr(

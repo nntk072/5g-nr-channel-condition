@@ -230,6 +230,7 @@ class EpisodeBundle:
         source_paths = self.path_oracle
         ablation_children: set[str] = set()
         for item in direct_path_ablations:
+            assert source_paths is not None
             if item.parent_subject_id != self.episode.episode_id:
                 raise ValueError("direct-path ablation parent must match the episode ID")
             if item.carrier_hz is not None and item.carrier_hz != self.episode.carrier_hz:

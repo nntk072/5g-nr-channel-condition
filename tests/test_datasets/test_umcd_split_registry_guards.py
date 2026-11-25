@@ -24,12 +24,48 @@ def _registry():
 @pytest.mark.parametrize(
     ("fields", "components", "assignments", "keys", "message"),
     [
-        ((), {"episode-a": "component-a"}, {"component-a": "train"}, {"episode-a": ()}, "group_fields"),
-        (("scene", "scene"), {"episode-a": "component-a"}, {"component-a": "train"}, {"episode-a": ("scene-a", "scene-a")}, "group_fields"),
-        (("scene",), {"episode-a": "component-a"}, {"component-a": "train"}, {}, "group keys and a component"),
-        (("scene",), {"episode-a": "component-a"}, {}, {"episode-a": ("scene-a",)}, "cover every registered component"),
-        (("scene",), {"episode-a": "component-a"}, {"component-a": "development"}, {"episode-a": ("scene-a",)}, "split names"),
-        (("scene",), {"episode-a": "component-a"}, {"component-a": "train"}, {"episode-a": ("scene-a", "route-a")}, "one value for every group field"),
+        (
+            (),
+            {"episode-a": "component-a"},
+            {"component-a": "train"},
+            {"episode-a": ()},
+            "group_fields",
+        ),
+        (
+            ("scene", "scene"),
+            {"episode-a": "component-a"},
+            {"component-a": "train"},
+            {"episode-a": ("scene-a", "scene-a")},
+            "group_fields",
+        ),
+        (
+            ("scene",),
+            {"episode-a": "component-a"},
+            {"component-a": "train"},
+            {},
+            "group keys and a component",
+        ),
+        (
+            ("scene",),
+            {"episode-a": "component-a"},
+            {},
+            {"episode-a": ("scene-a",)},
+            "cover every registered component",
+        ),
+        (
+            ("scene",),
+            {"episode-a": "component-a"},
+            {"component-a": "development"},
+            {"episode-a": ("scene-a",)},
+            "split names",
+        ),
+        (
+            ("scene",),
+            {"episode-a": "component-a"},
+            {"component-a": "train"},
+            {"episode-a": ("scene-a", "route-a")},
+            "one value for every group field",
+        ),
         (
             ("scene",),
             {"episode-a": "component-a", "episode-b": "component-b"},
@@ -105,13 +141,16 @@ def test_frozen_registry_write_is_idempotent_and_refuses_drift(tmp_path):
     assert splits.freeze_episode_split_registry(destination, registry) == digest
     assert splits.read_episode_split_registry(destination) == registry
     with pytest.raises(FileExistsError, match="refusing to modify"):
-        splits.freeze_episode_split_registry(destination, splits.EpisodeSplitRegistry(
-            seed="other",
-            group_fields=("scene",),
-            episode_to_component={"episode-a": "component-a"},
-            component_to_split={"component-a": "train"},
-            episode_group_keys={"episode-a": ("scene-a",)},
-        ))
+        splits.freeze_episode_split_registry(
+            destination,
+            splits.EpisodeSplitRegistry(
+                seed="other",
+                group_fields=("scene",),
+                episode_to_component={"episode-a": "component-a"},
+                component_to_split={"component-a": "train"},
+                episode_group_keys={"episode-a": ("scene-a",)},
+            ),
+        )
 
 
 @pytest.mark.parametrize("identical", [True, False])
@@ -133,11 +172,21 @@ def test_frozen_registry_link_race_checks_existing_content(monkeypatch, tmp_path
     monkeypatch.setattr(splits.os, "link", real_link)
 
 
-@pytest.mark.parametrize("payload", [{"schema": "unsupported", "schema_version": 1}, {"schema": "umcd.split_registry.v1", "schema_version": 1}])
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"schema": "unsupported", "schema_version": 1},
+        {"schema": "umcd.split_registry.v1", "schema_version": 1},
+    ],
+)
 def test_registry_reader_rejects_unsupported_schema_and_bad_hash(tmp_path, payload):
     path = tmp_path / "registry.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
-    expected_message = "unsupported UMCD split registry schema" if payload["schema"] == "unsupported" else "hash is invalid"
+    expected_message = (
+        "unsupported UMCD split registry schema"
+        if payload["schema"] == "unsupported"
+        else "hash is invalid"
+    )
     with pytest.raises(ValueError, match=expected_message):
         splits.read_episode_split_registry(path)
 
@@ -156,9 +205,7 @@ def test_registry_reader_rejects_noncanonical_representation_with_valid_digest(t
 def test_registry_audit_detects_corrupt_leakage_component_links():
     registry = object.__new__(splits.EpisodeSplitRegistry)
     object.__setattr__(registry, "group_fields", ("scene",))
-    object.__setattr__(
-        registry, "episode_group_keys", {"a": ("shared",), "b": ("shared",)}
-    )
+    object.__setattr__(registry, "episode_group_keys", {"a": ("shared",), "b": ("shared",)})
     object.__setattr__(registry, "episode_to_component", {"a": "component-a", "b": "component-b"})
     with pytest.raises(ValueError, match="leakage group crosses split components"):
         splits.audit_episode_split_registry(
@@ -198,7 +245,9 @@ def test_registry_freeze_handles_temporary_stream_without_a_path(monkeypatch, tm
         def fileno(self):
             return 1
 
-    monkeypatch.setattr(splits.tempfile, "NamedTemporaryFile", lambda **_kwargs: StreamWithoutPath())
+    monkeypatch.setattr(
+        splits.tempfile, "NamedTemporaryFile", lambda **_kwargs: StreamWithoutPath()
+    )
     monkeypatch.setattr(splits.os, "fsync", lambda _fd: None)
     monkeypatch.setattr(splits.os, "link", lambda *_args: None)
     digest = splits.freeze_episode_split_registry(tmp_path / "registry.json", _registry())

@@ -115,21 +115,25 @@ def test_triangle_geometry_helpers_cover_degenerate_and_outside_cases():
     degenerate = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0]])
     assert visibility._barycentric(np.zeros(3), degenerate) is None
     assert not visibility._point_in_triangle(np.zeros(3), degenerate, 1e-8)
-    assert visibility._intersect_open_segment_triangle(
-        np.asarray([-1.0, 0.0, 0.0]),
-        np.asarray([2.0, 0.0, 0.0]),
-        degenerate,
-        tolerance_m=1e-8,
-    ) == "ambiguous"
-    numerically_degenerate = np.asarray(
-        [[0.0, 0.0, 0.0], [1e-6, 0.0, 0.0], [0.0, 1e-6, 0.0]]
+    assert (
+        visibility._intersect_open_segment_triangle(
+            np.asarray([-1.0, 0.0, 0.0]),
+            np.asarray([2.0, 0.0, 0.0]),
+            degenerate,
+            tolerance_m=1e-8,
+        )
+        == "ambiguous"
     )
-    assert visibility._intersect_open_segment_triangle(
-        np.asarray([0.0, 0.0, -1.0]),
-        np.asarray([0.0, 0.0, 2.0]),
-        numerically_degenerate,
-        tolerance_m=1e-8,
-    ) == "ambiguous"
+    numerically_degenerate = np.asarray([[0.0, 0.0, 0.0], [1e-6, 0.0, 0.0], [0.0, 1e-6, 0.0]])
+    assert (
+        visibility._intersect_open_segment_triangle(
+            np.asarray([0.0, 0.0, -1.0]),
+            np.asarray([0.0, 0.0, 2.0]),
+            numerically_degenerate,
+            tolerance_m=1e-8,
+        )
+        == "ambiguous"
+    )
 
 
 def test_coplanar_segment_without_contact_is_visible_and_collinear_edge_is_ambiguous():
@@ -164,9 +168,7 @@ def test_endpoint_contact_outside_triangle_is_not_an_intersection():
 
 
 def test_near_parallel_plane_crossing_reports_ambiguity_only_near_the_face():
-    broad_triangle = np.asarray(
-        [[0.0, -100.0, -100.0], [0.0, 100.0, -100.0], [0.0, 0.0, 100.0]]
-    )
+    broad_triangle = np.asarray([[0.0, -100.0, -100.0], [0.0, 100.0, -100.0], [0.0, 0.0, 100.0]])
     near = visibility._intersect_open_segment_triangle(
         np.asarray([-2e-9, -1.0, 0.0]),
         np.asarray([1.3e-8, 2.0, 0.0]),
@@ -191,9 +193,7 @@ def test_near_parallel_plane_crossing_reports_ambiguity_only_near_the_face():
 
 
 def test_coplanar_overlap_skips_zero_length_triangle_edge():
-    triangle_with_duplicate_vertex = np.asarray(
-        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
-    )
+    triangle_with_duplicate_vertex = np.asarray([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
     assert not visibility._coplanar_segment_overlaps_triangle(
         np.asarray([2.0, 2.0, 0.0]),
         np.asarray([1.0, 0.0, 0.0]),

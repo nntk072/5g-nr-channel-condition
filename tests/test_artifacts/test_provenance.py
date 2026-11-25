@@ -46,7 +46,9 @@ def test_package_source_hash_skips_missing_packages_and_pycache(
     assert provenance.package_source_sha256() != digest
 
 
-def test_package_source_hash_handles_missing_package_directories(monkeypatch, tmp_path: Path) -> None:
+def test_package_source_hash_handles_missing_package_directories(
+    monkeypatch, tmp_path: Path
+) -> None:
     artifacts = tmp_path / "artifacts"
     artifacts.mkdir()
     (artifacts / "provenance.py").write_bytes(b"module")

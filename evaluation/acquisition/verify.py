@@ -503,6 +503,8 @@ def verify_acquisition_package(
         ):
             errors.append(f"angular {record['angular_id']} edges must be strictly increasing")
         else:
+            theta = cast(list[float], theta)
+            phi = cast(list[float], phi)
             matrix_dimensions_valid = True
             for field in ("power_per_bin_w", "solid_angle_sr"):
                 matrix = record.get(field)
@@ -547,6 +549,10 @@ def verify_acquisition_package(
                     errors.append(
                         f"angular {angular_id} has missing bins and cannot support a complete pattern"
                     )
+                power = record.get("power_per_bin_w")
+                solid_angle = record.get("solid_angle_sr")
+                power = cast(list[list[Any]], power)
+                solid_angle = cast(list[list[Any]], solid_angle)
                 if not (
                     math.isclose(float(theta[0]), 0.0, rel_tol=0.0, abs_tol=1e-12)
                     and math.isclose(float(theta[-1]), 180.0, rel_tol=0.0, abs_tol=1e-12)
@@ -558,8 +564,6 @@ def verify_acquisition_package(
                         f"angular {angular_id} must cover zenith 0–180 and a full 360-degree azimuth"
                     )
                     continue
-                power = record.get("power_per_bin_w")
-                solid_angle = record.get("solid_angle_sr")
                 if any(
                     isinstance(value, bool)
                     or not isinstance(value, (int, float))

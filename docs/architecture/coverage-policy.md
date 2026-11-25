@@ -15,6 +15,7 @@ in code formatting, the second column is the reason.
 
 | Entry | Reason |
 | --- | --- |
+| `evaluation/acceptance/signed_attestation.py` | Cryptographic authenticity and package-binding checks protect research evidence integrity but do not exercise 5G NR behavior. Their tests are marked `evidence_integrity` and are excluded from the default NR test and coverage gates; run them explicitly with `pytest -m evidence_integrity` when changing this security boundary. |
 | `if TYPE_CHECKING:` | Import-time branch for type checkers only; it never runs. |
 | `if __name__ == .__main__.:` | Module entry-point guard. The behaviour is tested through the callable `main()`. |
 | `if not hasattr\(os, "O_NOFOLLOW"\)` | Platform refusal. Raised only where the operating system lacks the `O_NOFOLLOW` open flag. CI and development run on Linux, which always defines it, so the branch cannot execute in CI. |

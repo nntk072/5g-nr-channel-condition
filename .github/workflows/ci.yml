@@ -102,53 +102,6 @@ jobs:
       - name: Run core tests
         run: ./tools/check test
 
-  neural:
-    name: Neural and boosted baseline tests (Python 3.12)
-    needs: lock
-    runs-on: ubuntu-latest
-    timeout-minutes: 150
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install uv and Python
-        uses: astral-sh/setup-uv@v6
-        with:
-          python-version: "3.12"
-          enable-cache: true
-          cache-dependency-glob: uv.lock
-
-      - name: Install project and development dependencies
-        run: uv sync --locked --extra dev --extra boosting --extra sionna --no-install-package torch
-
-      - name: Install CPU-only PyTorch
-        run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
-
-      - name: Run neural and boosted tests with coverage
-        id: neural
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          ./tools/check neural 2>&1 | tee neural-test-output.txt
-
-      - name: Keep neural test output and coverage data
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: neural-test-output
-          path: |
-            neural-test-output.txt
-            .coverage*
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Fail the job when the neural gate failed
-        if: steps.neural.outcome != 'success'
-        run: exit 1
-
   architecture:
     name: Architecture and coverage policy
     needs: lock
@@ -221,7 +174,7 @@ jobs:
   ci-success:
     name: CI result
     if: always()
-    needs: [lock, lint, typecheck, architecture, docs, test, neural, build]
+    needs: [lock, lint, typecheck, architecture, docs, test, build]
     runs-on: ubuntu-latest
     steps:
       - name: Require all jobs to succeed

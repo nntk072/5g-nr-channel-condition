@@ -164,9 +164,7 @@ def _install_fake_sionna_phy(monkeypatch, torch, *, frequency_hopping="neither")
         def __init__(self, config, **_kwargs):
             self.config = config
             self.resource_grid = SimpleNamespace(
-                pilot_pattern=SimpleNamespace(
-                    mask=torch.ones((1, 1, 14, 48), dtype=torch.bool)
-                ),
+                pilot_pattern=SimpleNamespace(mask=torch.ones((1, 1, 14, 48), dtype=torch.bool)),
                 num_ofdm_symbols=14,
                 fft_size=48,
                 cyclic_prefix_length=4,
@@ -390,8 +388,8 @@ def test_pusch_allocation_grid_places_and_extracts_configured_slot_symbols() -> 
     torch = pytest.importorskip("torch")
     receiver, _ = _adapter_with_recording_decoder(torch, expected_tail=(4, 48))
     receiver.config = NRPUSCHConfig(mapping_type="B", symbol_allocation=(2, 4))
-    allocation = torch.arange(4 * 48, dtype=torch.float32).to(torch.complex64).reshape(
-        1, 1, 1, 4, 48
+    allocation = (
+        torch.arange(4 * 48, dtype=torch.float32).to(torch.complex64).reshape(1, 1, 1, 4, 48)
     )
 
     slot = receiver.place_allocation_in_slot(allocation)
@@ -525,10 +523,16 @@ def test_pusch_ofdm_modulators_and_demodulators_use_receiver_parameters(monkeypa
 @pytest.mark.parametrize(
     ("method_name", "argument"),
     [
-        ("modulate_carrier_slot_grid", lambda torch: torch.ones((1, 1, 1, 14, 48), dtype=torch.complex64)),
+        (
+            "modulate_carrier_slot_grid",
+            lambda torch: torch.ones((1, 1, 1, 14, 48), dtype=torch.complex64),
+        ),
         ("modulate_slot_grid", lambda torch: torch.ones((1, 1, 1, 14, 48), dtype=torch.complex64)),
         ("demodulate_slot_waveform", lambda torch: torch.ones((1, 1, 1, 1), dtype=torch.complex64)),
-        ("demodulate_carrier_slot_waveform", lambda torch: torch.ones((1, 1, 1, 728), dtype=torch.complex64)),
+        (
+            "demodulate_carrier_slot_waveform",
+            lambda torch: torch.ones((1, 1, 1, 728), dtype=torch.complex64),
+        ),
     ],
 )
 def test_pusch_ofdm_operations_report_missing_optional_dependency(
@@ -587,9 +591,7 @@ def test_carrier_waveform_demodulator_rejects_invalid_shape_dtype_or_values(
         ),
     ],
 )
-def test_carrier_waveform_demodulator_rejects_invalid_axes(
-    monkeypatch, waveform, message
-) -> None:
+def test_carrier_waveform_demodulator_rejects_invalid_axes(monkeypatch, waveform, message) -> None:
     torch = pytest.importorskip("torch")
     receiver, _ = _adapter_with_recording_decoder(torch)
     _install_fake_ofdm(monkeypatch)
@@ -746,9 +748,7 @@ def test_pusch_decoder_rejects_wrong_result_arity() -> None:
     torch = pytest.importorskip("torch")
     receiver, _ = _adapter_with_recording_decoder(torch, outputs=("only-one-output",))
     with pytest.raises(ValueError, match="decoded bits and CRC status"):
-        receiver.decode_pusch(
-            torch.ones((2, 1, 1, 14, 48), dtype=torch.complex64), 0.1
-        )
+        receiver.decode_pusch(torch.ones((2, 1, 1, 14, 48), dtype=torch.complex64), 0.1)
 
 
 def test_perfect_csi_decoder_validates_channel_truth_and_binary_outputs() -> None:
@@ -802,16 +802,12 @@ def test_perfect_csi_decoder_rejects_malformed_channel_truth_before_backend_call
     [
         (lambda torch: object(), "channel_truth must be a dense finite complex tensor"),
         (
-            lambda torch: torch.full(
-                (2, 1, 1, 1, 1, 14, 48), 1e300 + 0j, dtype=torch.complex128
-            ),
+            lambda torch: torch.full((2, 1, 1, 1, 1, 14, 48), 1e300 + 0j, dtype=torch.complex128),
             "remain finite when converted",
         ),
     ],
 )
-def test_perfect_csi_decoder_rejects_unconvertible_or_unrepresentable_truth(
-    truth, message
-) -> None:
+def test_perfect_csi_decoder_rejects_unconvertible_or_unrepresentable_truth(truth, message) -> None:
     torch = pytest.importorskip("torch")
     receiver, decoder = _adapter_with_recording_decoder(torch)
     receiver._perfect_csi_decoder = decoder
@@ -885,17 +881,13 @@ def test_pusch_dehopped_decode_records_unqualified_replay(monkeypatch) -> None:
         ),
     ],
 )
-def test_pusch_dehopped_decode_rejects_invalid_inputs_before_dehop(
-    grid, metadata, message
-) -> None:
+def test_pusch_dehopped_decode_rejects_invalid_inputs_before_dehop(grid, metadata, message) -> None:
     import numpy as np
 
     torch = pytest.importorskip("torch")
     receiver, decoder = _adapter_with_recording_decoder(torch)
     with pytest.raises((TypeError, ValueError), match=message):
-        receiver.decode_intra_slot_hopped_carrier_grid(
-            grid(np), metadata(receiver.config), 0.1
-        )
+        receiver.decode_intra_slot_hopped_carrier_grid(grid(np), metadata(receiver.config), 0.1)
     assert decoder.calls == 0
 
 

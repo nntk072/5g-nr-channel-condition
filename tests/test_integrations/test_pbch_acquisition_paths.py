@@ -160,11 +160,21 @@ def test_candidate_index_reconstruction_enforces_payload_high_bits(
         ({"cyclic_prefix_lengths": (0, 3, 0, 3)}, ValueError, r"in \[1, fft_size\)"),
         ({"max_candidate_blocks_per_half_frame": True}, TypeError, "must be an integer"),
         ({"max_candidate_blocks_per_half_frame": 6}, ValueError, "one of 4, 8"),
-        ({"capture": np.ones(4, dtype=np.float32)}, ValueError, "capture must be a nonempty complex"),
-        ({"capture": np.ones((2, 0), dtype=np.complex64)}, ValueError, "capture must be a nonempty complex"),
+        (
+            {"capture": np.ones(4, dtype=np.float32)},
+            ValueError,
+            "capture must be a nonempty complex",
+        ),
+        (
+            {"capture": np.ones((2, 0), dtype=np.complex64)},
+            ValueError,
+            "capture must be a nonempty complex",
+        ),
     ],
 )
-def test_acquisition_validates_geometry_candidate_and_capture_inputs(kwargs, error, message, monkeypatch):
+def test_acquisition_validates_geometry_candidate_and_capture_inputs(
+    kwargs, error, message, monkeypatch
+):
     values = {
         "fft_size": 8,
         "capture": np.ones(48, dtype=np.complex64),

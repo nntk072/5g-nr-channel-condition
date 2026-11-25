@@ -1218,9 +1218,7 @@ def test_srs_single_port_ls_estimator_rejects_zero_transmit_elements() -> None:
     )
     zero_transmit = replace(mapped, grid=np.zeros_like(mapped.grid))
     with pytest.raises(ValueError, match="transmit values must be nonzero"):
-        nr_srs_single_port_ls_channel_estimate(
-            zero_transmit, np.zeros_like(zero_transmit.grid)
-        )
+        nr_srs_single_port_ls_channel_estimate(zero_transmit, np.zeros_like(zero_transmit.grid))
 
 
 def test_srs_single_port_ls_estimator_rejects_empty_mask() -> None:
@@ -1235,9 +1233,7 @@ def test_srs_single_port_ls_estimator_rejects_empty_mask() -> None:
     )
     object.__setattr__(mapped, "mask", np.zeros_like(mapped.mask))
     with pytest.raises(ValueError, match="occupy at least one"):
-        nr_srs_single_port_ls_channel_estimate(
-            mapped, np.zeros_like(mapped.grid)
-        )
+        nr_srs_single_port_ls_channel_estimate(mapped, np.zeros_like(mapped.grid))
 
 
 def test_srs_single_port_ls_estimator_recovers_hopped_resource_channel() -> None:
@@ -1327,6 +1323,7 @@ def test_srs_multiport_ls_estimator_records_weighted_solver_failures(
     if failure == "condition":
         monkeypatch.setattr(srs_lookup_module.np.linalg, "cond", lambda *_args: np.inf)
     elif failure == "solver":
+
         def fail_solve(*_args, **_kwargs):
             raise np.linalg.LinAlgError("fixture solver failure")
 
@@ -1338,6 +1335,7 @@ def test_srs_multiport_ls_estimator_records_weighted_solver_failures(
             lambda *_args, **_kwargs: (np.ones(2), None, 1, None),
         )
     elif failure == "inverse":
+
         def fail_inverse(*_args, **_kwargs):
             raise np.linalg.LinAlgError("fixture inverse failure")
 
@@ -1349,9 +1347,7 @@ def test_srs_multiport_ls_estimator_records_weighted_solver_failures(
             lambda *_args, **_kwargs: (np.full(2, np.nan), None, 2, None),
         )
 
-    result = nr_srs_multiport_ls_channel_estimate(
-        mapped, received, noise_variance_by_rx_ant=1.0
-    )
+    result = nr_srs_multiport_ls_channel_estimate(mapped, received, noise_variance_by_rx_ant=1.0)
 
     active_subcarrier = int(np.flatnonzero(np.any(mapped.mask, axis=(0, 1)))[0])
     assert result.reason_codes[active_subcarrier] == reason
@@ -1393,15 +1389,14 @@ def test_srs_multiport_ls_estimator_rejects_unrepresentable_mean_symbol_noise() 
         comb_size=2,
         comb_offset=0,
     )
-    with np.errstate(over="ignore", invalid="ignore"), pytest.raises(
-        ValueError, match="mean per-RX noise variance"
+    with (
+        np.errstate(over="ignore", invalid="ignore"),
+        pytest.raises(ValueError, match="mean per-RX noise variance"),
     ):
         nr_srs_multiport_ls_channel_estimate(
             mapped,
             np.zeros((1, 14, 48), dtype=np.complex128),
-            noise_variance_by_rx_symbol=np.full(
-                (1, 14), np.finfo(np.float64).max
-            ),
+            noise_variance_by_rx_symbol=np.full((1, 14), np.finfo(np.float64).max),
         )
 
 

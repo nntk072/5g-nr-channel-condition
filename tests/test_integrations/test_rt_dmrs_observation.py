@@ -252,10 +252,12 @@ def test_generation_request_binds_dataset_and_source_artifact_metadata(tmp_path)
 
 def _grid_dataset(*, spacing_hz=30_000.0, n_subcarriers=16):
     source = _labelled_dataset(labels=("PROFILE_PROXY",))
-    metadata = ({
-        "geometry_label": "PROFILE_PROXY",
-        "grid_config": {"spacing_hz": spacing_hz, "n_subcarriers": n_subcarriers},
-    },)
+    metadata = (
+        {
+            "geometry_label": "PROFILE_PROXY",
+            "grid_config": {"spacing_hz": spacing_hz, "n_subcarriers": n_subcarriers},
+        },
+    )
     return replace(source, metadata=metadata)
 
 
@@ -311,8 +313,14 @@ def test_observation_builder_checks_each_sample_grid_metadata(tmp_path, monkeypa
     monkeypatch.setattr(rt_dmrs, "require_d1_authorization", lambda *_a, **_k: None)
     source = _labelled_dataset(labels=("PROFILE_PROXY", "PROFILE_PROXY"))
     metadata = (
-        {"geometry_label": "PROFILE_PROXY", "grid_config": {"spacing_hz": 30_000.0, "n_subcarriers": 16}},
-        {"geometry_label": "PROFILE_PROXY", "grid_config": {"spacing_hz": 15_000.0, "n_subcarriers": 16}},
+        {
+            "geometry_label": "PROFILE_PROXY",
+            "grid_config": {"spacing_hz": 30_000.0, "n_subcarriers": 16},
+        },
+        {
+            "geometry_label": "PROFILE_PROXY",
+            "grid_config": {"spacing_hz": 15_000.0, "n_subcarriers": 16},
+        },
     )
     mismatched = replace(source, metadata=metadata)
     with pytest.raises(ValueError, match="same frequency grid"):
@@ -416,9 +424,7 @@ def test_observation_builder_rejects_full_band_mismatch_and_zero_channel_power(
     zero = _grid_dataset()
     object.__setattr__(zero, "h", np.zeros_like(zero.h))
     with pytest.raises(ValueError, match="positive power"):
-        build_rt_dmrs_observation_dataset(
-            [zero], destination=tmp_path / "out.npz", device="cpu"
-        )
+        build_rt_dmrs_observation_dataset([zero], destination=tmp_path / "out.npz", device="cpu")
 
 
 class _FakeTensor:

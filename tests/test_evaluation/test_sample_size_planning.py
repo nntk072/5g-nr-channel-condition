@@ -1008,9 +1008,7 @@ def test_joint_unit_planner_rejects_inconsistent_family_allocation(monkeypatch) 
         alpha, count = original(*args, **kwargs)
         return (alpha + 0.001, count) if calls == 2 else (alpha, count)
 
-    monkeypatch.setattr(
-        independent_units_module, "family_alpha_for_claim", inconsistent_allocation
-    )
+    monkeypatch.setattr(independent_units_module, "family_alpha_for_claim", inconsistent_allocation)
     with pytest.raises(ValueError, match="allocation is internally inconsistent"):
         _joint_v2_plan(_joint_family_v2())
 
