@@ -386,3 +386,52 @@ def test_duplicate_sample_id_manifests_are_rejected(tmp_path, monkeypatch):
 
 def test_empty_store_yields_no_shards(tmp_path):
     assert tuple(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000)) == ()
+
+
+@pytest.mark.parametrize(
+    ("manifest_bytes", "message"),
+    [
+        (b"not json", "not valid bounded UTF-8 JSON"),
+        (b"[]", "must be a JSON object"),
+        (
+            b'{"sample_id":"  ","content_sha256":"x","relative_path":"x","schema_version":1}',
+            "sample_id must be a nonempty string",
+        ),
+        (
+            b'{"sample_id":"invalid-inventory-manifest","content_sha256":"x",'
+            b'"relative_path":"x",'
+            b'"schema_version":99}',
+            "unsupported NR record schema version: 99",
+        ),
+    ],
+)
+def test_shard_inventory_rejects_invalid_record_manifests(tmp_path, manifest_bytes, message):
+    stored = write_nr_record(tmp_path, _record("invalid-inventory-manifest"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    (tmp_path / "manifests" / f"{manifest_key}.json").write_bytes(manifest_bytes)
+
+    with pytest.raises(ValueError, match=message):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_rejects_non_utf8_manifest(tmp_path):
+    stored = write_nr_record(tmp_path, _record("invalid-utf8-manifest"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    (tmp_path / "manifests" / f"{manifest_key}.json").write_bytes(b"\xff")
+
+    with pytest.raises(ValueError, match="not valid bounded UTF-8 JSON"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_rejects_unknown_manifest_fields(tmp_path):
+    stored = write_nr_record(tmp_path, _record("unknown-inventory-field"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    (tmp_path / "manifests" / f"{manifest_key}.json").write_text(
+        '{"sample_id":"unknown-inventory-field",'
+        f'"content_sha256":"{stored.content_sha256}",'
+        f'"relative_path":"{stored.relative_path}","schema_version":5,"unexpected":true}}',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(TypeError, match="unexpected keyword argument"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
