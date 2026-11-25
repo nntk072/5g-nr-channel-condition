@@ -41,6 +41,32 @@ def test_noise_variance_domain_is_enforced(variance, message) -> None:
         proper_complex_awgn(reference, variance, generator=_generator())
 
 
+def test_noise_variance_rejects_unsupported_numeric_dtypes() -> None:
+    reference = torch.zeros(4, dtype=torch.complex64)
+    if not hasattr(torch, "uint16"):
+        pytest.skip("this PyTorch version does not expose uint16 tensors")
+    with pytest.raises(ValueError, match="must contain real numeric values"):
+        proper_complex_awgn(
+            reference, torch.tensor([1], dtype=torch.uint16), generator=_generator()
+        )
+
+
+def test_noise_variance_rejects_failure_during_float_conversion(monkeypatch) -> None:
+    reference = torch.zeros(4, dtype=torch.complex64)
+    as_tensor = torch.as_tensor
+    calls = {"count": 0}
+
+    def fail_float_conversion(value, *args, **kwargs):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            return as_tensor(value, *args, **kwargs)
+        raise RuntimeError("conversion unavailable")
+
+    monkeypatch.setattr(torch, "as_tensor", fail_float_conversion)
+    with pytest.raises(ValueError, match="must contain real numeric values"):
+        proper_complex_awgn(reference, [1], generator=_generator())
+
+
 def test_noise_has_the_requested_mean_power() -> None:
     reference = torch.zeros(20000, dtype=torch.complex64)
     noise = proper_complex_awgn(reference, 0.5, generator=_generator())
