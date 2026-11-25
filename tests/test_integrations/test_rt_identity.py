@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 
+import integrations.sionna.rt_identity as identity_module
 import pytest
 from integrations.sionna.rt_identity import (
     rt_run_identity,
@@ -178,6 +180,21 @@ def test_rt_run_identity_rejects_unverified_backend_and_invalid_seed():
         raise AssertionError("boolean seed must be rejected")
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "error", "message"),
+    [
+        ("package_source_sha256", "", ValueError, "must be nonempty"),
+        ("material_config", [], TypeError, "must be a mapping"),
+    ],
+)
+def test_rt_run_identity_requires_package_hash_and_material_mapping(field, value, error, message):
+    inputs = _inputs()
+    inputs[field] = value
+
+    with pytest.raises(error, match=message):
+        rt_run_identity(**inputs)
+
+
 def test_rt_runtime_fingerprint_includes_host_gpu_and_backend_environment(monkeypatch):
     from types import SimpleNamespace
 
@@ -204,6 +221,43 @@ def test_rt_runtime_fingerprint_includes_host_gpu_and_backend_environment(monkey
     assert fingerprint["nvidia_device_fingerprint"] == (
         "0, GPU-unique, 00000000:01:00.0, RTX test, 555.1, 8.9, 24576"
     )
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda manifest: manifest.update(extra=True), "missing or unknown fields"),
+        (lambda manifest: manifest.update(scene_xml_path=""), "needs a scene_xml_path"),
+        (
+            lambda manifest: manifest.update(assets=[{"path": "scene.xml"}]),
+            "exactly path, bytes, and sha256",
+        ),
+        (lambda manifest: manifest["assets"][0].update(bytes=True), "nonnegative integers"),
+        (
+            lambda manifest: manifest.update(asset_set_sha256="bad"),
+            "canonical asset-set SHA-256",
+        ),
+    ],
+)
+def test_scene_asset_manifest_rejects_invalid_contracts(mutate, message):
+    manifest = _scene_assets()
+    mutate(manifest)
+
+    with pytest.raises(ValueError, match=message):
+        identity_module._validated_scene_asset_set_sha256(manifest)
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [OSError("no nvidia-smi"), subprocess.TimeoutExpired("nvidia-smi", 3)],
+)
+def test_runtime_fingerprint_records_unavailable_gpu_probe(monkeypatch, failure):
+    def fail(*_args, **_kwargs):
+        raise failure
+
+    monkeypatch.setattr(identity_module.subprocess, "run", fail)
+
+    assert rt_runtime_fingerprint({})["nvidia_device_fingerprint"] == "unavailable"
 
 
 def test_static_rt_solver_config_validates_and_records_all_switches():

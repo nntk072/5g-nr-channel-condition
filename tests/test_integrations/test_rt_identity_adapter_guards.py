@@ -46,6 +46,11 @@ def test_identity_inputs_must_match_their_cache_key() -> None:
         _convert(tampered)
 
 
+def test_complete_identity_requires_inputs_and_cache_key() -> None:
+    with pytest.raises(ValueError, match="must contain inputs and a cache key"):
+        _convert({"schema": "loslab.rt_run_identity.v2", "complete": True})
+
+
 def test_reproducibility_inputs_must_be_present_and_typed() -> None:
     identity, _ = _identity()
     broken = copy.deepcopy(dict(identity))
