@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError
+from pathlib import Path
 
 from artifacts import provenance
 
@@ -20,6 +21,29 @@ def test_versions_records_official_sionna_no_rt_as_phy(monkeypatch) -> None:
 
     assert identities["sionna-phy"] == "2.2.0"
     assert identities["sionna-rt"] == "2.2.0"
+
+
+def test_package_source_hash_skips_missing_packages_and_pycache(
+    monkeypatch, tmp_path: Path
+) -> None:
+    artifacts = tmp_path / "artifacts"
+    datasets = tmp_path / "datasets"
+    cache = datasets / "__pycache__"
+    artifacts.mkdir()
+    cache.mkdir(parents=True)
+    (artifacts / "provenance.py").write_bytes(b"module")
+    (datasets / "source.py").write_bytes(b"source")
+    cached = cache / "ignored.py"
+    cached.write_bytes(b"ignored")
+    monkeypatch.setattr(provenance, "__file__", str(artifacts / "provenance.py"))
+
+    digest = provenance.package_source_sha256()
+    cached.write_bytes(b"changed ignored cache")
+
+    assert len(digest) == 64
+    assert provenance.package_source_sha256() == digest
+    (datasets / "new_source.py").write_bytes(b"new source")
+    assert provenance.package_source_sha256() != digest
 
 
 def test_versions_prefers_combined_sionna_rt_distribution(monkeypatch) -> None:
