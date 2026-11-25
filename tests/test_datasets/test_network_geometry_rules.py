@@ -178,6 +178,10 @@ def test_timeline_lookups_reject_unknown_nodes_and_frames() -> None:
         timeline.position("a", 0.5)
     with pytest.raises(IndexError, match="outside the pose timeline"):
         timeline.position("a", 5)
+    with pytest.raises(TypeError, match="frame_index must be an integer"):
+        timeline.orientation("a", 0.5)
+    with pytest.raises(IndexError, match="outside the pose timeline"):
+        timeline.orientation("a", 5)
     with pytest.raises(KeyError):
         timeline.position("missing", 0)
     with pytest.raises(KeyError):

@@ -493,7 +493,8 @@ def validate_canonical_target_contract(
             raise TypeError(f"canonical complex target {target_name!r} must use a complex dtype")
         if not np.isfinite(array).all():
             raise ValueError(f"canonical complex target {target_name!r} must contain finite values")
-    elif value_domain == "nonnegative_real":
+    else:
+        # The canonical registry exhausts the remaining value domain here.
         if array.dtype.kind not in "iuf":
             raise TypeError(f"canonical target {target_name!r} must use a real numeric dtype")
         if not np.isfinite(array).all():
