@@ -239,6 +239,36 @@ def test_frequency_receiver_observation_rejects_wrong_port_or_frequency_axes():
         )
 
 
+@pytest.mark.parametrize("change", ("carrier", "offsets"))
+def test_frequency_receiver_observation_must_match_parent_grid(change: str) -> None:
+    bundle = _bundle()
+    episode = bundle.episode
+    offsets = episode.subcarrier_offsets_hz
+    carrier = episode.carrier_hz
+    if change == "carrier":
+        carrier += 1.0
+    else:
+        offsets = offsets * 2.0
+    observation = FrequencyDomainObservation(
+        "grid-mismatch",
+        FrequencyDomainModelInputs(
+            observed_cfr=np.ones((1, 2, 3), dtype=np.complex64),
+            noise_variance=0.0,
+            snr_db=20.0,
+            carrier_hz=carrier,
+            subcarrier_offsets_hz=offsets,
+        ),
+    )
+
+    with pytest.raises(ValueError, match="frequency observation grid differs"):
+        replace(
+            bundle,
+            receiver_observations=(
+                LinkedFrequencyDomainObservation("gNB-1-to-UE-1", 0, observation),
+            ),
+        )
+
+
 def test_frequency_receiver_observation_rejects_nonpositive_absolute_rf_frequency():
     with pytest.raises(ValueError, match="positive RF frequencies"):
         FrequencyDomainModelInputs(
@@ -306,17 +336,13 @@ def _stored_frequency_bundle(tmp_path):
     binding = LinkedFrequencyDomainObservation(
         "gNB-1-to-UE-1", 0, FrequencyDomainObservation("frequency-sample", inputs)
     )
-    stored = write_episode_bundle(
-        tmp_path, replace(bundle, receiver_observations=(binding,))
-    )
+    stored = write_episode_bundle(tmp_path, replace(bundle, receiver_observations=(binding,)))
     return stored, binding
 
 
 def test_frequency_reader_requires_one_episode_and_an_observation(tmp_path, monkeypatch):
     metadata = {"episode_id": "fixture"}
-    monkeypatch.setattr(
-        episode_module, "_validated_manifest", lambda *_args: (metadata, [])
-    )
+    monkeypatch.setattr(episode_module, "_validated_manifest", lambda *_args: (metadata, []))
     with pytest.raises(ValueError, match="one episode and at least one"):
         read_frequency_model_inputs(tmp_path, object())
 
@@ -391,16 +417,12 @@ def test_frequency_reader_rejects_unknown_link_or_frame(
         ),
     ],
 )
-def test_frequency_reader_rejects_input_axis_or_grid_drift(
-    tmp_path, monkeypatch, inputs, message
-):
+def test_frequency_reader_rejects_input_axis_or_grid_drift(tmp_path, monkeypatch, inputs, message):
     stored, binding = _stored_frequency_bundle(tmp_path)
     replacement = replace(
         binding, observation=FrequencyDomainObservation("frequency-sample", inputs)
     )
-    monkeypatch.setattr(
-        episode_module, "_read_frequency_receiver", lambda *_args: replacement
-    )
+    monkeypatch.setattr(episode_module, "_read_frequency_receiver", lambda *_args: replacement)
     with pytest.raises(ValueError, match=message):
         read_frequency_model_inputs(tmp_path, stored)
 
@@ -431,9 +453,7 @@ def test_frequency_reader_rejects_duplicate_sample_ids(tmp_path, monkeypatch):
     monkeypatch.setattr(
         episode_module,
         "_read_episode",
-        lambda *args: replace(
-            original_read_episode(*args), frame_times_s=(0.0, 1.0)
-        ),
+        lambda *args: replace(original_read_episode(*args), frame_times_s=(0.0, 1.0)),
     )
     reads = iter((0, 1))
     monkeypatch.setattr(

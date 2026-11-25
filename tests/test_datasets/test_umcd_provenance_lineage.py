@@ -307,6 +307,8 @@ def test_episode_bundle_roundtrips_split_bound_direct_path_ablation(tmp_path):
     wrong_carrier_ablation = replace(ablation, carrier_hz=bundle.episode.carrier_hz + 1.0)
     with pytest.raises(ValueError, match="carrier differs from its parent episode"):
         replace(bundle, path_oracle=paths, direct_path_ablations=(wrong_carrier_ablation,))
+    with pytest.raises(ValueError, match="child IDs must be unique within the bundle"):
+        replace(bundle, path_oracle=paths, direct_path_ablations=(ablation, ablation))
     bundle = replace(bundle, path_oracle=paths, direct_path_ablations=(ablation,))
 
     stored = write_episode_bundle(tmp_path, bundle)

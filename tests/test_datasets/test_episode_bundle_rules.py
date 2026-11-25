@@ -80,6 +80,18 @@ def test_scenario_gbsm_records_must_be_typed_and_single() -> None:
         )
 
 
+def test_episode_bundle_allows_at_most_one_scenario_gbsm_drop() -> None:
+    bundle = _bundle()
+    with pytest.raises(ValueError, match="can contain one scenario GBSM drop"):
+        EpisodeBundle(
+            bundle.episode,
+            bundle.path_oracle,
+            bundle.channel_views,
+            bundle.targets,
+            scenario_gbsm_records=(object(), object()),
+        )
+
+
 def test_a_bundle_with_no_data_layer_is_refused() -> None:
     bundle = _bundle()
     with pytest.raises(ValueError, match="needs at least one non-episode data layer"):
