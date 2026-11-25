@@ -29,6 +29,7 @@ def test_pusch_config_accepts_valid_dmrs_configuration():
         dmrs_length=2,
         dmrs_additional_position=1,
         num_cdm_groups_without_data=2,
+        dmrs_n_id=(17, 19),
     )
     assert config.n_size_bwp == 24
     assert config.n_size_grid == 24
@@ -36,6 +37,7 @@ def test_pusch_config_accepts_valid_dmrs_configuration():
 
 def test_pusch_config_defaults_to_sionna_receiver_linear_interpolation():
     assert NRPUSCHConfig().interpolation_type == "lin"
+    assert NRPUSCHConfig(dmrs_n_id=None).dmrs_n_id is None
 
 
 @pytest.mark.parametrize(
@@ -832,6 +834,10 @@ def test_pusch_config_normalizes_json_symbol_allocation_to_immutable_tuple():
         {"dmrs_n_id": (1,)},
         {"dmrs_n_id": (1, 65536)},
         {"dmrs_n_scid": 2},
+        {"frequency_hopping": "intraSlot"},
+        {"frequency_hopping": None},
+        {"transform_precoding": 1},
+        {"transform_precoding": True},
         {"mapping_type": "C"},
         {"symbol_allocation": (3,)},
         {"symbol_allocation": (False, 10)},
@@ -896,10 +902,28 @@ def test_nr_channel_estimate_rejects_non_broadcastable_variance():
             "nonnegative",
         ),
         (
+            "error_variance",
+            np.full((1, 1, 1, 1, 1, 14, 24), np.nan, dtype=np.float32),
+            ValueError,
+            "finite",
+        ),
+        (
+            "error_variance",
+            np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.int32),
+            TypeError,
+            "real-valued",
+        ),
+        (
             "pilot_mask",
             np.zeros((1, 1, 14, 24), dtype=np.int32),
             TypeError,
             "Boolean",
+        ),
+        (
+            "pilot_mask",
+            np.zeros((1, 1, 14, 23), dtype=bool),
+            ValueError,
+            "pilot_mask must have",
         ),
         ("h_hat", np.zeros((1, 1, 1, 1, 1, 14, 0), dtype=np.complex64), ValueError, "non-empty"),
     ],
@@ -914,3 +938,88 @@ def test_nr_channel_estimate_rejects_invalid_array_domains(field, value, excepti
     kwargs[field] = value
     with pytest.raises(exception, match=message):
         NRChannelEstimate(**kwargs)
+
+
+def test_nr_channel_estimate_rejects_empty_metadata_and_object_arrays():
+    h_hat = np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.complex64)
+    variance = np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.float32)
+    mask = np.zeros((1, 1, 14, 24), dtype=bool)
+    with pytest.raises(ValueError, match="metadata must not be empty"):
+        NRChannelEstimate(h_hat, variance, mask, {})
+    with pytest.raises(TypeError, match="dense numeric array"):
+        NRChannelEstimate(h_hat.astype(object), variance, mask, {"sionna_version": "2.2.0"})
+
+
+def test_nr_channel_estimate_rejects_sparse_torch_tensors():
+    torch = pytest.importorskip("torch")
+    h_hat = torch.sparse_coo_tensor(
+        torch.empty((7, 0), dtype=torch.long),
+        torch.empty((0,), dtype=torch.complex64),
+        size=(1, 1, 1, 1, 1, 14, 24),
+    )
+    with pytest.raises(TypeError, match="dense numeric tensor"):
+        NRChannelEstimate(
+            h_hat,
+            torch.zeros((1, 1, 1, 1, 1, 14, 24)),
+            torch.zeros((1, 1, 14, 24), dtype=torch.bool),
+            {"sionna_version": "2.2.0"},
+        )
+
+
+def test_nr_channel_estimate_rejects_wrong_channel_axis_count():
+    with pytest.raises(ValueError, match="seven named channel axes"):
+        NRChannelEstimate(
+            np.zeros((1, 1, 14, 24), dtype=np.complex64),
+            np.zeros((1, 1, 14, 24), dtype=np.float32),
+            np.zeros((1, 14, 24), dtype=bool),
+            {"sionna_version": "2.2.0"},
+        )
+
+
+def test_nr_channel_estimate_accepts_dense_torch_tensor_domains():
+    torch = pytest.importorskip("torch")
+    estimate = NRChannelEstimate(
+        torch.zeros((1, 1, 1, 1, 1, 14, 24), dtype=torch.complex64),
+        torch.zeros((1, 1, 1, 1, 1, 14, 24), dtype=torch.float32),
+        torch.zeros((1, 1, 14, 24), dtype=torch.bool),
+        {"sionna_version": "2.2.0"},
+    )
+    assert tuple(estimate.h_hat.shape) == (1, 1, 1, 1, 1, 14, 24)
+
+
+def test_nr_channel_estimate_rejects_integer_torch_variance():
+    torch = pytest.importorskip("torch")
+    with pytest.raises(TypeError, match="error_variance must be real-valued"):
+        NRChannelEstimate(
+            torch.zeros((1, 1, 1, 1, 1, 14, 24), dtype=torch.complex64),
+            torch.zeros((1, 1, 1, 1, 1, 14, 24), dtype=torch.int64),
+            torch.zeros((1, 1, 14, 24), dtype=torch.bool),
+            {"sionna_version": "2.2.0"},
+        )
+
+
+def test_nr_channel_estimate_rejects_tensor_like_without_torch_import(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    import builtins
+
+    class ForeignTensor:
+        __module__ = "torch.foreign"
+
+        shape = (1, 1, 1, 1, 1, 14, 24)
+
+    original_import = builtins.__import__
+
+    def without_torch(name: str, *args: object, **kwargs: object) -> object:
+        if name == "torch":
+            raise ImportError("deliberately unavailable")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", without_torch)
+    with pytest.raises(TypeError, match="NumPy array or dense PyTorch tensor"):
+        NRChannelEstimate(
+            ForeignTensor(),
+            np.zeros((1, 1, 1, 1, 1, 14, 24), dtype=np.float32),
+            np.zeros((1, 1, 14, 24), dtype=bool),
+            {"sionna_version": "2.2.0"},
+        )

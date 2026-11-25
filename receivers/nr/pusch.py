@@ -204,8 +204,6 @@ class NRChannelEstimate:
             for variance_axis, estimate_axis in zip(error_shape, h_shape, strict=True)
         ):
             raise ValueError("error_variance must be broadcastable to h_hat")
-        if any(size <= 0 for size in error_shape):
-            raise ValueError("error_variance axes must be non-empty")
         if len(mask_shape) != 4 or mask_shape != h_shape[3:]:
             raise ValueError("pilot_mask must have [tx, stream, symbol, subcarrier] axes")
         if not isinstance(self.metadata, Mapping) or not self.metadata:
@@ -237,8 +235,6 @@ class NRChannelEstimate:
                 is_complex = value.is_complex()
                 is_bool = value.dtype == torch_module.bool
                 is_real = value.is_floating_point() or (not is_complex and not is_bool)
-                if not (is_complex or is_bool or is_real):
-                    raise TypeError(f"{name} must be a dense numeric tensor")
                 finite = bool(torch_module.isfinite(value).all())
                 negative = bool((value < 0).any()) if is_real and not is_bool else False
                 if is_complex:
@@ -266,11 +262,9 @@ class NRChannelEstimate:
             raise ValueError("error_variance must contain only finite values")
         if variance_negative:
             raise ValueError("error_variance must be nonnegative")
-        mask_kind, mask_finite, _ = array_domain(self.pilot_mask, "pilot_mask")
+        mask_kind, _, _ = array_domain(self.pilot_mask, "pilot_mask")
         if mask_kind != "b":
             raise TypeError("pilot_mask must be Boolean-valued")
-        if not mask_finite:
-            raise ValueError("pilot_mask must contain only finite values")
 
 
 __all__ = [
