@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import subprocess
@@ -169,6 +170,111 @@ def test_strict_reviewer_admission_rejects_signer_without_reviewer_role(
 
     assert report["status"] == "INCONSISTENT"
     assert any("requires the independent_reviewer role" in error for error in report["errors"])
+
+
+def test_run_manifest_rejects_inconsistent_retained_package_roster(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_scorers(monkeypatch)
+    source = tmp_path / "joint-input.json"
+    saved = tmp_path / "joint-report.json"
+    manifest_path = tmp_path / "run-manifest.json"
+    _write_canonical(source, _payload())
+    artifact._write_new_artifact(saved, artifact.evaluate_joint_evidence_file(source))
+    _write_run_manifest(manifest_path, source, saved)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    misrostered_sources = [dict(entry) for entry in manifest["evaluator_sources"]]
+    misrostered_sources[0]["path"] = "wrong-source.py"
+
+    mutations = [
+        (
+            {**manifest, "artifact": {**manifest["artifact"], "path": manifest["input"]["path"]}},
+            "manifest file paths must be distinct",
+        ),
+        (
+            {**manifest, "input": {**manifest["input"], "sha256": "0" * 64}},
+            "input size or SHA-256 differs",
+        ),
+        (
+            {
+                **manifest,
+                "artifact": {**manifest["artifact"], "role": "joint_evaluator_input"},
+            },
+            "artifact role must be",
+        ),
+        (
+            {**manifest, "evaluator_sources": misrostered_sources},
+            "source roster differs",
+        ),
+        (
+            {**manifest, "evaluator_source_bundle_sha256": "0" * 64},
+            "source bundle digest does not match",
+        ),
+    ]
+    for changed, message in mutations:
+        _write_canonical(manifest_path, changed)
+        report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
+        assert report["status"] == "INCONSISTENT"
+        assert any(message in error for error in report["errors"]), report["errors"]
+
+    changed_sources = [dict(entry) for entry in manifest["evaluator_sources"]]
+    changed_sources[0]["sha256"] = "0" * 64
+    changed = {
+        **manifest,
+        "evaluator_sources": changed_sources,
+        "evaluator_source_bundle_sha256": verify_module._source_bundle_sha256(changed_sources),
+    }
+    _write_canonical(manifest_path, changed)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
+    assert report["status"] == "INCONSISTENT"
+    assert any("evaluator source bytes differ from manifest" in error for error in report["errors"])
+
+
+def test_run_manifest_rejects_noncanonical_document_and_nonobject_input(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_scorers(monkeypatch)
+    source = tmp_path / "joint-input.json"
+    saved = tmp_path / "joint-report.json"
+    manifest_path = tmp_path / "run-manifest.json"
+    _write_canonical(source, _payload())
+    artifact._write_new_artifact(saved, artifact.evaluate_joint_evidence_file(source))
+    _write_run_manifest(manifest_path, source, saved)
+    canonical_manifest = manifest_path.read_bytes()
+    manifest = json.loads(canonical_manifest)
+
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
+    assert any("canonical compact JSON" in error for error in report["errors"])
+
+    _write_canonical(source, [])
+    manifest["input"]["size_bytes"] = source.stat().st_size
+    manifest["input"]["sha256"] = hashlib.sha256(source.read_bytes()).hexdigest()
+    _write_canonical(manifest_path, manifest)
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
+    assert any("joint evaluator input must be an object" in error for error in report["errors"])
+
+
+@pytest.mark.parametrize(
+    ("raw_manifest", "source_root", "message"),
+    [
+        (b"[]\n", None, "run manifest root must be an object"),
+        (b"{}\n", "file", "source_root must be a directory"),
+    ],
+)
+def test_run_manifest_requires_object_document_and_directory_source_root(
+    tmp_path: Path, raw_manifest: bytes, source_root: str | None, message: str
+) -> None:
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_bytes(raw_manifest)
+    options: dict[str, Path] = {}
+    if source_root == "file":
+        source_file = tmp_path / "source-file"
+        source_file.write_text("not a directory", encoding="utf-8")
+        options["source_root"] = source_file
+
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path, **options)
+    assert any(message in error for error in report["errors"])
 
 
 def test_run_manifest_verifies_detached_signature_over_exact_manifest_bytes(

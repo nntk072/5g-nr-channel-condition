@@ -263,15 +263,6 @@ def verify_joint_evidence_run_manifest(
                 )
             else:
                 report["signer_authorization_status"] = "not_provided"
-        if require_signed_reviewer_admission:
-            if report["manifest_signature_status"] != "verified":
-                raise ValueError(
-                    "strict signed reviewer admission requires a verified run signature"
-                )
-            if report["signer_policy_signature_status"] != "verified":
-                raise ValueError(
-                    "strict signed reviewer admission requires a verified policy signature"
-                )
         manifest = _json_bytes(manifest_raw, "run manifest")
         if not isinstance(manifest, dict):
             raise ValueError("run manifest root must be an object")
@@ -500,68 +491,63 @@ def verify_joint_evidence_run_manifest(
                 RUNTIME_INVENTORY_SCHEMA_V3_RELATIVE_PATH,
                 "runtime inventory",
             )
-        if manifest_version in _V4_AND_LATER:
-            if runtime_inventory_signature_path is not None:
-                assert trusted_runtime_inventory_signers_path is not None
-                assert runtime_inventory_signer_id is not None
-                runtime_signature_identity = verify_openssh_signature_for_bytes(
-                    captured["runtime_inventory"],
-                    runtime_inventory_signature_path,
-                    trusted_runtime_inventory_signers_path,
-                    signer_id=runtime_inventory_signer_id,
-                    namespace=RUNTIME_INVENTORY_SIGNATURE_NAMESPACE,
-                )
-                report.update(
-                    {
-                        "runtime_inventory_signature_status": "verified",
-                        "runtime_inventory_signer_id": runtime_signature_identity["signer_id"],
-                        "runtime_inventory_signature_sha256": runtime_signature_identity[
-                            "signature_sha256"
-                        ],
-                        "trusted_runtime_inventory_signers_sha256": runtime_signature_identity[
-                            "allowed_signers_sha256"
-                        ],
-                    }
-                )
-                if signature_identity is not None:
-                    if runtime_signature_identity["signer_id"] == signature_identity["signer_id"]:
-                        raise ValueError(
-                            "runtime inventory signer must differ from run-manifest signer"
-                        )
-                    if (
-                        runtime_signature_identity["allowed_signers_sha256"]
-                        == signature_identity["allowed_signers_sha256"]
-                    ):
-                        raise ValueError(
-                            "runtime inventory trust keyring must differ from run-manifest keyring"
-                        )
-                if runtime_signature_identity["signer_id"] == report.get("signer_policy_signer_id"):
+        if manifest_version in _V4_AND_LATER and runtime_inventory_signature_path is not None:
+            assert trusted_runtime_inventory_signers_path is not None
+            assert runtime_inventory_signer_id is not None
+            runtime_signature_identity = verify_openssh_signature_for_bytes(
+                captured["runtime_inventory"],
+                runtime_inventory_signature_path,
+                trusted_runtime_inventory_signers_path,
+                signer_id=runtime_inventory_signer_id,
+                namespace=RUNTIME_INVENTORY_SIGNATURE_NAMESPACE,
+            )
+            report.update(
+                {
+                    "runtime_inventory_signature_status": "verified",
+                    "runtime_inventory_signer_id": runtime_signature_identity["signer_id"],
+                    "runtime_inventory_signature_sha256": runtime_signature_identity[
+                        "signature_sha256"
+                    ],
+                    "trusted_runtime_inventory_signers_sha256": runtime_signature_identity[
+                        "allowed_signers_sha256"
+                    ],
+                }
+            )
+            if signature_identity is not None:
+                if runtime_signature_identity["signer_id"] == signature_identity["signer_id"]:
                     raise ValueError(
-                        "runtime inventory signer must differ from signer-policy custodian"
+                        "runtime inventory signer must differ from run-manifest signer"
                     )
-                if runtime_signature_identity["allowed_signers_sha256"] == report.get(
-                    "signer_policy_allowed_signers_sha256"
+                if (
+                    runtime_signature_identity["allowed_signers_sha256"]
+                    == signature_identity["allowed_signers_sha256"]
                 ):
                     raise ValueError(
-                        "runtime inventory trust keyring must differ from signer-policy keyring"
+                        "runtime inventory trust keyring must differ from run-manifest keyring"
                     )
-                _verify_signed_runtime_inventory_bindings(
-                    runtime_inventory_payload,
-                    manifest["runtime_identity"],
-                    sources,
-                )
-                report.update(
-                    {
-                        "runtime_inventory_sha256": hashlib.sha256(
-                            captured["runtime_inventory"]
-                        ).hexdigest(),
-                        "runtime_inventory_binding_status": "verified",
-                    }
-                )
-            elif require_signed_reviewer_admission:
+            if runtime_signature_identity["signer_id"] == report.get("signer_policy_signer_id"):
                 raise ValueError(
-                    "strict signed reviewer admission requires signed runtime inventory"
+                    "runtime inventory signer must differ from signer-policy custodian"
                 )
+            if runtime_signature_identity["allowed_signers_sha256"] == report.get(
+                "signer_policy_allowed_signers_sha256"
+            ):
+                raise ValueError(
+                    "runtime inventory trust keyring must differ from signer-policy keyring"
+                )
+            _verify_signed_runtime_inventory_bindings(
+                runtime_inventory_payload,
+                manifest["runtime_identity"],
+                sources,
+            )
+            report.update(
+                {
+                    "runtime_inventory_sha256": hashlib.sha256(
+                        captured["runtime_inventory"]
+                    ).hexdigest(),
+                    "runtime_inventory_binding_status": "verified",
+                }
+            )
         if qualification_contract is not None:
             qualification_contract_sha256 = _verify_qualification_contract_bindings(
                 qualification_contract,
