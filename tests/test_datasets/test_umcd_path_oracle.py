@@ -108,10 +108,31 @@ def test_rms_delay_spread_producer_rejects_multiport_and_failed_solves():
         rms_delay_spread_target(failed, link_id="link", frame_count=1)
 
 
+def test_rms_delay_spread_producer_validates_table_link_and_frame_count():
+    with pytest.raises(TypeError, match="PathOracleTable"):
+        rms_delay_spread_target(None, link_id="link", frame_count=1)
+    table = PathOracleTable(
+        link_ids=("link",),
+        frame_indices=np.asarray([0]),
+        rx_port_indices=np.asarray([0]),
+        tx_port_indices=np.asarray([0]),
+        path_offsets=np.asarray([0, 1]),
+        solve_status=(PathSolveStatus.SOLVED,),
+        delay_s=np.asarray([1e-9]),
+        complex_gain=np.asarray([1.0 + 0j]),
+        interaction_order=np.asarray([0]),
+    )
+    with pytest.raises(ValueError, match="link_id must be"):
+        rms_delay_spread_target(table, link_id=" link", frame_count=1)
+    with pytest.raises(ValueError, match="frame_count must be"):
+        rms_delay_spread_target(table, link_id="link", frame_count=True)
+
+
 @pytest.mark.parametrize(
     ("offsets", "statuses", "path_count", "message"),
     [
         ([0, 1, 2], [PathSolveStatus.SOLVED], 2, "path_offsets must have"),
+        ([1, 2], [PathSolveStatus.SOLVED], 2, "path_offsets must have"),
         ([0, 0], [PathSolveStatus.SOLVED], 0, "must contain at least one path"),
         ([0, 1], [PathSolveStatus.NO_PATH], 1, "must not contain fabricated"),
         ([0, 1], [PathSolveStatus.SOLVER_FAILURE], 1, "must not contain fabricated"),
@@ -131,6 +152,40 @@ def test_ragged_path_table_rejects_inconsistent_outcome_and_offsets(
             delay_s=np.full(path_count, 1e-9),
             complex_gain=np.full(path_count, 1.0 + 0j),
             interaction_order=np.zeros(path_count, dtype=np.int64),
+        )
+
+
+@pytest.mark.parametrize("field", ["frame_indices", "rx_port_indices", "tx_port_indices"])
+def test_path_group_indices_must_be_nonnegative(field):
+    arguments = {
+        "link_ids": ("link-1",),
+        "frame_indices": np.asarray([0]),
+        "rx_port_indices": np.asarray([0]),
+        "tx_port_indices": np.asarray([0]),
+        "path_offsets": np.asarray([0, 1]),
+        "solve_status": (PathSolveStatus.SOLVED,),
+        "delay_s": np.asarray([1e-9]),
+        "complex_gain": np.asarray([1.0 + 0j]),
+        "interaction_order": np.asarray([0]),
+    }
+    arguments[field] = np.asarray([-1])
+
+    with pytest.raises(ValueError, match="indices must be nonnegative"):
+        PathOracleTable(**arguments)
+
+
+def test_path_offsets_must_be_nondecreasing():
+    with pytest.raises(ValueError, match="path_offsets must be nondecreasing"):
+        PathOracleTable(
+            link_ids=("link-1", "link-1"),
+            frame_indices=np.asarray([0, 1]),
+            rx_port_indices=np.asarray([0, 0]),
+            tx_port_indices=np.asarray([0, 0]),
+            path_offsets=np.asarray([0, 2, 1]),
+            solve_status=(PathSolveStatus.SOLVED, PathSolveStatus.SOLVED),
+            delay_s=np.asarray([1e-9]),
+            complex_gain=np.asarray([1.0 + 0j]),
+            interaction_order=np.asarray([0]),
         )
 
 
@@ -197,6 +252,24 @@ def test_path_interaction_trace_rejects_partial_or_misaligned_geometry():
             **{
                 **interactions,
                 "interaction_offsets": np.asarray([0, 0]),
+            },
+        )
+    with pytest.raises(ValueError, match="interaction_offsets must be nondecreasing"):
+        PathOracleTable(
+            **{
+                **common,
+                "path_offsets": np.asarray([0, 2]),
+                "delay_s": np.asarray([2e-9, 3e-9]),
+                "complex_gain": np.asarray([0.25 + 0.1j, 0.1 + 0.2j]),
+                "interaction_order": np.asarray([1, 0]),
+            },
+            **{
+                **interactions,
+                "interaction_offsets": np.asarray([0, 2, 1]),
+                "interaction_types": np.asarray([1]),
+                "object_ids": np.asarray([7]),
+                "primitive_ids": np.asarray([3]),
+                "interaction_vertices_m": np.asarray([[1.0, 2.0, 3.0]]),
             },
         )
     with pytest.raises(ValueError, match=r"finite shape \[interaction, xyz\]"):

@@ -81,9 +81,6 @@ def rms_delay_spread_target(
         magnitude_scale = float(np.max(magnitudes))
         weights = np.square(magnitudes / magnitude_scale)
         total_power = float(np.sum(weights, dtype=np.float64))
-        if not np.isfinite(total_power) or total_power <= 0.0:
-            reasons.append(TargetValidity.NOT_OBSERVABLE)
-            continue
         normalized = weights / total_power
         mean_delay = float(np.sum(normalized * delays, dtype=np.float64))
         variance = float(np.sum(normalized * np.square(delays - mean_delay), dtype=np.float64))
