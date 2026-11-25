@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 import pytest
+from artifacts.provenance import canonical_hash
 from experiments.runner.contracts import (
     build_model_input_artifact_contract,
     verify_model_input_artifact_contract,
@@ -141,6 +142,96 @@ def test_plain_contract_verifies_against_its_exact_inputs(tmp_path: Path) -> Non
     report = _verify(sidecar, model, kwargs)
 
     assert report is not None
+
+
+@pytest.mark.parametrize(
+    ("partitions", "message"),
+    [
+        (None, "requires all split indices"),
+        (
+            {"train": np.zeros((1, 1)), "validation": np.array([6]), "test": np.array([9])},
+            "indices are malformed",
+        ),
+        (
+            {"train": np.array([0.0]), "validation": np.array([6]), "test": np.array([9])},
+            "indices are invalid",
+        ),
+        (
+            {
+                "train": np.array([0, 1, 2, 3, 4, 5]),
+                "validation": np.array([6]),
+                "test": np.array([9]),
+            },
+            "differs from its frozen contract",
+        ),
+    ],
+)
+def test_feature_matrix_replay_requires_exact_well_formed_partition_indices(
+    tmp_path: Path, partitions, message: str
+) -> None:
+    sidecar, model, _, kwargs = _bind(tmp_path)
+
+    with pytest.raises(ValueError, match=message):
+        verify_model_input_artifact_contract(
+            sidecar,
+            model,
+            method_input=kwargs["method_input"],
+            partition_indices=partitions,
+        )
+
+
+def test_contract_feature_digest_must_match_sidecar_contents(tmp_path: Path) -> None:
+    sidecar, model, _, kwargs = _bind(tmp_path)
+    payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    payload["model_input_artifact_contract"]["feature_contract_sha256"] = "0" * 64
+    sidecar.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="digest does not match its contents"):
+        _verify(sidecar, model, kwargs)
+
+
+def test_unexpected_benchmark_cohort_is_rejected(tmp_path: Path) -> None:
+    sidecar, model, _, kwargs = _bind(tmp_path)
+    payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    payload["benchmark_cohort"] = {}
+    sidecar.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="unexpected benchmark cohort provenance"):
+        _verify(sidecar, model, kwargs)
+
+
+@pytest.mark.parametrize(
+    ("cohort", "partitions", "message"),
+    [
+        ({}, {"test": np.array([9.0])}, "one-dimensional integer array"),
+        (
+            {"selected_test_indices_sha256": "0" * 64},
+            {"test": np.array([9])},
+            "does not bind the model test indices",
+        ),
+        (
+            {
+                "selected_test_indices_sha256": canonical_hash([9]),
+                "registry_sha256": "different",
+            },
+            {"test": np.array([9])},
+            "registry does not match",
+        ),
+    ],
+)
+def test_benchmark_cohort_replay_rejects_malformed_test_roster(
+    tmp_path: Path, cohort: dict[str, Any], partitions: dict[str, np.ndarray], message: str
+) -> None:
+    sidecar, model, _, kwargs = _bind(tmp_path)
+    payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    payload["benchmark_cohort"] = cohort
+    sidecar.write_text(json.dumps(payload), encoding="utf-8")
+    indices = {**kwargs["partition_indices"], **partitions}
+
+    with pytest.raises(ValueError, match=message):
+        verify_model_input_artifact_contract(
+            sidecar, model, partition_indices=indices, benchmark_cohort=cohort
+        )
 
 
 def test_sidecar_must_be_a_single_link_regular_file(tmp_path: Path) -> None:
