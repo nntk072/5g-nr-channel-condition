@@ -261,7 +261,10 @@ def test_run_experiment_uses_verified_signed_split_lock(tmp_path) -> None:
     )
 
 
-def test_run_experiment_scores_selected_signed_benchmark_cohort(tmp_path) -> None:
+@pytest.mark.parametrize("mutate_snapshot", [False, True])
+def test_run_experiment_scores_selected_signed_benchmark_cohort(
+    tmp_path, monkeypatch, mutate_snapshot
+) -> None:
     from datasets.split_policy import (
         SplitParentType,
         SplitPolicy,
@@ -420,23 +423,40 @@ def test_run_experiment_scores_selected_signed_benchmark_cohort(tmp_path) -> Non
     manifest_path.write_text(json.dumps(benchmark_manifest, sort_keys=True), encoding="utf-8")
     output = tmp_path / "runs" / "benchmark"
 
+    if mutate_snapshot:
+        stable_input_bytes = experiment_runner_impl._stable_input_bytes
+
+        def mutate_after_snapshot(path):
+            payload = stable_input_bytes(path)
+            Path(path).write_bytes(Path(path).read_bytes() + b"changed after snapshot")
+            return payload
+
+        monkeypatch.setattr(experiment_runner_impl, "_stable_input_bytes", mutate_after_snapshot)
+
+    run_arguments = {
+        "split_lock_path": lock,
+        "split_signature_path": Path(f"{lock}.sig"),
+        "trusted_split_signers_path": registry_keyring,
+        "split_signer_id": signer,
+        "benchmark_manifest_path": manifest_path,
+        "benchmark_declaration_path": declaration_path,
+        "benchmark_declaration_signature_path": Path(f"{declaration_path}.sig"),
+        "benchmark_declaration_allowed_signers_path": declaration_keyring,
+        "benchmark_declaration_signer_id": signer,
+        "benchmark_dataset_names": ("locked",),
+        "benchmark_test_cohort": "site_held_out",
+    }
+    if mutate_snapshot:
+        with pytest.raises(ValueError, match="changed after its verified snapshot"):
+            run_experiment(
+                [source], output, methods=("logreg",), seeds=(11,), bootstrap=100, **run_arguments
+            )
+        assert (output / "benchmark-cohort-preflight.json").is_file()
+        assert not (output / "manifest.json").exists()
+        return
+
     run_experiment(
-        [source],
-        output,
-        methods=("logreg",),
-        seeds=(11,),
-        bootstrap=100,
-        split_lock_path=lock,
-        split_signature_path=Path(f"{lock}.sig"),
-        trusted_split_signers_path=registry_keyring,
-        split_signer_id=signer,
-        benchmark_manifest_path=manifest_path,
-        benchmark_declaration_path=declaration_path,
-        benchmark_declaration_signature_path=Path(f"{declaration_path}.sig"),
-        benchmark_declaration_allowed_signers_path=declaration_keyring,
-        benchmark_declaration_signer_id=signer,
-        benchmark_dataset_names=("locked",),
-        benchmark_test_cohort="site_held_out",
+        [source], output, methods=("logreg",), seeds=(11,), bootstrap=100, **run_arguments
     )
 
     saved_manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
@@ -1004,6 +1024,292 @@ def test_run_experiment_persists_failure_after_manifest_start(tmp_path, monkeypa
     assert manifest["failure"]["stage"] == "experiment"
     assert manifest["run_replay"]["state"] == "failed"
     assert manifest["run_replay"]["failure"]["message"] == "injected post-start failure"
+
+
+def test_run_experiment_records_wrapper_failure_when_replay_transition_fails(
+    tmp_path, monkeypatch
+) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=18).save(source)
+    output = tmp_path / "runs" / "replay-failure"
+    monkeypatch.setattr(
+        runner_module.experiment_runner,
+        "binary_metrics",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("injected model failure")),
+    )
+    monkeypatch.setattr(
+        runner_module.experiment_runner,
+        "mark_failed",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(OSError("manifest unavailable")),
+    )
+
+    with pytest.raises(RuntimeError, match="failure replay provenance could not be recorded"):
+        run_experiment([source], output, methods=("logreg",), seeds=(11,), bootstrap=20)
+
+
+def test_run_experiment_writes_benchmark_preflight_receipt_before_manifest(tmp_path) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=19).save(source)
+    output = tmp_path / "runs" / "benchmark-preflight"
+
+    with pytest.raises(ValueError, match="verified signed split lock"):
+        run_experiment(
+            [source],
+            output,
+            methods=("logreg",),
+            seeds=(11,),
+            bootstrap=20,
+            benchmark_manifest_path=tmp_path / "manifest.json",
+            benchmark_declaration_path=tmp_path / "declaration.json",
+            benchmark_declaration_signature_path=tmp_path / "declaration.sig",
+            benchmark_declaration_allowed_signers_path=tmp_path / "allowed-signers",
+            benchmark_declaration_signer_id="reviewer",
+            benchmark_dataset_names=("debug",),
+            benchmark_test_cohort="site_held_out",
+        )
+
+    receipt = json.loads((output / "benchmark-cohort-preflight.json").read_text(encoding="utf-8"))
+    assert receipt["status"] == "FAILED_BEFORE_RUN_MANIFEST"
+    assert not (output / "manifest.json").exists()
+
+
+def test_run_experiment_supports_comb_ls_observations(tmp_path) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=20).save(source)
+    output = tmp_path / "runs" / "comb-ls"
+
+    run_experiment(
+        [source],
+        output,
+        methods=("logreg",),
+        seeds=(11,),
+        bootstrap=20,
+        observation="comb_ls",
+    )
+
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["observation_semantics"] == "generic noisy comb pilot estimate, NOT 3GPP DMRS"
+
+
+def test_run_experiment_takes_coral_device_and_checkpoint_routes(tmp_path, monkeypatch) -> None:
+    import torch
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=21).save(source)
+
+    class Predictor:
+        def predict_proba(self, values):
+            scores = np.linspace(0.1, 0.9, len(values), dtype=np.float64)
+            return np.column_stack((1.0 - scores, scores))
+
+        def save(self, path, *, threshold, include_phase):
+            Path(path).write_text(f"{threshold}:{include_phase}", encoding="utf-8")
+
+    monkeypatch.setattr(experiment_runner_impl, "_sync_torch_device", lambda *_args: None)
+    monkeypatch.setattr(torch.cuda, "reset_peak_memory_stats", lambda _device: None)
+    monkeypatch.setattr(
+        experiment_runner_impl, "fit_coral_mlp", lambda *_args, **_kwargs: (Predictor(), {})
+    )
+
+    output = tmp_path / "runs" / "coral"
+    run_experiment([source], output, methods=("coral",), seeds=(11,), bootstrap=10, device="cuda:0")
+
+    assert (output / "models" / "coral_seed11.pt").read_text(encoding="utf-8")
+
+
+def test_run_experiment_records_prior_shift_report_drift(tmp_path, monkeypatch) -> None:
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=22).save(source)
+    original = experiment_runner_impl.adjust_probabilities_for_prior_shift
+    calls = 0
+
+    def drifting_report(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        probabilities, report = original(*args, **kwargs)
+        if calls == 2:
+            report = {**report, "injected_partition": "test"}
+        return probabilities, report
+
+    monkeypatch.setattr(
+        experiment_runner_impl, "adjust_probabilities_for_prior_shift", drifting_report
+    )
+    prior_shift = {
+        "schema": "loslab.prior_shift.v1",
+        "training_prior_kind": "natural",
+        "training_prior_id": "debug-training-prior",
+        "target_prior_kind": "natural",
+        "target_prior_id": "debug-target-prior",
+        "target_positive_prevalence": 0.25,
+        "target_prior_evidence_sha256": "a" * 64,
+    }
+
+    with pytest.raises(RuntimeError, match="train-only prior-shift report changed"):
+        run_experiment(
+            [source],
+            tmp_path / "runs" / "prior-shift-drift",
+            methods=("logreg",),
+            seeds=(11,),
+            bootstrap=10,
+            prior_shift=prior_shift,
+        )
+
+
+def test_run_experiment_uses_locked_calibration_partition(tmp_path, monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    source = tmp_path / "debug.npz"
+    data = debug_multipath(n_scenes=4, links_per_scene=12, seed=24)
+    data = ChannelDataset(
+        h=data.h,
+        y=data.y,
+        group=np.asarray([f"independent-{index:03d}" for index in range(len(data.y))]),
+        domain=data.domain,
+        source=data.source,
+        metadata=data.metadata,
+    )
+    data.save(source)
+    partitions = (
+        np.arange(0, 24, dtype=np.int64),
+        np.arange(24, 32, dtype=np.int64),
+        np.arange(32, 40, dtype=np.int64),
+        np.arange(40, 48, dtype=np.int64),
+        {"mode": "signed_locked", "registry_sha256": "c" * 64},
+    )
+    monkeypatch.setattr(
+        experiment_runner_impl,
+        "verify_signed_split_policy_registry_attestation",
+        lambda *_args, **_kwargs: (
+            object(),
+            SimpleNamespace(
+                artifact_sha256="a" * 64,
+                signature_sha256="b" * 64,
+                allowed_signers_sha256="c" * 64,
+            ),
+        ),
+    )
+    monkeypatch.setattr(experiment_runner_impl, "_locked_split_indices", lambda *_args: partitions)
+    prior_shift = {
+        "schema": "loslab.prior_shift.v1",
+        "training_prior_kind": "natural",
+        "training_prior_id": "locked-training-prior",
+        "target_prior_kind": "natural",
+        "target_prior_id": "locked-target-prior",
+        "target_positive_prevalence": 0.25,
+        "target_prior_evidence_sha256": "d" * 64,
+    }
+
+    run_experiment(
+        [source],
+        tmp_path / "runs" / "locked-calibration",
+        methods=("logreg",),
+        seeds=(11,),
+        bootstrap=10,
+        split_lock_path=tmp_path / "lock.json",
+        split_signature_path=tmp_path / "lock.sig",
+        trusted_split_signers_path=tmp_path / "trusted-signers",
+        split_signer_id="test-signer",
+        prior_shift=prior_shift,
+    )
+
+
+def test_run_experiment_rejects_invalid_class_support_payload(tmp_path, monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    source = tmp_path / "debug.npz"
+    debug_multipath(n_scenes=4, links_per_scene=12, seed=23).save(source)
+    monkeypatch.setattr(
+        experiment_runner_impl,
+        "audit_class_support",
+        lambda **_kwargs: SimpleNamespace(
+            cells=[
+                SimpleNamespace(
+                    split_id="test",
+                    family_id="synthetic_debug",
+                    class_label=0,
+                    record_count=1,
+                    independent_group_count=1,
+                    status="impossible",
+                    unexpected_field=True,
+                )
+            ]
+        ),
+    )
+
+    with pytest.raises(ValueError, match="class support report violates schema"):
+        run_experiment(
+            [source],
+            tmp_path / "runs" / "bad-class-support",
+            methods=("logreg",),
+            seeds=(11,),
+            bootstrap=10,
+        )
+
+
+def test_run_experiment_preserves_existing_manifest_after_failure(tmp_path, monkeypatch) -> None:
+    output = tmp_path / "runs" / "existing"
+    output.mkdir(parents=True)
+    (output / "manifest.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        experiment_runner_impl,
+        "_run_experiment_impl",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError("preflight failure")),
+    )
+
+    with pytest.raises(ValueError, match="preflight failure"):
+        run_experiment(output=output)
+
+    assert (output / "manifest.json").read_text(encoding="utf-8") == "{}"
+
+
+def test_run_experiment_propagates_failure_without_output_root(monkeypatch) -> None:
+    monkeypatch.setattr(
+        experiment_runner_impl,
+        "_run_experiment_impl",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError("missing output")),
+    )
+
+    with pytest.raises(ValueError, match="missing output"):
+        run_experiment()
+
+
+def test_run_experiment_skips_manifest_receipt_for_symlink_output(tmp_path, monkeypatch) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    output = tmp_path / "output-link"
+    output.symlink_to(target, target_is_directory=True)
+    monkeypatch.setattr(
+        experiment_runner_impl,
+        "_run_experiment_impl",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError("linked output")),
+    )
+
+    with pytest.raises(ValueError, match="linked output"):
+        run_experiment(output=output)
+
+    assert not (target / "benchmark-cohort-preflight.json").exists()
+
+
+def test_run_experiment_preserves_nonrunning_manifest_on_failure(tmp_path, monkeypatch) -> None:
+    output = tmp_path / "runs" / "nonrunning"
+
+    def fail_after_persisting_terminal_manifest(*_args, **_kwargs):
+        output.mkdir(parents=True)
+        (output / "manifest.json").write_text(
+            json.dumps({"run_replay": {"state": "complete"}}), encoding="utf-8"
+        )
+        raise ValueError("terminal manifest already present")
+
+    monkeypatch.setattr(
+        experiment_runner_impl, "_run_experiment_impl", fail_after_persisting_terminal_manifest
+    )
+
+    with pytest.raises(ValueError, match="terminal manifest already present"):
+        run_experiment(["unused.npz"], output)
+
+    assert json.loads((output / "manifest.json").read_text(encoding="utf-8")) == {
+        "run_replay": {"state": "complete"}
+    }
 
 
 def test_run_experiment_materializes_input_dataset_through_build_dag(tmp_path) -> None:

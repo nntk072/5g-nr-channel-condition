@@ -520,8 +520,6 @@ def _run_experiment_impl(
                 if method == "oracle_label_leak"
                 else x
             )
-            if not isinstance(method_input, np.ndarray):
-                raise RuntimeError(f"model input is unavailable for method {method}")
             if method == "label_permuted":
                 training_targets, _ = _permute_training_labels(
                     data.y[train], run_seed=int(seed), base_seed=int(label_permutation_seed)
