@@ -265,3 +265,19 @@ def test_build_node_evaluates_once_and_reuses_the_cached_report(tmp_path) -> Non
     )
     assert third["node_key"] != first["node_key"]
     assert other_seed["seed"] == 4
+
+
+def test_build_node_rejects_corrupt_cached_report_bytes(tmp_path, monkeypatch) -> None:
+    source = _write(tmp_path / "corrupt-cache.json", _payload())
+    read_snapshot = uncertainty_io._read_prediction_snapshot
+    calls = {"count": 0}
+
+    def corrupt_cached_report(path):
+        calls["count"] += 1
+        if calls["count"] == 2:
+            return b"\xff"
+        return read_snapshot(path)
+
+    monkeypatch.setattr(uncertainty_io, "_read_prediction_snapshot", corrupt_cached_report)
+    with pytest.raises(ValueError, match="cached uncertainty report must be valid UTF-8 JSON"):
+        evaluate_prediction_file_build_node(source, tmp_path / "cache", bootstrap_draws=100)

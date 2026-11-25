@@ -51,3 +51,29 @@ def test_snapshot_detects_a_file_that_changes_while_it_is_read(tmp_path: Path, m
     monkeypatch.setattr(uncertainty_io, "_file_identity", drifting)
     with pytest.raises(ValueError, match="changed while"):
         uncertainty_io._read_prediction_snapshot(source)
+
+
+def test_snapshot_detects_a_file_that_changes_while_opening(tmp_path: Path, monkeypatch) -> None:
+    source = tmp_path / "opening.csv"
+    source.write_bytes(b"stable")
+    real_identity = uncertainty_io._file_identity
+    calls = {"count": 0}
+
+    def drift_on_open(metadata):
+        calls["count"] += 1
+        identity = real_identity(metadata)
+        return (0, *identity[1:]) if calls["count"] == 2 else identity
+
+    monkeypatch.setattr(uncertainty_io, "_file_identity", drift_on_open)
+    with pytest.raises(ValueError, match="changed while opening"):
+        uncertainty_io._read_prediction_snapshot(source)
+
+
+def test_snapshot_enforces_byte_limit_if_file_grows_during_read(tmp_path: Path, monkeypatch) -> None:
+    source = tmp_path / "growing.csv"
+    source.write_bytes(b"x")
+    monkeypatch.setattr(uncertainty_io, "_MAX_PREDICTION_FILE_BYTES", 4)
+    monkeypatch.setattr(uncertainty_io.os, "read", lambda *_args: b"12345")
+
+    with pytest.raises(ValueError, match="exceeds 4 bytes"):
+        uncertainty_io._read_prediction_snapshot(source)
