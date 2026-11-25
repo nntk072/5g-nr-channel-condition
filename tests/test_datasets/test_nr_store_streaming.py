@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import os
 import shutil
 import zipfile
@@ -13,8 +14,14 @@ import datasets.targets as target_contracts
 import numpy as np
 import pytest
 from datasets import iter_nr_record_shards
-from datasets.nr import NRChannelRecord, NRObservation, TargetDefinition
-from datasets.nr_store import NRStoredRecord, read_nr_record, write_nr_record
+from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory, TargetDefinition
+from datasets.nr_store import (
+    NRStoredRecord,
+    read_nr_record,
+    read_nr_trajectory,
+    write_nr_record,
+    write_nr_trajectory,
+)
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
@@ -435,3 +442,40 @@ def test_shard_inventory_rejects_unknown_manifest_fields(tmp_path):
 
     with pytest.raises(TypeError, match="unexpected keyword argument"):
         next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_trajectory_reader_rejects_unsupported_pointer_schema(tmp_path):
+    stored = write_nr_trajectory(tmp_path, NRTrajectory("schema", (0.0,), (_record("a"),)))
+
+    with pytest.raises(ValueError, match="unsupported NR trajectory schema version: 2"):
+        read_nr_trajectory(tmp_path, replace(stored, schema_version=2))
+
+
+def test_trajectory_reader_rejects_noncanonical_content_paths(tmp_path):
+    stored = write_nr_trajectory(tmp_path, NRTrajectory("path", (0.0,), (_record("a"),)))
+
+    with pytest.raises(ValueError, match="trajectory path must remain inside the store"):
+        read_nr_trajectory(tmp_path, replace(stored, relative_path="trajectories/../escape.json"))
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda value: value.update(schema_version=2), "unsupported NR trajectory payload schema"),
+        (lambda value: value.update(trajectory_id="forged"), "trajectory ID does not match"),
+        (lambda value: value.update(records=[]), "sample IDs do not match"),
+    ],
+)
+def test_trajectory_reader_rejects_payload_identity_mutations(tmp_path, mutate, message):
+    stored = write_nr_trajectory(
+        tmp_path, NRTrajectory("payload-check", (0.0,), (_record("payload-sample"),))
+    )
+    payload_path = tmp_path / stored.relative_path
+    value = json.loads(payload_path.read_text(encoding="utf-8"))
+    mutate(value)
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    payload_path.write_bytes(payload)
+    updated = replace(stored, content_sha256=hashlib.sha256(payload).hexdigest())
+
+    with pytest.raises(ValueError, match=message):
+        read_nr_trajectory(tmp_path, updated)
