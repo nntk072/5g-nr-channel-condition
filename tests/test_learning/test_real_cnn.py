@@ -74,3 +74,45 @@ def test_real_cnn_rejects_unavailable_cuda_device() -> None:
     labels = np.asarray([0, 1, 0, 1])
     with pytest.raises(RuntimeError, match="CUDA device requested but unavailable"):
         fit_real_cnn(values, labels, values, labels, epochs=1, device="cuda:0")
+
+
+def test_real_cnn_stops_after_patience_without_validation_improvement(monkeypatch) -> None:
+    torch = pytest.importorskip("torch")
+    from learning.real_cnn import fit_real_cnn
+
+    validation_losses = iter([1.0, 1.1])
+
+    class ControlledLoss:
+        def __call__(self, logits, _labels):
+            if torch.is_grad_enabled():
+                return logits.sum() * 0.0
+            return torch.tensor(next(validation_losses), device=logits.device)
+
+    monkeypatch.setattr(torch.nn, "CrossEntropyLoss", lambda **_kwargs: ControlledLoss())
+    values = np.ones((4, 1, 16), dtype=np.complex64)
+    labels = np.asarray([0, 1, 0, 1])
+
+    _, training = fit_real_cnn(
+        values, labels, values, labels, epochs=5, patience=1, batch_size=4, capacity="small"
+    )
+
+    assert training["epoch_count"] == 2
+    assert training["best_validation_ce"] == 1.0
+
+
+def test_real_cnn_rejects_run_without_finite_validation_checkpoint(monkeypatch) -> None:
+    torch = pytest.importorskip("torch")
+    from learning.real_cnn import fit_real_cnn
+
+    class InfiniteValidationLoss:
+        def __call__(self, logits, _labels):
+            if torch.is_grad_enabled():
+                return logits.sum() * 0.0
+            return torch.tensor(float("inf"), device=logits.device)
+
+    monkeypatch.setattr(torch.nn, "CrossEntropyLoss", lambda **_kwargs: InfiniteValidationLoss())
+    values = np.ones((4, 1, 16), dtype=np.complex64)
+    labels = np.asarray([0, 1, 0, 1])
+
+    with pytest.raises(RuntimeError, match="did not produce a finite validation checkpoint"):
+        fit_real_cnn(values, labels, values, labels, epochs=1, batch_size=4, capacity="small")
