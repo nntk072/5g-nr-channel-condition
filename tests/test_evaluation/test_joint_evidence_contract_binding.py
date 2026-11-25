@@ -15,8 +15,10 @@ from evaluation import joint_evidence_artifact as artifact
 from evaluation import joint_evidence_run_manifest as run_manifest
 from evaluation.acceptance import joint_evaluation as joint
 from evaluation.acceptance import path_equivalence_assurance as path_equivalence_assurance
+from evaluation.run_manifest import contracts as binding_contracts
 from tests.test_evaluation.joint_evidence_artifact_support import (
     _install_scorers,
+    _payload,
     _payload_v2,
     _payload_v3,
     _payload_v4,
@@ -29,6 +31,17 @@ from tests.test_evaluation.joint_evidence_artifact_support import (
     _write_canonical,
     _write_run_manifest,
 )
+
+
+def _binding_fixture(*, raw_paths: bool = False):
+    payload = _payload_v6() if raw_paths else _payload_v4()
+    contract = _qualification_contract(payload, "f" * 64, raw_paths=raw_paths)
+    if raw_paths:
+        payload["path_equivalence"]["solver_budget_provenance"] = dict(contract["solver_budget"])
+    encoded = (
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n"
+    ).encode()
+    return payload, contract, encoded
 
 
 def test_v4_schema_requires_row_configuration_identity() -> None:
@@ -64,6 +77,52 @@ def test_v5_schema_requires_raw_paths_and_frozen_configuration() -> None:
     validator = jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8")))
 
     assert list(validator.iter_errors(payload))
+
+
+@pytest.mark.parametrize(
+    ("payload_factory", "schema_name"),
+    (
+        (_payload, "joint-evaluator-input.v1.schema.json"),
+        (_payload_v2, "joint-evaluator-input.v2.schema.json"),
+        (_payload_v3, "joint-evaluator-input.v3.schema.json"),
+        (_payload_v4, "joint-evaluator-input.v4.schema.json"),
+        (_payload_v5, "joint-evaluator-input.v5.schema.json"),
+        (_payload_v6, "joint-evaluator-input.v6.schema.json"),
+    ),
+)
+def test_run_manifest_input_schema_validator_selects_pinned_schema(payload_factory, schema_name):
+    payload = payload_factory()
+
+    selected = run_manifest._validate_joint_evaluator_input_schema(
+        payload, source_root=Path(__file__).resolve().parents[2]
+    )
+
+    assert selected.endswith(schema_name)
+
+
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        ([], "must be an object"),
+        ({"schema": None}, "schema must be a string"),
+        ({"schema": "unrecognized"}, "unsupported joint evaluator input schema"),
+    ],
+)
+def test_run_manifest_input_schema_validator_rejects_unknown_inputs(payload, message):
+    with pytest.raises(ValueError, match=message):
+        run_manifest._validate_joint_evaluator_input_schema(
+            payload, source_root=Path(__file__).resolve().parents[2]
+        )
+
+
+def test_run_manifest_input_schema_validator_reports_schema_errors():
+    payload = _payload_v6()
+    payload.pop("receiver_impact")
+
+    with pytest.raises(ValueError, match="violates schema"):
+        run_manifest._validate_joint_evaluator_input_schema(
+            payload, source_root=Path(__file__).resolve().parents[2]
+        )
 
 
 def test_contract_v4_binds_v6_diffuse_solver_budget_provenance() -> None:
@@ -132,6 +191,157 @@ def test_contract_v4_without_bandwidth_remains_diagnostic_only() -> None:
         run_manifest._verify_qualification_contract_bindings(
             contract, encoded, require_powered_design=True
         )
+
+
+@pytest.mark.parametrize(
+    ("raw_paths", "mutate", "message"),
+    [
+        (
+            False,
+            lambda payload: payload.update(joint_acceptance_family={}),
+            "acceptance family differs",
+        ),
+        (
+            False,
+            lambda payload: payload.update(receiver_execution={}),
+            "waveform, receiver configs",
+        ),
+        (
+            False,
+            lambda payload: payload.update(propagation_metrics=[]),
+            "propagation-metric input must be an object",
+        ),
+        (
+            False,
+            lambda payload: payload["path_equivalence"].update(expected_scenarios=[]),
+            "path roster differs",
+        ),
+        (
+            False,
+            lambda payload: payload["path_equivalence"].update(records=[]),
+            "nonempty comparison roster",
+        ),
+        (
+            False,
+            lambda payload: payload["path_equivalence"]["records"][0].update(comparison={}),
+            "configuration differs",
+        ),
+        (
+            True,
+            lambda payload: payload["path_equivalence"].update(comparison_configuration={}),
+            "raw path-equivalence configuration differs",
+        ),
+        (
+            True,
+            lambda payload: payload["path_equivalence"]["records"][0].update(comparison={}),
+            "must omit supplied comparison",
+        ),
+        (
+            True,
+            lambda payload: payload["receiver_impact"].update(records=[]),
+            "nonempty episode-bound record list",
+        ),
+        (
+            True,
+            lambda payload: payload["receiver_impact"].update(records=[None]),
+            "record 0 must be an object",
+        ),
+        (
+            True,
+            lambda payload: payload["receiver_impact"]["records"][0].update(condition="unknown"),
+            "needs family_id, LOS/NLOS condition",
+        ),
+        (
+            True,
+            lambda payload: payload["receiver_impact"]["records"][0].update(
+                configuration_id="other"
+            ),
+            "configuration binding differs",
+        ),
+        (
+            True,
+            lambda payload: payload["receiver_impact"]["records"][0].update(episode_id="other"),
+            "observed episode roster differs",
+        ),
+    ],
+)
+def test_contract_bindings_reject_drifted_joint_inputs(raw_paths, mutate, message):
+    payload, contract, _ = _binding_fixture(raw_paths=raw_paths)
+    mutate(payload)
+    encoded = (
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n"
+    ).encode()
+
+    with pytest.raises(ValueError, match=message):
+        run_manifest._verify_qualification_contract_bindings(contract, encoded)
+
+
+def test_contract_bindings_reject_non_object_input_payload():
+    _, contract, _ = _binding_fixture()
+
+    with pytest.raises(ValueError, match="joint evaluator input must be an object"):
+        run_manifest._verify_qualification_contract_bindings(contract, b"[]")
+
+
+def test_contract_v4_accepts_v5_inputs_only_for_diagnostic_runs():
+    payload, contract, _ = _binding_fixture(raw_paths=True)
+    payload["schema"] = "loslab.joint_evaluator_inputs.v5"
+    payload["path_equivalence"].pop("solver_budget_provenance")
+    encoded = (
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n"
+    ).encode()
+
+    run_manifest._verify_qualification_contract_bindings(contract, encoded)
+
+    with pytest.raises(ValueError, match="input v4 for contract v3"):
+        run_manifest._verify_qualification_contract_bindings(
+            contract, encoded, require_powered_design=True
+        )
+
+
+def test_contract_bindings_require_supported_versions_for_power_and_raw_paths(monkeypatch):
+    contract = {"schema": "loslab.qualification_run_contract.v2"}
+    monkeypatch.setattr(
+        binding_contracts,
+        "verify_qualification_run_contract",
+        lambda _: {"contract_sha256": "a" * 64},
+    )
+
+    with pytest.raises(ValueError, match="contract v3 or v4"):
+        run_manifest._verify_qualification_contract_bindings(
+            contract, b"{}", require_powered_design=True
+        )
+    with pytest.raises(ValueError, match="requires qualification contract v4"):
+        run_manifest._verify_qualification_contract_bindings(
+            contract, b"{}", require_raw_path_criteria=True
+        )
+    with pytest.raises(ValueError, match="contract-bound evaluation requires input v4"):
+        run_manifest._verify_qualification_contract_bindings(contract, b"{}")
+
+
+def test_contract_bindings_require_complete_powered_design(monkeypatch):
+    payload, contract, encoded = _binding_fixture()
+    monkeypatch.setattr(
+        binding_contracts,
+        "verify_joint_sample_size_design",
+        lambda _: {"complete_precision_powered_design": False},
+    )
+
+    with pytest.raises(ValueError, match="complete powered design"):
+        run_manifest._verify_qualification_contract_bindings(
+            contract, encoded, require_powered_design=True
+        )
+
+
+def test_contract_bindings_reject_legacy_comparison_contract_drift():
+    payload, contract, _ = _binding_fixture()
+    payload["path_equivalence"]["records"][0] = {}
+    encoded = (
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n"
+    ).encode()
+
+    with pytest.raises(ValueError, match="needs a comparison object"):
+        run_manifest._verify_qualification_contract_bindings(contract, encoded)
 
 
 @pytest.mark.parametrize("criterion_driven_contract", (False, True))
