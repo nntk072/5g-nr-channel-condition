@@ -413,6 +413,21 @@ SEMANTIC_BREADTH_CASES = [
         id="mapping-unknown-evidence-file",
     ),
     pytest.param(
+        _rewrite_mapping(lambda d: d.update(material_mapping_id="mapping.other")),
+        "bound material mapping ID differs from scorer input",
+        id="mapping-id-differs-from-input",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["expected_strata"].append("malformed-row")),
+        "each expected_strata entry must be an object",
+        id="expected-strata-ignores-nonobject-rows",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["expected_strata"][0].update(material_id=7)),
+        "evaluator output strata do not exactly match scorer input expected_strata",
+        id="expected-strata-requires-string-keys",
+    ),
+    pytest.param(
         _package_edit(lambda d: [item.update(size_bytes="12") for item in d["files"]]),
         "size_bytes must be an integer",
         id="size-not-integer",
@@ -525,6 +540,34 @@ def test_verifier_rejects_nonfinite_angular_cells(tmp_path: Path) -> None:
 
     assert report["status"] == "inconsistent"
     assert "must be finite and nonnegative" in _error_text(report)
+
+
+@pytest.mark.parametrize(
+    ("description", "error_message"),
+    [
+        ("evaluator input schema", "cannot validate evaluator input schema"),
+        ("material mapping schema", "cannot validate material mapping schema"),
+    ],
+)
+def test_verifier_reports_schema_read_failures(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, description: str, error_message: str
+) -> None:
+    package_path, _ = _load(tmp_path, V04)
+    real_read = verify_module._read_bounded_regular_file
+    fail_description = description
+
+    def fail_selected_schema(path, *, limit, description: str):
+        if description == fail_description:
+            raise OSError("injected schema read failure")
+        return real_read(path, limit=limit, description=description)
+
+    monkeypatch.setattr(verify_module, "_read_bounded_regular_file", fail_selected_schema)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert error_message in _error_text(report)
+    assert "injected schema read failure" in _error_text(report)
 
 
 def _noise_entry(package: dict[str, Any]) -> dict[str, Any]:
