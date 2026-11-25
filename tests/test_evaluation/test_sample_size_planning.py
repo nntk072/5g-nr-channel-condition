@@ -1015,6 +1015,51 @@ def test_joint_unit_planner_rejects_inconsistent_family_allocation(monkeypatch) 
         _joint_v2_plan(_joint_family_v2())
 
 
+def test_joint_unit_planner_rejects_inconsistent_v2_propagation_allocation(monkeypatch) -> None:
+    original = independent_units_module.family_alpha_for_claim
+
+    def inconsistent_propagation(family, *, evaluator, expected_strata):
+        alpha, count = original(family, evaluator=evaluator, expected_strata=expected_strata)
+        return (alpha + 0.001, count) if evaluator == "propagation_metrics" else (alpha, count)
+
+    monkeypatch.setattr(
+        independent_units_module, "family_alpha_for_claim", inconsistent_propagation
+    )
+    with pytest.raises(ValueError, match="allocation is internally inconsistent"):
+        _joint_v2_plan(_joint_family_v2())
+
+
+def test_joint_unit_planner_rejects_family_claim_count_drift(monkeypatch) -> None:
+    original = independent_units_module.family_alpha_for_claim
+
+    def inconsistent_count(family, *, evaluator, expected_strata):
+        alpha, count = original(family, evaluator=evaluator, expected_strata=expected_strata)
+        return alpha, count + 1
+
+    monkeypatch.setattr(independent_units_module, "family_alpha_for_claim", inconsistent_count)
+    with pytest.raises(ValueError, match="claim count does not match"):
+        _joint_v2_plan(_joint_family_v2())
+
+
+def test_joint_unit_planner_rejects_inconsistent_v3_receiver_allocation(monkeypatch) -> None:
+    original = independent_units_module.family_alpha_for_claim
+
+    def inconsistent_receiver(family, *, evaluator, expected_strata):
+        alpha, count = original(family, evaluator=evaluator, expected_strata=expected_strata)
+        return (alpha + 0.001, count) if evaluator == "receiver_impact" else (alpha, count)
+
+    monkeypatch.setattr(independent_units_module, "family_alpha_for_claim", inconsistent_receiver)
+    family = build_joint_acceptance_family_v3(
+        family_id="allocation-v3",
+        material_expected_strata=[("brick", "V", "normal")],
+        complex_csi_expected_strata=[("urban", "LOS")],
+        propagation_expected_strata=[("urban", "LOS", "total")],
+        receiver_impact_expected_strata=[("urban", "LOS")],
+    )
+    with pytest.raises(ValueError, match="allocation is internally inconsistent"):
+        _joint_v2_plan(family)
+
+
 def test_joint_unit_planner_requires_propagation_assumptions_for_v1_families() -> None:
     with pytest.raises(ValueError, match="assumptions require a v2 or v3 joint family"):
         _joint_v2_plan(_joint_family())
@@ -1037,9 +1082,11 @@ def test_joint_unit_planner_accepts_v1_family_without_propagation_claims() -> No
     ("kwargs", "message"),
     [
         ({"planned_quantile_pass_probabilities": None}, "must be a mapping"),
+        ({"planned_quantile_pass_probabilities": {}}, "must specify exactly"),
         ({"planned_interval_coverage": 0.90}, "strictly inside margins"),
         ({"planned_complex_csi_failure_probability": 0.05}, "below 0.05"),
         ({"planned_propagation_p95_pass_probabilities": {}}, "must specify exactly"),
+        ({"planned_propagation_cluster_failure_probabilities": {}}, "must specify exactly"),
         (
             {
                 "planned_propagation_cluster_failure_probabilities": {
@@ -1072,6 +1119,45 @@ def test_joint_unit_planner_rejects_invalid_assumptions(kwargs, message) -> None
     arguments.update(kwargs)
     with pytest.raises(ValueError, match=message):
         plan_joint_independent_units(**arguments)  # type: ignore[arg-type]
+
+
+def test_joint_unit_planner_evaluates_explicit_angular_assumption() -> None:
+    metrics = independent_units_module._PROPAGATION_METRICS
+    result = plan_joint_independent_units(
+        joint_acceptance_family=_joint_family_v2(),
+        planned_quantile_pass_probabilities=_assumptions(),
+        planned_interval_coverage=0.95,
+        planned_complex_csi_p95_pass_probability=0.99,
+        planned_complex_csi_failure_probability=0.01,
+        planned_angular_unit_pass_probability=0.99,
+        planned_propagation_p95_pass_probabilities={metric: 0.99 for metric in metrics},
+        planned_propagation_cluster_failure_probabilities={metric: 0.01 for metric in metrics},
+    )
+    assert result["material_design"]["angular_maximum_claim"]["assumption_supplied"] is True
+
+
+def test_joint_unit_planner_preserves_unbounded_propagation_failure_design(monkeypatch) -> None:
+    original = independent_units_module._exact_binomial_failure_design
+    calls = 0
+
+    def unbounded_propagation_design(**kwargs):
+        nonlocal calls
+        calls += 1
+        result = original(**kwargs)
+        if calls > 1:
+            return {**result, "required_independent_outer_clusters_per_stratum": None}
+        return result
+
+    monkeypatch.setattr(
+        independent_units_module, "_exact_binomial_failure_design", unbounded_propagation_design
+    )
+    result = _joint_v2_plan(_joint_family_v2())
+    assert (
+        result["propagation_design"][
+            "required_independent_clusters_per_stratum_for_supported_claims"
+        ]
+        is None
+    )
 
 
 @pytest.mark.parametrize("planned_mean", [0.90, 0.98, 0.89, 0.99])
