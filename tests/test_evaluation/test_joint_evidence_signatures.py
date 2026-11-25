@@ -67,6 +67,110 @@ def test_strict_signed_reviewer_admission_rejects_unsigned_run_before_replay(
     assert any("strict signed reviewer admission requires" in error for error in report["errors"])
 
 
+@pytest.mark.parametrize(
+    ("options", "message"),
+    [
+        ({"require_signed_reviewer_admission": 1}, "must be a boolean"),
+        (
+            {"trusted_signer_policy_path": "policy.json"},
+            "requires a verified manifest signature",
+        ),
+        (
+            {"trusted_signer_policy_signature_path": "policy.sig"},
+            "signature_path, trusted_policy_allowed_signers_path, and policy_signer_id",
+        ),
+        (
+            {
+                "trusted_signer_policy_signature_path": "policy.sig",
+                "trusted_policy_allowed_signers_path": "policy.allowed",
+                "policy_signer_id": "policy-owner",
+            },
+            "requires both a signer policy and a signed run manifest",
+        ),
+        (
+            {"runtime_inventory_signature_path": "inventory.sig"},
+            "runtime inventory signature, trusted keyring, and signer ID",
+        ),
+        (
+            {"require_signed_reviewer_admission": True},
+            "requires a signed run manifest, an externally signed signer policy",
+        ),
+    ],
+)
+def test_run_manifest_rejects_incomplete_signature_admission_options(
+    tmp_path: Path, options: dict[str, object], message: str
+) -> None:
+    report = run_manifest.verify_joint_evidence_run_manifest(
+        tmp_path / "manifest-not-read.json", **options
+    )
+    assert report["status"] == "INCONSISTENT"
+    assert any(message in error for error in report["errors"])
+
+
+def test_strict_reviewer_admission_rejects_signer_without_reviewer_role(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_scorers(monkeypatch)
+    source = tmp_path / "joint-input.json"
+    saved = tmp_path / "joint-report.json"
+    manifest_path = tmp_path / "run-manifest.json"
+    policy_path = tmp_path / "signer-policy.json"
+    _write_canonical(source, _payload())
+    artifact._write_new_artifact(saved, artifact.evaluate_joint_evidence_file(source))
+    _write_run_manifest(manifest_path, source, saved)
+    signature_path, allowed_signers, signer_id = _sign_run_manifest(manifest_path, tmp_path)
+    _write_canonical(
+        policy_path,
+        {
+            "schema": run_manifest.SIGNER_POLICY_SCHEMA,
+            "policy_id": "test-non-reviewer-policy",
+            "signers": [
+                {
+                    "principal": signer_id,
+                    "organization": "evaluator-lab",
+                    "roles": ["evaluator"],
+                    "allowed_purposes": [run_manifest.SIGNER_POLICY_PURPOSE],
+                }
+            ],
+        },
+    )
+    verify_signature = verify_module.verify_openssh_signature_for_bytes
+
+    def verify_with_separate_policy_custodian(
+        data, signature, keyring, *, signer_id: str, namespace: str
+    ):
+        if namespace == run_manifest.SIGNER_POLICY_SIGNATURE_NAMESPACE:
+            return {
+                "namespace": namespace,
+                "signer_id": "policy-owner",
+                "signature_sha256": "a" * 64,
+                "allowed_signers_sha256": "b" * 64,
+            }
+        return verify_signature(data, signature, keyring, signer_id=signer_id, namespace=namespace)
+
+    monkeypatch.setattr(
+        verify_module, "verify_openssh_signature_for_bytes", verify_with_separate_policy_custodian
+    )
+
+    report = run_manifest.verify_joint_evidence_run_manifest(
+        manifest_path,
+        signature_path=signature_path,
+        trusted_allowed_signers_path=allowed_signers,
+        trusted_signer_policy_path=policy_path,
+        signer_id=signer_id,
+        require_signed_reviewer_admission=True,
+        trusted_signer_policy_signature_path=tmp_path / "not-read-policy.sig",
+        trusted_policy_allowed_signers_path=tmp_path / "not-read-policy.allowed",
+        policy_signer_id="policy-owner",
+        runtime_inventory_signature_path=tmp_path / "not-read-inventory.sig",
+        trusted_runtime_inventory_signers_path=tmp_path / "not-read-inventory.allowed",
+        runtime_inventory_signer_id="inventory-owner",
+    )
+
+    assert report["status"] == "INCONSISTENT"
+    assert any("requires the independent_reviewer role" in error for error in report["errors"])
+
+
 def test_run_manifest_verifies_detached_signature_over_exact_manifest_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
