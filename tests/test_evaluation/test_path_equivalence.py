@@ -209,6 +209,28 @@ def test_serialized_path_classes_reject_coercible_malformed_values(field: str, v
         _compare(candidate, challenger)
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("aggregate_cfr_real", [], "must be nonempty"),
+        ("aggregate_cfr_imag", [0.0], "equal-length nonempty vectors"),
+        ("aggregate_coefficient_real", float("nan"), "finite real components"),
+        ("interaction_vertices_m", [], "invalid CFR, geometry"),
+        ("power_weighted_departure_direction", [0.0, 0.0, 0.0], "unit vectors"),
+        ("interaction_signature", "bad", "must be a list"),
+        ("interaction_signature", [[0, 7]], "malformed"),
+        ("power_weighted_delay_s", -1.0, "finite and nonnegative"),
+    ],
+)
+def test_path_class_view_rejects_invalid_serialized_geometry(field, value, message) -> None:
+    candidate = _build([_path(0)])
+    challenger = _build([_path(1)])
+    challenger["classes"][0][field] = value
+
+    with pytest.raises(ValueError, match=message):
+        _compare(candidate, challenger)
+
+
 def test_bidirectional_coverage_lists_relevant_unmatched_classes() -> None:
     candidate = _build([_path(0)])
     challenger = _build([_path(4), _path(5, object_id=8)])
@@ -229,6 +251,15 @@ def test_empty_path_sets_are_not_reported_as_a_pass() -> None:
     assert comparison["configuration"]["candidate_configuration_id"] == "candidate-v1"
     assert comparison["configuration"]["challenger_configuration_id"] == "challenger-v1"
     assert comparison["class_coverage_status"] == "NOT_ASSESSABLE_NO_CLASSES"
+
+
+def test_path_comparison_handles_one_sided_empty_class_roster() -> None:
+    report = _compare(_build([]), _build([_path(1)]))
+
+    assert report["class_coverage_status"] == "FAIL"
+    assert report["candidate_bidirectional_coverage"] is None
+    assert report["challenger_bidirectional_coverage"] == 0.0
+    assert len(report["challenger_only_relevant_classes"]) == 1
 
 
 def test_non_relevant_classes_do_not_create_a_coverage_pass() -> None:
@@ -334,6 +365,32 @@ def test_diffuse_path_summary_is_order_invariant_and_handles_empty_sets() -> Non
     )
     assert report["candidate"]["status"] == "NO_DIFFUSE_PATHS"
     assert report["candidate_minus_challenger_unweighted_quantile_deltas"]["delay_s"] is None
+
+
+def test_zero_power_diffuse_paths_use_equal_angular_weights_and_no_power_quantiles() -> None:
+    summary = summarize_diffuse_stochastic_paths(
+        [
+            _diffuse_path(0, delay_s=1e-9, power=0.0),
+            _diffuse_path(1, delay_s=3e-9, power=0.0),
+        ]
+    )
+
+    assert summary["angular_quantile_weighting"] == "equal_weight_fallback_no_coefficient_power"
+    assert summary["zero_total_power_uses_equal_weights_for_angular_summary"] is True
+    assert summary["coefficient_power_weighted_quantiles"]["path_power"] is None
+
+
+def test_diffuse_path_total_power_must_remain_finite() -> None:
+    paths = [
+        _diffuse_path(0, delay_s=1e-9, power=1e308),
+        _diffuse_path(1, delay_s=2e-9, power=1e308),
+    ]
+
+    with (
+        np.errstate(over="ignore"),
+        pytest.raises(ValueError, match="coefficient power sum must be finite"),
+    ):
+        summarize_diffuse_stochastic_paths(paths)
 
 
 @pytest.mark.parametrize(
