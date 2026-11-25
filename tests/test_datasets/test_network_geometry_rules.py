@@ -14,6 +14,7 @@ from datasets.network import (
     NodePoseTimeline,
     NodeRole,
 )
+from datasets.time_axis import align_named_time_axes, align_time_axes
 
 
 def _array(**overrides):
@@ -247,8 +248,58 @@ def test_episode_rejects_timeline_and_split_lineage_mismatches() -> None:
                 orientations,
             )
         )
+    with pytest.raises(ValueError, match="initial pose orientation"):
+        _episode(
+            pose_timeline=NodePoseTimeline(
+                ("tx", "rx"),
+                (0.0, 1.0),
+                positions,
+                np.broadcast_to(
+                    np.asarray([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]),
+                    (2, 2, 3, 3),
+                ),
+            )
+        )
     accepted = _episode(pose_timeline=timeline)
     assert accepted.pose_timeline is timeline
+    assert accepted.position_at("rx", 1) == (1.0, 0.0, 0.0)
+    np.testing.assert_array_equal(accepted.orientation_at("rx", 1), np.eye(3))
+    assert accepted.position_at("tx", 1) == (0.0, 0.0, 0.0)
+    np.testing.assert_array_equal(
+        _episode().orientation_at("tx", 0), _episode().array("a").orientation_local_to_world
+    )
+    assert accepted.link("l").tx_node_id == "tx"
+    assert accepted.node("rx").array_id == "b"
+    assert accepted.array("a").num_ports == 2
+    aligned_timeline, alignment = timeline.align_to((0.0, 1.0), tolerance_s=0.0)
+    assert alignment.complete
+    assert aligned_timeline.frame_times_s == (0.0, 1.0)
+    pose_alignment = align_time_axes((0.0, 1.0), (0.0, 1.0), tolerance_s=0.0)
+    source_alignment = align_named_time_axes(
+        (0.0, 1.0), {"capture-a": (0.0, 1.0)}, tolerance_s=0.0, require_complete=True
+    )
+    with_pose_alignment = _episode(pose_timeline=timeline, pose_time_alignment=pose_alignment)
+    assert with_pose_alignment.pose_time_alignment == pose_alignment
+    with_source_alignment = _episode(source_time_alignment=source_alignment)
+    assert with_source_alignment.source_time_alignment == source_alignment
+    assert _episode(split_leakage_relations=(("site", "site-1"),)).split_leakage_relations == (
+        ("site", "site-1"),
+    )
+    with pytest.raises(TypeError, match="pose_time_alignment must be a TimeAxisAlignment"):
+        _episode(pose_time_alignment=object())
+    with pytest.raises(ValueError, match="requires a pose_timeline"):
+        _episode(pose_time_alignment=pose_alignment)
+    incomplete_alignment = align_time_axes((0.0, 1.0), (0.0,), tolerance_s=0.0)
+    with pytest.raises(ValueError, match="completely match episode frame times"):
+        _episode(pose_timeline=timeline, pose_time_alignment=incomplete_alignment)
+    wrong_pose_reference = align_time_axes((1.0,), (1.0,), tolerance_s=0.0)
+    with pytest.raises(ValueError, match="completely match episode frame times"):
+        _episode(pose_timeline=timeline, pose_time_alignment=wrong_pose_reference)
+    with pytest.raises(TypeError, match="source_time_alignment must be a MultiSource"):
+        _episode(source_time_alignment=object())
+    wrong_source_reference = align_named_time_axes((1.0,), {"capture-a": (1.0,)}, tolerance_s=0.0)
+    with pytest.raises(ValueError, match="episode frame times as reference"):
+        _episode(source_time_alignment=wrong_source_reference)
     with pytest.raises(ValueError, match="canonical namespace/id pairs"):
         _episode(split_leakage_relations=(("unknown", "scene-1"),))
     with pytest.raises(ValueError, match="must be unique"):
