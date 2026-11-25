@@ -17,7 +17,9 @@ from experiments.runner.contracts import (
 from experiments.runner.validation import (
     _metadata_only_features,
     _oracle_label_leak_features,
+    _permute_training_feature_rows,
     _single_metadata_features,
+    _source_only_features,
 )
 from tests.test_experiments.test_model_input_contract_builder import (
     _ROWS,
@@ -36,6 +38,21 @@ def _route_features(method: str, extra: dict[str, Any], partitions) -> np.ndarra
     """The replayed feature matrix that a route's declared inputs must produce."""
     if method == "oracle_label_leak":
         features, _ = _oracle_label_leak_features(extra["target_values"])
+        return features
+    if method == "source_only":
+        features, _ = _source_only_features(
+            extra["source_values"], train_indices=partitions["train"]
+        )
+        return features
+    if method == "row_shuffled":
+        source = extra["source_method_input"]
+        shuffled, _ = _permute_training_feature_rows(
+            source[partitions["train"]],
+            run_seed=extra["feature_permutation_run_seed"],
+            base_seed=extra["feature_permutation_seed"],
+        )
+        features = np.array(source, copy=True)
+        features[partitions["train"]] = shuffled
         return features
     if method == "metadata_only":
         features, _ = _metadata_only_features(
@@ -261,6 +278,70 @@ def test_replayed_route_verifies_its_declared_inputs(
     report = _verify(sidecar, model, kwargs, **verify_extra)
 
     assert report is not None
+
+
+@pytest.mark.parametrize(
+    ("build_extra", "message"),
+    [
+        (
+            {
+                "method": "label_permuted",
+                "target_values": _rows_vector(1),
+                "label_permutation_seed": 3,
+                "label_permutation_run_seed": 4,
+            },
+            "requires its target values",
+        ),
+        (
+            {
+                "method": "row_shuffled",
+                "source_method_input": _matrix(),
+                "feature_permutation_seed": 3,
+                "feature_permutation_run_seed": 4,
+            },
+            "requires source features",
+        ),
+        (
+            {"method": "source_only", "source_values": _ids("s", 3)},
+            "requires source identifiers",
+        ),
+        (
+            {
+                "method": "metadata_only",
+                "metadata_values": {
+                    "group": _ids("g", 3),
+                    "domain": _ids("d", 2),
+                    "source": _ids("s", 4),
+                },
+            },
+            "requires metadata ID rosters",
+        ),
+        (
+            {"method": "group_only", "metadata_values": {"group": _ids("g", 3)}},
+            "requires only its ID roster",
+        ),
+        (
+            {"method": "domain_only", "metadata_values": {"domain": _ids("d", 2)}},
+            "requires only its ID roster",
+        ),
+        (
+            {"method": "oracle_label_leak", "target_values": _rows_vector(2)},
+            "requires the exact target roster",
+        ),
+    ],
+)
+def test_replayed_route_requires_its_verification_inputs(
+    tmp_path: Path, build_extra: dict[str, Any], message: str
+) -> None:
+    method = build_extra["method"]
+    sidecar, model, _, kwargs = _bind(
+        tmp_path,
+        method=method,
+        **{key: value for key, value in build_extra.items() if key != "method"},
+    )
+
+    with pytest.raises(ValueError, match=message):
+        _verify(sidecar, model, kwargs)
 
 
 def test_label_permutation_replay_rejects_other_targets(tmp_path: Path) -> None:

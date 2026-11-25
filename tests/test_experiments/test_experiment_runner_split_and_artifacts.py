@@ -656,6 +656,40 @@ def test_run_experiment_writes_reproducible_complete_artifacts(tmp_path) -> None
     )
     assert support_replay["status"] == "PASS_INPUT_SCOPED_REPLAY"
     assert support_replay["qualification_status"] == "NOT_QUALIFIED"
+    with pytest.raises(ValueError, match="must name train, validation, calibration, and test"):
+        verify_declared_partition_support(
+            data,
+            {**partitions, "unexpected": partitions["test"]},
+            partition_support,
+            report_row["split"]["declared_partition_support_sha256"],
+        )
+    malformed_partitions = dict(partitions)
+    malformed_partitions["train"] = partitions["train"].astype(float)
+    with pytest.raises(ValueError, match="one-dimensional integer array"):
+        verify_declared_partition_support(
+            data,
+            malformed_partitions,
+            partition_support,
+            report_row["split"]["declared_partition_support_sha256"],
+        )
+    duplicate_partitions = dict(partitions)
+    duplicate_partitions["train"] = np.append(partitions["train"], partitions["train"][0])
+    with pytest.raises(ValueError, match="unique, in range, and disjoint"):
+        verify_declared_partition_support(
+            data,
+            duplicate_partitions,
+            partition_support,
+            report_row["split"]["declared_partition_support_sha256"],
+        )
+    incomplete_partitions = dict(partitions)
+    incomplete_partitions["test"] = partitions["test"][:-1]
+    with pytest.raises(ValueError, match="cover every source dataset row exactly once"):
+        verify_declared_partition_support(
+            data,
+            incomplete_partitions,
+            partition_support,
+            report_row["split"]["declared_partition_support_sha256"],
+        )
     tampered_support = json.loads(json.dumps(partition_support))
     tampered_support["test"]["declared_group_count"] += 1
     with pytest.raises(ValueError, match="does not replay"):
