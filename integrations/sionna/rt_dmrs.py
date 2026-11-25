@@ -24,7 +24,10 @@ from .nr_pusch import SionnaPUSCHLSReceiver
 def read_stable_input_artifact(path: str | Path) -> tuple[bytes, dict[str, str]]:
     """Read and identify one regular input file through the same open descriptor."""
     source = Path(path)
-    descriptor = os.open(source, os.O_RDONLY | getattr(os, "O_CLOEXEC", 0))
+    descriptor = os.open(
+        source,
+        os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NONBLOCK", 0),
+    )
     try:
         before = os.fstat(descriptor)
         if not stat.S_ISREG(before.st_mode):
