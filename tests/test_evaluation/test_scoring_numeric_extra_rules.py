@@ -20,6 +20,15 @@ def test_array_parsing_reports_element_names_and_dimensions() -> None:
         finite_real_array("text", "x")
 
 
+def test_array_conversion_errors_are_reported_as_value_errors() -> None:
+    class InvalidArray:
+        def __array__(self, dtype=None, copy=None):
+            raise TypeError("cannot expose array data")
+
+    with pytest.raises(ValueError, match="must be a finite real array"):
+        finite_real_array(InvalidArray(), "x")
+
+
 def _npy_v2(values: np.ndarray) -> bytes:
     import io
 
