@@ -165,3 +165,43 @@ def test_json_reader_rejects_duplicate_and_nonfinite_values(tmp_path) -> None:
     deep.write_text("[" * 100000 + "]" * 100000, encoding="utf-8")
     with pytest.raises(ValueError, match="bounded valid UTF-8 JSON"):
         pilot_cli._read_json(deep, label="design")
+
+
+def test_json_reader_detects_file_change_while_opening(tmp_path, monkeypatch) -> None:
+    source = _write(tmp_path / "opening.json", {"a": 1})
+    identity = pilot_cli._identity
+    calls = {"count": 0}
+
+    def changed_identity(metadata):
+        calls["count"] += 1
+        value = identity(metadata)
+        return (0, *value[1:]) if calls["count"] == 2 else value
+
+    monkeypatch.setattr(pilot_cli, "_identity", changed_identity)
+    with pytest.raises(ValueError, match="changed while opening"):
+        pilot_cli._read_json(source, label="design")
+
+
+def test_json_reader_detects_file_growth_during_read(tmp_path, monkeypatch) -> None:
+    source = tmp_path / "growing.json"
+    source.write_bytes(b"x")
+    monkeypatch.setattr(pilot_cli, "_MAX_INPUT_BYTES", 4)
+    monkeypatch.setattr(pilot_cli.os, "read", lambda *_args: b"12345")
+
+    with pytest.raises(ValueError, match="exceeds the 4-byte limit"):
+        pilot_cli._read_json(source, label="design")
+
+
+def test_json_reader_detects_file_change_while_reading(tmp_path, monkeypatch) -> None:
+    source = _write(tmp_path / "reading.json", {"a": 1})
+    identity = pilot_cli._identity
+    calls = {"count": 0}
+
+    def change_after_read(metadata):
+        calls["count"] += 1
+        value = identity(metadata)
+        return (0, *value[1:]) if calls["count"] == 4 else value
+
+    monkeypatch.setattr(pilot_cli, "_identity", change_after_read)
+    with pytest.raises(ValueError, match="changed while being read"):
+        pilot_cli._read_json(source, label="design")
