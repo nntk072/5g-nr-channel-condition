@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 import pytest
+from datasets import standardized as standardized_module
 from datasets.standardized import (
     StandardizedFamily,
     _canonical_json,
@@ -71,6 +72,34 @@ def test_learning_store_reads_from_a_relative_manifest_string(tmp_path: Path) ->
 
     assert restored.run_id == "learning-store"
     assert [item.sample_id for item in restored.examples] == list(stored.sample_ids)
+
+
+def test_learning_store_reads_a_relative_manifest_path(tmp_path: Path) -> None:
+    stored, _ = _write(tmp_path)
+
+    restored = read_standardized_learning_run(tmp_path, Path(stored.relative_path))
+
+    assert [item.sample_id for item in restored.examples] == list(stored.sample_ids)
+
+
+def test_learning_store_reads_an_absolute_manifest_path(tmp_path: Path) -> None:
+    stored, _ = _write(tmp_path)
+
+    restored = read_standardized_learning_run(tmp_path, tmp_path / stored.relative_path)
+
+    assert [item.sample_id for item in restored.examples] == list(stored.sample_ids)
+
+
+def test_immutable_publish_skips_cleanup_when_tempfile_creation_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    def fail_to_create_tempfile(**_kwargs):
+        raise OSError("fixture blocks temporary file creation")
+
+    monkeypatch.setattr(standardized_module.tempfile, "NamedTemporaryFile", fail_to_create_tempfile)
+
+    with pytest.raises(OSError, match="blocks temporary file creation"):
+        standardized_module._publish_immutable(tmp_path / "manifest.json", b"payload")
 
 
 @pytest.mark.parametrize(
@@ -186,6 +215,34 @@ def test_learning_target_schema_must_be_known(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="unsupported standardized target schema"):
         read_standardized_learning_run(tmp_path, updated)
+
+
+def test_legacy_target_schema_definitions_are_migrated_on_read(tmp_path: Path) -> None:
+    stored, manifest = _write(tmp_path)
+
+    def migrate_payload(body: dict[str, Any]) -> None:
+        reference = body["records"][0]["targets"]
+        target_path = tmp_path / reference["relative_path"]
+        payload = json.loads(target_path.read_text(encoding="utf-8"))
+        payload["schema"] = "standardized_targets.v1"
+        for item in payload["targets"].values():
+            definition = item["definition"]
+            item["definition"] = {
+                key: definition[key] for key in ("semantic", "units", "source", "reference")
+            }
+        encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
+        digest = hashlib.sha256(encoded).hexdigest()
+        migrated_path = target_path.with_name(f"{digest}.json")
+        migrated_path.write_bytes(encoded)
+        reference["relative_path"] = migrated_path.relative_to(tmp_path).as_posix()
+        reference["content_sha256"] = digest
+
+    updated = _edit_manifest(manifest, stored, migrate_payload)
+    restored = read_standardized_learning_run(tmp_path, updated)
+    migrated_definition = next(iter(restored.examples[0].targets.values())).definition
+
+    assert migrated_definition.definition_version == "migrated_from_legacy_target_v1"
+    assert migrated_definition.aggregation_rule == "not recorded by legacy target schema v1"
 
 
 def test_learning_sample_order_must_match_the_pointer(tmp_path: Path) -> None:
