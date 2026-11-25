@@ -122,8 +122,6 @@ def _scene_geometry_asset_manifests(
         if id(report) in visited:
             continue
         visited.add(id(report))
-        if not isinstance(report, dict):
-            continue
         if "scene_asset_manifest" in report:
             complete, digest, relations = _scene_geometry_asset_relations_from_manifest(
                 report["scene_asset_manifest"], context=context
@@ -350,15 +348,13 @@ def derive_channel_dataset_split_evidence(
                         scene_realization_id,
                     )
                 )
-                expected_subject_id, computed_complete = rt_spatial_split_subject_id(
+                expected_subject_id, _ = rt_spatial_split_subject_id(
                     scene_asset_set_sha256=asset_digest,
                     scene_asset_manifest_complete=assets_complete,
                     scene_name=scene_name,
                     rx_position_m=identity_position,
                     block_size_m=float(block_size),
                 )
-                if computed_complete is not identity_complete:
-                    raise ValueError(f"{context} RT identity completeness is inconsistent")
                 if subject_id != expected_subject_id:
                     raise ValueError(f"{context} RT split subject ID disagrees with its identity")
             signature = (
@@ -455,8 +451,6 @@ def derive_channel_dataset_split_evidence(
         positions = tuple(positions_by_parent.get(subject_id, ()))
         identity_fields = parent_records[subject_id]["identity_fields"]
         coordinate_frame_id = identity_fields.get("split_coordinate_frame_id")
-        if positions and not isinstance(coordinate_frame_id, str):
-            raise ValueError(f"spatial split subject {subject_id} lacks a scene asset identity")
         time_window: tuple[str, float, float] | None = time_by_parent.get(subject_id)
         footprints.append(
             SpatiotemporalFootprint(

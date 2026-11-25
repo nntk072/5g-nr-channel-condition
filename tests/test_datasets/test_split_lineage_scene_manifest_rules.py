@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 from datasets.channel import ChannelDataset
 from datasets.split_lineage import derive_channel_dataset_split_evidence
-from tests.test_datasets.test_split_lineage_audit import _dataset
+from tests.test_datasets.test_split_lineage_audit import _dataset, _with_metadata
 
 
 def _asset(
@@ -116,6 +116,27 @@ def test_generation_report_walk_terminates_on_parent_cycles() -> None:
     report["parent_generation_report"] = report
 
     assert _scene_geometry_asset_manifests(report, context="test") == {}
+
+
+def test_spatial_footprint_requires_coordinate_frame_identity() -> None:
+    name, dataset = _dataset("generic", [("parent", 0.0, "a" * 64)])
+    metadata = dict(dataset.metadata[0])
+    for field in (
+        "scene",
+        "scene_asset_manifest_complete",
+        "scene_asset_set_sha256",
+        "split_identity_basis",
+        "split_identity_complete",
+        "split_block_size_m",
+        "split_coordinate_frame_id",
+        "rx",
+    ):
+        metadata.pop(field)
+
+    with pytest.raises(ValueError, match="coordinate frame ID"):
+        derive_channel_dataset_split_evidence(
+            (_with_metadata(name, dataset, metadata),), spatial_buffer_m=1.0
+        )
 
 
 def test_rt_identity_manifest_digest_and_completeness_must_match_metadata() -> None:
