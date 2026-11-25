@@ -10,6 +10,7 @@ from integrations.sionna.srs import (
     NRSRSPeriodicResourceSetSchedule,
     NRSRSResourceSetAperiodicSchedule,
     nr_srs_fixed_frequency_allocation,
+    srs_configuration,
 )
 from integrations.sionna.srs.srs_resource_schedules import NRSRSScheduledResourceOccurrence
 
@@ -59,6 +60,18 @@ def test_periodic_set_schedule_checks_each_resource_entry(allocation) -> None:
         NRSRSPeriodicResourceSetSchedule(0, 3, ((0, other_slot),))
     with pytest.raises(ValueError, match="resource IDs must be unique"):
         NRSRSPeriodicResourceSetSchedule(0, 3, ((0, schedule), (0, schedule)))
+
+
+def test_fixed_frequency_allocation_rejects_an_invalid_optional_counter(
+    allocation, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        srs_configuration,
+        "nr_srs_frequency_position_indices",
+        lambda *_args, **_kwargs: allocation.position_indices,
+    )
+    with pytest.raises(ValueError, match="n_srs must be a nonnegative integer"):
+        replace(allocation, n_srs=True)
 
 
 def test_resource_set_aperiodic_schedule_identity_and_allocations(allocation) -> None:

@@ -8,6 +8,7 @@ from integrations.sionna.srs import (
     nr_srs_dci_0_3_field_widths_from_configuration,
     nr_srs_dci_0_3_frequency_assignment_widths,
     nr_srs_dci_0_3_request_list_index_from_layout,
+    srs_configuration,
 )
 from integrations.sionna.srs.srs_constants.dci_0_3 import (
     _DCI_0_3_FIELD_ORDER,
@@ -1079,7 +1080,9 @@ def test_frequency_assignment_width_rejects_invalid_active_bwp_fields(
         _frequency_width(configuration)
 
 
-def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration() -> None:
+def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     field_names = (
         "identifier_for_dci_formats",
         "scheduled_cell_set_indicator",
@@ -1218,6 +1221,203 @@ def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration
         priority_indicator_configured=True,
         minimum_scheduling_offset_configured=False,
     )
+    rejected_configurations = [
+        pytest.param(
+            {"cell_set_configs": ("malformed",), "selected_cell_set_id": None},
+            TypeError,
+            "each cell-set config must be a mapping",
+            id="cell-set-row",
+        ),
+        pytest.param(
+            {
+                "cell_set_configs": ({"set_id": 2, "scheduled_cell_ids": "cell-3"},),
+                "selected_cell_set_id": 2,
+            },
+            TypeError,
+            "scheduled_cell_ids must be an ordered sequence",
+            id="cell-roster",
+        ),
+        pytest.param(
+            {
+                "cell_set_configs": (
+                    {
+                        "set_id": 2,
+                        "scheduled_cell_ids": ("cell-3", "cell-4"),
+                        "scheduled_cell_combos": "bad",
+                    },
+                ),
+                "selected_cell_set_id": 2,
+            },
+            TypeError,
+            "scheduled_cell_combos must be an ordered sequence",
+            id="cell-combos",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": ()},
+            TypeError,
+            "configured_ul_bwp_ids_by_cell must be a mapping",
+            id="ul-bwp-map-type",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": {"cell-3": (0,)}},
+            ValueError,
+            "must cover the full scheduled cell list",
+            id="ul-bwp-map-roster",
+        ),
+        pytest.param(
+            {"configured_ul_bwp_ids_by_cell": {"cell-3": "0", "cell-4": (0,)}},
+            TypeError,
+            "must be an ordered sequence",
+            id="ul-bwp-list-type",
+        ),
+        pytest.param(
+            {"ptrs_uplink_configured_by_cell": {"cell-3": True}},
+            ValueError,
+            "PTRS configuration must cover the full scheduled cell list",
+            id="ptrs-roster",
+        ),
+        pytest.param(
+            {"max_pusch_rank_by_cell": {"cell-3": 4}},
+            ValueError,
+            "maximum PUSCH rank must cover the full scheduled cell list",
+            id="pusch-rank-roster",
+        ),
+        pytest.param(
+            {"max_pusch_rank_by_cell": {"cell-3": True, "cell-4": 3}},
+            TypeError,
+            "maximum PUSCH rank for 'cell-3' must be an integer",
+            id="pusch-rank-type",
+        ),
+        pytest.param(
+            {"ptrs_uplink_configured_by_cell": {"cell-3": 1, "cell-4": True}},
+            TypeError,
+            "PTRS-UplinkConfig states must be booleans",
+            id="ptrs-value-type",
+        ),
+        pytest.param(
+            {"p0_pusch_set_list_configured_by_cell": {"cell-3": True}},
+            ValueError,
+            "p0_pusch_set_list_configured_by_cell must cover the full scheduled cell list",
+            id="olpc-roster",
+        ),
+        pytest.param(
+            {"beta_offsets_semi_static_by_cell": ()},
+            TypeError,
+            "beta_offsets_semi_static_by_cell must be a mapping",
+            id="beta-map-type",
+        ),
+        pytest.param(
+            {"beta_offsets_semi_static_by_cell": {"cell-3": True}},
+            ValueError,
+            "beta_offsets_semi_static_by_cell must cover the full scheduled cell list",
+            id="beta-roster",
+        ),
+        pytest.param(
+            {"harq_ack_codebook_types": "dynamic"},
+            TypeError,
+            "harq_ack_codebook_types must be an ordered sequence",
+            id="harq-codebooks-type",
+        ),
+        pytest.param(
+            {"dynamic_harq_ack_two_sub_codebooks_by_codebook": "false"},
+            TypeError,
+            "dynamic_harq_ack_two_sub_codebooks_by_codebook must be an ordered sequence",
+            id="dynamic-harq-type",
+        ),
+        pytest.param(
+            {"channel_access_config_entry_count_by_cell": ()},
+            TypeError,
+            "channel_access_config_entry_count_by_cell must be a mapping",
+            id="channel-access-map-type",
+        ),
+        pytest.param(
+            {"channel_access_config_entry_count_by_cell": {"cell-3": 1}},
+            ValueError,
+            "channel_access_config_entry_count_by_cell must cover the full scheduled cell list",
+            id="channel-access-roster",
+        ),
+        pytest.param(
+            {"harq_process_number_size_bits_by_cell": ()},
+            TypeError,
+            "harq_process_number_size_bits_by_cell must be a mapping",
+            id="harq-process-map-type",
+        ),
+        pytest.param(
+            {"harq_process_number_size_bits_by_cell": {"cell-3": 3}},
+            ValueError,
+            "harq_process_number_size_bits_by_cell must cover the full scheduled cell list",
+            id="harq-process-roster",
+        ),
+        pytest.param(
+            {"harq_process_number_size_bits_by_cell": {"cell-3": True, "cell-4": 3}},
+            TypeError,
+            "HARQ-process width for 'cell-3' must be an integer",
+            id="harq-process-value-type",
+        ),
+        pytest.param(
+            {"max_schedulable_pusch_count_by_cell": ()},
+            TypeError,
+            "max_schedulable_pusch_count_by_cell must be a mapping",
+            id="schedulable-map-type",
+        ),
+        pytest.param(
+            {"max_schedulable_pusch_count_by_cell": {"cell-3": 2}},
+            ValueError,
+            "max_schedulable_pusch_count_by_cell must cover the full scheduled cell list",
+            id="schedulable-roster",
+        ),
+        pytest.param(
+            {"max_schedulable_pusch_count_by_cell": {"cell-3": True, "cell-4": 3}},
+            TypeError,
+            "schedulable PUSCH count for 'cell-3' must be an integer",
+            id="schedulable-value-type",
+        ),
+        pytest.param(
+            {"redundancy_version_bits_by_cell": ()},
+            TypeError,
+            "redundancy_version_bits_by_cell must be a mapping",
+            id="redundancy-map-type",
+        ),
+        pytest.param(
+            {"redundancy_version_bits_by_cell": {"cell-3": 2}},
+            ValueError,
+            "redundancy_version_bits_by_cell must cover the full scheduled cell list",
+            id="redundancy-roster",
+        ),
+        pytest.param(
+            {"redundancy_version_bits_by_cell": {"cell-3": True, "cell-4": 1}},
+            TypeError,
+            "redundancy-version width for 'cell-3' must be an integer",
+            id="redundancy-value-type",
+        ),
+        pytest.param(
+            {"srs_offset_list": ((0,),)},
+            ValueError,
+            r"srs_offset_list\[0\] must contain one index per scheduled cell",
+            id="offset-roster",
+        ),
+        pytest.param(
+            {"srs_offset_list": ("invalid",)},
+            TypeError,
+            r"srs_offset_list\[0\] must be an ordered sequence",
+            id="offset-row-type",
+        ),
+    ]
+    for case in rejected_configurations:
+        changes, error, message = case.values
+        with pytest.raises(error, match=message):
+            nr_srs_dci_0_3_field_widths_from_configuration(
+                **{**resolver_inputs, **changes}, scheduled_cells_indicator_value=2
+            )
+    no_combo_widths = nr_srs_dci_0_3_field_widths_from_configuration(
+        **{
+            **resolver_inputs,
+            "cell_set_configs": ({"set_id": 2, "scheduled_cell_ids": ("cell-3", "cell-4")},),
+            "selected_cell_set_id": 2,
+        },
+        scheduled_cells_indicator_value=None,
+    )
+    assert no_combo_widths["scheduled_cells_indicator"] == 0
     widths = nr_srs_dci_0_3_field_widths_from_configuration(
         **resolver_inputs, scheduled_cells_indicator_value=2
     )
@@ -1700,6 +1900,34 @@ def test_dci_0_3_known_widths_derive_from_decoded_cell_bwp_and_srs_configuration
         with pytest.raises(error, match=message):
             nr_srs_dci_0_3_field_widths_from_configuration(
                 **arguments, scheduled_cells_indicator_value=2
+            )
+
+    for helper_name in (
+        "_nr_srs_dci_0_3_antenna_ports_width",
+        "_nr_srs_dci_0_3_precoding_width",
+        "_nr_srs_dci_0_3_sri_width",
+    ):
+        monkeypatch.setattr(srs_configuration, helper_name, lambda **_kwargs: 0)
+    for transform_map, error, message in (
+        ((), TypeError, "transform_precoding_enabled_by_cell must be a mapping"),
+        (
+            {"cell-3": True},
+            ValueError,
+            "transform_precoding_enabled_by_cell must cover the full scheduled cell list",
+        ),
+        (
+            {"cell-3": 1, "cell-4": False},
+            TypeError,
+            "transform-precoding configuration values must be booleans",
+        ),
+    ):
+        with pytest.raises(error, match=message):
+            nr_srs_dci_0_3_field_widths_from_configuration(
+                **{
+                    **resolver_inputs,
+                    "transform_precoding_enabled_by_cell": transform_map,
+                },
+                scheduled_cells_indicator_value=2,
             )
 
 

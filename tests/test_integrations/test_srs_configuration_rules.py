@@ -5,11 +5,13 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
+from integrations.sionna.srs import srs_configuration
 from integrations.sionna.srs.srs_configuration import (
     nr_srs_cyclic_shift_hopping_offset,
     nr_srs_cyclic_shift_hopping_offsets,
     nr_srs_port_cyclic_shift_indices,
     nr_srs_transmission_comb_from_rrc,
+    nr_srs_type1_bandwidth_configuration,
 )
 
 
@@ -124,6 +126,17 @@ def test_srs_port_cyclic_shifts_cover_six_and_twelve_shift_mappings(
         )
         == expected
     )
+
+
+def test_standardized_bandwidth_must_resolve_an_integer_sequence_length(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    table = list(srs_configuration._SRS_BANDWIDTH_TABLE)
+    table[0] = ((1, 1), *table[0][1:])
+    monkeypatch.setattr(srs_configuration, "_SRS_BANDWIDTH_TABLE", tuple(table))
+
+    with pytest.raises(ValueError, match="integer sequence length"):
+        nr_srs_type1_bandwidth_configuration(0, transmission_comb=8)
 
 
 @pytest.mark.parametrize(
