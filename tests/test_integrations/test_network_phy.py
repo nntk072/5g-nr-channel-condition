@@ -14,6 +14,7 @@ from integrations.sionna.network_phy import (  # noqa: E402
     add_independent_receiver_awgn,
     add_independent_receiver_waveform_awgn,
     apply_network_link_budget,
+    apply_network_transmitter_iq_imbalance,
     compose_downlink_resource_grids,
     compose_received_waveforms,
     network_resource_sinr,
@@ -842,3 +843,645 @@ def test_received_waveform_composition_rejects_invalid_alignment_or_bounds(kwarg
     args.update(kwargs)
     with pytest.raises((TypeError, ValueError)):
         compose_received_waveforms(links, **args)
+
+
+def test_network_transmitter_iq_imbalance_wraps_phase_and_applies_branch_gains():
+    waveform = torch.tensor([[[[1.0 + 2.0j, -0.5 + 0.25j]], [[2.0 - 1.0j, 0.5 + 1.5j]]]])
+    result = apply_network_transmitter_iq_imbalance(
+        waveform,
+        tx_iq_gain_imbalance_db=(6.0, -3.0),
+        tx_iq_phase_imbalance_rad=(0.2, 2.0 * math.pi + 0.3),
+    )
+    assert result.waveform.shape == waveform.shape
+    assert torch.all(torch.isfinite(result.waveform))
+    assert result.tx_iq_gain_imbalance_db.tolist() == [6.0, -3.0]
+    assert result.tx_iq_phase_imbalance_rad.tolist() == pytest.approx([0.2, 2.0 * math.pi + 0.3])
+    assert not torch.equal(result.waveform, waveform)
+
+
+@pytest.mark.parametrize(
+    ("waveform", "changes", "message"),
+    [
+        (torch.ones((1, 1, 1, 2)), {}, "dense complex"),
+        (torch.ones((1, 1, 1, 2), dtype=torch.complex64).reshape(1, 1, 2), {}, "dense complex"),
+        (torch.empty((1, 1, 1, 0), dtype=torch.complex64), {}, "axes must be non-empty"),
+        (
+            torch.tensor([[[[complex(float("inf"), 0)]]]]),
+            {},
+            "finite samples",
+        ),
+        (torch.ones((1, 1, 1, 2), dtype=torch.complex64), {"max_output_elements": 3}, "exceed"),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            {"max_output_elements": True},
+            "positive integer",
+        ),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            {"tx_iq_gain_imbalance_db": (0.0, 1.0)},
+            "shape",
+        ),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            {"tx_iq_phase_imbalance_rad": (float("nan"),)},
+            "finite",
+        ),
+    ],
+)
+def test_network_transmitter_iq_imbalance_rejects_invalid_inputs(waveform, changes, message):
+    arguments = {
+        "tx_iq_gain_imbalance_db": (0.0,),
+        "tx_iq_phase_imbalance_rad": (0.0,),
+    }
+    arguments.update(changes)
+    with pytest.raises((TypeError, ValueError), match=message):
+        apply_network_transmitter_iq_imbalance(waveform, **arguments)
+
+
+def test_network_transmitter_iq_imbalance_rejects_sparse_tensors_and_unrepresentable_scales():
+    sparse = torch.sparse_coo_tensor(
+        torch.tensor([[0, 0], [0, 0], [0, 0], [0, 1]]),
+        torch.tensor([1.0 + 0.0j, 1.0 + 0.0j]),
+        (1, 1, 1, 2),
+    )
+    with pytest.raises(TypeError, match="dense complex"):
+        apply_network_transmitter_iq_imbalance(
+            sparse,
+            tx_iq_gain_imbalance_db=(0.0,),
+            tx_iq_phase_imbalance_rad=(0.0,),
+        )
+    waveform = torch.ones((1, 1, 1, 2), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="not representable in waveform precision"):
+        apply_network_transmitter_iq_imbalance(
+            waveform,
+            tx_iq_gain_imbalance_db=(4000.0,),
+            tx_iq_phase_imbalance_rad=(0.0,),
+        )
+
+
+def test_network_transmitter_iq_imbalance_rejects_output_overflow_and_scale_underflow(monkeypatch):
+    waveform = torch.full((1, 1, 1, 1), complex(3e38, 3e38), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="produced non-finite waveform"):
+        apply_network_transmitter_iq_imbalance(
+            waveform,
+            tx_iq_gain_imbalance_db=(6.0,),
+            tx_iq_phase_imbalance_rad=(0.0,),
+        )
+
+    powers = iter(
+        (torch.tensor((1.0,), dtype=torch.float64), torch.tensor((1e-50,), dtype=torch.float64))
+    )
+    monkeypatch.setattr(torch, "pow", lambda *_args, **_kwargs: next(powers))
+    with pytest.raises(ValueError, match="underflows waveform precision"):
+        apply_network_transmitter_iq_imbalance(
+            torch.ones((1, 1, 1, 1), dtype=torch.complex64),
+            tx_iq_gain_imbalance_db=(0.0,),
+            tx_iq_phase_imbalance_rad=(0.0,),
+        )
+
+
+@pytest.mark.parametrize(
+    ("channel", "changes", "error", "message"),
+    [
+        (torch.ones((1, 1, 1, 1, 1, 1, 1)), {}, TypeError, "must be a complex PyTorch tensor"),
+        (
+            torch.ones((1, 1, 1, 1, 1, 1), dtype=torch.complex64),
+            {},
+            ValueError,
+            "axes must be",
+        ),
+        (
+            torch.empty((1, 1, 1, 1, 1, 1, 0), dtype=torch.complex64),
+            {},
+            ValueError,
+            "axes must be non-empty",
+        ),
+        (
+            torch.full((1, 1, 1, 1, 1, 1, 1), complex(float("nan"), 0), dtype=torch.complex64),
+            {},
+            ValueError,
+            "must be finite",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex64),
+            {"subcarrier_frequencies_hz": (0.0,)},
+            ValueError,
+            "strictly positive",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex64),
+            {"tx_antenna_gain_dbi": (10000.0,)},
+            ValueError,
+            "not representable in float64",
+        ),
+    ],
+)
+def test_link_budget_rejects_malformed_channels_and_unrepresentable_gains(
+    channel, changes, error, message
+):
+    arguments = {
+        "path_loss_db": ((80.0,),),
+        "tx_antenna_gain_dbi": (0.0,),
+        "rx_antenna_gain_dbi": (0.0,),
+        "tx_beam_gain_dbi": ((0.0,),),
+        "rx_beam_gain_dbi": ((0.0,),),
+        "transmit_power_w_per_re": (1.0,),
+        "input_channel_semantics": "unit_mean_small_scale_fading",
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        apply_network_link_budget(channel, **arguments)
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        (
+            {"tx_antenna_gain_dbi": (200.0,)},
+            "scaled channel",
+        ),
+        ({"input_channel_semantics": "includes_path_loss"}, "must not be applied twice"),
+    ],
+)
+def test_link_budget_rejects_scaled_overflow_and_double_counting(changes, message):
+    channel = torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex64) * 1e30
+    arguments = {
+        "path_loss_db": ((0.0,),),
+        "tx_antenna_gain_dbi": (0.0,),
+        "rx_antenna_gain_dbi": (0.0,),
+        "tx_beam_gain_dbi": ((0.0,),),
+        "rx_beam_gain_dbi": ((0.0,),),
+        "transmit_power_w_per_re": (1.0,),
+        "input_channel_semantics": "unit_mean_small_scale_fading",
+    }
+    arguments.update(changes)
+    with pytest.raises(ValueError, match=message):
+        apply_network_link_budget(channel, **arguments)
+
+
+def test_link_budget_covers_conversion_dtype_and_received_power_overflow():
+    channel = torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex64)
+    arguments = {
+        "path_loss_db": ((80.0,),),
+        "tx_antenna_gain_dbi": (0.0,),
+        "rx_antenna_gain_dbi": (0.0,),
+        "tx_beam_gain_dbi": ((0.0,),),
+        "rx_beam_gain_dbi": ((0.0,),),
+        "transmit_power_w_per_re": (1.0,),
+        "input_channel_semantics": "unit_mean_small_scale_fading",
+    }
+    with pytest.raises(ValueError, match="path_loss_db must contain real numeric values"):
+        apply_network_link_budget(channel, **{**arguments, "path_loss_db": object()})
+    with pytest.raises(ValueError, match="not representable in channel dtype"):
+        apply_network_link_budget(
+            channel,
+            **{**arguments, "path_loss_db": ((0.0,),), "tx_antenna_gain_dbi": (800.0,)},
+        )
+
+    channel64 = channel.to(torch.complex128)
+    with pytest.raises(ValueError, match="mean received link power is not representable"):
+        apply_network_link_budget(
+            channel64,
+            **{
+                **arguments,
+                "path_loss_db": ((0.0,),),
+                "tx_antenna_gain_dbi": (400.0,),
+                "transmit_power_w_per_re": (1e308,),
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    ("channel_changes", "grid_changes", "error", "message"),
+    [
+        (
+            {"channel": torch.ones((1, 2, 1, 2, 1, 2, 3))},
+            {},
+            TypeError,
+            "channel must be a complex",
+        ),
+        ({}, {"grids": torch.ones((1, 2, 1, 2, 3))}, TypeError, "transmit_grids must be a complex"),
+        (
+            {"channel": torch.ones((1, 2, 1, 2, 1, 2), dtype=torch.complex64)},
+            {},
+            ValueError,
+            "channel axes",
+        ),
+        (
+            {},
+            {"grids": torch.ones((1, 2, 1, 2), dtype=torch.complex64)},
+            ValueError,
+            "transmit_grids axes",
+        ),
+        (
+            {"channel": torch.ones((2, 2, 1, 2, 1, 2, 3), dtype=torch.complex64)},
+            {},
+            ValueError,
+            "batch dimensions differ",
+        ),
+        (
+            {},
+            {"grids": torch.ones((1, 2, 2, 2, 3), dtype=torch.complex64)},
+            ValueError,
+            "axes do not match",
+        ),
+        (
+            {"channel": torch.empty((1, 2, 1, 2, 1, 0, 3), dtype=torch.complex64)},
+            {"grids": torch.empty((1, 2, 1, 0, 3), dtype=torch.complex64)},
+            ValueError,
+            "axes must be non-empty",
+        ),
+        (
+            {"channel": torch.ones((1, 2, 1, 2, 1, 2, 3), dtype=torch.complex128)},
+            {},
+            ValueError,
+            "same complex dtype",
+        ),
+        (
+            {
+                "channel": torch.full(
+                    (1, 2, 1, 2, 1, 2, 3), complex(float("inf"), 0), dtype=torch.complex64
+                )
+            },
+            {},
+            ValueError,
+            "must be finite",
+        ),
+    ],
+)
+def test_grid_composition_rejects_invalid_tensor_layouts(
+    channel_changes, grid_changes, error, message
+):
+    channel, grids = _two_node_fixture()
+    channel = channel_changes.get("channel", channel)
+    grids = grid_changes.get("grids", grids)
+    with pytest.raises(error, match=message):
+        compose_downlink_resource_grids(channel, grids, (1.0, 1.0))
+
+
+def test_grid_composition_rejects_device_and_power_overflow():
+    channel = torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex64, device="meta")
+    grids = torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="same device"):
+        compose_downlink_resource_grids(channel, grids, (1.0,))
+
+    channel128 = torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex128)
+    huge_grids128 = torch.full((1, 1, 1, 1, 1), complex(1e200, 0), dtype=torch.complex128)
+    with pytest.raises(ValueError, match="grid power is not representable"):
+        compose_downlink_resource_grids(channel128, huge_grids128, (1.0,))
+
+    channel64 = torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex64)
+    large_grids = torch.full((1, 1, 1, 1, 1), complex(1e30, 0), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="scaled transmit grids are not finite"):
+        compose_downlink_resource_grids(channel64, large_grids, (1e100,))
+
+
+def test_grid_composition_rejects_nonfinite_crosslink_and_superposition():
+    channel = torch.full((1, 1, 1, 1, 1, 1, 1), complex(1e30, 0), dtype=torch.complex64)
+    grids = torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="source contributions are not finite"):
+        compose_downlink_resource_grids(channel, grids, (1e20,))
+
+    channel = torch.ones((1, 1, 1, 2, 1, 1, 1), dtype=torch.complex64)
+    grids = torch.full((1, 2, 1, 1, 1), complex(2e38, 0), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="superposed received grid is not finite"):
+        compose_downlink_resource_grids(channel, grids, (4e76, 4e76))
+
+
+def test_waveform_composition_handles_empty_capture_intersection():
+    links = torch.ones((1, 1, 1, 1, 3), dtype=torch.complex64)
+    result = compose_received_waveforms(
+        links,
+        link_start_samples=((10,),),
+        capture_num_samples=4,
+        sample_rate_hz=1_000_000.0,
+    )
+    assert torch.count_nonzero(result.received_waveform) == 0
+    assert torch.count_nonzero(result.source_contributions) == 0
+
+
+def test_waveform_composition_combines_fractional_delay_with_complex_fir():
+    links = torch.tensor([[[[[1.0 + 0.0j, 2.0 + 0.0j, 0.5 + 0.0j]]]]])
+    taps = torch.tensor([[[1.0 + 0.0j, 0.0 + 0.5j]]], dtype=torch.complex64)
+    result = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=5,
+        sample_rate_hz=1_000_000.0,
+        link_filter_taps=taps,
+        link_fractional_delay_samples=((0.25,),),
+    )
+    assert result.received_waveform.shape == (1, 1, 1, 5)
+    assert torch.all(torch.isfinite(result.received_waveform))
+    assert not torch.equal(result.received_waveform[..., :3], links[..., :3])
+
+
+def test_waveform_composition_rejects_nonfinite_output_after_gain():
+    links = torch.full((1, 1, 1, 1, 2), complex(1e30, 0), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="composed receiver waveform is not finite"):
+        compose_received_waveforms(
+            links,
+            link_start_samples=((0,),),
+            capture_num_samples=2,
+            sample_rate_hz=1_000_000.0,
+            link_power_gain_linear=((1e20,),),
+        )
+
+
+@pytest.mark.parametrize(
+    ("links", "changes", "error", "message"),
+    [
+        (torch.ones((1, 1, 1, 1, 2)), {}, TypeError, "complex PyTorch tensor"),
+        (torch.ones((1, 1, 1, 2), dtype=torch.complex64), {}, ValueError, "sample] axes"),
+        (torch.empty((1, 1, 1, 1, 0), dtype=torch.complex64), {}, ValueError, "non-empty"),
+        (
+            torch.full((1, 1, 1, 1, 2), complex(float("nan"), 0), dtype=torch.complex64),
+            {},
+            ValueError,
+            "finite samples",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 2), dtype=torch.complex64),
+            {"capture_num_samples": True},
+            ValueError,
+            "positive integer",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 2), dtype=torch.complex64),
+            {"max_output_elements": 0},
+            ValueError,
+            "positive integer",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 2), dtype=torch.complex64),
+            {"sample_rate_hz": float("inf")},
+            ValueError,
+            "sample_rate_hz must be finite",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 2), dtype=torch.complex64),
+            {"link_start_samples": object()},
+            ValueError,
+            "integer sample offsets",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 2), dtype=torch.complex64),
+            {"link_filter_taps": object()},
+            ValueError,
+            "complex numeric values",
+        ),
+        (
+            torch.ones((1, 1, 1, 1, 2), dtype=torch.complex64),
+            {"link_filter_taps": torch.tensor([[[1e-50 + 0.0j]]], dtype=torch.complex128)},
+            ValueError,
+            "not representable in waveform precision",
+        ),
+    ],
+)
+def test_waveform_composition_rejects_malformed_inputs(links, changes, error, message):
+    arguments = {
+        "link_start_samples": ((0,),),
+        "capture_num_samples": 2,
+        "sample_rate_hz": 1_000_000.0,
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        compose_received_waveforms(links, **arguments)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "error", "message"),
+    [
+        ("received_waveform", None, TypeError, "complex \\[batch, rx"),
+        ("source_contributions", None, TypeError, "complex per-link contributions"),
+        (
+            "source_contributions",
+            torch.ones((1, 1, 1, 1), dtype=torch.complex64),
+            ValueError,
+            "invalid axes",
+        ),
+        (
+            "source_contributions",
+            torch.ones((1, 1, 2, 1, 4), dtype=torch.complex64),
+            ValueError,
+            "do not match",
+        ),
+        ("link_start_samples", None, ValueError, "one sample offset"),
+        ("link_power_gain_linear", None, ValueError, "finite nonnegative RX/TX power gains"),
+        (
+            "link_power_gain_linear",
+            torch.tensor(((-1.0,),)),
+            ValueError,
+            "finite nonnegative RX/TX power gains",
+        ),
+        ("sample_rate_hz", float("nan"), ValueError, "sample rate must be finite"),
+        (
+            "received_waveform",
+            torch.zeros((1, 1, 1, 4), dtype=torch.complex128),
+            ValueError,
+            "share dtype and device",
+        ),
+        (
+            "received_waveform",
+            torch.zeros((1, 1, 1, 4), dtype=torch.complex64),
+            ValueError,
+            "must equal the sum",
+        ),
+    ],
+)
+def test_waveform_awgn_rejects_inconsistent_composition_fields(field, value, error, message):
+    links = torch.ones((1, 1, 1, 1, 4), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=4,
+        sample_rate_hz=1_000_000.0,
+    )
+    with pytest.raises(error, match=message):
+        add_independent_receiver_waveform_awgn(
+            replace(composition, **{field: value}), (0.1,), seed=2
+        )
+
+
+@pytest.mark.parametrize("seed", [True, -1, 2**63])
+def test_waveform_awgn_rejects_invalid_or_unrepresentable_seeds(seed):
+    links = torch.ones((1, 2, 1, 1, 4), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,), (0,)),
+        capture_num_samples=4,
+        sample_rate_hz=1_000_000.0,
+    )
+    with pytest.raises(ValueError, match="seed"):
+        add_independent_receiver_waveform_awgn(composition, (0.1, 0.1), seed=seed)
+
+
+def test_waveform_awgn_rejects_nonfinite_composition_values():
+    links = torch.ones((1, 1, 1, 1, 4), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=4,
+        sample_rate_hz=1_000_000.0,
+    )
+    nonfinite = torch.full_like(composition.received_waveform, complex(float("inf"), 0))
+    nonfinite_contributions = torch.full_like(
+        composition.source_contributions, complex(float("inf"), 0)
+    )
+    composition = replace(
+        composition,
+        received_waveform=nonfinite,
+        source_contributions=nonfinite_contributions,
+    )
+    with pytest.raises(ValueError, match="composition waveforms must be finite"):
+        add_independent_receiver_waveform_awgn(composition, (0.1,), seed=2)
+
+
+def test_network_operation_entrypoints_report_missing_torch(monkeypatch):
+    import builtins
+
+    original_import = builtins.__import__
+
+    def import_without_torch(name, *args, **kwargs):
+        if name == "torch":
+            raise ImportError("hidden torch")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_torch)
+    calls = (
+        lambda: apply_network_transmitter_iq_imbalance(
+            None, tx_iq_gain_imbalance_db=(), tx_iq_phase_imbalance_rad=()
+        ),
+        lambda: apply_network_link_budget(
+            None,
+            path_loss_db=(),
+            tx_antenna_gain_dbi=(),
+            rx_antenna_gain_dbi=(),
+            tx_beam_gain_dbi=(),
+            rx_beam_gain_dbi=(),
+            transmit_power_w_per_re=(),
+            input_channel_semantics="",
+        ),
+        lambda: compose_downlink_resource_grids(None, None, ()),
+        lambda: compose_received_waveforms(
+            None, link_start_samples=(), capture_num_samples=0, sample_rate_hz=0
+        ),
+        lambda: add_independent_receiver_waveform_awgn(None, (), seed=0),
+        lambda: network_sinr(None, (), ()),
+        lambda: network_resource_sinr(None, (), ()),
+        lambda: add_independent_receiver_awgn(None, (), seed=0),
+    )
+    messages = (
+        "apply network transmitter impairments",
+        "apply network link budgets",
+        "compose network resource grids",
+        "compose received waveforms",
+        "add receiver waveform noise",
+        "measure network SINR",
+        "measure per-resource network SINR",
+        "add network receiver noise",
+    )
+    for call, message in zip(calls, messages, strict=True):
+        with pytest.raises(RuntimeError, match=message):
+            call()
+
+
+@pytest.mark.parametrize(
+    ("serving", "noise", "message"),
+    [
+        ((0,), (0.1, 0.1), "one transmitter index per receiver"),
+        ((True, 0), (0.1, 0.1), "existing transmitter"),
+        ((4, 0), (0.1, 0.1), "existing transmitter"),
+    ],
+)
+def test_network_sinr_rejects_invalid_serving_rosters(serving, noise, message):
+    channel, grids = _two_node_fixture()
+    composition = compose_downlink_resource_grids(channel, grids, (1.0, 1.0))
+    with pytest.raises(ValueError, match=message):
+        network_sinr(composition, serving, noise)
+
+
+def test_network_sinr_rejects_unrepresentable_power_and_ratio():
+    channel = torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex128)
+    grid = torch.ones((1, 1, 1, 1, 1), dtype=torch.complex128)
+    composition = compose_downlink_resource_grids(channel, grid, (1.0,))
+    huge_contribution = torch.full_like(composition.source_contributions, complex(1e200, 0))
+    composition = replace(
+        composition,
+        source_contributions=huge_contribution,
+        received_grid=huge_contribution.sum(dim=3),
+    )
+    with pytest.raises(ValueError, match="measured network powers are not representable"):
+        network_sinr(composition, (0,), (0.0,))
+
+    channel = torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex128)
+    grid = torch.ones((1, 1, 1, 1, 1), dtype=torch.complex128)
+    composition = compose_downlink_resource_grids(channel, grid, (1.0,))
+    with pytest.raises(ValueError, match="network SINR is not representable"):
+        network_sinr(composition, (0,), (1e-320,))
+
+
+@pytest.mark.parametrize("seed", [True, -1, 2**63])
+def test_grid_awgn_rejects_invalid_or_unrepresentable_seeds(seed):
+    channel, grids = _two_node_fixture()
+    composition = compose_downlink_resource_grids(channel, grids, (1.0, 1.0))
+    with pytest.raises(ValueError, match="seed"):
+        add_independent_receiver_awgn(composition, (0.1, 0.1), seed=seed)
+
+
+def test_waveform_awgn_rejects_empty_axes_and_nonfinite_added_noise(monkeypatch):
+    links = torch.ones((1, 1, 1, 1, 4), dtype=torch.complex64)
+    composition = compose_received_waveforms(
+        links,
+        link_start_samples=((0,),),
+        capture_num_samples=4,
+        sample_rate_hz=1_000_000.0,
+    )
+    empty = replace(
+        composition,
+        received_waveform=torch.empty((1, 1, 1, 0), dtype=torch.complex64),
+        source_contributions=torch.empty((1, 1, 1, 1, 0), dtype=torch.complex64),
+    )
+    with pytest.raises(ValueError, match="axes must be non-empty"):
+        add_independent_receiver_waveform_awgn(empty, (0.1,), seed=1)
+
+    import integrations.sionna.noise as noise_module
+
+    monkeypatch.setattr(
+        noise_module,
+        "proper_complex_awgn",
+        lambda reference, *_args, **_kwargs: torch.full_like(reference, complex(float("inf"), 0)),
+    )
+    with pytest.raises(ValueError, match="receiver waveform plus noise is not finite"):
+        add_independent_receiver_waveform_awgn(composition, (0.1,), seed=1)
+
+
+@pytest.mark.parametrize(
+    ("serving", "message"),
+    [
+        (object(), "must contain integer transmitter indices"),
+        (
+            torch.sparse_coo_tensor(torch.tensor([[0]]), torch.tensor([0]), (1,)),
+            "dense integer array",
+        ),
+    ],
+)
+def test_resource_sinr_rejects_unreadable_serving_maps(serving, message):
+    channel, grids = _two_node_fixture()
+    composition = compose_downlink_resource_grids(channel, grids, (1.0, 1.0))
+    with pytest.raises(ValueError, match=message):
+        network_resource_sinr(composition, serving, (0.1, 0.1))
+
+
+def test_resource_sinr_rejects_unrepresentable_powers_and_ratios():
+    channel = torch.ones((1, 1, 1, 1, 1, 1, 1), dtype=torch.complex128)
+    grid = torch.ones((1, 1, 1, 1, 1), dtype=torch.complex128)
+    composition = compose_downlink_resource_grids(channel, grid, (1.0,))
+    huge = torch.full_like(composition.source_contributions, complex(1e200, 0))
+    composition = replace(composition, source_contributions=huge, received_grid=huge.sum(dim=3))
+    with pytest.raises(ValueError, match="measured per-resource network powers"):
+        network_resource_sinr(composition, (0,), (0.0,))
+
+    composition = compose_downlink_resource_grids(channel, grid, (1.0,))
+    with pytest.raises(ValueError, match="per-resource network SINR is not representable"):
+        network_resource_sinr(composition, (0,), (1e-320,))
