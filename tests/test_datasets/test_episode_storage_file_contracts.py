@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import datasets.episode_store.storage as storage
+import numpy as np
 import pytest
 
 
@@ -103,3 +104,56 @@ def test_stable_file_reader_enforces_bound_when_file_grows_during_read(
 
     with pytest.raises(ValueError, match="configured byte limit"):
         storage._stable_file_bytes(path, label="fixture", max_bytes=6)
+
+
+@pytest.mark.parametrize("value", [{"not_json": {1, 2}}, {"not_finite": float("nan")}])
+def test_episode_json_serializer_rejects_unsupported_metadata(value) -> None:
+    with pytest.raises(TypeError, match="finite JSON-compatible"):
+        storage._json_bytes(value)
+
+
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        (b"\xff", "strict UTF-8 JSON"),
+        (b'{"key":1,"key":2}', "duplicate JSON object key"),
+        (b'{"value":NaN}', "non-finite JSON constant is forbidden"),
+    ],
+)
+def test_episode_json_parser_rejects_ambiguous_or_nonstandard_bytes(payload, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        storage._parse_json_bytes(payload, label="fixture")
+
+
+@pytest.mark.parametrize(
+    "array",
+    [np.asarray([object()], dtype=object), np.asarray(["text"], dtype="U4")],
+)
+def test_episode_npz_packer_rejects_non_numeric_arrays(array) -> None:
+    with pytest.raises(TypeError, match="non-object numeric dtype"):
+        storage._pack_npz({}, invalid=array)
+
+
+def test_immutable_episode_object_cannot_be_replaced_with_different_bytes(tmp_path: Path) -> None:
+    path = tmp_path / "immutable.npz"
+    path.write_bytes(b"original")
+
+    with pytest.raises(FileExistsError, match="different bytes"):
+        storage._publish_immutable(path, b"replacement")
+
+
+def test_immutable_episode_writer_propagates_tempfile_creation_failure(
+    tmp_path, monkeypatch
+) -> None:
+    error = OSError("temporary episode file unavailable")
+
+    def fail_temporary_file(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr(storage.tempfile, "NamedTemporaryFile", fail_temporary_file)
+
+    with pytest.raises(OSError, match="temporary episode file unavailable") as raised:
+        storage._publish_immutable(tmp_path / "unpublished.npz", b"payload")
+
+    assert raised.value is error
+    assert not (tmp_path / "unpublished.npz").exists()
