@@ -221,6 +221,31 @@ def test_payload_generation_rejects_out_of_range_candidate(lmax: int, ssb_index:
         )
 
 
+@pytest.mark.parametrize("candidate_count", [True, 7.5, "8"])
+def test_payload_scrambling_requires_an_integer_candidate_count(candidate_count) -> None:
+    with pytest.raises(TypeError, match="must be an integer"):
+        nr_pbch_payload_scramble(
+            np.zeros(32, dtype=np.uint8),
+            0,
+            0,
+            max_candidate_blocks_per_half_frame=candidate_count,
+        )
+
+
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        (np.zeros((2, 16), dtype=np.uint8), "must have shape"),
+        (np.full(32, 2, dtype=np.uint8), "only binary values"),
+    ],
+)
+def test_payload_scrambling_rejects_malformed_bit_vectors(payload, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        nr_pbch_payload_scramble(
+            payload, 0, 0, max_candidate_blocks_per_half_frame=8
+        )
+
+
 def test_payload_generation_checks_sfn_against_mib_bits() -> None:
     with pytest.raises(ValueError, match="bits 1 through 6"):
         nr_pbch_payload_generate(
