@@ -617,8 +617,6 @@ def scenario_gbsm_run_from_channel(
         or spacing <= 0
     ):
         raise ValueError("generator configuration has an invalid subcarrier count")
-    if configuration.get("batch_size") != len(ids):
-        raise ValueError("sample IDs must cover the complete configured generator batch")
     offsets = (np.arange(count, dtype=np.float64) - count // 2) * float(spacing)
     records: list[ScenarioGBSMRecord] = []
     for index, sample_id in enumerate(ids):
@@ -836,8 +834,6 @@ def read_scenario_gbsm_run(
         for reference in references
     ):
         raise ValueError("scenario GBSM manifest record reference is malformed")
-    if len({reference["sample_id"] for reference in references}) != len(references):
-        raise ValueError("scenario GBSM manifest contains duplicate sample IDs")
     if tuple(reference["sample_id"] for reference in references) != stored.sample_ids:
         raise ValueError("scenario sample order disagrees with run pointer")
     records: list[ScenarioGBSMRecord] = []
