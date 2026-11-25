@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 
 import numpy as np
@@ -48,6 +50,11 @@ def test_render_accepts_batched_frequencies_and_column_delays() -> None:
     delay = torch.tensor([[10e-9], [20e-9]], dtype=torch.float64)
     shared = render_two_path_cfr(FREQUENCIES, gains, delay)
     assert torch.allclose(render_two_path_cfr(batched, gains, delay), shared)
+
+
+def test_render_rejects_frequencies_on_a_different_device() -> None:
+    with pytest.raises(ValueError, match="same device"):
+        render_two_path_cfr(torch.ones(8, device="meta"), _gains(1), torch.zeros(1))
 
 
 @pytest.mark.parametrize(
@@ -226,6 +233,15 @@ def test_crlb_floor_accepts_batched_frequencies_and_column_delays() -> None:
     assert torch.allclose(batched, shared)
 
 
+def test_crlb_floor_accepts_column_noise_variance() -> None:
+    gains, delay, frequencies, variance, mask = _crlb_inputs()
+    shared = relative_delay_crlb_scale_floor(gains, delay, frequencies, variance, mask, 5e-6)
+    column = relative_delay_crlb_scale_floor(
+        gains, delay, frequencies, variance[:, None], mask, 5e-6
+    )
+    assert torch.allclose(shared, column)
+
+
 @pytest.mark.parametrize(
     ("kwargs", "message"),
     [
@@ -275,7 +291,9 @@ def test_identifiability_loss_penalizes_only_scales_below_the_floor() -> None:
     args = (gains, delay, frequencies, variance, mask, 5e-6)
     understated = identifiability_scale_floor_loss(floor / 10.0, *args)
     overstated = identifiability_scale_floor_loss(floor * 10.0, *args)
+    vector_scale = identifiability_scale_floor_loss(floor.flatten() / 10.0, *args)
     assert understated.item() > 0.0
+    assert torch.allclose(vector_scale, understated)
     assert overstated.item() == pytest.approx(0.0)
     with pytest.raises(ValueError, match="finite and positive"):
         identifiability_scale_floor_loss(torch.zeros(2, 1, dtype=torch.float64), *args)
@@ -307,7 +325,9 @@ def test_decoder_accepts_batched_frequencies() -> None:
     cfr, mask, frequencies, variance = _decoder_inputs()
     shared = decoder(cfr, mask, frequencies, variance)
     batched = decoder(cfr, mask, frequencies.expand(3, -1), variance)
+    column_variance = decoder(cfr, mask, frequencies, variance[:, None])
     assert torch.allclose(shared["relative_delay_s"], batched["relative_delay_s"], atol=1e-6)
+    assert torch.allclose(shared["relative_delay_s"], column_variance["relative_delay_s"])
 
 
 @pytest.mark.parametrize(
@@ -437,3 +457,96 @@ def test_checkpoint_loader_rejects_a_symlinked_checkpoint(tmp_path) -> None:
     link.symlink_to(real)
     with pytest.raises(ValueError, match="regular file"):
         load_two_path_uncertainty_decoder(link, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_rejects_oversized_checkpoint(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    original_stat = type(checkpoint).stat
+
+    def oversized_stat(path, *args, **kwargs):
+        result = original_stat(path, *args, **kwargs)
+        if path == checkpoint:
+            return SimpleNamespace(st_mode=result.st_mode, st_size=268_435_457)
+        return result
+
+    monkeypatch.setattr(type(checkpoint), "stat", oversized_stat)
+    with pytest.raises(ValueError, match="checkpoint exceeds the size limit"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_rejects_contract_sidecar_shapes_and_bytes(tmp_path):
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    contract_path = checkpoint.with_suffix(".contract.json")
+
+    contract_path.mkdir()
+    with pytest.raises(ValueError, match="must be a regular file"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+    contract_path.rmdir()
+
+    contract_path.write_bytes(b" " * 1_048_577)
+    with pytest.raises(ValueError, match="contract exceeds the size limit"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+    contract_path.write_text("not json", encoding="utf-8")
+    with pytest.raises(ValueError, match="invalid two-path model input contract"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_rejects_contract_sidecar_symlink(tmp_path):
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    contract_target = tmp_path / "contract.json"
+    contract_target.write_text("{}", encoding="utf-8")
+    checkpoint.with_suffix(".contract.json").symlink_to(contract_target)
+
+    with pytest.raises(ValueError, match="contract must not be a symlink"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_binds_and_replays_input_contract(tmp_path, monkeypatch):
+    import jsonschema
+
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    checkpoint_digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    contract_path = checkpoint.with_suffix(".contract.json")
+    contract_path.write_text(
+        json.dumps({"checkpoint_sha256": checkpoint_digest, "model_id": "fixture-model"}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(jsonschema, "validate", lambda *_args, **_kwargs: None)
+
+    loaded = load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+    assert loaded.artifact_contract_status == "checkpoint_bound_input_contract_not_replayed"
+
+    calls = []
+
+    def validator(contract, dataset, *, model_id, checkpoint_sha256):
+        calls.append((contract["model_id"], dataset, model_id, checkpoint_sha256))
+
+    loaded = load_two_path_uncertainty_decoder(
+        checkpoint,
+        8,
+        2e-6,
+        hidden_dims=(8,),
+        dataset="fixture-dataset",
+        contract_validator=validator,
+    )
+    assert loaded.artifact_contract_status == "input_contract_replayed"
+    assert calls == [("fixture-model", "fixture-dataset", "fixture-model", checkpoint_digest)]
+
+    with pytest.raises(ValueError, match="contract_validator is required"):
+        load_two_path_uncertainty_decoder(
+            checkpoint, 8, 2e-6, hidden_dims=(8,), dataset="fixture-dataset"
+        )
+
+    contract_path.write_text(json.dumps({"checkpoint_sha256": "0" * 64}), encoding="utf-8")
+    with pytest.raises(ValueError, match="checkpoint digest does not match"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
