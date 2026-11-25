@@ -525,6 +525,34 @@ def test_shard_inventory_rejects_duplicate_npz_member_names(tmp_path):
         next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
 
 
+def test_shard_inventory_rejects_unreadable_npz_object(tmp_path):
+    stored = write_nr_record(tmp_path, _record("unreadable-npz"))
+    (tmp_path / stored.relative_path).write_bytes(b"not a zip archive")
+
+    with pytest.raises(ValueError, match="not a readable NPZ archive"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_applies_estimated_memory_budget_after_compressed_size(tmp_path):
+    stored = write_nr_record(tmp_path, _record("estimated-budget"))
+    compressed_size = (tmp_path / stored.relative_path).stat().st_size
+
+    with pytest.raises(ValueError, match="estimate .* exceeds max_shard_bytes"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=compressed_size + 1))
+
+
+def test_shard_inventory_rejects_manifest_object_path_traversal(tmp_path):
+    stored = write_nr_record(tmp_path, _record("manifest-path-traversal"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    manifest_path = tmp_path / "manifests" / f"{manifest_key}.json"
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload["relative_path"] = "../outside.npz"
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="manifest record path must remain inside the store"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
 def test_memory_estimator_accepts_supported_npy_version_two(tmp_path):
     path = tmp_path / "arrays.npz"
     buffer = io.BytesIO()
