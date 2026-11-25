@@ -14,6 +14,7 @@ from artifacts.provenance import canonical_hash
 from experiments.runner.contracts import (
     build_model_input_artifact_contract,
     verify_model_input_artifact_contract,
+    verify_validation_threshold_selection_record,
 )
 from experiments.runner.validation import (
     _metadata_only_features,
@@ -142,6 +143,17 @@ def test_plain_contract_verifies_against_its_exact_inputs(tmp_path: Path) -> Non
     report = _verify(sidecar, model, kwargs)
 
     assert report is not None
+
+
+def test_threshold_selection_verifier_requires_an_object_record() -> None:
+    with pytest.raises(TypeError, match="record must be an object"):
+        verify_validation_threshold_selection_record(
+            None,
+            labels=np.asarray([0, 1]),
+            scores=np.asarray([0.2, 0.8]),
+            groups=np.asarray(["a", "a"]),
+            row_indices=np.asarray([1, 2]),
+        )
 
 
 @pytest.mark.parametrize(

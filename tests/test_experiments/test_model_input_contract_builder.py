@@ -50,6 +50,11 @@ def test_a_plain_method_yields_a_schema_bound_contract() -> None:
     assert set(contract) >= {"schema", "model_sha256", "feature_contract", "training_input_files"}
 
 
+def test_plain_model_input_method_rejects_target_values_and_label_seeds() -> None:
+    with pytest.raises(ValueError, match="invalid for this model-input method"):
+        _build(target_values=np.zeros(_ROWS))
+
+
 @pytest.mark.parametrize(
     ("overrides", "message"),
     [
