@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 from datasets import audit_nr_trajectory_target_support
 from datasets.nr import (
+    LinkedNRObservation,
     NRChannelRecord,
     NRObservation,
     NRTrajectory,
@@ -201,6 +202,68 @@ def test_receiver_output_factory_rejects_coerced_fft_bin_mappings(indices, excep
             effective_subcarrier_indices=indices,
             receiver_config=NRPUSCHConfig(n_size_bwp=2, subcarrier_spacing_khz=30),
         )
+
+
+def test_receiver_output_factory_accepts_torch_integer_bins_and_rejects_other_dtypes():
+    torch = pytest.importorskip("torch")
+    observation = make_observation()
+    kwargs = {
+        "sample_id": "torch-index-types",
+        "received_grid": observation.received_grid,
+        "channel_estimate": observation.channel_estimate,
+        "receiver_config": observation.receiver_config,
+    }
+
+    accepted = NRObservation.from_receiver_output(
+        **kwargs, effective_subcarrier_indices=torch.arange(24, dtype=torch.int64)
+    )
+    assert accepted.fft_bin_indices == tuple(range(24))
+    for values, error, message in (
+        (torch.arange(24, dtype=torch.int64).reshape(2, 12), ValueError, "one-dimensional"),
+        (torch.ones(24, dtype=torch.bool), TypeError, "integer dtype"),
+        (torch.arange(24, dtype=torch.float32), TypeError, "integer dtype"),
+        (torch.ones(24, dtype=torch.complex64), TypeError, "integer dtype"),
+    ):
+        with pytest.raises(error, match=message):
+            NRObservation.from_receiver_output(**kwargs, effective_subcarrier_indices=values)
+
+
+def test_torch_tensor_candidate_falls_back_when_torch_import_is_unavailable(monkeypatch):
+    torch = pytest.importorskip("torch")
+    import datasets.nr as nr_module
+
+    def unavailable(_name):
+        raise ImportError("Torch intentionally hidden by test")
+
+    monkeypatch.setattr(nr_module, "import_module", unavailable)
+    assert nr_module._torch_module_for_tensor_candidate(torch.ones(1)) is None
+
+
+def test_linked_observation_requires_one_sample_and_typed_observation():
+    observation = make_observation()
+    with pytest.raises(ValueError, match="exactly one batch item"):
+        LinkedNRObservation("link-1", 0, observation)
+    with pytest.raises(TypeError, match="must be an NRObservation"):
+        LinkedNRObservation("link-1", 0, object())
+
+
+def test_torch_target_masks_enforce_zero_storage_for_unavailable_values():
+    torch = pytest.importorskip("torch")
+    target = torch.asarray([1.0, 2.0])
+    mask = torch.asarray([True, False])
+
+    with pytest.raises(ValueError, match="masked target elements.*zero storage"):
+        make_single_record(
+            "torch-masked-invalid", targets={"target": target}, target_masks={"target": mask}
+        )
+
+    accepted = make_single_record(
+        "torch-masked-valid",
+        targets={"target": torch.asarray([1.0, 0.0])},
+        target_masks={"target": mask},
+        target_reason_codes={"target": (TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE)},
+    )
+    assert torch.equal(accepted.targets["target"], torch.asarray([1.0, 0.0]))
 
 
 def test_nr_training_record_keeps_targets_and_provenance_outside_model_inputs():
