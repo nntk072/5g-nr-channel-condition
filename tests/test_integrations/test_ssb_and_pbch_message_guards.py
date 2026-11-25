@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from integrations.sionna import pbch_dmrs
 from integrations.sionna.pbch_mib import (
     PBCHMessageClassExtension,
     nr_bcch_bch_message_parse,
@@ -11,6 +12,13 @@ from integrations.sionna.pbch_mib import (
     nr_pbch_mib_serialize,
 )
 from integrations.sionna.ssb_grid import scale_nr_ssb_resource_grid_epre
+
+
+def test_pbch_dmrs_coordinate_count_invariant(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(pbch_dmrs, "_DMRS_SYMBOL_COUNT", 145)
+
+    with pytest.raises(RuntimeError, match="coordinate count is inconsistent"):
+        pbch_dmrs._pbch_dmrs_coordinates(0)
 
 
 def test_epre_ratio_must_be_zero_or_three_db() -> None:
