@@ -47,3 +47,42 @@ def test_penalty_skips_domains_too_small_for_a_covariance_and_stops_early() -> N
     # With a zero learning rate validation never improves, so patience ends training early.
     assert training["epoch_count"] < 60
     assert predictor.predict_proba(x_val).shape == (8, 2)
+
+
+def test_zero_epoch_training_fails_when_no_best_state_was_observed() -> None:
+    fit_coral_mlp, _ = _api()
+    x = np.array([[0.0, 0.0], [1.0, 1.0], [0.1, 0.2], [0.9, 0.8]], dtype=np.float32)
+    y = np.array([0, 1, 0, 1], dtype=np.int64)
+
+    with pytest.raises(RuntimeError, match="Could not train CORAL MLP"):
+        fit_coral_mlp(
+            x,
+            y,
+            np.array(["a", "a", "b", "b"]),
+            x,
+            y,
+            epochs=0,
+            capacity="small",
+        )
+
+
+@pytest.mark.parametrize("penalty", [0.0, 0.1])
+def test_coral_handles_batches_without_domain_covariance(penalty: float) -> None:
+    fit_coral_mlp, _ = _api()
+    x = np.array([[0.0, 0.0], [1.0, 1.0], [0.1, 0.2], [0.9, 0.8]], dtype=np.float32)
+    y = np.array([0, 1, 0, 1], dtype=np.int64)
+
+    predictor, training = fit_coral_mlp(
+        x,
+        y,
+        np.array(["a", "a", "b", "b"]),
+        x,
+        y,
+        penalty=penalty,
+        epochs=1,
+        batch_per_domain=1,
+        capacity="small",
+    )
+
+    assert training["epoch_count"] == 1
+    assert predictor.predict_proba(x).shape == (4, 2)
