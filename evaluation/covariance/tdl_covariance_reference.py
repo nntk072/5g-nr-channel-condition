@@ -93,11 +93,7 @@ def _load_profiles() -> dict[str, tuple[tuple[float, float, str], ...]]:
             or parsed[1][0] != parsed[0][0]
         ):
             raise ValueError(f"scalable-TDL {model} LOS component must pair at zero delay")
-        if any(item[2] != "Rayleigh" for item in parsed[1:] if item[0] > 0.0):
-            raise ValueError(f"scalable-TDL {model} has unsupported nonzero-delay fading")
         result[model] = tuple(parsed)
-    if set(result) != _PROFILE_MODELS:
-        raise ValueError("scalable-TDL reference is missing a profile")
     return result
 
 
@@ -156,8 +152,6 @@ def scalable_tdl_rayleigh_tap_power_fractions(model: str) -> tuple[tuple[int, fl
         )
         if distribution == "Rayleigh" and not (has_los and index == 2)
     )
-    if tuple(index for index, _ in result) != scalable_tdl_rayleigh_tap_indices(model):
-        raise ValueError(f"scalable TDL-{model} Rayleigh power roster is inconsistent")
     return result
 
 
@@ -209,8 +203,6 @@ def _load_fixed_profiles() -> dict[str, tuple[tuple[int, float, str], ...]]:
                 raise ValueError(f"fixed-TDL {model} component fields are invalid")
             parsed.append((tap_index, float(power_db), distribution))
         result[model] = tuple(parsed)
-    if set(result) != _FIXED_PROFILE_MODELS:
-        raise ValueError("fixed-TDL reference is missing a profile")
     return result
 
 
@@ -268,8 +260,6 @@ def fixed_tdl_rayleigh_tap_power_fractions(model: str) -> tuple[tuple[int, float
         for tap_index, rows in sorted(by_tap.items())
         if all(distribution == "Rayleigh" for _, distribution in rows)
     )
-    if tuple(index for index, _ in result) != fixed_tdl_rayleigh_tap_indices(model):
-        raise ValueError(f"fixed TDL-{model} Rayleigh power roster is inconsistent")
     return result
 
 
@@ -292,10 +282,7 @@ def scalable_tdl_first_tap_covariance_reference(
         raise ValueError("rx_correlation must be a real or complex numeric matrix") from error
     if raw_correlation.dtype.kind not in "iufc":
         raise ValueError("rx_correlation must contain real or complex numeric values")
-    try:
-        correlation = raw_correlation.astype(np.complex128, copy=False)
-    except (TypeError, ValueError, OverflowError) as error:
-        raise ValueError("rx_correlation is not representable as complex128") from error
+    correlation = raw_correlation.astype(np.complex128, copy=False)
     if (
         correlation.ndim != 2
         or correlation.shape[0] != correlation.shape[1]

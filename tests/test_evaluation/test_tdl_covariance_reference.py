@@ -9,8 +9,11 @@ from evaluation.covariance import tdl_covariance_reference as reference
 from evaluation.covariance.tdl_covariance_reference import (
     fixed_tdl_first_tap_power_components,
     fixed_tdl_rayleigh_tap_indices,
+    fixed_tdl_rayleigh_tap_power_fractions,
     scalable_tdl_first_tap_covariance_reference,
     scalable_tdl_first_tap_power_components,
+    scalable_tdl_rayleigh_tap_indices,
+    scalable_tdl_rayleigh_tap_power_fractions,
 )
 
 
@@ -214,3 +217,82 @@ def test_fixed_profile_loader_rejects_altered_reference_contracts(
 def test_first_tap_covariance_checks_matrix_structure(correlation, message: str) -> None:
     with pytest.raises(ValueError, match=message):
         scalable_tdl_first_tap_covariance_reference("A", correlation, 1)
+
+
+@pytest.mark.parametrize(
+    ("selector", "model"),
+    [
+        (scalable_tdl_first_tap_power_components, None),
+        (scalable_tdl_rayleigh_tap_indices, "F"),
+        (scalable_tdl_rayleigh_tap_power_fractions, "F"),
+        (fixed_tdl_first_tap_power_components, None),
+        (fixed_tdl_rayleigh_tap_indices, "A"),
+        (fixed_tdl_rayleigh_tap_power_fractions, "A"),
+    ],
+)
+def test_tdl_reference_selectors_reject_unsupported_models(selector, model):
+    with pytest.raises(ValueError, match="model must name"):
+        selector(model)
+
+
+def test_tdl_rayleigh_roster_and_power_helpers_cover_supported_models():
+    assert scalable_tdl_rayleigh_tap_indices("A")
+    assert scalable_tdl_rayleigh_tap_power_fractions("A")
+    assert fixed_tdl_rayleigh_tap_indices("A10")
+    assert fixed_tdl_rayleigh_tap_power_fractions("A10")
+
+
+def test_unique_object_rejects_duplicate_keys():
+    with pytest.raises(ValueError, match="duplicate TDL reference key"):
+        reference._unique_object([("profile", "A"), ("profile", "B")])
+
+
+@pytest.mark.parametrize("loader_name", ["_load_profiles", "_load_fixed_profiles"])
+def test_tdl_reference_loaders_reject_digest_drift(tmp_path, monkeypatch, loader_name):
+    loader = getattr(reference, loader_name)
+    path_attribute = (
+        "_REFERENCE_PATH" if loader_name == "_load_profiles" else "_FIXED_REFERENCE_PATH"
+    )
+    digest_attribute = (
+        "_REFERENCE_SHA256" if loader_name == "_load_profiles" else "_FIXED_REFERENCE_SHA256"
+    )
+    original_path = getattr(reference, path_attribute)
+    payload = original_path.read_bytes()
+    altered_path = tmp_path / "altered-reference.json"
+    altered_path.write_bytes(payload + b" ")
+    monkeypatch.setattr(reference, path_attribute, altered_path)
+    monkeypatch.setattr(reference, digest_attribute, "0" * 64)
+    loader.cache_clear()
+    try:
+        with pytest.raises(ValueError, match="bytes differ from the pinned digest"):
+            loader()
+    finally:
+        loader.cache_clear()
+
+
+def test_scalable_profile_with_only_mixed_first_tap_has_no_diffuse_native_tap(
+    tmp_path, monkeypatch
+):
+    document = json.loads(reference._REFERENCE_PATH.read_text(encoding="utf-8"))
+    profile_d = next(row for row in document["profiles"] if row["profile_model"] == "D")
+    profile_d["components"] = profile_d["components"][:2]
+    payload = json.dumps(document, separators=(",", ":")).encode("utf-8")
+    path = tmp_path / "scalable-reference.json"
+    path.write_bytes(payload)
+    monkeypatch.setattr(reference, "_REFERENCE_PATH", path)
+    monkeypatch.setattr(reference, "_REFERENCE_SHA256", hashlib.sha256(payload).hexdigest())
+    reference._load_profiles.cache_clear()
+    try:
+        with pytest.raises(ValueError, match="no valid diffuse native tap roster"):
+            scalable_tdl_rayleigh_tap_indices("D")
+    finally:
+        reference._load_profiles.cache_clear()
+
+
+def test_covariance_reference_wraps_array_conversion_errors():
+    class InvalidArray:
+        def __array__(self, dtype=None, copy=None):
+            raise TypeError("fixture conversion failure")
+
+    with pytest.raises(ValueError, match="real or complex numeric matrix"):
+        scalable_tdl_first_tap_covariance_reference("A", InvalidArray(), 1)
