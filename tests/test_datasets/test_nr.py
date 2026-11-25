@@ -1214,6 +1214,28 @@ def test_nr_writer_rejects_reference_payload_mutated_after_record_admission(tmp_
     assert not (tmp_path / "records").exists()
 
 
+def test_nr_record_integrity_rejects_removed_reference_payload():
+    record = make_single_record(
+        "removed-reference-payload",
+        targets={"label": np.asarray(1)},
+        reference_transport_block_bits=np.asarray([[1, 0, 1]], dtype=np.uint8),
+    )
+    object.__setattr__(record, "reference_transport_block_bits", None)
+
+    with pytest.raises(ValueError, match="requires its payload array"):
+        record.validate_reference_transport_block_integrity()
+
+
+def test_nr_trajectory_rejects_multiframe_observation():
+    from dataclasses import replace
+
+    record = make_single_record("multiframe-observation", targets={"label": np.asarray(1)})
+    record = replace(record, observation=make_observation(sample_id="multiframe-observation"))
+
+    with pytest.raises(ValueError, match="exactly one observation"):
+        NRTrajectory("multiframe-route", (0.0,), (record,))
+
+
 def test_nr_v2_record_without_target_definitions_remains_readable(tmp_path):
     record = make_single_record("historical-v2", targets={"label": np.asarray(1)})
     current = write_nr_record(tmp_path, record)
