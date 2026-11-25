@@ -119,13 +119,9 @@ def audit_spatial_buffer(
     )
     for index, first_split in enumerate(split_names):
         first_indices = np.flatnonzero(labels_array == first_split)
-        if first_indices.size == 0:
-            continue
         first_tree = cKDTree(points[first_indices])
         for second_split in split_names[index + 1 :]:
             second_indices = np.flatnonzero(labels_array == second_split)
-            if second_indices.size == 0:
-                continue
             second_tree = cKDTree(points[second_indices])
             for local_i, neighbors in enumerate(
                 first_tree.query_ball_tree(second_tree, r=buffer_m)
