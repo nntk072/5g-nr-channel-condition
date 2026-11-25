@@ -635,3 +635,70 @@ def test_provenance_reader_rejects_boolean_schema_version_even_when_one():
     payload["schema_version"] = True
     with pytest.raises(ValueError, match="schema_version must be an integer"):
         UMCDRunProvenance.from_dict(payload)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "error", "message"),
+    [
+        ("record_id", "  ", ValueError, "record_id must be a non-empty string"),
+        ("source_family", None, ValueError, "source_family must be a non-empty string"),
+        ("subject_layer", "scenario", ValueError, "supported UMCD data layer"),
+        ("package_source_sha256", "A" * 64, ValueError, "lowercase SHA256 digest"),
+        ("run_identity_sha256", "bad", ValueError, "lowercase SHA256 digest"),
+        ("seed", True, TypeError, "seed must be a nonnegative integer"),
+        ("seed", -1, ValueError, "integer seed must be nonnegative"),
+        ("seed", " ", ValueError, "string seed must be non-empty"),
+        ("software_versions", {}, ValueError, "named, non-empty versions"),
+        ("software_versions", {"runtime": " "}, ValueError, "named, non-empty versions"),
+        ("scene_asset_sha256", {"scene.xml": "A" * 64}, ValueError, "lowercase SHA256 digest"),
+        ("backend", {}, ValueError, "identify the execution backend"),
+    ],
+)
+def test_provenance_rejects_invalid_identity_and_execution_metadata(field, value, error, message):
+    with pytest.raises(error, match=message):
+        replace(_provenance_record(), **{field: value})
+
+
+@pytest.mark.parametrize(
+    "mapping",
+    [
+        {1: "non-string key"},
+        {"non-finite": float("nan")},
+        {"not-json": object()},
+    ],
+)
+def test_provenance_configuration_requires_string_keys_and_finite_json_values(mapping):
+    with pytest.raises(TypeError, match="physical_config"):
+        replace(_provenance_record(), physical_config=mapping)
+
+
+def test_provenance_round_trip_thaws_nested_immutable_configuration():
+    record = replace(
+        _provenance_record(),
+        physical_config={"channel": {"frequencies_hz": [3.5e9, 3.6e9]}},
+    )
+    payload = record.to_dict()
+    assert payload["physical_config"] == {"channel": {"frequencies_hz": [3.5e9, 3.6e9]}}
+    assert UMCDRunProvenance.from_dict(payload).to_dict() == payload
+
+
+@pytest.mark.parametrize(
+    ("version", "schema"),
+    [(1, "umcd.run_provenance.v2"), (3, "umcd.run_provenance.v3")],
+)
+def test_provenance_reader_rejects_unsupported_schema_pairs(version, schema):
+    payload = _provenance_record().to_dict()
+    payload.update(schema=schema, schema_version=version)
+    with pytest.raises(ValueError, match="unsupported UMCD provenance schema"):
+        UMCDRunProvenance.from_dict(payload)
+
+
+def test_provenance_reader_rejects_noncanonical_rehashed_representation():
+    payload = _provenance_record().to_dict()
+    payload["unexpected"] = "not part of the schema"
+    core = {key: value for key, value in payload.items() if key != "record_sha256"}
+    payload["record_sha256"] = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    ).hexdigest()
+    with pytest.raises(ValueError, match="representation is not canonical"):
+        UMCDRunProvenance.from_dict(payload)
