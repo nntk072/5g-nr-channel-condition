@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from evaluation.audits import near_duplicate_audit as audit_module
 from evaluation.audits.near_duplicate_audit import (
     ChannelRecord,
     GeometryRecord,
@@ -108,3 +109,10 @@ def test_identical_cfrs_across_splits_are_flagged() -> None:
         normalized_inner_product_threshold=0.9,
     )
     assert report is not None
+
+
+def test_nonfinite_normalized_cfr_similarity_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(audit_module.np, "vdot", lambda *_args: complex(float("nan"), 0.0))
+
+    with pytest.raises(ValueError, match="could not be computed as a finite value"):
+        audit_module._normalized_inner_product_magnitude(_cfr(), _cfr())
