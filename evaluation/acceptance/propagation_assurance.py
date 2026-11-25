@@ -77,8 +77,6 @@ def _validate_scenarios(
         ]
         try:
             raw_probabilities = np.asarray(probabilities_raw)
-            if raw_probabilities.dtype.kind == "b":
-                raise ValueError("propagation probabilities must be numeric weights")
             probabilities = np.asarray(raw_probabilities, dtype=np.float64)
         except (TypeError, ValueError) as error:
             raise ValueError("propagation probabilities must be numeric weights") from error
@@ -157,7 +155,7 @@ def _validate_episode(
                 ),
                 "reason": None,
             }
-        elif state in {"unresolved", "not_applicable"}:
+        else:
             if candidate is not None or challenger is not None:
                 raise ValueError(f"{label} masked {name} values must both be null")
             if not isinstance(reason, str) or not reason.strip():
@@ -170,8 +168,6 @@ def _validate_episode(
                 "challenger": None,
                 "reason": reason.strip(),
             }
-        else:
-            raise ValueError(f"{label} {name}.availability is invalid")
     return {"metrics": normalized}
 
 
@@ -384,7 +380,7 @@ def plan_propagation_bootstrap_assurance(
             "Each simulated study is evaluated by the current propagation evaluator and shared-family alpha.",
             "Exact Monte Carlo lower bounds account for assurance simulation uncertainty; a union bound combines strata.",
             "Propagation clusters remain separate from material acquisition units, CSI clusters, and NR receiver clusters.",
-            "This planner never qualifies propagation, , a scene family, or authorizes production RT.",
+            "This planner never qualifies propagation or a scene family, or authorizes production RT.",
         ],
         "bounded_work_cell_count": work,
         "maximum_study_episode_count": max_study_episodes,
