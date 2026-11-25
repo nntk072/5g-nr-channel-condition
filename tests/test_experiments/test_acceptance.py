@@ -276,6 +276,16 @@ def test_timestamped_acceptance_requires_canonical_utc_timestamp(
         _freeze(criteria)
 
 
+def test_preregistration_order_requires_timestamped_contract_and_valid_timestamp() -> None:
+    with pytest.raises(ValueError, match="requires timestamped acceptance contract"):
+        validate_preregistration_order(_criteria(), receiver_run_started_utc="2026-10-25T10:00:00Z")
+
+    criteria = _timestamped_criteria()
+    criteria["preregistered_utc"] = "invalid-timeZ"
+    with pytest.raises(ValueError, match="valid ISO-8601 UTC timestamp"):
+        validate_preregistration_order(criteria, receiver_run_started_utc="2026-10-25T10:00:00Z")
+
+
 def test_timestamped_acceptance_v2_schema_requires_declared_utc_time() -> None:
     jsonschema = pytest.importorskip("jsonschema")
     schema_path = (
@@ -404,6 +414,53 @@ def test_contract_loader_rejects_duplicate_keys_invalid_roots_and_missing_v3_pol
     )
     with pytest.raises(ValueError, match="v3 requires independent reviewer-policy admission"):
         load_snr_acceptance_contract(contract_path)
+
+
+@pytest.mark.parametrize("payload", [b"not json", b"\xff\xfe"])
+def test_contract_loader_rejects_malformed_json_bytes(tmp_path: Path, payload: bytes) -> None:
+    contract_path = tmp_path / "malformed-contract.json"
+    contract_path.write_bytes(payload)
+
+    with pytest.raises(ValueError, match="valid UTF-8 JSON"):
+        load_snr_acceptance_contract(contract_path)
+
+
+def test_contract_loader_enforces_bounded_file_size(tmp_path: Path) -> None:
+    contract_path = tmp_path / "oversized-contract.json"
+    contract_path.write_bytes(b" " * 65_537)
+
+    with pytest.raises(ValueError, match="no larger than 64 KiB"):
+        load_snr_acceptance_contract(contract_path)
+
+
+def test_unsigned_v1_contract_loads_without_signature_identity(tmp_path: Path) -> None:
+    contract_path = tmp_path / "unsigned-v1.json"
+    contract_path.write_text(
+        json.dumps(_criteria(), sort_keys=True, separators=(",", ":")), encoding="utf-8"
+    )
+
+    criteria, signature_identity = load_snr_acceptance_contract(contract_path)
+
+    assert criteria == _criteria()
+    assert signature_identity is None
+
+
+def test_bounded_contract_reader_detects_mutation_during_read(tmp_path: Path, monkeypatch) -> None:
+    contract_path = tmp_path / "changing-contract.json"
+    contract_path.write_bytes(b"contract")
+    real_read = acceptance_module.os.read
+
+    def read_then_grow(descriptor, byte_count):
+        payload = real_read(descriptor, byte_count)
+        with contract_path.open("ab") as stream:
+            stream.write(b"changed")
+        return payload
+
+    monkeypatch.setattr(acceptance_module.os, "read", read_then_grow)
+    with pytest.raises(ValueError, match="changed during bounded read"):
+        acceptance_module._read_bounded_single_link_bytes(
+            contract_path, label="acceptance contract"
+        )
 
 
 def test_signed_loader_requires_canonical_bytes_and_timestamped_policy_contract(
@@ -623,6 +680,81 @@ def test_reviewer_policy_requires_distinct_signed_custody_and_authorizes_reviewe
 
 
 @pytest.mark.parametrize(
+    ("raw", "policy_signer", "acceptance_keyring", "message"),
+    (
+        (b"{", "custodian", "acceptance-keyring", "valid UTF-8 JSON"),
+        (
+            b'{"schema":"x","schema":"y"}',
+            "custodian",
+            "acceptance-keyring",
+            "duplicate key",
+        ),
+        (
+            b'{ "schema": "umcd.snr_reviewer_policy.v1" }',
+            "custodian",
+            "acceptance-keyring",
+            "canonical sorted compact JSON",
+        ),
+        (None, "custodian", "acceptance-keyring", "violates schema"),
+        (None, "reviewer", "acceptance-keyring", "custodian must differ"),
+        (None, "custodian", "shared-keyring", "keyring must differ"),
+        (None, "custodian", "acceptance-keyring", "occur exactly once"),
+        (None, "custodian", "acceptance-keyring", "not authorized as an independent reviewer"),
+    ),
+)
+def test_reviewer_policy_rejects_invalid_custody_and_authorization(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, raw, policy_signer, acceptance_keyring, message
+) -> None:
+    policy = {
+        "schema": "umcd.snr_reviewer_policy.v1",
+        "policy_id": "test-policy",
+        "signers": [
+            {
+                "principal": "reviewer",
+                "organization": "Example Lab",
+                "roles": ["independent_reviewer"],
+                "allowed_purposes": ["ordered_impairments_snr_preregistration"],
+            }
+        ],
+    }
+    if message == "violates schema":
+        policy["unexpected"] = "field"
+    if message == "occur exactly once":
+        policy["signers"][0]["principal"] = "different-reviewer"
+    if message == "not authorized as an independent reviewer":
+        policy["signers"][0]["roles"] = ["operator"]
+    encoded = (
+        raw
+        if raw is not None
+        else json.dumps(policy, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    )
+    policy_path = tmp_path / "reviewer-policy.json"
+    policy_path.write_bytes(encoded)
+    monkeypatch.setattr(
+        acceptance_module,
+        "verify_openssh_signature_for_bytes",
+        lambda *_args, **_kwargs: {
+            "allowed_signers_sha256": "shared-keyring"
+            if acceptance_keyring == "shared-keyring"
+            else "policy-keyring",
+            "signer_id": policy_signer,
+            "namespace": "umcd-snr-reviewer-policy-v1",
+            "signature_sha256": "a" * 64,
+        },
+    )
+
+    with pytest.raises(ValueError, match=message):
+        acceptance_module._verify_reviewer_policy(
+            policy_path,
+            tmp_path / "reviewer-policy.sig",
+            tmp_path / "policy.allowed",
+            policy_signer,
+            acceptance_signer_id="reviewer",
+            acceptance_allowed_signers_sha256=acceptance_keyring,
+        )
+
+
+@pytest.mark.parametrize(
     ("field", "value", "message"),
     (
         ("snr_db", [0.0], "SNR grid"),
@@ -663,6 +795,79 @@ def test_acceptance_bounds_direct_contracts_before_snapshot(
 
     with pytest.raises(ValueError, match=message):
         _freeze(criteria)
+
+
+def test_acceptance_validator_bounds_direct_grids_and_execution_context() -> None:
+    criteria = _criteria()
+    criteria["snr_db"] = [float(index) for index in range(65)]
+    with pytest.raises(ValueError, match="bounded limit of 64 points"):
+        acceptance_module._validate_snr_acceptance_criteria(criteria)
+
+    empty_grid = _criteria()
+    empty_grid["snr_db"] = []
+    with pytest.raises(ValueError, match="must contain finite real points"):
+        acceptance_module._validate_snr_acceptance_criteria(empty_grid)
+
+    context = _execution_bound_criteria()
+    context["execution_context"]["receiver_configuration"] = "not-an-object"
+    context["execution_context_sha256"] = hashlib.sha256(
+        json.dumps(context["execution_context"], sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    with pytest.raises(ValueError, match="execution_context entries must be objects"):
+        acceptance_module._validate_snr_acceptance_criteria(context)
+
+
+def test_acceptance_freezing_checks_each_requested_curve_dimension() -> None:
+    assert (
+        freeze_snr_acceptance_criteria(
+            None,
+            snr_values=(0.0, 5.0),
+            channel_seeds=tuple(range(100, 120)),
+            channel_estimator="sionna_default_ls",
+            blocks_per_channel=4,
+        )
+        is None
+    )
+    with pytest.raises(ValueError, match="exactly match the requested curve"):
+        freeze_snr_acceptance_criteria(
+            _criteria(),
+            snr_values=(1.0, 5.0),
+            channel_seeds=tuple(range(100, 120)),
+            channel_estimator="sionna_default_ls",
+            blocks_per_channel=4,
+        )
+    with pytest.raises(ValueError, match="channel estimator does not match"):
+        freeze_snr_acceptance_criteria(
+            _criteria(),
+            snr_values=(0.0, 5.0),
+            channel_seeds=tuple(range(100, 120)),
+            channel_estimator="finite_delay_dft",
+            blocks_per_channel=4,
+        )
+    with pytest.raises(ValueError, match="channel seeds must exactly match"):
+        freeze_snr_acceptance_criteria(
+            _criteria(),
+            snr_values=(0.0, 5.0),
+            channel_seeds=tuple(range(101, 121)),
+            channel_estimator="sionna_default_ls",
+            blocks_per_channel=4,
+        )
+    with pytest.raises(ValueError, match="block count does not match"):
+        freeze_snr_acceptance_criteria(
+            _criteria(),
+            snr_values=(0.0, 5.0),
+            channel_seeds=tuple(range(100, 120)),
+            channel_estimator="sionna_default_ls",
+            blocks_per_channel=3,
+        )
+    with pytest.raises(ValueError, match="preflight execution context"):
+        freeze_snr_acceptance_criteria(
+            _execution_bound_criteria(),
+            snr_values=(0.0, 5.0),
+            channel_seeds=tuple(range(100, 120)),
+            channel_estimator="sionna_default_ls",
+            blocks_per_channel=4,
+        )
 
 
 @pytest.mark.parametrize(
@@ -780,3 +985,45 @@ def test_acceptance_rejects_malformed_interval_endpoints(interval: list[object])
 
     with pytest.raises(ValueError, match="finite numbers|reversed or out of domain"):
         evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
+
+
+def test_acceptance_rejects_malformed_inference_structure_and_ranges() -> None:
+    with pytest.raises(TypeError, match="curve_inference must be an object"):
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=[])
+
+    inference = _inference()
+    inference["by_condition"]["corrected"][0]["simultaneous_95_percent_interval"] = [0.1]
+    with pytest.raises(ValueError, match="missing a two-endpoint"):
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
+
+    inference = _inference()
+    inference["by_condition"]["clean"][0] = None
+    with pytest.raises(ValueError, match="SNR ordering differs"):
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
+
+    inference = _inference()
+    inference["simultaneous_radius"] = 1.1
+    with pytest.raises(ValueError, match="radius must be finite"):
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
+
+    inference = _inference()
+    inference["by_condition"]["clean"].pop()
+    with pytest.raises(ValueError, match="rows do not match"):
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
+
+    inference = _inference()
+    inference["by_paired_contrast"][0]["snr_db"] = 999.0
+    with pytest.raises(ValueError, match="paired SNR ordering"):
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
+
+    inference = _inference()
+    inference["by_paired_contrast"].pop()
+    with pytest.raises(ValueError, match="paired curve inference rows"):
+        evaluate_snr_curve_acceptance(_freeze(), curve_inference=inference)
+
+    frozen_record = evaluate_snr_curve_acceptance(
+        _freeze(),
+        curve_inference=_inference(),
+        preregistration_signature={"signer_id": "reviewer"},
+    )["criteria_frozen_before_run"]
+    assert frozen_record["preregistration_signature"]["signer_id"] == "reviewer"

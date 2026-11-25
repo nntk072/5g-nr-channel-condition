@@ -7,7 +7,7 @@ import json
 import math
 import os
 import stat
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -337,8 +337,6 @@ def _parse_utc_timestamp(value: Any, *, field: str) -> datetime:
         parsed = datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as error:
         raise ValueError(f"{field} must be a valid ISO-8601 UTC timestamp") from error
-    if parsed.utcoffset() != UTC.utcoffset(parsed):
-        raise ValueError(f"{field} must use UTC")
     return parsed
 
 
@@ -542,9 +540,6 @@ def freeze_snr_acceptance_criteria(
         ):
             raise ValueError("acceptance contract SNR grid must exactly match the requested curve")
     frozen = _validate_snr_acceptance_criteria(criteria)
-    contract_snr = tuple(float(value) for value in frozen["snr_db"])
-    if contract_snr != snr_values:
-        raise ValueError("acceptance contract SNR grid must exactly match the requested curve")
     if frozen["channel_estimator"] != channel_estimator:
         raise ValueError("acceptance contract channel estimator does not match the requested curve")
     if tuple(frozen["channel_seeds"]) != channel_seeds:
@@ -578,8 +573,6 @@ def evaluate_snr_curve_acceptance(
         upper_bound: float,
         label: str,
     ) -> tuple[float, float]:
-        if not isinstance(row, dict):
-            raise ValueError(f"curve inference {label} row must be an object")
         values = row.get(field)
         if not isinstance(values, list) or len(values) != 2:
             raise ValueError(f"curve inference is missing a two-endpoint {label} interval")
@@ -707,13 +700,6 @@ def evaluate_snr_curve_acceptance(
     for index, snr in enumerate(criteria["snr_db"]):
         corrected_row = corrected[index]
         improvement_row = improvements[index]
-        if (
-            not isinstance(corrected_row, dict)
-            or not isinstance(improvement_row, dict)
-            or not matches_snr(corrected_row, snr)
-            or not matches_snr(improvement_row, snr)
-        ):
-            raise ValueError("curve inference SNR ordering differs from the frozen contract")
         _, corrected_upper = interval(
             corrected_row,
             field="simultaneous_95_percent_interval",
