@@ -249,3 +249,166 @@ def test_forecast_evaluator_enforces_frozen_split_assignment() -> None:
 
     with pytest.raises(ValueError, match="do not all belong"):
         evaluate_trajectory_forecasts(trajectory, split=wrong_split, split_registry=registry)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "error", "message"),
+    [
+        ({"split_registry": object()}, TypeError, "split_registry must be"),
+        ({"gap_after_sample_ids": None}, TypeError, "collection of sample IDs"),
+        ({"gap_after_sample_ids": {" "}}, TypeError, "non-empty sample IDs"),
+        ({"maximum_inter_sample_gap_s": True}, TypeError, "must be a real number"),
+        ({"maximum_inter_sample_gap_s": 0.0}, ValueError, "finite and positive"),
+        ({"maximum_inter_sample_gap_s": float("inf")}, ValueError, "finite and positive"),
+        ({"timestamp_tolerance_s": True}, TypeError, "timestamp_tolerance_s must be a real number"),
+        ({"timestamp_tolerance_s": float("nan")}, ValueError, "finite and non-negative"),
+        ({"timestamp_tolerance_s": -1.0}, ValueError, "finite and non-negative"),
+    ],
+)
+def test_forecast_evaluator_rejects_invalid_controls(kwargs, error, message: str) -> None:
+    trajectory = NRTrajectory(
+        "invalid-controls",
+        (0.0, 1.0),
+        (_record("a", 1.0, 1.0), _record("b", 1.0, 1.0)),
+    )
+
+    with pytest.raises(error, match=message):
+        evaluate_trajectory_forecasts(trajectory, split="test", **kwargs)
+
+
+def test_forecast_evaluator_requires_two_samples() -> None:
+    trajectory = NRTrajectory("single", (0.0,), (_record("one", 1.0, 1.0),))
+
+    with pytest.raises(ValueError, match="at least two"):
+        evaluate_trajectory_forecasts(trajectory, split="test")
+
+
+def test_forecast_evaluator_accepts_registry_when_all_samples_share_requested_split() -> None:
+    trajectory = NRTrajectory(
+        "registry-match",
+        (0.0, 1.0),
+        (_record("registry-a", 1.0, 1.0), _record("registry-b", 1.0, 1.0)),
+    )
+    parents = tuple(
+        SplitSubject(
+            subject_id=f"shared-parent-{index}",
+            parent_type=SplitParentType.NETWORK_EPISODE,
+            source_family="synthetic-test",
+        )
+        for index in range(4)
+    )
+    parent_registry = make_split_policy_registry(
+        parents, policy=SplitPolicy.release_v2(seed="trajectory-registry-match")
+    )
+    registry = bind_split_children(
+        parent_registry,
+        tuple(
+            SplitChildBinding(sample_id, parents[0].subject_id, "nr_trajectory_sample")
+            for sample_id in trajectory.sample_ids
+        ),
+    )
+    requested_split = registry.split_for_child(trajectory.sample_ids[0])
+
+    rows = evaluate_trajectory_forecasts(trajectory, split=requested_split, split_registry=registry)
+
+    assert rows
+    assert {row["split"] for row in rows} == {requested_split}
+
+
+def test_forecast_evaluator_handles_array_tensor_adapters_and_absent_mask() -> None:
+    class ArrayTensor:
+        def __init__(self, value):
+            self.value = value
+
+        def detach(self):
+            return self
+
+        def cpu(self):
+            return self
+
+        def numpy(self):
+            return self.value
+
+    first = _record("tensor-a", 1.0, 1.0)
+    second = _record("tensor-b", 1.0, 1.0)
+    object.__setattr__(
+        first.observation.channel_estimate,
+        "h_hat",
+        ArrayTensor(first.observation.channel_estimate.h_hat),
+    )
+    second = replace(second, target_masks={})
+    trajectory = NRTrajectory("tensor-adapter", (0.0, 1.0), (first, second))
+
+    rows = evaluate_trajectory_forecasts(trajectory, split="test")
+
+    assert len(rows) == 1
+    assert rows[0]["valid_target_element_count"] == 3
+
+    object.__setattr__(
+        second,
+        "target_masks",
+        {"channel_cfr": ArrayTensor(np.ones(3, dtype=np.bool_))},
+    )
+    tensor_mask_rows = evaluate_trajectory_forecasts(trajectory, split="test")
+    assert tensor_mask_rows[0]["valid_target_element_count"] == 3
+
+
+@pytest.mark.parametrize(
+    "failure", ("estimate_shape", "target_shape", "target_mask_dtype", "target_mask_shape")
+)
+def test_forecast_evaluator_rejects_malformed_channel_records(failure: str) -> None:
+    first = _record("malformed-a", 1.0, 1.0)
+    second = _record("malformed-b", 1.0, 1.0)
+    if failure == "estimate_shape":
+        object.__setattr__(
+            second.observation.channel_estimate,
+            "h_hat",
+            np.ones((2, 1, 1, 1, 1, 2, 3), dtype=np.complex64),
+        )
+    elif failure == "target_shape":
+        object.__setattr__(second, "targets", {"channel_cfr": np.ones(2, dtype=np.complex64)})
+    elif failure == "target_mask_dtype":
+        object.__setattr__(second, "target_masks", {"channel_cfr": np.ones(3, dtype=np.int8)})
+    else:
+        object.__setattr__(second, "target_masks", {"channel_cfr": np.ones(4, dtype=np.bool_)})
+    trajectory = NRTrajectory("malformed-record", (0.0, 1.0), (first, second))
+
+    with pytest.raises((TypeError, ValueError)):
+        evaluate_trajectory_forecasts(trajectory, split="test")
+
+
+def test_forecast_evaluator_rejects_zero_power_targets_and_skips_prior_gap() -> None:
+    first = _record("zero-a", 1.0, 1.0)
+    zero = replace(
+        _record("zero-b", 1.0, 0.0),
+        targets={"channel_cfr": np.zeros(3, dtype=np.complex64)},
+    )
+    trajectory = NRTrajectory("zero-power", (0.0, 1.0), (first, zero))
+
+    with pytest.raises(ValueError, match="zero-power"):
+        evaluate_trajectory_forecasts(trajectory, split="test")
+
+    three = NRTrajectory(
+        "prior-gap",
+        (0.0, 2.0, 3.0),
+        (_record("gap-0", 1.0, 1.0), _record("gap-2", 3.0, 3.0), _record("gap-3", 4.0, 4.0)),
+    )
+    rows = evaluate_trajectory_forecasts(three, split="test", maximum_inter_sample_gap_s=1.5)
+    assert [row["method"] for row in rows] == ["persistence"]
+
+
+def test_forecast_evaluator_rejects_nonincreasing_prior_interval() -> None:
+    trajectory = NRTrajectory(
+        "mutated-time-invariant",
+        (0.0, 1.0, 2.0, 3.0),
+        (
+            _record("time-0", 1.0, 1.0),
+            _record("time-1", 2.0, 2.0),
+            _record("time-2", 3.0, 3.0),
+            _record("time-3", 4.0, 4.0),
+        ),
+    )
+    object.__setattr__(trajectory, "sample_times_s", (0.0, 2.0, 1.0, 3.0))
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        evaluate_trajectory_forecasts(trajectory, split="test")
