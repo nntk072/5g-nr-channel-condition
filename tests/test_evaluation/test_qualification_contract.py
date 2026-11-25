@@ -369,6 +369,66 @@ def test_qualification_contract_rejects_task_scope_that_omits_family_scenario() 
         build_qualification_run_contract(spec)
 
 
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda spec: spec.update(extra_field=True), "fields differ from the v2 contract"),
+        (lambda spec: spec.update(run_id="Uppercase"), "run_id must be"),
+        (
+            lambda spec: spec["task_scope"].update(channel_conditions=["NLOS"]),
+            "must cover every acceptance-family condition",
+        ),
+        (
+            lambda spec: spec["sampling"]["unit_by_branch"].update(complex_csi="records"),
+            "differs from the declared independent-unit contract",
+        ),
+        (
+            lambda spec: spec["sampling"]["planned_units_by_branch"].update(complex_csi=True),
+            "must be a positive integer",
+        ),
+        (
+            lambda spec: spec["sampling"]["planned_units_by_stratum"]["complex_csi"][0].update(
+                stratum=["other-site", "LOS"]
+            ),
+            "must exactly match its acceptance-family roster",
+        ),
+        (
+            lambda spec: spec["solver_budget"].update(max_episodes=False),
+            "must be a positive integer",
+        ),
+    ],
+)
+def test_qualification_v2_rejects_scope_and_sampling_contract_drift(mutate, message) -> None:
+    spec = deepcopy(_spec())
+    mutate(spec)
+
+    with pytest.raises(ValueError, match=message):
+        build_qualification_run_contract(spec)
+
+
+def test_qualification_v4_rejects_missing_matching_roster_and_task_scope_type() -> None:
+    spec = _spec()
+    spec["sample_size_design"] = _complete_design(spec)
+    del spec["path_matching"]["delay_tolerance_s"]
+    with pytest.raises(ValueError, match="exact v4 matching parameter roster"):
+        build_qualification_run_contract_v4(spec)
+
+    spec = _spec()
+    spec["sample_size_design"] = _complete_design(spec)
+    spec["path_matching"].update(
+        {
+            "vertex_tolerance_m": 0.02,
+            "direction_tolerance_rad": 0.05,
+            "h_floor": 1e-12,
+            "transmit_power_per_re_w": 0.1,
+            "noise_power_per_re_w": 1e-10,
+        }
+    )
+    spec["task_scope"] = None
+    with pytest.raises(TypeError, match="task_scope must be an object"):
+        build_qualification_run_contract_v4(spec)
+
+
 def test_qualification_contract_rejects_missing_link_budget_term() -> None:
     spec = _spec()
     del spec["link_budget_noise"]["noise_figure_db"]
