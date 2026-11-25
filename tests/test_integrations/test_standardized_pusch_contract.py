@@ -219,6 +219,61 @@ def test_standardized_pusch_rejects_zero_ideal_cfr_signal_power(monkeypatch):
         _build(run, channel_mode="ideal_cfr")
 
 
+def test_ideal_cfr_impairment_path_applies_rx_chain_before_observation(monkeypatch):
+    torch = pytest.importorskip("torch")
+
+    class Transform:
+        def __init__(self, **_kwargs):
+            pass
+
+        def __call__(self, value):
+            return value
+
+    ofdm = ModuleType("sionna.phy.ofdm")
+    ofdm.OFDMDemodulator = Transform
+    ofdm.OFDMModulator = Transform
+    monkeypatch.setitem(sys.modules, "sionna.phy.ofdm", ofdm)
+
+    class Receiver:
+        resource_grid = SimpleNamespace(
+            cyclic_prefix_length=2,
+            effective_subcarrier_ind=np.arange(8),
+            fft_size=8,
+            num_effective_subcarriers=8,
+            num_ofdm_symbols=1,
+        )
+        metadata = {}
+
+        def transmit(self, *_args, **_kwargs):
+            grid = torch.ones((1, 1, 1, 1, 8), dtype=torch.complex64)
+            bits = torch.zeros((1, 1, 3), dtype=torch.uint8)
+            return grid, bits
+
+        def observe(self, *_args, **_kwargs):
+            raise RuntimeError("receiver observation boundary reached")
+
+    monkeypatch.setattr(
+        standardized_pusch,
+        "SionnaPUSCHLSReceiver",
+        lambda *_args, **_kwargs: Receiver(),
+    )
+    run = _metadata_run((30_000.0, 3.5e9))
+    record = run.records[0]
+    record.cfr = np.ones_like(record.cfr)
+    record.family = SimpleNamespace(value="TDL")
+    record.profile_model = "TDL-A"
+    record.profile_los_component = False
+    object.__setattr__(run, "run_id", "fixture-run")
+
+    with pytest.raises(RuntimeError, match="observation boundary reached"):
+        _build(
+            run,
+            channel_mode="ideal_cfr",
+            impairments=NRWaveformImpairments(),
+            impairment_seed=7,
+        )
+
+
 def test_phase_noise_without_linewidth_is_identity_and_rejects_missing_node_axes():
     torch = pytest.importorskip("torch")
     waveform = torch.ones((2, 64), dtype=torch.complex64)
