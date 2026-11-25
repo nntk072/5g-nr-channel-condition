@@ -337,8 +337,6 @@ def verify_joint_evidence_run_manifest(
                 )
         qualification_contract_sha256: str | None = None
         if qualification_contract is not None:
-            if not isinstance(qualification_contract, dict):
-                raise ValueError("qualification contract must be an object")
             if qualification_contract["run_id"] != manifest["run_id"]:
                 raise ValueError("qualification contract run_id differs from run receipt")
             qualification_schema_path = (
