@@ -5,7 +5,11 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family_v3
+from evaluation.acceptance import receiver_assurance as assurance
+from evaluation.acceptance.joint_acceptance import (
+    build_joint_acceptance_family_v2,
+    build_joint_acceptance_family_v3,
+)
 from evaluation.acceptance.receiver_assurance import plan_receiver_impact_bootstrap_assurance
 
 
@@ -130,3 +134,104 @@ def test_receiver_assurance_rejects_coercible_scenario_probabilities(
         match="receiver scenario probabilities values must be a finite real number",
     ):
         _plan(assumed_iid_scenarios_by_stratum=scenarios)
+
+
+@pytest.mark.parametrize("value", [True, "0.5", 0, 1, float("nan")])
+def test_receiver_assurance_probability_validation(value: Any):
+    with pytest.raises(ValueError):
+        assurance._probability(value, "probe")
+
+
+@pytest.mark.parametrize(
+    ("key", "scenario", "message"),
+    [
+        ("urban", {}, "keys must be"),
+        (("urban", "INVALID"), {}, "keys must be"),
+        (("urban", "LOS"), {"extra": 1}, "must contain cluster outcomes"),
+        (("urban", "LOS"), {"assumed_cluster_outcomes": [], "probabilities": []}, "nonempty sequence"),
+        (
+            ("urban", "LOS"),
+            {"assumed_cluster_outcomes": [_scenario()[("urban", "LOS")]["assumed_cluster_outcomes"][0]], "probabilities": []},
+            "match the outcome atoms",
+        ),
+        (
+            ("urban", "LOS"),
+            {"assumed_cluster_outcomes": [{}], "probabilities": [1.0]},
+            "invalid field set",
+        ),
+        (
+            ("urban", "LOS"),
+            {
+                "assumed_cluster_outcomes": [
+                    {
+                        "candidate_crc_errors": [[True, True]],
+                        "challenger_crc_errors": [[True, True]],
+                    }
+                ],
+                "probabilities": [1.0],
+            },
+            "boolean matrix",
+        ),
+        (
+            ("urban", "LOS"),
+            {
+                "assumed_cluster_outcomes": [
+                    {
+                        "candidate_crc_errors": [[1, 0, 0]],
+                        "challenger_crc_errors": [[False, False, False]],
+                    }
+                ],
+                "probabilities": [1.0],
+            },
+            "values must be booleans",
+        ),
+        (
+            ("urban", "LOS"),
+            {"assumed_cluster_outcomes": [_scenario()[("urban", "LOS")]["assumed_cluster_outcomes"][0]], "probabilities": [0.5]},
+            "sum to one",
+        ),
+    ],
+)
+def test_receiver_scenario_validation_rejects_malformed_entries(key, scenario, message):
+    with pytest.raises(ValueError, match=message):
+        assurance._validate_scenarios({key: scenario}, expected_strata={key}, snr_count=3)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"snr_grid_db": [1.0]}, "at least two finite values"),
+        ({"comparison_snr_db": True}, "exact member"),
+        ({"candidate_clusters_per_stratum": []}, "unique ascending integers"),
+        ({"candidate_clusters_per_stratum": [20, 20]}, "unique ascending integers"),
+        ({"bootstrap_replicates": True}, ">= 1000"),
+        ({"assurance_replicates": True}, ">= 100"),
+        ({"target_assurance": 1.0}, r"in \(0, 1\)"),
+        ({"monte_carlo_confidence": 0.0}, r"in \(0, 1\)"),
+        ({"seed": True}, "nonnegative integer"),
+    ],
+)
+def test_receiver_assurance_rejects_invalid_limits_before_simulation(overrides, message):
+    with pytest.raises(ValueError, match=message):
+        _plan(**overrides)
+
+
+def test_receiver_assurance_rejects_work_and_single_study_limits(monkeypatch):
+    monkeypatch.setattr(assurance, "_MAX_ASSURANCE_WORK", 1)
+    with pytest.raises(ValueError, match="bounded work limit"):
+        _plan()
+    monkeypatch.setattr(assurance, "_MAX_ASSURANCE_WORK", 250_000_000)
+    monkeypatch.setattr(assurance, "_MAX_STUDY_OUTCOME_CELLS", 1)
+    with pytest.raises(ValueError, match="bounded size limit"):
+        _plan()
+
+
+def test_receiver_assurance_requires_receiver_capable_family_version():
+    family = build_joint_acceptance_family_v2(
+        family_id="legacy-family",
+        material_expected_strata=[("concrete", "V", "0-30deg")],
+        complex_csi_expected_strata=[("urban", "LOS")],
+        propagation_expected_strata=[("urban", "LOS", "total")],
+    )
+    with pytest.raises(ValueError, match="requires a joint-family v3 or v4 roster"):
+        _plan(joint_acceptance_family=family)
