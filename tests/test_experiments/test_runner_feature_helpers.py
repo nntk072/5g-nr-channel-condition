@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 import zipfile
 from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -12,10 +14,15 @@ from experiments.runner.features import (
     _array_sha256,
     _identity_complex_cfr,
     _kish_effective_group_count,
+    _label_semantics_by_source,
     _log_power_per_link_subcarrier,
+    _run_replay_rng_streams,
     _sparse_multipath_features,
     _stable_input_bytes,
     _stable_single_link_sha256,
+    _sync_torch_device,
+    _validate_evaluation_payload,
+    _validate_json_schema,
     _validate_npz_snapshot,
 )
 
@@ -99,3 +106,204 @@ def test_npz_snapshot_rejects_bad_archives_and_oversized_members() -> None:
             archive.writestr(f"member{index}.npy", b"x")
     with pytest.raises(ValueError, match="invalid NPZ entry roster"):
         _validate_npz_snapshot(crowded.getvalue(), label="dataset", max_uncompressed_bytes=10_000)
+
+
+def test_stable_hash_rejects_file_replaced_before_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import experiments.runner.features as features
+
+    model = tmp_path / "model.bin"
+    model.write_bytes(b"model")
+    real_fstat = os.fstat
+
+    def changed_inode(descriptor: int) -> SimpleNamespace:
+        actual = real_fstat(descriptor)
+        return SimpleNamespace(
+            st_dev=actual.st_dev,
+            st_ino=actual.st_ino + 1,
+            st_mode=actual.st_mode,
+            st_nlink=actual.st_nlink,
+        )
+
+    monkeypatch.setattr(features.os, "fstat", changed_inode)
+    with pytest.raises(ValueError, match="path changed before opening"):
+        _stable_single_link_sha256(model)
+
+
+def test_stable_input_rejects_replacement_before_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import experiments.runner.features as features
+
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"payload")
+    real_fstat = os.fstat
+
+    def changed_inode(descriptor: int) -> SimpleNamespace:
+        actual = real_fstat(descriptor)
+        return SimpleNamespace(st_dev=actual.st_dev + 1, st_ino=actual.st_ino)
+
+    monkeypatch.setattr(features.os, "fstat", changed_inode)
+    with pytest.raises(ValueError, match="changed before it was opened"):
+        _stable_input_bytes(source)
+
+
+def test_validation_helpers_report_schema_failures(monkeypatch: pytest.MonkeyPatch) -> None:
+    import jsonschema
+
+    original_read_text = Path.read_text
+
+    def read_schema(path: Path, *args: object, **kwargs: object) -> str:
+        if path.name == "fixture.schema.json":
+            return '{"type":"object"}'
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", read_schema)
+
+    class InvalidValidator:
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            pass
+
+        @classmethod
+        def check_schema(cls, _schema: object) -> None:
+            return None
+
+        def iter_errors(self, _payload: object) -> list[SimpleNamespace]:
+            return [SimpleNamespace(message="missing field")]
+
+        def validate(self, _payload: object) -> None:
+            raise jsonschema.ValidationError("missing field")
+
+    monkeypatch.setattr(jsonschema, "Draft202012Validator", InvalidValidator)
+    with pytest.raises(ValueError, match="evaluation payload violates fixture.schema.json"):
+        _validate_evaluation_payload({}, "fixture.schema.json")
+    with pytest.raises(ValueError, match="feature payload violates its schema: missing field"):
+        _validate_json_schema({}, {}, "feature payload")
+
+
+def test_sync_torch_device_only_synchronizes_enabled_cuda(monkeypatch: pytest.MonkeyPatch) -> None:
+    import torch
+
+    calls: list[str] = []
+    monkeypatch.setattr(torch.cuda, "synchronize", lambda device: calls.append(device))
+    _sync_torch_device("cpu", True)
+    _sync_torch_device("cuda:0", False)
+    _sync_torch_device("cuda:0", True)
+    assert calls == ["cuda:0"]
+
+
+def test_replay_rng_streams_record_configured_controls() -> None:
+    streams = _run_replay_rng_streams(
+        {
+            "seeds": [3],
+            "prior_shift": {"enabled": True},
+            "observation": "comb_ls",
+            "observation_seed": 19,
+            "phase_randomization_seed": 23,
+            "methods": ["label_permuted", "row_shuffled"],
+            "label_permutation_seed": 29,
+            "row_shuffle_seed": 31,
+        }
+    )
+    assert [stream["name"] for stream in streams] == [
+        "run_seed_3",
+        "calibration_partition_seed_3",
+        "observation_noise",
+        "phase_randomization_control",
+        "label_permutation_base",
+        "row_shuffle_base",
+    ]
+
+
+def test_label_semantics_reports_multiple_values_for_one_source() -> None:
+    from datasets.channel import ChannelDataset
+
+    dataset = ChannelDataset(
+        h=np.ones((2, 1, 8), dtype=np.complex64),
+        y=np.asarray([0, 1], dtype=np.uint8),
+        group=np.asarray(["g0", "g1"]),
+        domain=np.asarray(["fixture", "fixture"]),
+        source=np.asarray(["synthetic", "synthetic"]),
+        metadata=(
+            {"label_semantics": "profile_proxy"},
+            {"label_semantics": "geometric_direct_path_oracle"},
+        ),
+        label_semantics="los_binary",
+    )
+    assert _label_semantics_by_source(dataset) == (
+        "synthetic=geometric_direct_path_oracle|profile_proxy"
+    )
+
+
+def test_sparse_multipath_rejects_nonfinite_estimator_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import experiments.runner.features as features
+
+    fit = SimpleNamespace(
+        model_order=1,
+        residual_sum_squares=0.0,
+        gains=np.asarray([1.0 + 0j]),
+        delays_s=np.asarray([np.nan]),
+    )
+    monkeypatch.setattr(features, "fit_sparse_multipath", lambda *_args, **_kwargs: fit)
+    with pytest.raises(ValueError, match="estimator produced nonfinite features"):
+        _sparse_multipath_features(_cfr(samples=1))
+
+
+def test_stable_hash_rejects_nonregular_open_descriptor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import experiments.runner.features as features
+
+    model = tmp_path / "model.bin"
+    model.write_bytes(b"model")
+    monkeypatch.setattr(
+        features.os,
+        "fstat",
+        lambda _descriptor: SimpleNamespace(st_mode=0o040755, st_nlink=1),
+    )
+    with pytest.raises(ValueError, match="single-link regular file"):
+        _stable_single_link_sha256(model)
+
+
+def test_stable_hash_rejects_mutation_while_reading(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import experiments.runner.features as features
+
+    model = tmp_path / "model.bin"
+    model.write_bytes(b"model")
+    real_fstat = os.fstat
+    calls = 0
+
+    def mutate_second_snapshot(descriptor: int) -> SimpleNamespace:
+        nonlocal calls
+        calls += 1
+        actual = real_fstat(descriptor)
+        return SimpleNamespace(
+            st_dev=actual.st_dev,
+            st_ino=actual.st_ino,
+            st_mode=actual.st_mode,
+            st_nlink=actual.st_nlink,
+            st_size=actual.st_size,
+            st_mtime_ns=actual.st_mtime_ns + (1 if calls == 2 else 0),
+            st_ctime_ns=actual.st_ctime_ns,
+        )
+
+    monkeypatch.setattr(features.os, "fstat", mutate_second_snapshot)
+    with pytest.raises(ValueError, match="changed during hashing"):
+        _stable_single_link_sha256(model)
+
+
+def test_stable_input_rejects_read_that_exceeds_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import experiments.runner.features as features
+
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"x")
+    monkeypatch.setattr(features.os, "read", lambda _descriptor, _size: b"xxx")
+    with pytest.raises(ValueError, match="changed or exceeded its byte limit"):
+        _stable_input_bytes(source, max_bytes=2)
