@@ -549,8 +549,6 @@ def nr_srs_dci_0_3_ul_bwp_selection(
             raise ValueError(f"configured UL BWP IDs for {cell!r} must be unique")
         if initial_bwp_id not in normalized_ids:
             raise ValueError(f"configured UL BWP IDs for {cell!r} must include initial BWP")
-        if len(normalized_ids) > 5:
-            raise ValueError(f"configured UL BWP IDs for {cell!r} exceed the TS limit")
         active_id = active_ul_bwp_id_by_cell[cell]
         if (
             isinstance(active_id, bool)

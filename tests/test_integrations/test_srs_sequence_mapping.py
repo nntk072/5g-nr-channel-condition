@@ -1,5 +1,10 @@
 """SRS sequences, bandwidth tables, cyclic shifts and multiport grid mapping."""
 
+import importlib
+from dataclasses import replace
+
+import integrations.sionna.srs.srs_constants as srs_constants
+import integrations.sionna.srs.srs_lookups as srs_lookup_module
 import numpy as np
 import pytest
 from integrations.sionna.srs import (
@@ -822,6 +827,26 @@ def test_srs_low_papr_sequence_rejects_unsupported_parameters(args, error, messa
         nr_low_papr_sequence_type1(*args, **kwargs)
 
 
+def test_srs_low_papr_sequence_rejects_nonstandard_base_sequence_index() -> None:
+    with pytest.raises(ValueError, match="base_sequence_index must be 0 or 1"):
+        nr_low_papr_sequence_type1(
+            72,
+            group_index=0,
+            base_sequence_index=2,
+            cyclic_shift_index=0,
+            cyclic_shift_count=8,
+        )
+
+
+def test_srs_lookup_import_rejects_incomplete_dci_field_contract(monkeypatch) -> None:
+    original_field_order = srs_constants._DCI_0_3_FIELD_ORDER
+    monkeypatch.setattr(srs_constants, "_DCI_0_3_FIELD_ORDER", ())
+    with pytest.raises(RuntimeError, match="every DCI 0_3 field"):
+        importlib.reload(srs_lookup_module)
+    monkeypatch.setattr(srs_constants, "_DCI_0_3_FIELD_ORDER", original_field_order)
+    importlib.reload(srs_lookup_module)
+
+
 @pytest.mark.parametrize(
     ("kwargs", "error", "message"),
     [
@@ -1166,6 +1191,55 @@ def test_srs_single_port_ls_estimator_recovers_per_re_channel() -> None:
     assert np.count_nonzero(result.channel_by_re[~result.mask]) == 0
 
 
+@pytest.mark.parametrize(
+    ("mapped_resource", "message"),
+    [
+        (None, "mapped_resource must be a mapped single-port"),
+    ],
+)
+def test_srs_single_port_ls_estimator_rejects_invalid_mapped_resources(
+    mapped_resource, message
+) -> None:
+    with pytest.raises(TypeError, match=message):
+        nr_srs_single_port_ls_channel_estimate(
+            mapped_resource, np.zeros((14, 48), dtype=np.complex128)
+        )
+
+
+def test_srs_single_port_ls_estimator_rejects_zero_transmit_elements() -> None:
+    mapped = map_nr_srs_resource(
+        np.ones(24, dtype=np.complex128),
+        slot_symbol_count=14,
+        subcarrier_count=48,
+        start_position_offset=1,
+        srs_symbol_count=1,
+        comb_size=2,
+        comb_offset=0,
+    )
+    zero_transmit = replace(mapped, grid=np.zeros_like(mapped.grid))
+    with pytest.raises(ValueError, match="transmit values must be nonzero"):
+        nr_srs_single_port_ls_channel_estimate(
+            zero_transmit, np.zeros_like(zero_transmit.grid)
+        )
+
+
+def test_srs_single_port_ls_estimator_rejects_empty_mask() -> None:
+    mapped = map_nr_srs_resource(
+        np.ones(24, dtype=np.complex128),
+        slot_symbol_count=14,
+        subcarrier_count=48,
+        start_position_offset=1,
+        srs_symbol_count=1,
+        comb_size=2,
+        comb_offset=0,
+    )
+    object.__setattr__(mapped, "mask", np.zeros_like(mapped.mask))
+    with pytest.raises(ValueError, match="occupy at least one"):
+        nr_srs_single_port_ls_channel_estimate(
+            mapped, np.zeros_like(mapped.grid)
+        )
+
+
 def test_srs_single_port_ls_estimator_recovers_hopped_resource_channel() -> None:
     allocation = nr_srs_fixed_frequency_allocation(
         0, transmission_comb=2, b_srs=0, b_hop=0, reference_subcarrier=0
@@ -1223,6 +1297,112 @@ def test_srs_multiport_ls_estimator_separates_ports_and_reports_noise_covariance
     assert set(result.reason_codes) <= {None, "not_occupied"}
     assert not result.channel_by_rx_port_subcarrier.flags.writeable
     assert not result.noise_covariance_by_rx_subcarrier.flags.writeable
+
+
+@pytest.mark.parametrize(
+    ("failure", "reason"),
+    [
+        ("condition", "numerically_singular_port_signature"),
+        ("solver", "weighted_solver_failure"),
+        ("rank", "rank_deficient_port_signature"),
+        ("inverse", "singular_weighted_port_signature"),
+        ("nonfinite", "nonfinite_weighted_estimate"),
+    ],
+)
+def test_srs_multiport_ls_estimator_records_weighted_solver_failures(
+    monkeypatch, failure, reason
+) -> None:
+    sequences = np.ones((2, 2, 24), dtype=np.complex128)
+    sequences[1, 1] *= -1.0
+    mapped = map_nr_srs_multiport_resource(
+        sequences,
+        slot_symbol_count=14,
+        subcarrier_count=48,
+        start_position_offset=2,
+        srs_symbol_count=2,
+        comb_size=2,
+        comb_offset=0,
+    )
+    received = np.zeros((1, 14, 48), dtype=np.complex128)
+    if failure == "condition":
+        monkeypatch.setattr(srs_lookup_module.np.linalg, "cond", lambda *_args: np.inf)
+    elif failure == "solver":
+        def fail_solve(*_args, **_kwargs):
+            raise np.linalg.LinAlgError("fixture solver failure")
+
+        monkeypatch.setattr(srs_lookup_module.np.linalg, "lstsq", fail_solve)
+    elif failure == "rank":
+        monkeypatch.setattr(
+            srs_lookup_module.np.linalg,
+            "lstsq",
+            lambda *_args, **_kwargs: (np.ones(2), None, 1, None),
+        )
+    elif failure == "inverse":
+        def fail_inverse(*_args, **_kwargs):
+            raise np.linalg.LinAlgError("fixture inverse failure")
+
+        monkeypatch.setattr(srs_lookup_module.np.linalg, "inv", fail_inverse)
+    else:
+        monkeypatch.setattr(
+            srs_lookup_module.np.linalg,
+            "lstsq",
+            lambda *_args, **_kwargs: (np.full(2, np.nan), None, 2, None),
+        )
+
+    result = nr_srs_multiport_ls_channel_estimate(
+        mapped, received, noise_variance_by_rx_ant=1.0
+    )
+
+    active_subcarrier = int(np.flatnonzero(np.any(mapped.mask, axis=(0, 1)))[0])
+    assert result.reason_codes[active_subcarrier] == reason
+    assert not result.valid_subcarrier_mask[active_subcarrier]
+
+
+@pytest.mark.parametrize("failure", ["empty_mask", "zero_transmit"])
+def test_srs_multiport_ls_estimator_rejects_empty_or_zero_resources(failure) -> None:
+    sequences = np.ones((2, 2, 24), dtype=np.complex128)
+    sequences[1, 1] *= -1.0
+    mapped = map_nr_srs_multiport_resource(
+        sequences,
+        slot_symbol_count=14,
+        subcarrier_count=48,
+        start_position_offset=2,
+        srs_symbol_count=2,
+        comb_size=2,
+        comb_offset=0,
+    )
+    if failure == "empty_mask":
+        object.__setattr__(mapped, "mask", np.zeros_like(mapped.mask))
+    else:
+        mapped = replace(mapped, grid=np.zeros_like(mapped.grid))
+    with pytest.raises(ValueError, match="at least one" if failure == "empty_mask" else "nonzero"):
+        nr_srs_multiport_ls_channel_estimate(
+            mapped, np.zeros((1, 14, 48), dtype=np.complex128), noise_variance_by_rx_ant=1.0
+        )
+
+
+def test_srs_multiport_ls_estimator_rejects_unrepresentable_mean_symbol_noise() -> None:
+    sequences = np.ones((2, 2, 24), dtype=np.complex128)
+    sequences[1, 1] *= -1.0
+    mapped = map_nr_srs_multiport_resource(
+        sequences,
+        slot_symbol_count=14,
+        subcarrier_count=48,
+        start_position_offset=2,
+        srs_symbol_count=2,
+        comb_size=2,
+        comb_offset=0,
+    )
+    with np.errstate(over="ignore", invalid="ignore"), pytest.raises(
+        ValueError, match="mean per-RX noise variance"
+    ):
+        nr_srs_multiport_ls_channel_estimate(
+            mapped,
+            np.zeros((1, 14, 48), dtype=np.complex128),
+            noise_variance_by_rx_symbol=np.full(
+                (1, 14), np.finfo(np.float64).max
+            ),
+        )
 
 
 def test_srs_multiport_weighted_ls_uses_per_symbol_noise_variance() -> None:
