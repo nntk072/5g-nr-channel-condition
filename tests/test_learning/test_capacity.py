@@ -10,6 +10,12 @@ def test_capacity_presets_are_ordered_and_reject_unknown_names() -> None:
     assert small.convolution_widths < medium.convolution_widths < large.convolution_widths
     with pytest.raises(ValueError, match="capacity must be one of"):
         capacity_spec("extra-large")
+    assert capacity_spec("matched") == medium
+
+
+def test_shape_matched_capacity_rejects_unattainable_parameter_target() -> None:
+    with pytest.raises(ValueError, match="cannot parameter-match real_cnn within 10%"):
+        matched_capacity_names(links=32, subcarriers=1024)
 
 
 def test_neural_baseline_parameter_count_increases_with_capacity() -> None:
