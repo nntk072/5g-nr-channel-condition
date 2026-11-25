@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import builtins
+
 import pytest
 from integrations.sionna.network_sinr import run_network_grid_sinr
 
@@ -26,6 +28,25 @@ def _run(channel, grids, **kwargs):
     }
     options.update(kwargs)
     return run_network_grid_sinr(channel, grids, **options)
+
+
+def test_network_grid_sinr_reports_missing_pytorch(monkeypatch: pytest.MonkeyPatch) -> None:
+    original_import = builtins.__import__
+
+    def import_without_torch(name, *args, **kwargs):
+        if name == "torch":
+            raise ImportError("test fixture blocks torch")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_torch)
+    with pytest.raises(RuntimeError, match="Install PyTorch"):
+        run_network_grid_sinr(
+            None,
+            None,
+            transmit_power_w_per_re=(),
+            serving_tx_indices=(),
+            noise_variance_w_per_re=(),
+        )
 
 
 def test_channel_and_grid_ranks_are_fixed() -> None:
