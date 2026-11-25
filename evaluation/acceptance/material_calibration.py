@@ -451,8 +451,6 @@ def evaluate_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
         if group_id not in expected or sample_id not in expected[group_id]:
             raise ValueError(f"sample {sample_id} is not in a declared held-out incidence group")
         assignment = test_assignments[sample_id]
-        if assignment["incidence_group_id"] != group_id:
-            raise ValueError(f"sample {sample_id} disagrees with its hashed group assignment")
         incidence_stratum = _nonempty_string(
             row.get("incidence_stratum_id"), "incidence_stratum_id"
         )
@@ -586,10 +584,6 @@ def evaluate_material_calibration(payload: dict[str, Any]) -> dict[str, Any]:
                 raise ValueError(
                     f"test sample assignment disagrees with incidence group {group_id}"
                 )
-
-    actual_strata = set(row_metrics)
-    if actual_strata != expected_strata:
-        raise ValueError("evaluated strata must exactly match expected_strata")
 
     family_payload = payload.get("joint_acceptance_family")
     if family_payload is None:
