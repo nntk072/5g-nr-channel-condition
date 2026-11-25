@@ -392,12 +392,12 @@ def test_episode_bundle_reader_applies_optional_shard_byte_ceiling(tmp_path):
         read_episode_bundle(store, stored, max_shard_bytes=1)
 
 
-def test_episode_bundle_reader_rejects_total_estimate_over_shard_ceiling(
-    tmp_path, monkeypatch
-):
+def test_episode_bundle_reader_rejects_total_estimate_over_shard_ceiling(tmp_path, monkeypatch):
     store = tmp_path / "umcd-estimated-store"
     stored = write_episode_bundle(store, _episode_bundle())
-    monkeypatch.setattr(episode_module, "_episode_object_size_estimate", lambda *_args, **_kwargs: 2)
+    monkeypatch.setattr(
+        episode_module, "_episode_object_size_estimate", lambda *_args, **_kwargs: 2
+    )
 
     with pytest.raises(ValueError, match="episode bundle exceeds max_shard_bytes"):
         read_episode_bundle(store, stored, max_shard_bytes=1)
@@ -1003,9 +1003,7 @@ def test_receiver_inference_rejects_duplicate_sample_ids(tmp_path, monkeypatch):
     monkeypatch.setattr(
         episode_module,
         "_read_episode",
-        lambda *args: replace(
-            original_read_episode(*args), frame_times_s=(0.0, 1.0)
-        ),
+        lambda *args: replace(original_read_episode(*args), frame_times_s=(0.0, 1.0)),
     )
     original = bundle.receiver_observations[0]
     reads = iter((0, 1))
@@ -1189,3 +1187,164 @@ def test_umcd_episode_store_process_peak_rss_scaling(tmp_path, bundle_count, sub
             sort_keys=True,
         )
     )
+
+
+@pytest.mark.parametrize("budget", [True, 1.5, 0])
+def test_episode_reader_requires_positive_integer_shard_budget(tmp_path, budget):
+    store = tmp_path / "reader-budget-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+
+    with pytest.raises(ValueError, match="max_shard_bytes must be a positive integer"):
+        read_episode_bundle(store, stored, max_shard_bytes=budget)
+
+
+@pytest.mark.parametrize(
+    ("references", "message"),
+    [
+        ([{"layer": "unknown"}], "unsupported episode bundle layer"),
+        ([], "bundle must contain one episode"),
+    ],
+)
+def test_episode_reader_requires_supported_layers_and_one_episode(
+    tmp_path, monkeypatch, references, message
+):
+    store = tmp_path / "reader-roster-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, _ = episode_module._validated_manifest(store, stored)
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references),
+    )
+
+    with pytest.raises(ValueError, match=message):
+        read_episode_bundle(store, stored)
+
+
+@pytest.mark.parametrize(
+    ("layer", "object_metadata", "arrays", "message"),
+    [
+        (
+            "oracle_channels",
+            {"schema": "unknown-channel-schema"},
+            {},
+            "unsupported physical-channel layer schema",
+        ),
+        (
+            "scenario_gbsm",
+            {"schema": "umcd.scenario_gbsm_record.v1"},
+            {},
+            "unsupported scenario GBSM episode layer schema",
+        ),
+        (
+            "counterfactual_ablations",
+            {"schema": "umcd.direct_path_ablation.v1"},
+            {},
+            "unsupported direct-path ablation layer schema",
+        ),
+        (
+            "counterfactual_ablations",
+            {
+                "schema": "umcd.direct_path_ablation.v1",
+                "parent_subject_id": "subject",
+                "base_child_id": "base",
+                "ablated_child_id": "ablated",
+                "split": "train",
+                "path_table_sha256": "a" * 64,
+                "link_ids": ["link"],
+            },
+            {},
+            "direct-path ablation layer arrays are invalid",
+        ),
+    ],
+)
+def test_episode_reader_rejects_malformed_optional_layer_payloads(
+    tmp_path, monkeypatch, layer, object_metadata, arrays, message
+):
+    store = tmp_path / "reader-layer-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, references = episode_module._validated_manifest(store, stored)
+    fake_reference = {"layer": layer, "path": "injected-object"}
+    original_read = episode_module._read_object
+
+    def read_object(base, reference, *, max_bytes=None):
+        if reference.get("path") == "injected-object":
+            return object_metadata, arrays
+        return original_read(base, reference, max_bytes=max_bytes)
+
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, [*references, fake_reference]),
+    )
+    monkeypatch.setattr(episode_module, "_read_object", read_object)
+
+    with pytest.raises(ValueError, match=message):
+        read_episode_bundle(store, stored)
+
+
+def test_episode_reader_rejects_manifest_episode_id_drift_after_payload_read(tmp_path, monkeypatch):
+    store = tmp_path / "reader-identity-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, references = episode_module._validated_manifest(store, stored)
+    metadata["episode_id"] = "another-episode"
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references),
+    )
+
+    with pytest.raises(ValueError, match="manifest and episode payload IDs differ"):
+        read_episode_bundle(store, stored)
+
+
+def test_episode_reader_migrates_legacy_target_and_marks_missing_censor_detail(
+    tmp_path, monkeypatch
+):
+    store = tmp_path / "reader-legacy-target-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, references = episode_module._validated_manifest(store, stored)
+    target_metadata = {
+        "schema": "umcd.target.v1",
+        "entity_id": "gNB-0-to-UE-0",
+        "definition": {
+            "semantic": "legacy path visibility",
+            "units": "boolean",
+            "source": "legacy path oracle",
+        },
+        "reason_codes": [TargetValidity.CENSORED.value],
+        "confidence": "legacy_fixture",
+    }
+    target_arrays = {
+        "values": np.asarray([0], dtype=np.uint8),
+        "valid_mask": np.asarray([False]),
+    }
+    references = [*references, {"layer": "targets", "path": "injected-legacy-target"}]
+    original_read = episode_module._read_object
+
+    def read_object(base, reference, *, max_bytes=None):
+        if reference.get("path") == "injected-legacy-target":
+            return target_metadata, target_arrays
+        return original_read(base, reference, max_bytes=max_bytes)
+
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references),
+    )
+    monkeypatch.setattr(episode_module, "_read_object", read_object)
+
+    targets = read_episode_bundle(store, stored).targets
+    target = next(
+        target
+        for target in targets
+        if target.definition.definition_version == "migrated_from_legacy_target_v1"
+    )
+    assert target.definition.definition_version == "migrated_from_legacy_target_v1"
+    assert target.reason_codes == (TargetValidity.LEGACY_REASON_UNRECORDED,)
+
+
+def test_episode_bundle_shard_reader_handles_empty_manifest_inventory(tmp_path):
+    (tmp_path / "manifests" / "episodes").mkdir(parents=True)
+
+    assert list(iter_episode_bundle_shards(tmp_path, max_shard_bytes=1024)) == []
