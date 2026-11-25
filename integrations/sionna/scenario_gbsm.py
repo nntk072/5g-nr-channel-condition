@@ -11,10 +11,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from importlib.metadata import PackageNotFoundError
 from numbers import Real
-from typing import Any, Mapping
+from typing import Any
 
 import numpy as np
 
@@ -367,10 +368,10 @@ def generate_scenario_gbsm_frequency_response(
         from sionna.phy.channel.tr38901 import InF, InH, PanelArray, RMa, UMa, UMi
 
         sionna_version = sionna_phy_version()
-    except ImportError as error:
-        raise RuntimeError("Sionna 2.2 PHY is required for scenario GBSM generation") from error
     except PackageNotFoundError as error:
         raise RuntimeError("Sionna package version metadata is required") from error
+    except ImportError as error:
+        raise RuntimeError("Sionna 2.2 PHY is required for scenario GBSM generation") from error
     if not sionna_version.startswith("2.2."):
         raise RuntimeError(f"scenario GBSM adapter requires Sionna 2.2.x, found {sionna_version}")
     if device.startswith("cuda") and not torch.cuda.is_available():

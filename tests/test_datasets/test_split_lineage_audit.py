@@ -136,6 +136,136 @@ def test_lineage_audit_merges_runs_and_derives_spatial_relations() -> None:
     }
 
 
+def test_split_lineage_requires_named_channel_datasets_and_metadata_objects() -> None:
+    with pytest.raises(ValueError, match="at least one named channel dataset"):
+        derive_channel_dataset_split_evidence((), spatial_buffer_m=1.0)
+    with pytest.raises(TypeError, match="ChannelDataset values"):
+        derive_channel_dataset_split_evidence((("run", object()),), spatial_buffer_m=1.0)
+
+    name, base = _dataset("run", [("parent-a", 0.0, "a" * 64)])
+    malformed = ChannelDataset(
+        h=base.h,
+        y=base.y,
+        group=base.group,
+        domain=base.domain,
+        source=base.source,
+        metadata=("not an object",),
+    )
+    with pytest.raises(TypeError, match="metadata must be an object"):
+        derive_channel_dataset_split_evidence(((name, malformed),), spatial_buffer_m=1.0)
+
+
+def test_split_lineage_rejects_unknown_leakage_namespaces_and_invalid_positions() -> None:
+    name, base = _dataset("run", [("parent-a", 0.0, "a" * 64)])
+    metadata = dict(base.metadata[0])
+    metadata["split_leakage_relations"] = [{"namespace": "unknown", "identity": "x"}]
+    invalid_relation = _with_metadata(name, base, metadata)
+    with pytest.raises(ValueError, match="invalid leakage relation"):
+        derive_channel_dataset_split_evidence((invalid_relation,), spatial_buffer_m=1.0)
+
+    metadata = dict(base.metadata[0])
+    metadata["split_positions_m"] = [float("nan"), 0.0, 1.5]
+    for field in (
+        "scene_asset_set_sha256",
+        "split_identity_basis",
+        "split_identity_complete",
+        "split_block_size_m",
+        "scene_asset_manifest_complete",
+    ):
+        metadata.pop(field)
+    invalid_position = _with_metadata(name, base, metadata)
+    with pytest.raises(ValueError, match="split_positions_m must contain finite numbers"):
+        derive_channel_dataset_split_evidence((invalid_position,), spatial_buffer_m=1.0)
+
+    metadata["split_positions_m"] = [0.0, 1.0]
+    invalid_shape = _with_metadata(name, base, metadata)
+    with pytest.raises(ValueError, match="split_positions_m must be one 3D point"):
+        derive_channel_dataset_split_evidence((invalid_shape,), spatial_buffer_m=1.0)
+
+
+def test_generation_report_components_can_contain_nested_reports() -> None:
+    from datasets.split_lineage import _scene_geometry_asset_manifests
+
+    report = {"components": [{"nested": {"value": "ignored"}}]}
+
+    assert _scene_geometry_asset_manifests(report, context="test") == {}
+
+
+def test_lineage_rejects_contradictory_provisional_rt_identity() -> None:
+    name, base = _dataset("run", [("parent-a", 0.0, "a" * 64)])
+    metadata = dict(base.metadata[0])
+    metadata.update(
+        {
+            "split_subject_id": "wrong-provisional-id",
+            "scene_asset_manifest_complete": False,
+            "split_identity_complete": False,
+            "split_identity_basis": "provisional_scene_name+receiver_xy_grid",
+            "split_coordinate_frame_id": None,
+            "split_positions_m": None,
+        }
+    )
+    malformed = _with_metadata(name, base, metadata)
+
+    with pytest.raises(ValueError, match="contradictory provisional RT identity metadata"):
+        derive_channel_dataset_split_evidence((malformed,), spatial_buffer_m=1.0)
+
+
+def test_lineage_rejects_conflicting_parent_identity_and_time_windows() -> None:
+    first_name, first = _dataset("run-a", [("parent-a", 0.0, "a" * 64)])
+    second_name, second = _dataset("run-b", [("parent-a", 0.0, "a" * 64)])
+    changed = dict(second.metadata[0])
+    changed["split_partition_id"] = "different-partition"
+    with pytest.raises(ValueError, match="conflicting lineage metadata"):
+        derive_channel_dataset_split_evidence(
+            (
+                (first_name, first),
+                _with_metadata(second_name, second, changed),
+            ),
+            spatial_buffer_m=1.0,
+        )
+
+    time_first = dict(first.metadata[0])
+    time_first.update(split_time_scope_id="clock", split_start_time_s=0.0, split_end_time_s=1.0)
+    time_second = dict(second.metadata[0])
+    time_second.update(split_time_scope_id="clock", split_start_time_s=0.0, split_end_time_s=2.0)
+    with pytest.raises(ValueError, match="conflicting time windows"):
+        derive_channel_dataset_split_evidence(
+            (
+                _with_metadata(first_name, first, time_first),
+                _with_metadata(second_name, second, time_second),
+            ),
+            spatial_buffer_m=1.0,
+        )
+
+
+def test_lineage_rejects_incomplete_time_window_and_links_shared_groups() -> None:
+    name, base = _dataset("run", [("parent-a", 0.0, "a" * 64)])
+    metadata = dict(base.metadata[0])
+    metadata["split_time_scope_id"] = "clock"
+    with pytest.raises(ValueError, match="incomplete split time window"):
+        derive_channel_dataset_split_evidence(
+            (_with_metadata(name, base, metadata),), spatial_buffer_m=1.0
+        )
+
+    name, base = _dataset(
+        "shared-group", [("parent-a", 0.0, "a" * 64), ("parent-b", 2.0, "b" * 64)]
+    )
+    grouped = ChannelDataset(
+        h=base.h,
+        y=base.y,
+        group=np.asarray(["shared", "shared"]),
+        domain=base.domain,
+        source=base.source,
+        metadata=base.metadata,
+    )
+    subjects, _, _ = derive_channel_dataset_split_evidence(((name, grouped),), spatial_buffer_m=1.0)
+
+    assert all(
+        any(relation.namespace is LeakageNamespace.ASSET_FAMILY for relation in subject.relations)
+        for subject in subjects
+    )
+
+
 @pytest.mark.parametrize(
     "group",
     (np.asarray([1]), np.asarray([" parent-a "])),
@@ -231,18 +361,27 @@ def test_saved_channel_lineage_builds_footprint_bound_v3_registry() -> None:
     assert len(subjects) == 4
     assert len(footprints) == 4
     assert registry.to_dict()["schema"] == "umcd.split_registry.v3"
-    assert registry_report["spatiotemporal_derivation_audit"] == evidence_report[
-        "spatiotemporal_derivation_audit"
-    ]
-    assert verify_registry_spatiotemporal_audit(
-        registry, footprints, spatial_buffer_m=0.0
-    ) == dict(registry.spatiotemporal_audit)
+    assert (
+        registry_report["spatiotemporal_derivation_audit"]
+        == evidence_report["spatiotemporal_derivation_audit"]
+    )
+    assert verify_registry_spatiotemporal_audit(registry, footprints, spatial_buffer_m=0.0) == dict(
+        registry.spatiotemporal_audit
+    )
 
 
 def test_lineage_report_counts_spatial_and_temporal_coverage_separately() -> None:
     rows = (
-        ("spatial-only", "family-a", {"split_positions_m": [0.0, 0.0, 0.0], "split_coordinate_frame_id": "map"}),
-        ("temporal-only", "family-a", {"split_time_scope_id": "clock", "split_start_time_s": 0.0, "split_end_time_s": 1.0}),
+        (
+            "spatial-only",
+            "family-a",
+            {"split_positions_m": [0.0, 0.0, 0.0], "split_coordinate_frame_id": "map"},
+        ),
+        (
+            "temporal-only",
+            "family-a",
+            {"split_time_scope_id": "clock", "split_start_time_s": 0.0, "split_end_time_s": 1.0},
+        ),
         (
             "both",
             "family-a",
@@ -339,9 +478,7 @@ def test_lineage_audit_joins_exact_shared_geometry_assets_across_scene_sets() ->
         ],
     )
 
-    subjects, report = derive_channel_dataset_split_subjects(
-        (left, right), spatial_buffer_m=1.0
-    )
+    subjects, report = derive_channel_dataset_split_subjects((left, right), spatial_buffer_m=1.0)
 
     assert report["spatially_linked_subjects"] == 0
     assert report["leakage_component_count"] == 1

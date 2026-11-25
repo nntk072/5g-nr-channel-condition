@@ -62,12 +62,12 @@ def test_every_declared_profile_version_has_a_pinned_normative_source() -> None:
     report = standardized_profile_applicability_report()
     manifest_path = (
         Path(__file__).resolve().parents[2]
-        / "docs/research/G4_STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
+        / "config/reference/STANDARD_REFERENCE_MANIFEST_2026-10-26.json"
     )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     schema_path = (
         Path(__file__).resolve().parents[2]
-        / "datasets/schema/g4-standard-reference-manifest.v1.schema.json"
+        / "datasets/schema/standard-reference-manifest.v1.schema.json"
     )
     jsonschema = pytest.importorskip("jsonschema")
     jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(
@@ -281,6 +281,23 @@ def test_fixed_tdl_annex_b_doppler_case_mismatches_are_rejected(
     with pytest.raises(ValueError, match=message):
         validate_standardized_channel_admission(
             StandardizedFamily.TDL, profile_model, _channel().h_path[0], metadata
+        )
+
+
+def test_fixed_tdl_conformance_case_rejects_nonfinite_metadata() -> None:
+    metadata = _metadata(model="A30", carrier_hz=3.5e9)
+    metadata.update(
+        {
+            "fixed_profile_spec_version": "19.2.2",
+            "fixed_profile_conformance_case": "TDLA30-5",
+            "min_speed_mps": 0.0,
+            "max_speed_mps": 1.0,
+            "maximum_doppler_hz": float("nan"),
+        }
+    )
+    with pytest.raises(ValueError, match="requires finite maximum_doppler_hz"):
+        validate_standardized_channel_admission(
+            StandardizedFamily.TDL, "A30", _channel().h_path[0], metadata
         )
 
 

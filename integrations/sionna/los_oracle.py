@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Sequence
 
 import numpy as np
 from propagation.scene_visibility import (
@@ -144,9 +144,12 @@ def segment_visibility(
         )
 
     states = (hit, *probe_blocked)
-    if any(state != states[0] for state in states[1:]):
-        state = SegmentVisibilityState.AMBIGUOUS
-    elif hit and incidence_cosine is not None and incidence_cosine <= grazing_cosine_threshold:
+    if (
+        any(state != states[0] for state in states[1:])
+        or hit
+        and incidence_cosine is not None
+        and incidence_cosine <= grazing_cosine_threshold
+    ):
         state = SegmentVisibilityState.AMBIGUOUS
     else:
         state = SegmentVisibilityState.BLOCKED if hit else SegmentVisibilityState.VISIBLE

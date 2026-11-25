@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
+import os
+import stat
+from pathlib import Path
+from types import SimpleNamespace
 
 import jsonschema
 import pytest
+from artifacts import build_dag
 from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node
 
 
@@ -188,3 +194,310 @@ def test_build_node_requires_verified_dependency_manifests(tmp_path) -> None:
             child,
             lambda _: pytest.fail("missing dependency must block node execution"),
         )
+
+
+def test_file_digest_rejects_nonregular_files_and_open_identity_drift(tmp_path, monkeypatch):
+    regular = tmp_path / "regular.bin"
+    regular.write_bytes(b"payload")
+    directory = tmp_path / "directory"
+    directory.mkdir()
+    with pytest.raises(ValueError, match="regular file"):
+        build_dag._file_digest(directory)
+
+    symlink = tmp_path / "symlink.bin"
+    symlink.symlink_to(regular)
+    with pytest.raises(ValueError, match="regular file"):
+        build_dag._file_digest(symlink)
+
+    hardlink = tmp_path / "hardlink.bin"
+    os.link(regular, hardlink)
+    with pytest.raises(ValueError, match="forbidden links"):
+        build_dag._file_digest(hardlink, require_single_link=True)
+
+    original_fstat = os.fstat
+
+    def altered_stat(descriptor, *, mode=None, device_delta=0):
+        result = original_fstat(descriptor)
+        return SimpleNamespace(
+            st_dev=result.st_dev + device_delta,
+            st_ino=result.st_ino,
+            st_mode=result.st_mode if mode is None else mode,
+            st_nlink=result.st_nlink,
+            st_size=result.st_size,
+            st_mtime_ns=result.st_mtime_ns,
+            st_ctime_ns=result.st_ctime_ns,
+        )
+
+    with monkeypatch.context() as patched:
+        patched.setattr(os, "fstat", lambda descriptor: altered_stat(descriptor, mode=stat.S_IFIFO))
+        with pytest.raises(ValueError, match="changed type while opening"):
+            build_dag._file_digest(regular)
+
+    with monkeypatch.context() as patched:
+        patched.setattr(os, "fstat", lambda descriptor: altered_stat(descriptor, device_delta=1))
+        with pytest.raises(ValueError, match="changed while opening"):
+            build_dag._file_digest(regular)
+
+
+def test_file_digest_detects_changes_while_hashing(tmp_path, monkeypatch):
+    source = tmp_path / "source.bin"
+    source.write_bytes(b"original bytes")
+    original_read = os.read
+    changed = False
+
+    def mutate_after_read(descriptor, size):
+        nonlocal changed
+        chunk = original_read(descriptor, size)
+        if not changed:
+            changed = True
+            source.write_bytes(b"changed bytes")
+        return chunk
+
+    monkeypatch.setattr(os, "read", mutate_after_read)
+    with pytest.raises(ValueError, match="changed while hashing"):
+        build_dag._file_digest(source)
+
+
+def test_stable_bytes_rejects_links_oversize_and_read_drift(tmp_path, monkeypatch):
+    directory = tmp_path / "directory"
+    directory.mkdir()
+    with pytest.raises(ValueError, match="single-link regular file"):
+        build_dag._stable_bytes(directory, maximum_bytes=32)
+
+    source = tmp_path / "source.bin"
+    source.write_bytes(b"payload")
+    hardlink = tmp_path / "hardlink.bin"
+    os.link(source, hardlink)
+    with pytest.raises(ValueError, match="single-link regular file"):
+        build_dag._stable_bytes(hardlink, maximum_bytes=32)
+    hardlink.unlink()
+    with pytest.raises(ValueError, match="bounded file contract"):
+        build_dag._stable_bytes(source, maximum_bytes=2)
+
+    monkeypatch.setattr(os, "read", lambda _descriptor, _size: b"x" * 8)
+    with pytest.raises(ValueError, match="changed during bounded read"):
+        build_dag._stable_bytes(source, maximum_bytes=7)
+
+    monkeypatch.undo()
+    original_read = os.read
+    changed = False
+
+    def mutate_after_read(descriptor, size):
+        nonlocal changed
+        chunk = original_read(descriptor, size)
+        if not changed:
+            changed = True
+            source.write_bytes(b"modified")
+        return chunk
+
+    monkeypatch.setattr(os, "read", mutate_after_read)
+    with pytest.raises(ValueError, match="changed during bounded read"):
+        build_dag._stable_bytes(source, maximum_bytes=32)
+
+
+def test_read_node_manifest_rejects_bad_key_and_invalid_json(tmp_path):
+    with pytest.raises(ValueError, match="lowercase SHA-256"):
+        build_dag._read_node_manifest(tmp_path, "invalid")
+
+    key = "a" * 64
+    manifest_path = tmp_path / "nodes" / f"{key}.json"
+    manifest_path.parent.mkdir()
+    manifest_path.write_bytes(b"\xff")
+    with pytest.raises(ValueError, match="not valid JSON"):
+        build_dag._read_node_manifest(tmp_path, key)
+
+
+def test_read_node_manifest_rejects_content_address_and_identity_drift(tmp_path, monkeypatch):
+    import jsonschema
+
+    monkeypatch.setattr(jsonschema, "validate", lambda *_args, **_kwargs: None)
+    root = tmp_path / "store"
+    nodes = root / "nodes"
+    nodes.mkdir(parents=True)
+    key = "a" * 64
+    path = nodes / f"{key}.json"
+    path.write_text(json.dumps({"schema": "wrong", "node_key": key}), encoding="utf-8")
+    with pytest.raises(ValueError, match="does not match its content address"):
+        build_dag._read_node_manifest(root, key)
+
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"input")
+    spec = _spec(source)
+    path = nodes / f"{spec.node_key}.json"
+    identity = {**spec.identity_payload, "node_version": "changed"}
+    path.write_text(
+        json.dumps(
+            {
+                "schema": build_dag._NODE_SCHEMA,
+                "node_key": spec.node_key,
+                "identity": identity,
+                "artifacts": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="identity differs from its content address"):
+        build_dag._read_node_manifest(root, spec.node_key)
+
+
+@pytest.mark.parametrize(
+    ("artifact", "message"),
+    [
+        ({"path": "missing-fields"}, "artifact entry is malformed"),
+        (
+            {"path": 1, "sha256": "a" * 64, "size_bytes": 0},
+            "artifact path is malformed",
+        ),
+        (
+            {"path": "result/report.json", "sha256": "bad", "size_bytes": 0},
+            "artifact digest is malformed",
+        ),
+        (
+            {"path": "result/report.json", "sha256": "a" * 64, "size_bytes": True},
+            "artifact size is malformed",
+        ),
+    ],
+)
+def test_read_node_manifest_rejects_malformed_artifacts(tmp_path, monkeypatch, artifact, message):
+    import jsonschema
+
+    monkeypatch.setattr(jsonschema, "validate", lambda *_args, **_kwargs: None)
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"input")
+    spec = _spec(source)
+    root = tmp_path / "store"
+    nodes = root / "nodes"
+    nodes.mkdir(parents=True)
+    manifest = {
+        "schema": build_dag._NODE_SCHEMA,
+        "node_key": spec.node_key,
+        "identity": spec.identity_payload,
+        "artifacts": [artifact],
+    }
+    (nodes / f"{spec.node_key}.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        build_dag._read_node_manifest(root, spec.node_key)
+
+
+def test_read_node_manifest_rejects_output_roster_drift(tmp_path, monkeypatch):
+    import jsonschema
+
+    monkeypatch.setattr(jsonschema, "validate", lambda *_args, **_kwargs: None)
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"input")
+    spec = _spec(source)
+    root = tmp_path / "store"
+    nodes = root / "nodes"
+    nodes.mkdir(parents=True)
+    payload = b"output"
+    digest = hashlib.sha256(payload).hexdigest()
+    object_path = root / "objects" / digest[:2] / digest
+    object_path.parent.mkdir(parents=True)
+    object_path.write_bytes(payload)
+    manifest = {
+        "schema": build_dag._NODE_SCHEMA,
+        "node_key": spec.node_key,
+        "identity": spec.identity_payload,
+        "artifacts": [{"path": "different.json", "sha256": digest, "size_bytes": len(payload)}],
+    }
+    (nodes / f"{spec.node_key}.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="output roster differs"):
+        build_dag._read_node_manifest(root, spec.node_key)
+
+
+def test_publish_object_rejects_copy_drift_and_corrupt_collision(tmp_path, monkeypatch):
+    source = tmp_path / "source.bin"
+    source.write_bytes(b"original")
+    original_open = Path.open
+
+    def altered_open(path, mode="r", *args, **kwargs):
+        if path == source and mode == "rb":
+            return io.BytesIO(b"changed")
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", altered_open)
+    with pytest.raises(ValueError, match="changed while publishing"):
+        build_dag._publish_object(tmp_path / "store", source)
+    monkeypatch.undo()
+
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    destination = tmp_path / "store" / "objects" / digest[:2] / digest
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(b"corrupt")
+    monkeypatch.setattr(
+        os, "link", lambda *_args, **_kwargs: (_ for _ in ()).throw(FileExistsError())
+    )
+    with pytest.raises(ValueError, match="collision or corruption"):
+        build_dag._publish_object(tmp_path / "store", source)
+
+
+def test_publish_manifest_rejects_conflicting_immutable_key(tmp_path, monkeypatch):
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"input")
+    spec = _spec(source)
+    node_directory = tmp_path / "store" / "nodes"
+    node_directory.mkdir(parents=True)
+    (node_directory / f"{spec.node_key}.json").write_bytes(b"different")
+    monkeypatch.setattr(
+        os, "link", lambda *_args, **_kwargs: (_ for _ in ()).throw(FileExistsError())
+    )
+
+    with pytest.raises(ValueError, match="different manifest"):
+        build_dag._publish_manifest(tmp_path / "store", spec, [])
+
+
+def test_publish_manifest_reuses_identical_immutable_key(tmp_path, monkeypatch):
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"input")
+    spec = _spec(source)
+    store = tmp_path / "store"
+    first = build_dag._publish_manifest(store, spec, [])
+    monkeypatch.setattr(
+        os, "link", lambda *_args, **_kwargs: (_ for _ in ()).throw(FileExistsError())
+    )
+
+    assert build_dag._publish_manifest(store, spec, []) == first
+
+
+def test_build_node_rejects_symlink_output_and_failed_post_publish_verification(
+    tmp_path, monkeypatch
+):
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"input")
+    spec = _spec(source)
+
+    def symlink_output(output):
+        (output / "result").mkdir()
+        (output / "result" / "report.json").symlink_to(source)
+
+    with pytest.raises(ValueError, match="cannot contain symlinks"):
+        run_build_node(tmp_path / "symlink-store", spec, symlink_output)
+
+    monkeypatch.setattr(build_dag, "_load_existing_node", lambda *_args, **_kwargs: None)
+
+    def valid_output(output):
+        target = output / "result/report.json"
+        target.parent.mkdir()
+        target.write_bytes(b"ok")
+
+    with pytest.raises(RuntimeError, match="could not be verified"):
+        run_build_node(tmp_path / "verification-store", spec, valid_output)
+
+
+def test_resolve_build_artifact_rejects_corrupt_object(tmp_path):
+    payload = b"bad"
+    digest = hashlib.sha256(b"expected").hexdigest()
+    path = tmp_path / "objects" / digest[:2] / digest
+    path.parent.mkdir(parents=True)
+    path.write_bytes(payload)
+    result = build_dag.BuildNodeResult(
+        "a" * 64,
+        tmp_path / "manifest.json",
+        ({"path": "report.json", "sha256": digest, "size_bytes": len(payload)},),
+        True,
+    )
+
+    with pytest.raises(ValueError, match="integrity verification"):
+        resolve_build_artifact(tmp_path, result, "report.json")

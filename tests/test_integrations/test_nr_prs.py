@@ -36,9 +36,7 @@ def _scalar_gold_bits(c_init: int, count: int) -> list[int]:
         x2[index] = (c_init >> index) & 1
     for index in range(stop):
         x1[index + 31] = (x1[index + 3] + x1[index]) % 2
-        x2[index + 31] = (
-            x2[index + 3] + x2[index + 2] + x2[index + 1] + x2[index]
-        ) % 2
+        x2[index + 31] = (x2[index + 3] + x2[index + 2] + x2[index + 1] + x2[index]) % 2
     return [x1[index] ^ x2[index] for index in range(1600, stop)]
 
 
@@ -54,8 +52,7 @@ def _scalar_prs(
     bits = _scalar_gold_bits(c_init, 2 * length)
     return np.asarray(
         [
-            ((1 - 2 * bits[2 * index]) + 1j * (1 - 2 * bits[2 * index + 1]))
-            / math.sqrt(2.0)
+            ((1 - 2 * bits[2 * index]) + 1j * (1 - 2 * bits[2 * index + 1])) / math.sqrt(2.0)
             for index in range(length)
         ],
         dtype=np.complex128,
@@ -162,9 +159,7 @@ def test_prs_mapping_uses_symbol_specific_comb_offsets_and_point_a_indices():
         (12, 12),
     ],
 )
-def test_prs_mapping_repeats_normative_comb_offset_cycle(
-    num_symbols: int, comb_size: int
-) -> None:
+def test_prs_mapping_repeats_normative_comb_offset_cycle(num_symbols: int, comb_size: int) -> None:
     normative_offsets = {
         2: (0, 1),
         4: (0, 2, 1, 3),
@@ -241,12 +236,8 @@ def test_prs_mapping_checks_exact_reserved_resource_elements():
 
 def test_prs_resource_set_composes_distinct_resources_and_keeps_member_masks():
     resources = (
-        NRPRSResourceConfiguration(
-            "prs-a", 0, 1, 10, 2, 0, 2, 2, beta_prs=0.5
-        ),
-        NRPRSResourceConfiguration(
-            "prs-b", 12, 1, 20, 2, 1, 2, 2, beta_prs=0.75
-        ),
+        NRPRSResourceConfiguration("prs-a", 0, 1, 10, 2, 0, 2, 2, beta_prs=0.5),
+        NRPRSResourceConfiguration("prs-b", 12, 1, 20, 2, 1, 2, 2, beta_prs=0.75),
     )
 
     result = map_nr_dl_prs_resource_set(
@@ -425,9 +416,7 @@ def test_prs_resource_set_schedule_resolves_periodicity_and_repetitions():
     third = nr_dl_prs_resource_occasion(system_frame_number=1, slot_in_frame=0, timing=timing)
     fourth = nr_dl_prs_resource_occasion(system_frame_number=1, slot_in_frame=2, timing=timing)
     gap = nr_dl_prs_resource_occasion(system_frame_number=0, slot_in_frame=9, timing=timing)
-    next_period = nr_dl_prs_resource_occasion(
-        system_frame_number=1, slot_in_frame=6, timing=timing
-    )
+    next_period = nr_dl_prs_resource_occasion(system_frame_number=1, slot_in_frame=6, timing=timing)
 
     assert (first.is_resource_occasion, first.transmitted, first.repetition_index) == (
         True,
@@ -458,12 +447,8 @@ def test_prs_resource_set_schedule_applies_option1_and_option2_muting():
     second_repetition = nr_dl_prs_resource_occasion(
         system_frame_number=0, slot_in_frame=1, timing=timing
     )
-    second_set = nr_dl_prs_resource_occasion(
-        system_frame_number=1, slot_in_frame=6, timing=timing
-    )
-    fourth_set = nr_dl_prs_resource_occasion(
-        system_frame_number=2, slot_in_frame=4, timing=timing
-    )
+    second_set = nr_dl_prs_resource_occasion(system_frame_number=1, slot_in_frame=6, timing=timing)
+    fourth_set = nr_dl_prs_resource_occasion(system_frame_number=2, slot_in_frame=4, timing=timing)
 
     assert (first_repetition.transmitted, first_repetition.option1_bit_index) == (True, 0)
     assert (second_repetition.transmitted, second_repetition.status) == (
@@ -634,9 +619,7 @@ def test_dl_tdoa_report_requires_exact_quality_roster_and_rejects_ambiguous_refe
     with pytest.raises(ValueError, match="equidistant"):
         build_nr_dl_tdoa_measurement_report(**base)
     with pytest.raises(ValueError, match="cover exactly"):
-        build_nr_dl_tdoa_measurement_report(
-            **{**base, "timing_quality_by_tp": {"tp-ref": quality}}
-        )
+        build_nr_dl_tdoa_measurement_report(**{**base, "timing_quality_by_tp": {"tp-ref": quality}})
 
 
 @pytest.mark.parametrize(
@@ -690,7 +673,442 @@ def test_prs_matched_delay_profile_rejects_invalid_delay_grid(bad_delay_grid):
         comb_size=2,
         resource_element_offset=0,
         start_symbol=0,
-        num_symbols=1,
+        num_symbols=2,
     )
     with pytest.raises((TypeError, ValueError), match="delay_grid_s"):
         nr_dl_prs_matched_delay_profile(resource.grid, resource, delay_grid_s=bad_delay_grid)
+
+
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"slot_symbol_count": 13}, ValueError, "slot_symbol_count must be 12 or 14"),
+        ({"start_symbol": 13}, ValueError, "fit inside the configured slot"),
+        ({"subcarrier_count": 11}, ValueError, "fit inside the subcarrier grid"),
+        ({"subcarrier_spacing_hz": True}, TypeError, "must be a real scalar"),
+        ({"subcarrier_spacing_hz": np.inf}, ValueError, "finite and positive"),
+        ({"beta_prs": False}, TypeError, "beta_prs must be a real scalar"),
+        ({"beta_prs": 0.0}, ValueError, "beta_prs must be finite and positive"),
+        ({"reserved_symbol_mask": np.zeros(13, dtype=bool)}, ValueError, "reserved_symbol_mask"),
+        (
+            {"reserved_resource_mask": np.zeros((14, 12), dtype=np.uint8)},
+            ValueError,
+            "reserved_resource_mask must be boolean",
+        ),
+    ],
+)
+def test_prs_mapping_rejects_out_of_contract_slot_and_grid_inputs(changes, error, message):
+    arguments = {
+        "slot_symbol_count": 14,
+        "subcarrier_count": 12,
+        "resource_start_subcarrier": 0,
+        "resource_bandwidth_rbs": 1,
+        "prs_sequence_id": 5,
+        "slot_index": 0,
+        "numerology": 0,
+        "subcarrier_spacing_hz": 15_000.0,
+        "comb_size": 2,
+        "resource_element_offset": 0,
+        "start_symbol": 4,
+        "num_symbols": 2,
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        map_nr_dl_prs_resource(**arguments)
+
+
+@pytest.mark.parametrize(
+    ("resources", "changes", "error", "message"),
+    [
+        ("bad", {}, TypeError, "resources must be a sequence"),
+        ((), {}, ValueError, "resources must be nonempty"),
+        ((None,), {}, TypeError, "must contain NRPRSResourceConfiguration"),
+        ((NRPRSResourceConfiguration(" prs", 0, 1, 1, 2, 0, 1, 2),), {}, ValueError, "canonical"),
+        (
+            (NRPRSResourceConfiguration("same", 0, 1, 1, 2, 0, 1, 2),) * 2,
+            {},
+            ValueError,
+            "must be unique",
+        ),
+        (
+            (NRPRSResourceConfiguration("one", 0, 1, 1, 2, 0, 1, 2),),
+            {"max_resource_count": 0},
+            ValueError,
+            "max_resource_count",
+        ),
+        (
+            (NRPRSResourceConfiguration("one", 0, 1, 1, 2, 0, 1, 2),),
+            {"slot_symbol_count": 13},
+            ValueError,
+            "slot_symbol_count must be 12 or 14",
+        ),
+        (
+            (NRPRSResourceConfiguration("one", 0, 1, 1, 2, 0, 1, 2),),
+            {"max_total_resource_cells": 1},
+            ValueError,
+            "max_total_resource_cells",
+        ),
+    ],
+)
+def test_prs_resource_set_rejects_invalid_compositions(resources, changes, error, message):
+    arguments = {
+        "resources": resources,
+        "slot_symbol_count": 14,
+        "subcarrier_count": 24,
+        "slot_index": 0,
+        "numerology": 0,
+        "subcarrier_spacing_hz": 15_000.0,
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        map_nr_dl_prs_resource_set(**arguments)
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"time_gap_slots": 3}, "time_gap_slots is not a supported"),
+        ({"repetition_factor": 2}, "time_gap_slots is required"),
+        ({"periodicity_slots": 4, "resource_slot_offset": 4}, "extend beyond"),
+        ({"muting_bit_repetition_factor": 3}, "must be one of"),
+        ({"option1_bitmap": (True,)}, "option1_bitmap length"),
+        (
+            {"repetition_factor": 2, "time_gap_slots": 1, "option2_bitmap": (True,)},
+            "option2_bitmap length",
+        ),
+    ],
+)
+def test_prs_timing_rejects_invalid_repetition_and_muting(changes, message):
+    arguments = {"numerology": 0, "periodicity_slots": 4, "periodicity_offset_slots": 0}
+    arguments.update(changes)
+    with pytest.raises(ValueError, match=message):
+        NRPRSResourceSetTiming(**arguments)
+
+
+@pytest.mark.parametrize(
+    ("bitmap", "message"),
+    [("bad", "nonempty sequence"), ((), "nonempty sequence"), ((1,), "only Boolean values")],
+)
+def test_prs_timing_rejects_non_boolean_muting_bitmaps(bitmap, message):
+    with pytest.raises(TypeError, match=message):
+        NRPRSResourceSetTiming(
+            numerology=0,
+            periodicity_slots=4,
+            periodicity_offset_slots=0,
+            option1_bitmap=bitmap,
+        )
+
+
+def test_prs_timing_rejects_muting_cycle_longer_than_sfn_duration():
+    with pytest.raises(ValueError, match="10-second SFN duration"):
+        NRPRSResourceSetTiming(
+            numerology=0,
+            periodicity_slots=10240,
+            periodicity_offset_slots=0,
+            muting_bit_repetition_factor=8,
+            option1_bitmap=(True,) * 32,
+        )
+
+
+def test_prs_occasion_rejects_wrong_timing_type():
+    with pytest.raises(TypeError, match="timing must be"):
+        nr_dl_prs_resource_occasion(system_frame_number=0, slot_in_frame=0, timing=None)
+
+
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"reference_tp_id": ""}, ValueError, "canonical string"),
+        ({"target_subframe_start_times_s": ()}, TypeError, "TP-to-time mapping"),
+        ({"timing_quality_by_tp": ()}, TypeError, "TP-to-quality mapping"),
+        ({"target_subframe_start_times_s": {" tp": 0.1}}, ValueError, "canonical strings"),
+        (
+            {"target_subframe_start_times_s": {"tp-ref": 0.1}},
+            ValueError,
+            "must not also appear",
+        ),
+        (
+            {"timing_quality_by_tp": {"tp-ref": object(), "tp-target": object()}},
+            TypeError,
+            "must be NRPRSTimingQuality",
+        ),
+        ({"reference_subframe_start_times_s": "bad"}, TypeError, "nonempty sequence"),
+        ({"reference_subframe_start_times_s": ()}, ValueError, "must be nonempty"),
+        ({"reference_subframe_start_times_s": (np.inf,)}, ValueError, "must be finite and real"),
+    ],
+)
+def test_tdoa_report_rejects_malformed_rosters_and_reference_times(changes, error, message):
+    quality = NRPRSTimingQuality(value=0, resolution_m=1.0)
+    arguments: dict[str, Any] = {
+        "reference_tp_id": "tp-ref",
+        "reference_subframe_start_times_s": (0.0,),
+        "target_subframe_start_times_s": {"tp-target": 1.0},
+        "timing_quality_by_tp": {"tp-ref": quality, "tp-target": quality},
+        "frequency_range": 1,
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        build_nr_dl_tdoa_measurement_report(**arguments)
+
+
+@pytest.mark.parametrize(
+    ("uncertainty", "resolution", "message"),
+    [
+        (-0.1, 1.0, "finite, real, and nonnegative"),
+        (np.inf, 1.0, "finite, real, and nonnegative"),
+        (True, 1.0, "finite, real, and nonnegative"),
+        (0.1, 3.0, "resolution must be"),
+    ],
+)
+def test_timing_quality_rejects_invalid_uncertainty_and_resolution(
+    uncertainty, resolution, message
+):
+    with pytest.raises(ValueError, match=message):
+        NRPRSTimingQuality.from_uncertainty_m(uncertainty, resolution_m=resolution)
+
+
+@pytest.mark.parametrize(
+    ("target_time", "references", "error", "message"),
+    [
+        (True, (0.0,), ValueError, "target_subframe_start_time_s must be finite and real"),
+        (1.0, "bad", TypeError, "must be a nonempty sequence"),
+        (1.0, (), ValueError, "must be nonempty"),
+        (1.0, (np.inf,), ValueError, "must be finite and real"),
+        (
+            np.finfo(float).max,
+            (-np.finfo(float).max,),
+            ValueError,
+            "differences must remain finite",
+        ),
+    ],
+)
+def test_dl_rstd_rejects_invalid_times(target_time, references, error, message):
+    with pytest.raises(error, match=message):
+        measure_nr_dl_rstd(
+            target_tp_id="tp-target",
+            reference_tp_id="tp-reference",
+            target_subframe_start_time_s=target_time,
+            reference_subframe_start_times_s=references,
+            frequency_range=1,
+        )
+
+
+def _small_mapped_prs_resource():
+    return map_nr_dl_prs_resource(
+        slot_symbol_count=14,
+        subcarrier_count=12,
+        resource_start_subcarrier=0,
+        resource_bandwidth_rbs=1,
+        prs_sequence_id=7,
+        slot_index=0,
+        numerology=0,
+        subcarrier_spacing_hz=15_000.0,
+        comb_size=2,
+        resource_element_offset=0,
+        start_symbol=0,
+        num_symbols=2,
+    )
+
+
+@pytest.mark.parametrize(
+    ("received", "delay_grid", "error", "message"),
+    [
+        (np.zeros((1, 1)), (0.0, 1e-8), ValueError, "received_grid must be finite complex"),
+        (
+            np.zeros((14, 12), dtype=np.complex128),
+            (0.0, "bad"),
+            TypeError,
+            "delay_grid_s must contain real",
+        ),
+        (
+            np.zeros((14, 12), dtype=np.complex128),
+            (0.0, np.inf),
+            ValueError,
+            "delay_grid_s must be finite",
+        ),
+    ],
+)
+def test_prs_matched_filter_rejects_bad_received_grids_and_delays(
+    received, delay_grid, error, message
+):
+    resource = _small_mapped_prs_resource()
+    with pytest.raises(error, match=message):
+        nr_dl_prs_matched_delay_profile(received, resource, delay_grid_s=delay_grid)
+
+
+def test_prs_matched_filter_rejects_invalid_spacing_and_reports_profile_overflow():
+    resource = _small_mapped_prs_resource()
+    delays = np.asarray((0.0, 1e-8))
+    object.__setattr__(resource, "subcarrier_spacing_hz", 0.0)
+    with pytest.raises(ValueError, match="subcarrier_spacing_hz must be finite"):
+        nr_dl_prs_matched_delay_profile(resource.grid, resource, delay_grid_s=delays)
+
+    resource = _small_mapped_prs_resource()
+    received = np.array(resource.grid, copy=True)
+    received[0, resource.subcarrier_indices[0]] *= 1e200
+    with (
+        np.errstate(over="ignore", invalid="ignore"),
+        pytest.raises(ValueError, match="profile overflowed"),
+    ):
+        nr_dl_prs_matched_delay_profile(received, resource, delay_grid_s=delays)
+
+
+@pytest.mark.parametrize(
+    ("changes", "error", "message"),
+    [
+        ({"delay_grid_s": (0.0, "bad")}, TypeError, "delay_grid_s must contain real"),
+        ({"delay_grid_s": (0.0, np.inf)}, ValueError, "delay_grid_s must be finite"),
+        ({"cfo_grid_hz": (0.0, "bad")}, TypeError, "cfo_grid_hz must contain real"),
+        (
+            {"cfo_grid_hz": (0.0, 0.0)},
+            ValueError,
+            "cfo_grid_hz must be finite and strictly increasing",
+        ),
+        ({"symbol_times_s": (0.0, "bad")}, TypeError, "symbol_times_s must contain real"),
+        ({"symbol_times_s": (0.0,)}, ValueError, "symbol_times_s must be finite, increasing"),
+        ({"max_work_cells": 1}, ValueError, "exceeds max_work_cells"),
+    ],
+)
+def test_prs_delay_cfo_search_rejects_invalid_grids(changes, error, message):
+    resource = _small_mapped_prs_resource()
+    arguments = {
+        "received_grid": resource.grid,
+        "resource": resource,
+        "delay_grid_s": (0.0, 1e-8),
+        "cfo_grid_hz": (-1.0, 1.0),
+        "symbol_times_s": (0.0, 1e-3),
+        "max_work_cells": 1000,
+    }
+    arguments.update(changes)
+    with pytest.raises(error, match=message):
+        nr_dl_prs_delay_cfo_profile(**arguments)
+
+
+def test_prs_delay_cfo_search_rejects_mutated_spacing_and_zero_symbols():
+    resource = _small_mapped_prs_resource()
+    object.__setattr__(resource, "subcarrier_spacing_hz", np.nan)
+    arguments = {
+        "received_grid": resource.grid,
+        "resource": resource,
+        "delay_grid_s": (0.0, 1e-8),
+        "cfo_grid_hz": (-1.0, 1.0),
+        "symbol_times_s": (0.0, 1e-3),
+    }
+    with pytest.raises(ValueError, match="subcarrier_spacing_hz must be finite"):
+        nr_dl_prs_delay_cfo_profile(**arguments)
+
+    resource = _small_mapped_prs_resource()
+    object.__setattr__(resource, "grid", np.zeros_like(resource.grid))
+    with pytest.raises(ValueError, match="finite nonzero symbols"):
+        nr_dl_prs_delay_cfo_profile(**{**arguments, "resource": resource})
+
+
+def test_prs_integer_and_slot_symbol_count_contracts():
+    with pytest.raises(TypeError, match="prs_sequence_id must be an integer"):
+        nr_dl_prs_c_init(
+            prs_sequence_id=True,
+            slot_index=0,
+            numerology=0,
+            symbol_index=0,
+        )
+    with pytest.raises(ValueError, match="symbols_per_slot must be 12 or 14"):
+        nr_dl_prs_c_init(
+            prs_sequence_id=1,
+            slot_index=0,
+            numerology=0,
+            symbol_index=0,
+            symbols_per_slot=13,
+        )
+
+
+def test_prs_resource_set_enforces_resource_limit_and_finite_superposition():
+    resources = tuple(
+        NRPRSResourceConfiguration(f"prs-{index}", 0, 1, index, 2, 0, 1, 2, beta_prs=1e308)
+        for index in range(3)
+    )
+    with pytest.raises(ValueError, match="resource count exceeds max_resource_count"):
+        map_nr_dl_prs_resource_set(
+            resources=resources[:2],
+            slot_symbol_count=14,
+            subcarrier_count=12,
+            slot_index=0,
+            numerology=0,
+            subcarrier_spacing_hz=15_000.0,
+            max_resource_count=1,
+        )
+    with (
+        np.errstate(over="ignore", invalid="ignore"),
+        pytest.raises(ValueError, match="contains non-finite samples"),
+    ):
+        map_nr_dl_prs_resource_set(
+            resources=resources,
+            slot_symbol_count=14,
+            subcarrier_count=12,
+            slot_index=0,
+            numerology=0,
+            subcarrier_spacing_hz=15_000.0,
+        )
+
+
+def test_prs_timing_quality_covers_invalid_resolution_and_integer_overflow():
+    with pytest.raises(ValueError, match="resolution must be 0.1, 1, 10, or 30"):
+        NRPRSTimingQuality(value=0, resolution_m=2.0)
+    with pytest.raises(ValueError, match="finite, real, and nonnegative"):
+        NRPRSTimingQuality.from_uncertainty_m(10**1000, resolution_m=1.0)
+
+
+def test_dl_tdoa_report_detects_duplicate_target_ids_from_custom_mapping():
+    class DuplicateKeyMapping(dict):
+        def __iter__(self):
+            return iter(("tp-target", "tp-target"))
+
+    quality = NRPRSTimingQuality(value=0, resolution_m=1.0)
+    with pytest.raises(ValueError, match="target TP IDs must be unique"):
+        build_nr_dl_tdoa_measurement_report(
+            reference_tp_id="tp-ref",
+            reference_subframe_start_times_s=(0.0,),
+            target_subframe_start_times_s=DuplicateKeyMapping({"tp-target": 1.0}),
+            timing_quality_by_tp={"tp-ref": quality, "tp-target": quality},
+            frequency_range=1,
+        )
+
+
+def test_dl_rstd_rejects_noncanonical_ids():
+    with pytest.raises(ValueError, match="target_tp_id must be a nonempty canonical string"):
+        measure_nr_dl_rstd(
+            target_tp_id=" tp-target",
+            reference_tp_id="tp-ref",
+            target_subframe_start_time_s=1.0,
+            reference_subframe_start_times_s=(0.0,),
+            frequency_range=1,
+        )
+
+
+def test_prs_delay_cfo_search_rejects_noncomplex_grid_and_nonfinite_profile():
+    resource = _small_mapped_prs_resource()
+    arguments = {
+        "resource": resource,
+        "delay_grid_s": (0.0, 1e-8),
+        "cfo_grid_hz": (-1.0, 1.0),
+        "symbol_times_s": (0.0, 1e-3),
+    }
+    with pytest.raises(ValueError, match="received_grid must be finite complex"):
+        nr_dl_prs_delay_cfo_profile(np.zeros_like(resource.grid.real), **arguments)
+
+    received = np.array(resource.grid, copy=True) * 1e200
+    with (
+        np.errstate(over="ignore", invalid="ignore"),
+        pytest.raises(ValueError, match="profile overflowed"),
+    ):
+        nr_dl_prs_delay_cfo_profile(received, **arguments)
+
+
+def test_prs_matched_filter_caps_nonfinite_peak_to_median_ratio(monkeypatch):
+    resource = _small_mapped_prs_resource()
+    monkeypatch.setattr(np, "median", lambda _values: 1e-320)
+    result = nr_dl_prs_matched_delay_profile(
+        resource.grid,
+        resource,
+        delay_grid_s=np.asarray((0.0, 1e-8)),
+    )
+    assert result.peak_to_median_ratio == np.finfo(np.float64).max

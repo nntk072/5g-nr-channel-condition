@@ -1,0 +1,67 @@
+# RT scene asset identity
+
+`integrations/sionna/scene_assets.py` resolves a scene XML's local references
+and hashes the XML, any adjacent scene manifest, referenced mesh files,
+Wavefront OBJ material libraries, and referenced MTL textures. Each file is
+parsed and hashed through one stable descriptor, in bounded chunks, with
+mutation checks before and after inspection. The default limits are 2 GiB per
+asset and 8 GiB for the complete closure; callers can set explicit larger
+limits. The remaining total-set allowance is applied to each next asset before
+that file is parsed or hashed, so exceeding the closure budget does not first
+consume the per-file allowance. A canonical asset-set hash is independent of
+the checkout's absolute root; the absolute scene path remains available as
+provenance. Unresolved
+URI/data resources are listed and make the manifest `complete: false` instead
+of being treated as hashed evidence. OBJ/MTL dependency lines are capped at
+1 MiB so malformed or pathological text cannot force an unbounded line read.
+
+Static RT datasets keep the full file inventory once in their generation
+report and place the set hash/count/completeness flag in each sample row.
+Trajectory records carry the compact identity; their generation sidecar stores
+the full inventory. This keeps artifact size controlled while making scene
+asset changes detectable. Runtime backend and solver configuration are stored
+separately, so the scene asset hash does not pretend to identify carrier,
+materials converted at runtime, solver settings, or random seeds.
+
+Before issuing a reusable run/cache key, `integrations.sionna.rt_identity`
+revalidates the complete manifest envelope, every relative asset path, byte
+count and SHA-256, the empty unresolved-reference roster, and the set digest
+recomputed from the exact canonical asset rows. A caller cannot make an
+incomplete or internally inconsistent inventory reusable by setting only
+`complete: true` and supplying a digest string. This verifies manifest
+consistency; source-byte capture remains the responsibility of
+`scene_asset_manifest` and the separately documented stable-file checks.
+
+The resolver follows XML `filename` references and OBJ/MTL dependencies. It
+does not parse arbitrary custom plugin formats or hash runtime-generated
+material state. Scene XML/assets and the Sionna RT/Mitsuba/Dr.Jit versions must
+therefore be retained together for replay. A complete local hash is
+reproducibility provenance, not evidence that geometry or radio materials are
+physically qualified.
+
+## Pinned ODbL scene source snapshot
+
+The ODbL source-snapshot audit is kept with the research records (local, not
+published). It compares the Sionna root commit and RT submodule against the accepted ODbL policy,
+record Git tree/blob inventory digests and the last XML history event, and
+recompute the three recursive scene asset hashes. The command returns success
+only when both source checkouts are clean, both commits match policy, and every
+asset closure matches. It performs no scene loading or propagation generation.
+
+The report is source-history evidence only. Git timestamps are not OSM extract
+timestamps; missing OSM object IDs, conversion records, and per-file third-party
+license closure stay explicitly unresolved. The report always sets
+`public_release_eligible` to false. Continue to use the signed release-specific
+manifest and independent rights review before any public redistribution.
+
+The public-release exporter uses manifest v3, which no longer treats a
+documented provenance gap or the string `complete` as sufficient evidence. It
+requires a timezone-bearing OSM extract timestamp, explicit node/way/relation
+IDs, a conversion recipe included among the hash-bound release artifacts, and
+a structured third-party license inventory with review-evidence digest. The
+detached signature binds these declarations but cannot make unknown source
+history or unreviewed rights complete. The three selected scenes therefore
+remain research-only until their original source records and independent
+rights assessments are recovered.
+
+New RT cache identities use `loslab.rt_run_identity.v2`, which requires the material manifest as an explicit hashed input. UMCD provenance is derived from that identity and rejects a separately supplied material declaration that differs. Cache/trajectory readers continue to accept v1 identity records for historical replay; new generation emits v2.

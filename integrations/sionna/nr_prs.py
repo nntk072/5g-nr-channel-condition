@@ -8,9 +8,10 @@ configuration; it does not decode RRC or implement PRS occasion scheduling.
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from numbers import Real
-from typing import Mapping, Sequence
+from typing import cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -100,17 +101,11 @@ def nr_dl_prs_c_init(
     symbols_per_slot: int = 14,
 ) -> int:
     """Return the downlink PRS Gold-sequence seed for one slot symbol."""
-    prs_sequence_id = _integer(
-        prs_sequence_id, label="prs_sequence_id", minimum=0, maximum=4095
-    )
+    prs_sequence_id = _integer(prs_sequence_id, label="prs_sequence_id", minimum=0, maximum=4095)
     numerology = _integer(numerology, label="numerology", minimum=0, maximum=6)
     slots_per_frame = 10 * (1 << numerology)
-    slot_index = _integer(
-        slot_index, label="slot_index", minimum=0, maximum=slots_per_frame - 1
-    )
-    symbols_per_slot = _integer(
-        symbols_per_slot, label="symbols_per_slot", minimum=12, maximum=14
-    )
+    slot_index = _integer(slot_index, label="slot_index", minimum=0, maximum=slots_per_frame - 1)
+    symbols_per_slot = _integer(symbols_per_slot, label="symbols_per_slot", minimum=12, maximum=14)
     if symbols_per_slot not in (12, 14):
         raise ValueError("symbols_per_slot must be 12 or 14")
     symbol_index = _integer(
@@ -228,14 +223,10 @@ def map_nr_dl_prs_resource(
     resource_bandwidth_rbs = _integer(
         resource_bandwidth_rbs, label="resource_bandwidth_rbs", minimum=1
     )
-    prs_sequence_id = _integer(
-        prs_sequence_id, label="prs_sequence_id", minimum=0, maximum=4095
-    )
+    prs_sequence_id = _integer(prs_sequence_id, label="prs_sequence_id", minimum=0, maximum=4095)
     numerology = _integer(numerology, label="numerology", minimum=0, maximum=6)
     slots_per_frame = 10 * (1 << numerology)
-    slot_index = _integer(
-        slot_index, label="slot_index", minimum=0, maximum=slots_per_frame - 1
-    )
+    slot_index = _integer(slot_index, label="slot_index", minimum=0, maximum=slots_per_frame - 1)
     comb_size = _integer(comb_size, label="comb_size", minimum=1, maximum=12)
     resource_element_offset = _integer(
         resource_element_offset,
@@ -271,7 +262,10 @@ def map_nr_dl_prs_resource(
         reserved_re = np.zeros((slot_symbol_count, subcarrier_count), dtype=np.bool_)
     else:
         reserved_re = np.asarray(reserved_resource_mask)
-        if reserved_re.shape != (slot_symbol_count, subcarrier_count) or reserved_re.dtype.kind != "b":
+        if (
+            reserved_re.shape != (slot_symbol_count, subcarrier_count)
+            or reserved_re.dtype.kind != "b"
+        ):
             raise ValueError(
                 "reserved_resource_mask must be boolean with shape "
                 "[slot_symbol_count, subcarrier_count]"
@@ -361,9 +355,7 @@ def map_nr_dl_prs_resource_set(
     resource_ids = tuple(item.resource_id for item in configurations)
     if len(set(resource_ids)) != len(resource_ids):
         raise ValueError("PRS resource IDs must be unique within a resource set")
-    max_resource_count = _integer(
-        max_resource_count, label="max_resource_count", minimum=1
-    )
+    max_resource_count = _integer(max_resource_count, label="max_resource_count", minimum=1)
     max_total_resource_cells = _integer(
         max_total_resource_cells, label="max_total_resource_cells", minimum=1
     )
@@ -408,11 +400,14 @@ def map_nr_dl_prs_resource_set(
     )
     masks = tuple(member.resource_mask for member in member_grids)
     occupancy = np.sum(np.stack(masks, axis=0), axis=0, dtype=np.int64)
-    collision_mask = occupancy > 1
-    composite = np.sum(
-        np.stack(tuple(member.grid for member in member_grids), axis=0),
-        axis=0,
-        dtype=np.complex128,
+    collision_mask = cast(BoolArray, occupancy > 1)
+    composite = cast(
+        ComplexArray,
+        np.sum(
+            np.stack(tuple(member.grid for member in member_grids), axis=0),
+            axis=0,
+            dtype=np.complex128,
+        ),
     )
     if not np.isfinite(composite).all():
         raise ValueError("composed PRS resource set contains non-finite samples")
@@ -496,9 +491,7 @@ class NRPRSResourceSetTiming:
         object.__setattr__(self, "time_gap_slots", gap)
 
     @staticmethod
-    def _validate_bitmap(
-        bitmap: Sequence[bool] | None, label: str
-    ) -> tuple[bool, ...] | None:
+    def _validate_bitmap(bitmap: Sequence[bool] | None, label: str) -> tuple[bool, ...] | None:
         if bitmap is None:
             return None
         if isinstance(bitmap, (str, bytes)) or not isinstance(bitmap, Sequence) or not bitmap:
@@ -539,9 +532,7 @@ def nr_dl_prs_resource_occasion(
         raise TypeError("timing must be NRPRSResourceSetTiming")
     numerology = timing.numerology
     slots_per_frame = 10 * (1 << numerology)
-    sfn = _integer(
-        system_frame_number, label="system_frame_number", minimum=0, maximum=1023
-    )
+    sfn = _integer(system_frame_number, label="system_frame_number", minimum=0, maximum=1023)
     slot = _integer(slot_in_frame, label="slot_in_frame", minimum=0, maximum=slots_per_frame - 1)
     absolute_slot = sfn * slots_per_frame + slot
     base_slot = timing.periodicity_offset_slots + timing.resource_slot_offset
@@ -551,9 +542,7 @@ def nr_dl_prs_resource_occasion(
     slot_in_period = relative_slot % periodicity
     gap = timing.time_gap_slots if timing.time_gap_slots is not None else 1
     repetition_index = slot_in_period // gap
-    is_occasion = (
-        slot_in_period % gap == 0 and repetition_index < timing.repetition_factor
-    )
+    is_occasion = slot_in_period % gap == 0 and repetition_index < timing.repetition_factor
     if not is_occasion:
         return NRPRSResourceOccasion(
             system_frame_number=sfn,
@@ -574,8 +563,7 @@ def nr_dl_prs_resource_occasion(
     option2_active = True
     if timing.option1_bitmap is not None:
         option1_index = (
-            relative_slot
-            // (timing.periodicity_slots * timing.muting_bit_repetition_factor)
+            relative_slot // (timing.periodicity_slots * timing.muting_bit_repetition_factor)
         ) % len(timing.option1_bitmap)
         option1_active = timing.option1_bitmap[option1_index]
     if timing.option2_bitmap is not None:
@@ -674,14 +662,17 @@ class NRPRSTimingQuality:
             raise ValueError("timing quality resolution must be 0.1, 1, 10, or 30 metres")
 
     @classmethod
-    def from_uncertainty_m(
-        cls, uncertainty_m: Real, *, resolution_m: float
-    ) -> NRPRSTimingQuality:
+    def from_uncertainty_m(cls, uncertainty_m: Real, *, resolution_m: float) -> NRPRSTimingQuality:
         try:
             finite_uncertainty = math.isfinite(float(uncertainty_m))
         except (OverflowError, TypeError, ValueError):
             finite_uncertainty = False
-        if isinstance(uncertainty_m, bool) or not isinstance(uncertainty_m, Real) or not finite_uncertainty or uncertainty_m < 0:
+        if (
+            isinstance(uncertainty_m, bool)
+            or not isinstance(uncertainty_m, Real)
+            or not finite_uncertainty
+            or uncertainty_m < 0
+        ):
             raise ValueError("timing uncertainty must be finite, real, and nonnegative")
         if (
             isinstance(resolution_m, bool)
@@ -768,7 +759,11 @@ def build_nr_dl_tdoa_measurement_report(
     subframe-start estimate. No PRS waveform is processed and no timestamp,
     resource ID, or uncertainty estimate is inferred by this composition API.
     """
-    if not isinstance(reference_tp_id, str) or not reference_tp_id or reference_tp_id != reference_tp_id.strip():
+    if (
+        not isinstance(reference_tp_id, str)
+        or not reference_tp_id
+        or reference_tp_id != reference_tp_id.strip()
+    ):
         raise ValueError("reference_tp_id must be a nonempty canonical string")
     if not isinstance(target_subframe_start_times_s, Mapping):
         raise TypeError("target_subframe_start_times_s must be a TP-to-time mapping")
@@ -776,8 +771,7 @@ def build_nr_dl_tdoa_measurement_report(
         raise TypeError("timing_quality_by_tp must be a TP-to-quality mapping")
     target_ids = tuple(target_subframe_start_times_s)
     if any(
-        not isinstance(tp_id, str) or not tp_id or tp_id != tp_id.strip()
-        for tp_id in target_ids
+        not isinstance(tp_id, str) or not tp_id or tp_id != tp_id.strip() for tp_id in target_ids
     ):
         raise ValueError("target TP IDs must be nonempty canonical strings")
     if len(set(target_ids)) != len(target_ids):
@@ -790,9 +784,7 @@ def build_nr_dl_tdoa_measurement_report(
     for tp_id, quality in timing_quality_by_tp.items():
         if not isinstance(quality, NRPRSTimingQuality):
             raise TypeError(f"timing quality for {tp_id!r} must be NRPRSTimingQuality")
-    frequency_range = _integer(
-        frequency_range, label="frequency_range", minimum=1, maximum=2
-    )
+    frequency_range = _integer(frequency_range, label="frequency_range", minimum=1, maximum=2)
     if not isinstance(reference_subframe_start_times_s, Sequence) or isinstance(
         reference_subframe_start_times_s, (str, bytes)
     ):
@@ -823,7 +815,7 @@ def build_nr_dl_tdoa_measurement_report(
         measurement = measure_nr_dl_rstd(
             target_tp_id=tp_id,
             reference_tp_id=reference_tp_id,
-            target_subframe_start_time_s=target_subframe_start_times_s[tp_id],
+            target_subframe_start_time_s=float(target_subframe_start_times_s[tp_id]),
             reference_subframe_start_times_s=reference_times,
             frequency_range=frequency_range,
         )
@@ -865,7 +857,6 @@ def measure_nr_dl_rstd(
     rule and records the required UE measurement reference point by frequency
     range. An exactly equidistant reference pair is rejected as ambiguous.
     """
-
     for value, label in (
         (target_tp_id, "target_tp_id"),
         (reference_tp_id, "reference_tp_id"),
@@ -895,9 +886,7 @@ def measure_nr_dl_rstd(
         ):
             raise ValueError(f"reference subframe start {index} must be finite and real")
         reference_times.append(float(value))
-    frequency_range = _integer(
-        frequency_range, label="frequency_range", minimum=1, maximum=2
-    )
+    frequency_range = _integer(frequency_range, label="frequency_range", minimum=1, maximum=2)
     target_time = float(target_subframe_start_time_s)
     offsets = [target_time - value for value in reference_times]
     if any(not math.isfinite(value) for value in offsets):
@@ -970,7 +959,9 @@ def nr_dl_prs_matched_delay_profile(
     ):
         raise ValueError("delay_grid_s must be finite, nonnegative, and strictly increasing")
     profile = np.zeros(delays.shape, dtype=np.float64)
-    for symbol, subcarriers in zip(resource.symbol_indices, resource.subcarrier_indices, strict=True):
+    for symbol, subcarriers in zip(
+        resource.symbol_indices, resource.subcarrier_indices, strict=True
+    ):
         transmit = resource.grid[symbol, subcarriers]
         observed = received[symbol, subcarriers]
         channel = observed * np.conjugate(transmit) / (np.abs(transmit) ** 2)
@@ -1055,13 +1046,10 @@ def nr_dl_prs_delay_cfo_profile(
     if raw_cfo.dtype.kind not in "iuf":
         raise TypeError("cfo_grid_hz must contain real numeric values")
     cfo = np.asarray(raw_cfo, dtype=np.float64)
-    if (
-        cfo.ndim != 1
-        or cfo.size < 2
-        or not np.isfinite(cfo).all()
-        or np.any(np.diff(cfo) <= 0)
-    ):
-        raise ValueError("cfo_grid_hz must be finite and strictly increasing with at least two rows")
+    if cfo.ndim != 1 or cfo.size < 2 or not np.isfinite(cfo).all() or np.any(np.diff(cfo) <= 0):
+        raise ValueError(
+            "cfo_grid_hz must be finite and strictly increasing with at least two rows"
+        )
 
     raw_times = np.asarray(symbol_times_s)
     if raw_times.dtype.kind not in "iuf":
@@ -1079,9 +1067,7 @@ def nr_dl_prs_delay_cfo_profile(
 
     work_limit = _integer(max_work_cells, label="max_work_cells", minimum=1)
     resource_elements = sum(len(indices) for indices in resource.subcarrier_indices)
-    work_cells = int(delays.size) * (
-        resource_elements + int(cfo.size) * int(symbol_times.size)
-    )
+    work_cells = int(delays.size) * (resource_elements + int(cfo.size) * int(symbol_times.size))
     profile_cells = int(delays.size) * int(cfo.size)
     if work_cells > work_limit or profile_cells > work_limit:
         raise ValueError(
@@ -1090,7 +1076,9 @@ def nr_dl_prs_delay_cfo_profile(
         )
 
     per_symbol_response: list[np.ndarray] = []
-    for symbol, subcarriers in zip(resource.symbol_indices, resource.subcarrier_indices, strict=True):
+    for symbol, subcarriers in zip(
+        resource.symbol_indices, resource.subcarrier_indices, strict=True
+    ):
         transmit = resource.grid[symbol, subcarriers]
         if not np.isfinite(transmit).all() or np.any(np.abs(transmit) == 0):
             raise ValueError("mapped PRS resource elements must have finite nonzero symbols")

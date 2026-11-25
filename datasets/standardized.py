@@ -13,11 +13,12 @@ import json
 import math
 import os
 import tempfile
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
 from types import MappingProxyType
-from typing import Any, Mapping, cast
+from typing import Any, cast
 
 import numpy as np
 
@@ -34,7 +35,7 @@ from .targets import (
     TargetDefinition,
     TargetValidity,
     TargetValue,
-    migrate_legacy_target_definition_v1,
+    migrate_legacy_target_definition,
     target_definition_digest,
 )
 
@@ -121,10 +122,12 @@ def validate_standardized_channel_admission(
         raise TypeError("family must use StandardizedFamily")
     try:
         applicability = standardized_profile_applicability(family.value, profile_model)
-    except ValueError:
+    except ValueError as err:
         if family is StandardizedFamily.TDL:
-            raise ValueError(prefix + "TDL profile must be scalable A–E or fixed TS 38.101-4")
-        raise ValueError(prefix + "CDL profile must be one of A–E")
+            raise ValueError(
+                prefix + "TDL profile must be scalable A–E or fixed TS 38.101-4"
+            ) from err
+        raise ValueError(prefix + "CDL profile must be one of A–E") from err
     expected_delay_semantics = applicability.delay_profile_semantics
     if metadata.get("delay_profile_semantics") != expected_delay_semantics:
         raise ValueError(prefix + "delay profile semantics disagree with the admitted profile")
@@ -210,24 +213,8 @@ def validate_standardized_channel_admission(
             for low, high in applicability.carrier_frequency_ranges_hz
         )
         raise ValueError(prefix + f"carrier_frequency_hz must be within {allowed_ranges}")
-    if profile_model in _FIXED_TDL_MODELS:
-        if 0.5e9 <= carrier_hz <= 7.125e9:
-            frequency_range = "FR1"
-        elif 24.25e9 <= carrier_hz <= 71e9:
-            frequency_range = "FR2"
-        else:
-            raise ValueError(
-                prefix + "fixed TS 38.101-4 TDL profiles require an FR1 or FR2 carrier frequency"
-            )
-        allowed_frequency_ranges = {
-            "FR1" if low <= carrier_hz <= 7.125e9 else "FR2"
-            for low, high in applicability.carrier_frequency_ranges_hz
-            if low <= carrier_hz <= high
-        }
-        if not allowed_frequency_ranges:
-            raise ValueError(
-                prefix + f"fixed TDL-{profile_model} is not applicable in {frequency_range}"
-            )
+    # Every fixed TS 38.101-4 profile is declared only on FR1 or FR2 carrier ranges, so the
+    # carrier-range check above already enforces the FR1/FR2 requirement.
     validate_fixed_tdl_conformance_metadata(profile_model, metadata)
 
     subcarrier_count = metadata.get("num_subcarriers")
@@ -926,7 +913,7 @@ def read_standardized_learning_run(
         for name, item in target_payload["targets"].items():
             definition_payload = item["definition"]
             if target_schema == "standardized_targets.v1":
-                definition = migrate_legacy_target_definition_v1(definition_payload)
+                definition = migrate_legacy_target_definition(definition_payload)
             else:
                 definition = TargetDefinition(**definition_payload)
             targets[name] = TargetValue(

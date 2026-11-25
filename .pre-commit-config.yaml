@@ -1,0 +1,21 @@
+# Local hooks use the same commands as the lint and typecheck gates in tools/check.
+# Install once with: pip install pre-commit && pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check (tools/check lint)
+        entry: uv run --locked ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format --check (tools/check lint)
+        entry: uv run --locked ruff format --check
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy (tools/check typecheck)
+        entry: uv run --locked mypy
+        language: system
+        pass_filenames: false
+        types: [python]

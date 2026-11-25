@@ -55,3 +55,16 @@ temporary_data
 resnet_*/
 model_*/
 ray_tracing_data/
+
+# Documentation build output and generated API pages
+docs/_build/
+docs/api/generated/
+
+# Developer-only documentation: kept in the local working copy, not published
+dev-docs/
+
+# Agent tooling: kept in the local working copy for engineering use, not published
+AGENTS.md
+.agents/
+.claude/
+.codex/

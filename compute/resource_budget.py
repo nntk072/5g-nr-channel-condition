@@ -70,7 +70,9 @@ def _quantile(values: list[float | int], q: float) -> float | int:
     return float(np.quantile(np.asarray(values, dtype=np.float64), q, method="higher"))
 
 
-def _headroom_integer(value: int, planned_units: int, factor: float) -> int:
+def _headroom_integer(value: int | float, planned_units: int, factor: float) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("integer resource quantiles must remain integral")
     return math.ceil(Decimal(value) * planned_units * Decimal(str(factor)))
 
 
@@ -83,7 +85,6 @@ def build_resource_budget_report(request: dict[str, Any], *, request_sha256: str
     the caller's required 2x–3x headroom factor. Device peak memory is not
     multiplied by planned unit count.
     """
-
     _validate(request, _REQUEST_SCHEMA, "resource-budget request")
     if not isinstance(request_sha256, str) or not _SHA256.fullmatch(request_sha256):
         raise ValueError("request_sha256 must be lowercase SHA-256 hex")
@@ -174,9 +175,7 @@ def build_resource_budget_report(request: dict[str, Any], *, request_sha256: str
         "request_schema_sha256": hashlib.sha256(_REQUEST_SCHEMA.read_bytes()).hexdigest(),
         "report_schema_sha256": hashlib.sha256(_REPORT_SCHEMA.read_bytes()).hexdigest(),
         "workflow_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "cli_source_sha256": hashlib.sha256(
-            (_ROOT / "loslab/__main__.py").read_bytes()
-        ).hexdigest(),
+        "cli_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "estimation_method": "empirical_higher_quantiles_times_planned_units_times_headroom",
         "quantiles": [0.5, 0.9, 0.99],
         "headroom_factor": headroom,

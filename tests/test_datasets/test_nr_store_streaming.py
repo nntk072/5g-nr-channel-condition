@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import os
 import shutil
 import zipfile
@@ -13,8 +14,14 @@ import datasets.targets as target_contracts
 import numpy as np
 import pytest
 from datasets import iter_nr_record_shards
-from datasets.nr import NRChannelRecord, NRObservation, TargetDefinition
-from datasets.nr_store import NRStoredRecord, read_nr_record, write_nr_record
+from datasets.nr import NRChannelRecord, NRObservation, NRTrajectory, TargetDefinition
+from datasets.nr_store import (
+    NRStoredRecord,
+    read_nr_record,
+    read_nr_trajectory,
+    write_nr_record,
+    write_nr_trajectory,
+)
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
@@ -386,3 +393,179 @@ def test_duplicate_sample_id_manifests_are_rejected(tmp_path, monkeypatch):
 
 def test_empty_store_yields_no_shards(tmp_path):
     assert tuple(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000)) == ()
+
+
+@pytest.mark.parametrize(
+    ("manifest_bytes", "message"),
+    [
+        (b"not json", "not valid bounded UTF-8 JSON"),
+        (b"[]", "must be a JSON object"),
+        (
+            b'{"sample_id":"  ","content_sha256":"x","relative_path":"x","schema_version":1}',
+            "sample_id must be a nonempty string",
+        ),
+        (
+            b'{"sample_id":"invalid-inventory-manifest","content_sha256":"x",'
+            b'"relative_path":"x",'
+            b'"schema_version":99}',
+            "unsupported NR record schema version: 99",
+        ),
+    ],
+)
+def test_shard_inventory_rejects_invalid_record_manifests(tmp_path, manifest_bytes, message):
+    stored = write_nr_record(tmp_path, _record("invalid-inventory-manifest"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    (tmp_path / "manifests" / f"{manifest_key}.json").write_bytes(manifest_bytes)
+
+    with pytest.raises(ValueError, match=message):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_rejects_non_utf8_manifest(tmp_path):
+    stored = write_nr_record(tmp_path, _record("invalid-utf8-manifest"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    (tmp_path / "manifests" / f"{manifest_key}.json").write_bytes(b"\xff")
+
+    with pytest.raises(ValueError, match="not valid bounded UTF-8 JSON"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_rejects_unknown_manifest_fields(tmp_path):
+    stored = write_nr_record(tmp_path, _record("unknown-inventory-field"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    (tmp_path / "manifests" / f"{manifest_key}.json").write_text(
+        '{"sample_id":"unknown-inventory-field",'
+        f'"content_sha256":"{stored.content_sha256}",'
+        f'"relative_path":"{stored.relative_path}","schema_version":5,"unexpected":true}}',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(TypeError, match="unexpected keyword argument"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_trajectory_reader_rejects_unsupported_pointer_schema(tmp_path):
+    stored = write_nr_trajectory(tmp_path, NRTrajectory("schema", (0.0,), (_record("a"),)))
+
+    with pytest.raises(ValueError, match="unsupported NR trajectory schema version: 2"):
+        read_nr_trajectory(tmp_path, replace(stored, schema_version=2))
+
+
+def test_trajectory_reader_rejects_noncanonical_content_paths(tmp_path):
+    stored = write_nr_trajectory(tmp_path, NRTrajectory("path", (0.0,), (_record("a"),)))
+
+    with pytest.raises(ValueError, match="trajectory path must remain inside the store"):
+        read_nr_trajectory(tmp_path, replace(stored, relative_path="trajectories/../escape.json"))
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda value: value.update(schema_version=2), "unsupported NR trajectory payload schema"),
+        (lambda value: value.update(trajectory_id="forged"), "trajectory ID does not match"),
+        (lambda value: value.update(records=[]), "sample IDs do not match"),
+    ],
+)
+def test_trajectory_reader_rejects_payload_identity_mutations(tmp_path, mutate, message):
+    stored = write_nr_trajectory(
+        tmp_path, NRTrajectory("payload-check", (0.0,), (_record("payload-sample"),))
+    )
+    payload_path = tmp_path / stored.relative_path
+    value = json.loads(payload_path.read_text(encoding="utf-8"))
+    mutate(value)
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    payload_path.write_bytes(payload)
+    updated = replace(stored, content_sha256=hashlib.sha256(payload).hexdigest())
+
+    with pytest.raises(ValueError, match=message):
+        read_nr_trajectory(tmp_path, updated)
+
+
+def _npy_array_bytes(array: np.ndarray) -> bytes:
+    buffer = io.BytesIO()
+    np.save(buffer, array, allow_pickle=True)
+    return buffer.getvalue()
+
+
+@pytest.mark.parametrize(
+    ("members", "message"),
+    [
+        ((), "unique nonempty members"),
+        ((("metadata.txt", b"not an array"),), "members must be NPY arrays"),
+        (
+            (("unsupported.npy", b"\x93NUMPY\x03\x00" + bytes(200)),),
+            "unsupported NPY format version",
+        ),
+        (
+            (("objects.npy", _npy_array_bytes(np.asarray([object()], dtype=object))),),
+            "numeric, non-object dtypes",
+        ),
+    ],
+)
+def test_shard_inventory_rejects_invalid_npz_member_contracts(tmp_path, members, message):
+    stored = write_nr_record(tmp_path, _record("invalid-npz-members"))
+    archive_path = tmp_path / stored.relative_path
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, payload in members:
+            archive.writestr(name, payload)
+
+    with pytest.raises(ValueError, match=message):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_rejects_duplicate_npz_member_names(tmp_path):
+    stored = write_nr_record(tmp_path, _record("duplicate-npz-members"))
+    archive_path = tmp_path / stored.relative_path
+    value = _npy_array_bytes(np.asarray([1.0]))
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("duplicate.npy", value)
+        archive.writestr("duplicate.npy", value)
+
+    with pytest.raises(ValueError, match="unique nonempty members"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_rejects_unreadable_npz_object(tmp_path):
+    stored = write_nr_record(tmp_path, _record("unreadable-npz"))
+    (tmp_path / stored.relative_path).write_bytes(b"not a zip archive")
+
+    with pytest.raises(ValueError, match="not a readable NPZ archive"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_shard_inventory_applies_estimated_memory_budget_after_compressed_size(tmp_path):
+    stored = write_nr_record(tmp_path, _record("estimated-budget"))
+    compressed_size = (tmp_path / stored.relative_path).stat().st_size
+
+    with pytest.raises(ValueError, match="estimate .* exceeds max_shard_bytes"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=compressed_size + 1))
+
+
+def test_shard_inventory_rejects_manifest_object_path_traversal(tmp_path):
+    stored = write_nr_record(tmp_path, _record("manifest-path-traversal"))
+    manifest_key = hashlib.sha256(stored.sample_id.encode()).hexdigest()
+    manifest_path = tmp_path / "manifests" / f"{manifest_key}.json"
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload["relative_path"] = "../outside.npz"
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="manifest record path must remain inside the store"):
+        next(iter_nr_record_shards(tmp_path, max_shard_bytes=10_000_000))
+
+
+def test_memory_estimator_accepts_supported_npy_version_two(tmp_path):
+    path = tmp_path / "arrays.npz"
+    buffer = io.BytesIO()
+    array = np.asarray([1.0, 2.0], dtype=np.float64)
+    np.lib.format.write_array_header_2_0(
+        buffer,
+        {"descr": array.dtype.str, "fortran_order": False, "shape": array.shape},
+    )
+    buffer.write(array.tobytes())
+    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("values.npy", buffer.getvalue())
+    stored = NRStoredRecord("npy-version-two", "0" * 64, "arrays.npz")
+
+    estimate = nr_store._nr_record_memory_estimate(tmp_path, stored, max_shard_bytes=10_000_000)
+
+    assert estimate > path.stat().st_size

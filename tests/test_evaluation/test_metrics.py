@@ -5,7 +5,7 @@ import pytest
 from artifacts.provenance import atomic_json, canonical_hash, package_source_sha256, sha256_file
 from datasets.channel import ChannelDataset
 from datasets.synthetic import debug_multipath
-from evaluation.metrics import (
+from evaluation.scoring.metrics import (
     binary_metrics,
     block_bootstrap_auc,
     group_split,
@@ -13,12 +13,12 @@ from evaluation.metrics import (
     in_domain_split,
     threshold_from_validation,
 )
-from evaluation.paired_link_curves import (
+from evaluation.scoring.paired_link_curves import (
     compare_curves,
     compare_rx_correlation_curves,
     summarize_tdl_profile_sweep,
 )
-from evaluation.statistics import (
+from evaluation.scoring.statistics import (
     cluster_binary_error_rate_interval,
     paired_binary_error_comparison,
     paired_cluster_binary_error_comparison,
@@ -104,6 +104,15 @@ def test_threshold_validation():
     assert 0.1 < t <= 0.7
 
 
+def test_threshold_validation_uses_midpoint_when_roc_has_no_finite_threshold(monkeypatch):
+    monkeypatch.setattr(
+        "sklearn.metrics.roc_curve",
+        lambda *args, **kwargs: (np.array([0.0]), np.array([0.0]), np.array([np.inf])),
+    )
+
+    assert threshold_from_validation(np.array([0, 1]), np.array([0.4, 0.6])) == 0.5
+
+
 def test_bootstrap_link_blocks():
     y = np.array([0, 1] * 12)
     p = np.linspace(0, 1, len(y))
@@ -111,6 +120,17 @@ def test_bootstrap_link_blocks():
     ci = block_bootstrap_auc(y, p, g, draws=60)
     assert 0 <= ci["auroc_ci95"][0] <= ci["auroc_ci95"][1] <= 1
     assert ci["resampling_unit"] == "link/spatial_block"
+
+
+def test_bootstrap_auc_rejects_too_few_valid_class_replicates():
+    with pytest.raises(ValueError, match="Too few bootstrap replicates"):
+        block_bootstrap_auc(
+            y=np.zeros(8, dtype=int),
+            p=np.linspace(0.1, 0.8, 8),
+            groups=np.repeat(np.arange(4), 2),
+            seed=1,
+            draws=20,
+        )
 
 
 def test_hash_order_independent():
@@ -230,7 +250,7 @@ def test_cluster_binary_error_interval_resamples_whole_groups_deterministically(
     assert result == replicated
     assert result["error_rate"] == pytest.approx(0.5)
     assert result["independent_groups"] == 3
-    assert 0.0 <= result["cluster_bootstrap_ci95"][0]
+    assert result["cluster_bootstrap_ci95"][0] >= 0.0
     assert result["cluster_bootstrap_ci95"][0] < result["cluster_bootstrap_ci95"][1] <= 1.0
     assert result["status"] == "estimated"
 

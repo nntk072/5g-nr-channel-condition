@@ -10,9 +10,6 @@ from typing import Any
 import numpy as np
 
 _INPUT_FIELDS: dict[tuple[str, str], frozenset[str]] = {
-    ("experiments.observable_multipath", "TwoPathModelInputs"): frozenset(
-        {"observed_cfr", "pilot_mask", "frequencies_hz", "noise_variance"}
-    ),
     ("datasets.channel", "ChannelModelInputs"): frozenset({"observed_cfr"}),
     ("datasets.analytical", "AnalyticalModelInputs"): frozenset(
         {"frequencies_hz", "channel_frequency_response"}
@@ -31,7 +28,7 @@ _INPUT_FIELDS: dict[tuple[str, str], frozenset[str]] = {
             "received_grid_mask",
         }
     ),
-    ("evaluation.caez_forecast", "CAEZForecastModelInputs"): frozenset({"feature_matrix"}),
+    ("evaluation.scoring.caez_forecast", "CAEZForecastModelInputs"): frozenset({"feature_matrix"}),
 }
 
 _NR_RECEIVER_CONFIG_FIELDS = frozenset(
@@ -81,14 +78,15 @@ def _validated_array(
 ) -> tuple[int, ...]:
     """Admit only dense numeric arrays with the declared inference-time domain."""
     is_torch_tensor = False
-    torch = None
+    torch_module: Any | None = None
     if type(value).__module__.partition(".")[0] == "torch":
         try:
-            import torch
-
-            is_torch_tensor = torch.is_tensor(value)
+            import torch as imported_torch
         except ImportError:
             pass
+        else:
+            torch_module = imported_torch
+            is_torch_tensor = torch_module.is_tensor(value)
 
     if isinstance(value, np.ndarray):
         if value.dtype.kind not in "biufc":
@@ -104,16 +102,14 @@ def _validated_array(
             else False
         )
     elif is_torch_tensor:
-        assert torch is not None
-        if value.layout != torch.strided:
+        assert torch_module is not None
+        if value.layout != torch_module.strided:
             raise TypeError(f"{name} must be a dense numeric array")
         shape = tuple(value.shape)
         is_complex = value.is_complex()
-        is_boolean = value.dtype == torch.bool
+        is_boolean = value.dtype == torch_module.bool
         is_integer = not value.is_floating_point() and not is_complex and not is_boolean
-        if not (value.is_floating_point() or is_complex or is_boolean or is_integer):
-            raise TypeError(f"{name} must be a numeric array")
-        finite = bool(torch.isfinite(value).all())
+        finite = bool(torch_module.isfinite(value).all())
         has_negative = (
             bool((value < 0).any())
             if value_kind != "complex" and not is_complex and not is_boolean
@@ -189,7 +185,7 @@ def audit_model_input_payload(value: Any) -> Any:
         )
 
     if identity == ("datasets.nr", "NRModelInputs"):
-        config = getattr(value, "receiver_config")
+        config = value.receiver_config
         config_identity = (type(config).__module__, type(config).__qualname__)
         if config_identity != ("receivers.nr.pusch", "NRPUSCHConfig") or not (
             _is_registered_class(config, *config_identity)
@@ -199,38 +195,13 @@ def audit_model_input_payload(value: Any) -> Any:
         if config_fields != _NR_RECEIVER_CONFIG_FIELDS:
             raise ValueError("NRPUSCHConfig field roster drifted across the model-input boundary")
 
-    if identity == ("evaluation.caez_forecast", "CAEZForecastModelInputs"):
-        shape = _validated_array(
+    if identity == ("evaluation.scoring.caez_forecast", "CAEZForecastModelInputs"):
+        _validated_array(
             value.feature_matrix,
             name="feature_matrix",
             value_kind="real",
             ndim=2,
         )
-        if not shape[0] or not shape[1]:
-            raise ValueError("CAEZ feature_matrix axes must be nonempty")
-    elif identity == ("experiments.observable_multipath", "TwoPathModelInputs"):
-        observed_shape = _validated_array(
-            value.observed_cfr, name="observed_cfr", value_kind="complex", ndim=2
-        )
-        mask_shape = _validated_array(
-            value.pilot_mask, name="pilot_mask", value_kind="boolean", ndim=2
-        )
-        frequency_shape = _validated_array(
-            value.frequencies_hz, name="frequencies_hz", value_kind="real", ndim=2
-        )
-        variance_shape = _validated_array(
-            value.noise_variance,
-            name="noise_variance",
-            value_kind="real",
-            ndim=1,
-            nonnegative=True,
-        )
-        if mask_shape != observed_shape or frequency_shape != observed_shape:
-            raise ValueError("two-path masks and frequencies must match the observed CFR grid")
-        if variance_shape != (observed_shape[0],):
-            raise ValueError("two-path noise_variance must have one value per observation")
-        if np.any(np.asarray(value.noise_variance) <= 0):
-            raise ValueError("two-path noise_variance must be positive")
     elif identity == ("datasets.channel", "ChannelModelInputs"):
         _validated_array(
             value.observed_cfr,
@@ -274,7 +245,7 @@ def audit_model_input_payload(value: Any) -> Any:
         _validated_real_scalar(value.noise_variance, name="noise_variance", nonnegative=True)
         _validated_real_scalar(value.snr_db, name="snr_db")
         _validated_real_scalar(value.carrier_hz, name="carrier_hz", positive=True)
-    elif identity == ("datasets.nr", "NRModelInputs"):
+    else:
         grid_shape = _validated_array(
             value.received_grid, name="received_grid", value_kind="complex", ndim=5
         )

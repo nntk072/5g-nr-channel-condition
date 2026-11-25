@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .identity import content_identity
@@ -15,7 +15,7 @@ def run_manifest(run_id: str, config: dict[str, Any], **fields: Any) -> dict[str
         "schema": "loslab.run.v2",
         "run_id": run_id,
         "state": "running",
-        "created_utc": datetime.now(timezone.utc).isoformat(),
+        "created_utc": datetime.now(UTC).isoformat(),
         "config_identity": content_identity(config),
         "config": config,
         **fields,
@@ -24,7 +24,7 @@ def run_manifest(run_id: str, config: dict[str, Any], **fields: Any) -> dict[str
 
 def mark_complete(manifest: dict[str, Any]) -> dict[str, Any]:
     """Return a completed manifest without mutating the caller's mapping."""
-    completed_utc = datetime.now(timezone.utc).isoformat()
+    completed_utc = datetime.now(UTC).isoformat()
     result = {
         **manifest,
         "state": "complete",
@@ -41,7 +41,7 @@ def mark_failed(
     manifest: dict[str, Any], *, error_type: str, error_message: str, stage: str
 ) -> dict[str, Any]:
     """Return a failed manifest and bind terminal failure details into replay provenance."""
-    failed_utc = datetime.now(timezone.utc).isoformat()
+    failed_utc = datetime.now(UTC).isoformat()
     result = {
         **manifest,
         "state": "failed",

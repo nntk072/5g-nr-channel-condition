@@ -10,8 +10,9 @@ import math
 import os
 import stat
 import zipfile
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 from artifacts.build_dag import BuildNodeSpec, resolve_build_artifact, run_build_node
 from artifacts.provenance import package_source_sha256, versions

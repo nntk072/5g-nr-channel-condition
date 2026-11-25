@@ -6,6 +6,7 @@ import hashlib
 import json
 import sys
 import types
+from importlib.metadata import PackageNotFoundError
 
 import pytest
 
@@ -128,6 +129,20 @@ def test_tdl_adapter_forwards_nondefault_num_sinusoids(monkeypatch: pytest.Monke
     )
     monkeypatch.setattr(tdl_adapter, "call_with_sionna_seed", lambda _device, _seed, call: call())
 
+    def unavailable_sionna_version() -> str:
+        raise PackageNotFoundError
+
+    monkeypatch.setattr(tdl_adapter, "sionna_phy_version", unavailable_sionna_version)
+
+    with pytest.raises(ValueError, match="scalable TDL-A requires delay_spread_s"):
+        tdl_adapter.generate_tdl_frequency_response(
+            model="A",
+            seed=3,
+            carrier_frequency_hz=3.5e9,
+            subcarrier_spacing_hz=30_000.0,
+            num_subcarriers=8,
+        )
+
     channel = tdl_adapter.generate_tdl_frequency_response(
         model="A",
         seed=3,
@@ -174,6 +189,74 @@ def test_tdl_adapter_forwards_nondefault_num_sinusoids(monkeypatch: pytest.Monke
     with pytest.raises(ValueError, match="must be bound by the profile digest"):
         validate_standardized_channel_admission(
             StandardizedFamily.TDL, "A", channel.h_path[0], tampered_metadata
+        )
+
+
+@pytest.mark.parametrize(
+    ("overrides", "error", "message"),
+    [
+        ({"num_subcarriers": 8.0}, TypeError, "num_subcarriers must be an integer"),
+        ({"num_sinusoids": 0}, ValueError, "num_sinusoids must be positive"),
+        ({"channel_bandwidth_hz": 0.0}, ValueError, "channel_bandwidth_hz must be finite"),
+        ({"max_speed_mps": -1.0}, ValueError, "max_speed_mps must be finite"),
+        ({"device": "tpu"}, ValueError, "device must be cpu or a CUDA device"),
+        (
+            {
+                "model": "A30",
+                "delay_spread_s": None,
+                "fixed_profile_conformance_case": "TDLA30-5",
+                "min_speed_mps": 1.0,
+            },
+            ValueError,
+            "min_speed_mps above its maximum-Doppler speed",
+        ),
+        (
+            {"fixed_profile_conformance_case": "unknown-case"},
+            ValueError,
+            "unknown TS 38.101-4 fixed-profile Doppler case",
+        ),
+    ],
+)
+def test_tdl_adapter_rejects_invalid_options_before_optional_import(
+    overrides, error, message
+) -> None:
+    from integrations.sionna.tdl import generate_tdl_frequency_response
+
+    arguments = {
+        "model": "A",
+        "seed": 1,
+        "carrier_frequency_hz": 3.5e9,
+        "subcarrier_spacing_hz": 30_000.0,
+        "num_subcarriers": 8,
+        "delay_spread_s": 100e-9,
+    }
+    arguments.update(overrides)
+
+    with pytest.raises(error, match=message):
+        generate_tdl_frequency_response(**arguments)  # type: ignore[arg-type]
+
+
+def test_tdl_adapter_reports_missing_optional_sionna(monkeypatch: pytest.MonkeyPatch) -> None:
+    import builtins
+
+    from integrations.sionna.tdl import generate_tdl_frequency_response
+
+    original_import = builtins.__import__
+
+    def import_without_sionna(name: str, *args: object, **kwargs: object) -> object:
+        if name == "sionna.phy.channel.tr38901":
+            raise ImportError("Sionna deliberately unavailable in this contract test")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_sionna)
+    with pytest.raises(RuntimeError, match="Install the optional Sionna 2.2 PHY dependencies"):
+        generate_tdl_frequency_response(
+            model="A",
+            seed=1,
+            carrier_frequency_hz=3.5e9,
+            subcarrier_spacing_hz=30_000.0,
+            num_subcarriers=8,
+            delay_spread_s=100e-9,
         )
 
 

@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError
 from numbers import Real
-from typing import Any, Sequence
+from typing import Any
 
 from datasets.standardized_specs import (
     FIXED_TDL_DOPPLER_CASES,
@@ -279,62 +280,72 @@ def generate_tdl_frequency_response(
         sionna_version = sionna_phy_version()
     except PackageNotFoundError:
         sionna_version = "unknown"
+    # Sionna's ``k_factor`` divides the LOS power by the first tap's mean power. The fixed
+    # profile references define K as the LOS power over the sum of all diffuse tap powers.
+    # Both are reported; ``k_factor_linear`` keeps Sionna's convention.
     k_factor_linear = float(tdl.k_factor.detach().cpu()) if tdl.los else None
-    metadata: dict[str, Any] = {
-            "sionna_version": sionna_version,
-            "precision": precision,
-            "spec_version": spec_version,
-            "fixed_profile_spec_version": "19.2.2" if model in _FIXED_TDL_MODELS else None,
-            "profile_proxy": model,
-            "profile_parameter_table_source": parameter_table_source,
-            "profile_parameter_table_sha256": parameter_table_sha256,
-            "delay_profile_semantics": (
-                "fixed_ts_38_101_4_absolute_tap_delays"
-                if model in _FIXED_TDL_MODELS
-                else "scalable_tr_38_901_profile"
-            ),
-            "profile_rms_delay_spread_s": float(tdl.delay_spread.detach().cpu()),
-            "profile_los_component": bool(tdl.los),
-            "num_profile_taps": int(tdl.num_clusters),
-            "nominal_tap_delays_s": tdl.delays.detach().cpu().tolist(),
-            "mean_tap_powers": tdl.mean_powers.detach().cpu().tolist(),
-            "k_factor_linear": k_factor_linear,
-            "los_angle_of_arrival_rad": los_angle_of_arrival_rad,
-            "geometric_los_label": None,
-            "geometric_los_label_provided": False,
-            "carrier_frequency_hz": carrier_frequency_hz,
-            "sampled_bandwidth_hz": num_subcarriers * subcarrier_spacing_hz,
-            "channel_bandwidth_hz": channel_bandwidth_hz,
-            "rx_antenna_count": int(h_path.shape[2]),
-            "tx_antenna_count": int(h_path.shape[4]),
-            "rx_corr_mat_real": (
-                rx_corr_tensor.real.detach().cpu().tolist() if rx_corr_tensor is not None else None
-            ),
-            "rx_corr_mat_imag": (
-                rx_corr_tensor.imag.detach().cpu().tolist() if rx_corr_tensor is not None else None
-            ),
-            "min_speed_mps": min_speed_mps,
-            "max_speed_mps": effective_max_speed_mps,
-            "maximum_doppler_hz": effective_max_speed_mps
-            * carrier_frequency_hz
-            / SPEED_OF_LIGHT_MPS,
-            "fixed_profile_conformance_case": fixed_profile_conformance_case,
-            "num_sinusoids": num_sinusoids,
-            "subcarrier_spacing_hz": subcarrier_spacing_hz,
-            "num_subcarriers": num_subcarriers,
-            "batch_size": batch_size,
-            "batch_axis_semantics": "independent_stochastic_channel_draws",
-            "num_time_steps": num_time_steps,
-            "sampling_frequency_hz": sampling_frequency_hz,
-            "time_axis_semantics": "samples_within_each_channel_draw",
-            "time_sample_interval_s": 1.0 / sampling_frequency_hz,
-            "temporal_evolution_observed": (num_time_steps > 1 and effective_max_speed_mps > 0.0),
-            "seed": seed,
-            "device": device,
-    }
-    metadata["resolved_profile_parameters_sha256"] = tdl_resolved_profile_parameter_sha256(
-        metadata
+    # The public ``mean_powers`` folds the LOS power into tap 0 and normalises the total to
+    # one. The diffuse-sum K needs the unnormalised diffuse taps, so ``_mean_powers`` is used.
+    # Sionna 2.2 is pinned by the version gate; a different Sionna version must re-check it.
+    k_factor_diffuse_sum_linear = (
+        k_factor_linear
+        * float(torch.real(tdl._mean_powers[0]).detach().cpu())
+        / float(torch.real(tdl._mean_powers).detach().cpu().sum())
+        if k_factor_linear is not None
+        else None
     )
+    metadata: dict[str, Any] = {
+        "sionna_version": sionna_version,
+        "precision": precision,
+        "spec_version": spec_version,
+        "fixed_profile_spec_version": "19.2.2" if model in _FIXED_TDL_MODELS else None,
+        "profile_proxy": model,
+        "profile_parameter_table_source": parameter_table_source,
+        "profile_parameter_table_sha256": parameter_table_sha256,
+        "delay_profile_semantics": (
+            "fixed_ts_38_101_4_absolute_tap_delays"
+            if model in _FIXED_TDL_MODELS
+            else "scalable_tr_38_901_profile"
+        ),
+        "profile_rms_delay_spread_s": float(tdl.delay_spread.detach().cpu()),
+        "profile_los_component": bool(tdl.los),
+        "num_profile_taps": int(tdl.num_clusters),
+        "nominal_tap_delays_s": tdl.delays.detach().cpu().tolist(),
+        "mean_tap_powers": tdl.mean_powers.detach().cpu().tolist(),
+        "k_factor_linear": k_factor_linear,
+        "k_factor_diffuse_sum_linear": k_factor_diffuse_sum_linear,
+        "los_angle_of_arrival_rad": los_angle_of_arrival_rad,
+        "geometric_los_label": None,
+        "geometric_los_label_provided": False,
+        "carrier_frequency_hz": carrier_frequency_hz,
+        "sampled_bandwidth_hz": num_subcarriers * subcarrier_spacing_hz,
+        "channel_bandwidth_hz": channel_bandwidth_hz,
+        "rx_antenna_count": int(h_path.shape[2]),
+        "tx_antenna_count": int(h_path.shape[4]),
+        "rx_corr_mat_real": (
+            rx_corr_tensor.real.detach().cpu().tolist() if rx_corr_tensor is not None else None
+        ),
+        "rx_corr_mat_imag": (
+            rx_corr_tensor.imag.detach().cpu().tolist() if rx_corr_tensor is not None else None
+        ),
+        "min_speed_mps": min_speed_mps,
+        "max_speed_mps": effective_max_speed_mps,
+        "maximum_doppler_hz": effective_max_speed_mps * carrier_frequency_hz / SPEED_OF_LIGHT_MPS,
+        "fixed_profile_conformance_case": fixed_profile_conformance_case,
+        "num_sinusoids": num_sinusoids,
+        "subcarrier_spacing_hz": subcarrier_spacing_hz,
+        "num_subcarriers": num_subcarriers,
+        "batch_size": batch_size,
+        "batch_axis_semantics": "independent_stochastic_channel_draws",
+        "num_time_steps": num_time_steps,
+        "sampling_frequency_hz": sampling_frequency_hz,
+        "time_axis_semantics": "samples_within_each_channel_draw",
+        "time_sample_interval_s": 1.0 / sampling_frequency_hz,
+        "temporal_evolution_observed": (num_time_steps > 1 and effective_max_speed_mps > 0.0),
+        "seed": seed,
+        "device": device,
+    }
+    metadata["resolved_profile_parameters_sha256"] = tdl_resolved_profile_parameter_sha256(metadata)
     return SionnaTDLChannel(
         h_path=h_path,
         tau_s=tau_s,

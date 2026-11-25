@@ -11,9 +11,10 @@ import sqlite3
 import stat
 import tempfile
 import zipfile
+from collections.abc import Iterator, Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, BinaryIO, Iterator, Mapping, cast
+from typing import Any, BinaryIO, cast
 
 import numpy as np
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
@@ -407,7 +408,7 @@ def _publish_immutable(path: Path, data: bytes) -> None:
             temp_path = stream.name
         try:
             os.link(temp_path, path)
-        except FileExistsError:
+        except FileExistsError as err:
             existing = _stable_store_record_bytes(
                 path.parent,
                 path.name,
@@ -415,7 +416,9 @@ def _publish_immutable(path: Path, data: bytes) -> None:
                 label="existing immutable NR store object",
             )
             if existing != data:
-                raise FileExistsError("File exists with different immutable NR store bytes")
+                raise FileExistsError(
+                    "File exists with different immutable NR store bytes"
+                ) from err
         _fsync_directory(path.parent)
     finally:
         if temp_path is not None:

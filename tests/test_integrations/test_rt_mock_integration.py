@@ -182,7 +182,12 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
         object_names=("screen",),
         triangles_m=np.zeros((2, 3, 3), dtype=np.float64),
     )
-    monkeypatch.setattr(adapter, "extract_scene_triangle_inventory", lambda scene: fake_inventory)
+    monkeypatch.setattr(
+        adapter.raytrace, "extract_scene_triangle_inventory", lambda scene: fake_inventory
+    )
+    monkeypatch.setattr(
+        adapter.generate, "extract_scene_triangle_inventory", lambda scene: fake_inventory
+    )
 
     def fake_numpy_segment_visibility(scene, source_position_m, target_position_m, *, inventory):
         if force_geometry_error:
@@ -202,7 +207,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
         )
 
     monkeypatch.setattr(
-        adapter, "independent_mesh_segment_visibility", fake_numpy_segment_visibility
+        adapter.generate, "independent_mesh_segment_visibility", fake_numpy_segment_visibility
     )
 
     def fake_segment_visibility(scene, source_position_m, target_position_m):
@@ -219,7 +224,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
             (),
         )
 
-    monkeypatch.setattr(adapter, "segment_visibility", fake_segment_visibility)
+    monkeypatch.setattr(adapter.generate, "segment_visibility", fake_segment_visibility)
     mi = types.ModuleType("mitsuba")
     mi.Float = float
     mi.TensorXb = lambda value: np.asarray(value, dtype=bool)
@@ -267,9 +272,7 @@ def test_full_rt_oracle_labels_and_los_contains_reflections(monkeypatch):
     assert datetime.fromisoformat(execution["started_at_utc"].replace("Z", "+00:00"))
     assert datetime.fromisoformat(execution["completed_at_utc"].replace("Z", "+00:00"))
     assert execution["base_seed"] == 13
-    assert execution["attempt_seed_scheme"] == (
-        "base_seed_plus_zero_based_candidate_attempt_index"
-    )
+    assert execution["attempt_seed_scheme"] == ("base_seed_plus_zero_based_candidate_attempt_index")
     assert execution["candidate_attempt_count"] == report["attempt_counts"]["attempts_started"]
     assert execution["terminal_status"] == report["status"]
     assert execution["rt_cache_key_sha256"] == report["rt_run_identity"]["cache_key_sha256"]

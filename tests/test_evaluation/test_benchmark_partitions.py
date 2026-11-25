@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 
+import evaluation.benchmark_partitions as partitions
 import jsonschema
 import numpy as np
 import pytest
@@ -334,4 +336,265 @@ def test_materializer_refuses_existing_output_before_reading_inputs(tmp_path: Pa
             declaration_signer="fixture@example.com",
             datasets=[("fixture", tmp_path / "dataset.npz")],
             output=output,
+        )
+
+
+def test_declaration_validator_requires_canonical_four_way_policy():
+    registry = type(
+        "RegistryStub",
+        (),
+        {"policy": type("PolicyStub", (), {"split_fractions": {"train": 1.0}})(), "subjects": {}},
+    )()
+    declaration = {
+        "schema": "umcd.benchmark_cohort_declaration.v1",
+        "schema_version": 1,
+        "test_cohorts": {
+            cohort: [] for cohort in ("site_held_out", "site_array_held_out", "real_external")
+        },
+        "site_ids": {},
+        "array_ids": {},
+        "external_evidence": {},
+    }
+
+    with pytest.raises(ValueError, match="canonical four-way split policy"):
+        partitions._validate_declarations(registry, declaration)
+
+
+def test_declaration_validator_rejects_parent_assigned_to_two_cohorts():
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    duplicated = declaration["test_cohorts"]["site_held_out"][0]
+    declaration["test_cohorts"]["site_array_held_out"] = sorted(
+        [*declaration["test_cohorts"]["site_array_held_out"], duplicated]
+    )
+
+    with pytest.raises(ValueError, match="more than one cohort"):
+        partitions._validate_declarations(registry, declaration)
+
+
+def test_declaration_validator_enforces_frozen_site_relations():
+    registry, _ = _registry_fixture()
+    subjects = [
+        replace(
+            subject,
+            relations=(
+                *subject.relations,
+                LeakageRelation(LeakageNamespace.SITE, f"locked-{subject.subject_id}"),
+            ),
+        )
+        for subject in registry.subjects.values()
+    ]
+    registry = make_split_policy_registry(subjects, policy=registry.policy)
+    declaration = _declaration(registry)
+
+    with pytest.raises(ValueError, match="contradicts frozen site relation"):
+        partitions._validate_declarations(registry, declaration)
+
+
+def test_materializer_requires_at_least_one_dataset():
+    registry, _ = _registry_fixture()
+
+    with pytest.raises(ValueError, match="at least one ChannelDataset"):
+        _materialize(registry, _declaration(registry), [])
+
+
+def test_materializer_accepts_exact_frozen_leakage_relations():
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    datasets = _dataset(registry)
+    name, digest, data = datasets[0]
+    metadata = list(data.metadata)
+    first_parent = metadata[0]["split_subject_id"]
+    metadata[0]["split_leakage_relations"] = [
+        {"namespace": item.namespace.value, "identity": item.identity}
+        for item in registry.subjects[first_parent].relations
+    ]
+    datasets[0] = (name, digest, replace(data, metadata=tuple(metadata)))
+
+    manifest = _materialize(registry, declaration, datasets)
+
+    assert manifest["datasets"][0]["rows"][0]["parent_id"] == first_parent
+
+
+def test_benchmark_materializer_rejects_registry_attestation_namespace():
+    registry, _ = _registry_fixture()
+
+    with pytest.raises(ValueError, match="registry attestation namespace is invalid"):
+        materialize_benchmark_manifest(
+            registry,
+            _declaration(registry),
+            _dataset(registry),
+            registry_attestation=_attestation("wrong"),
+            declaration_attestation=_attestation("umcd-benchmark-cohort-v1@github.com"),
+        )
+
+
+def test_benchmark_manifest_replay_rejects_content_without_matching_digest():
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    datasets = _dataset(registry)
+    registry_attestation = _attestation("umcd-split-policy-v2@github.com")
+    declaration_attestation = _attestation("umcd-benchmark-cohort-v1@github.com")
+    manifest = _materialize(registry, declaration, datasets)
+    manifest["status"] = "PASS"
+
+    with pytest.raises(ValueError, match="digest does not match its contents"):
+        verify_benchmark_manifest_replay(
+            manifest,
+            registry,
+            declaration,
+            datasets,
+            registry_attestation=registry_attestation,
+            declaration_attestation=declaration_attestation,
+        )
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (
+            lambda value: value.update(schema_version=True),
+            "unsupported benchmark cohort declaration",
+        ),
+        (lambda value: value.update(site_ids={}), "site_ids must cover exactly"),
+        (lambda value: value.update(array_ids={}), "array_ids must cover exactly"),
+        (lambda value: value.update(test_cohorts=[]), "declare all three benchmark test cohorts"),
+        (lambda value: value["test_cohorts"]["site_held_out"].append(1), "array of parent IDs"),
+        (lambda value: value["test_cohorts"]["site_held_out"].reverse(), "sorted and unique"),
+        (
+            lambda value: value["test_cohorts"]["site_held_out"].append(
+                value["test_cohorts"]["site_held_out"][0]
+            ),
+            "sorted and unique",
+        ),
+        (
+            lambda value: value["test_cohorts"]["site_held_out"].append("unknown"),
+            "unknown or non-test parent",
+        ),
+        (
+            lambda value: value["test_cohorts"]["site_held_out"].append("unknown-z"),
+            "unknown or non-test parent",
+        ),
+        (
+            lambda value: value["external_evidence"].update({"unknown": {}}),
+            "cover exactly the real_external",
+        ),
+        (
+            lambda value: value["external_evidence"][next(iter(value["external_evidence"]))].update(
+                extra=True
+            ),
+            "external evidence is incomplete",
+        ),
+        (
+            lambda value: value["site_ids"].update({next(iter(value["site_ids"])): " "}),
+            "canonical nonempty string",
+        ),
+    ],
+)
+def test_benchmark_declaration_validator_rejects_invalid_rosters(mutate, message):
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    mutate(declaration)
+
+    with pytest.raises(ValueError, match=message):
+        partitions._validate_declarations(registry, declaration)
+
+
+@pytest.mark.parametrize(
+    ("name", "digest", "message"),
+    [
+        (" ", _SHA, "dataset name must be a canonical nonempty string"),
+        ("fixture", "invalid", "dataset digest must be a lowercase SHA-256"),
+    ],
+)
+def test_benchmark_materializer_rejects_invalid_dataset_identity(name, digest, message):
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    datasets = _dataset(registry)
+    datasets[0] = (name, digest, datasets[0][2])
+
+    with pytest.raises(ValueError, match=message):
+        _materialize(registry, declaration, datasets)
+
+
+def test_benchmark_materializer_rejects_duplicate_dataset_names():
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    item = _dataset(registry)[0]
+
+    with pytest.raises(ValueError, match="duplicate dataset name"):
+        _materialize(registry, declaration, [item, item])
+
+
+@pytest.mark.parametrize(
+    ("metadata_change", "message"),
+    [
+        (lambda rows: rows.__setitem__(0, None), "metadata must be an object"),
+        (lambda rows: rows[0].update(split_subject_id="unknown"), "absent from the lock"),
+        (lambda rows: rows[0].update(split_parent_type="other"), "parent type contradicts"),
+        (lambda rows: rows[0].update(split_partition_id="other"), "partition identity contradicts"),
+        (
+            lambda rows: rows[0].update(
+                split_leakage_relations=[{"namespace": "site", "identity": "fake"}]
+            ),
+            "leakage relation contradicts",
+        ),
+    ],
+)
+def test_benchmark_materializer_rejects_dataset_row_identity_drift(metadata_change, message):
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    datasets = _dataset(registry)
+    data = datasets[0][2]
+    metadata = list(data.metadata)
+    metadata_change(metadata)
+    datasets[0] = (datasets[0][0], datasets[0][1], replace(data, metadata=tuple(metadata)))
+
+    with pytest.raises(ValueError, match=message):
+        _materialize(registry, declaration, datasets)
+
+
+@pytest.mark.parametrize(
+    ("attestation_key", "field", "value", "message"),
+    [
+        ("registry", "extra", "x", "registry attestation field roster"),
+        ("declaration", "artifact_sha256", "bad", "lowercase SHA-256"),
+        ("registry", "signer_id", " ", "canonical nonempty string"),
+        ("declaration", "namespace", "wrong", "cohort attestation namespace"),
+    ],
+)
+def test_benchmark_materializer_rejects_invalid_attestations(
+    attestation_key, field, value, message
+):
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+    attestations = {
+        "registry": _attestation("umcd-split-policy-v2@github.com"),
+        "declaration": _attestation("umcd-benchmark-cohort-v1@github.com"),
+    }
+    attestations[attestation_key][field] = value
+
+    with pytest.raises(ValueError, match=message):
+        materialize_benchmark_manifest(
+            registry,
+            declaration,
+            _dataset(registry),
+            registry_attestation=attestations["registry"],
+            declaration_attestation=attestations["declaration"],
+        )
+
+
+@pytest.mark.parametrize("manifest", ([], {"manifest_sha256": "bad"}))
+def test_benchmark_manifest_replay_rejects_invalid_digest_binding(manifest):
+    registry, _ = _registry_fixture()
+    declaration = _declaration(registry)
+
+    with pytest.raises(ValueError, match="benchmark manifest"):
+        verify_benchmark_manifest_replay(
+            manifest,
+            registry,
+            declaration,
+            _dataset(registry),
+            registry_attestation=_attestation("umcd-split-policy-v2@github.com"),
+            declaration_attestation=_attestation("umcd-benchmark-cohort-v1@github.com"),
         )

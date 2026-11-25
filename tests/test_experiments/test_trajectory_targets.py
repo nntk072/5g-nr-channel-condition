@@ -158,6 +158,13 @@ def test_split_registry_boundary_blocks_cross_split_targets() -> None:
     assert targets == ()
 
 
+def test_split_registry_must_have_the_expected_type() -> None:
+    trajectory = _trajectory(("t0", "t1"), (0.0, 1.0))
+
+    with pytest.raises(TypeError, match="must be a SplitPolicyRegistry"):
+        build_trajectory_horizon_targets(trajectory, (1.0,), split_registry=object())
+
+
 @pytest.mark.parametrize("horizon", [0.0, -1.0, float("nan"), float("inf")])
 def test_invalid_horizons_are_rejected(horizon: float) -> None:
     trajectory = _trajectory(("t0", "t1"), (0.0, 1.0))

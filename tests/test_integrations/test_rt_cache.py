@@ -9,6 +9,7 @@ import types
 import zipfile
 from typing import Any
 
+import integrations.sionna.rt_cache as rt_cache
 import numpy as np
 import pytest
 from datasets.channel import ChannelDataset
@@ -78,7 +79,7 @@ def _dataset(identity: dict, *, value: float = 1.0) -> ChannelDataset:
     return ChannelDataset(
         h=np.full((2, 1, 8), value + 0j, dtype=np.complex64),
         y=np.asarray([0, 1], dtype=np.uint8),
-        group=np.asarray(["g0", "g1"]),
+        group=np.asarray(["group0", "group1"]),
         domain=np.asarray(["scene", "scene"]),
         source=np.asarray(["rt", "rt"]),
         metadata=({}, {}),
@@ -228,7 +229,12 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
         object_names=("wall-1",),
         triangles_m=np.zeros((4, 3, 3), dtype=np.float64),
     )
-    monkeypatch.setattr(adapter, "extract_scene_triangle_inventory", lambda _scene: fake_inventory)
+    monkeypatch.setattr(
+        adapter.raytrace, "extract_scene_triangle_inventory", lambda _scene: fake_inventory
+    )
+    monkeypatch.setattr(
+        adapter.generate, "extract_scene_triangle_inventory", lambda _scene: fake_inventory
+    )
 
     def candidate_metadata(_registry, *, candidate_id, actual_geometry_asset_sha256):
         return {
@@ -268,10 +274,16 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
     )
     monkeypatch.setattr(backend, "select_rt_backend", lambda requested: selection)
     monkeypatch.setattr(backend, "activate_rt_backend", lambda chosen: None)
-    monkeypatch.setattr(adapter, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"})
-    monkeypatch.setattr(adapter, "package_source_sha256", lambda: "source-v1")
     monkeypatch.setattr(
-        adapter,
+        adapter.raytrace, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"}
+    )
+    monkeypatch.setattr(
+        adapter.generate, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"}
+    )
+    monkeypatch.setattr(adapter.raytrace, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(adapter.generate, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(
+        adapter.generate,
         "rt_runtime_fingerprint",
         lambda base: {**base, "platform_machine": "test-machine"},
     )
@@ -320,7 +332,7 @@ def test_cache_aware_rt_generator_reuses_dataset_without_retracing(tmp_path, mon
         )
         return _dataset(identity)
 
-    monkeypatch.setattr(adapter, "generate_raytraced", generate)
+    monkeypatch.setattr(adapter.generate, "generate_raytraced", generate)
     config = RayScene(name="mock_scene", per_class=1, max_attempts=2, samples_per_src=100)
     first = adapter.generate_raytraced_cached(
         config,
@@ -380,7 +392,12 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
         object_names=("wall-1",),
         triangles_m=np.zeros((4, 3, 3), dtype=np.float64),
     )
-    monkeypatch.setattr(adapter, "extract_scene_triangle_inventory", lambda _scene: fake_inventory)
+    monkeypatch.setattr(
+        adapter.raytrace, "extract_scene_triangle_inventory", lambda _scene: fake_inventory
+    )
+    monkeypatch.setattr(
+        adapter.generate, "extract_scene_triangle_inventory", lambda _scene: fake_inventory
+    )
 
     scene_xml = tmp_path / "mock_scene.xml"
     scene_xml.write_text(
@@ -408,10 +425,16 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
     )
     monkeypatch.setattr(backend, "select_rt_backend", lambda requested: selection)
     monkeypatch.setattr(backend, "activate_rt_backend", lambda chosen: None)
-    monkeypatch.setattr(adapter, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"})
-    monkeypatch.setattr(adapter, "package_source_sha256", lambda: "source-v1")
     monkeypatch.setattr(
-        adapter,
+        adapter.raytrace, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"}
+    )
+    monkeypatch.setattr(
+        adapter.generate, "versions", lambda: {"python": "3.12.0", "git_sha": "fixture"}
+    )
+    monkeypatch.setattr(adapter.raytrace, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(adapter.generate, "package_source_sha256", lambda: "source-v1")
+    monkeypatch.setattr(
+        adapter.generate,
         "rt_runtime_fingerprint",
         lambda base: {**base, "platform_machine": "test-machine"},
     )
@@ -439,7 +462,7 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
         )
         return _dataset(identity)
 
-    monkeypatch.setattr(adapter, "generate_raytraced", generate)
+    monkeypatch.setattr(adapter.generate, "generate_raytraced", generate)
     cache_directory = tmp_path / "cache"
     result = adapter.generate_raytraced_cached(
         RayScene(name="mock_scene", per_class=1, max_attempts=2, samples_per_src=100),
@@ -450,3 +473,146 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
     assert len(generated) == 1
     assert result.generation_report["rt_run_identity"]["complete"] is False
     assert not cache_directory.exists()
+
+
+def test_rt_cache_rejects_malformed_identity_key():
+    identity = _identity()
+    identity["cache_key_sha256"] = "not-a-sha256"
+
+    with pytest.raises(ValueError, match="lowercase SHA256"):
+        rt_cache._cache_key(identity)
+
+
+def test_rt_cache_npz_archive_structure_guards():
+    with pytest.raises(ValueError, match="not a valid NPZ archive"):
+        rt_cache._validate_npz_uncompressed_size(b"not a zip", max_bytes=1024)
+
+    too_many = io.BytesIO()
+    with zipfile.ZipFile(too_many, "w") as archive:
+        for index in range(33):
+            archive.writestr(f"{index}.npy", b"")
+    with pytest.raises(ValueError, match="too many array entries"):
+        rt_cache._validate_npz_uncompressed_size(too_many.getvalue(), max_bytes=1024)
+
+    duplicate_names = io.BytesIO()
+    with zipfile.ZipFile(duplicate_names, "w") as archive:
+        archive.writestr("array.npy", b"first")
+        archive.writestr("array.npy", b"second")
+    with pytest.raises(ValueError, match="duplicate array entries"):
+        rt_cache._validate_npz_uncompressed_size(duplicate_names.getvalue(), max_bytes=1024)
+
+
+def test_rt_cache_stable_file_rejects_identity_change_while_opening(tmp_path, monkeypatch):
+    path = tmp_path / "manifest.json"
+    path.write_bytes(b"{}")
+    original_fstat = rt_cache.os.fstat
+
+    def changed_fstat(descriptor):
+        result = original_fstat(descriptor)
+        return types.SimpleNamespace(
+            st_dev=result.st_dev,
+            st_ino=result.st_ino,
+            st_mode=result.st_mode,
+            st_nlink=result.st_nlink,
+            st_size=result.st_size,
+            st_mtime_ns=result.st_mtime_ns + 1,
+            st_ctime_ns=result.st_ctime_ns,
+        )
+
+    monkeypatch.setattr(rt_cache.os, "fstat", changed_fstat)
+    with pytest.raises(ValueError, match="changed while opening"):
+        rt_cache._read_stable_file(path, label="manifest", max_bytes=10)
+
+
+def test_rt_cache_stable_file_rejects_oversized_read_and_changed_snapshot(tmp_path, monkeypatch):
+    path = tmp_path / "manifest.json"
+    path.write_bytes(b"{}")
+    original_read = rt_cache.os.read
+
+    monkeypatch.setattr(rt_cache.os, "read", lambda _fd, _size: b"x" * 11)
+    with pytest.raises(ValueError, match="byte limit"):
+        rt_cache._read_stable_file(path, label="manifest", max_bytes=10)
+
+    monkeypatch.setattr(rt_cache.os, "read", original_read)
+
+    def mutate_after_read(descriptor, size):
+        result = original_read(descriptor, size)
+        path.write_bytes(b"changed")
+        return result
+
+    monkeypatch.setattr(rt_cache.os, "read", mutate_after_read)
+    with pytest.raises(ValueError, match="changed while being read"):
+        rt_cache._read_stable_file(path, label="manifest", max_bytes=10)
+
+
+def test_rt_cache_immutable_write_rejects_unreadable_existing_entry(tmp_path):
+    target = tmp_path / "entry"
+    target.symlink_to(tmp_path / "missing-target")
+
+    with pytest.raises(RTCacheConflictError, match="conflicts"):
+        rt_cache._atomic_immutable_write(target, b"payload")
+
+
+def test_rt_cache_immutable_write_cleans_up_before_temp_creation(tmp_path, monkeypatch):
+    def fail_temp_creation(**_kwargs):
+        raise OSError("temporary file creation failed")
+
+    monkeypatch.setattr(rt_cache.tempfile, "NamedTemporaryFile", fail_temp_creation)
+
+    with pytest.raises(OSError, match="temporary file creation failed"):
+        rt_cache._atomic_immutable_write(tmp_path / "entry", b"payload")
+
+
+def test_rt_cache_store_rejects_dataset_identity_mismatch(tmp_path):
+    expected = _identity()
+    foreign = _identity()
+    foreign["inputs"]["seed"] = 10
+    foreign["cache_key_sha256"] = rt_cache.canonical_hash(foreign["inputs"])
+
+    with pytest.raises(ValueError, match="does not match"):
+        store_rt_dataset(tmp_path, _dataset(foreign), expected)
+
+
+def test_rt_cache_load_rejects_invalid_manifest_field_types(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["sample_count"] = True
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="manifest schema or key mismatch"):
+        load_rt_dataset(tmp_path, identity)
+
+
+def test_rt_cache_load_rejects_foreign_embedded_identity(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    foreign = _identity()
+    foreign["inputs"]["seed"] = 10
+    foreign["cache_key_sha256"] = rt_cache.canonical_hash(foreign["inputs"])
+    foreign_dataset = _dataset(foreign)
+    foreign_payload_path = tmp_path / "foreign.npz"
+    foreign_dataset.save(foreign_payload_path)
+    foreign_payload = foreign_payload_path.read_bytes()
+    payload_path.write_bytes(foreign_payload)
+
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["payload_sha256"] = hashlib.sha256(foreign_payload).hexdigest()
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="generation identity"):
+        load_rt_dataset(tmp_path, identity)
+
+
+def test_rt_cache_load_rejects_generation_report_hash_mismatch(tmp_path):
+    identity = _identity()
+    payload_path = store_rt_dataset(tmp_path, _dataset(identity), identity)
+    manifest_path = payload_path.with_suffix(".json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["generation_report_sha256"] = "a" * 64
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="generation report hash mismatch"):
+        load_rt_dataset(tmp_path, identity)

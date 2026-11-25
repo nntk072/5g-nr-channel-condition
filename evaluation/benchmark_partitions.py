@@ -9,7 +9,8 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import defaultdict
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from datasets.channel import ChannelDataset
 from datasets.split_policy import LeakageNamespace, SplitPolicyRegistry
@@ -296,7 +297,7 @@ def verify_benchmark_manifest_replay(
 
     rows_by_dataset: dict[str, dict[str, list[int]]] = {}
     for dataset_record in replayed["datasets"]:
-        cohort_rows = {cohort: [] for cohort in BENCHMARK_COHORTS}
+        cohort_rows: dict[str, list[int]] = {cohort: [] for cohort in BENCHMARK_COHORTS}
         for row in dataset_record["rows"]:
             cohort_rows[row["cohort"]].append(row["row_index"])
         rows_by_dataset[dataset_record["name"]] = cohort_rows

@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
   pull_request:
   workflow_dispatch:
 
@@ -13,49 +12,82 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every job calls one named gate from tools/check, so the same command runs locally.
 jobs:
-  test:
-    name: Tests (Python ${{ matrix.python-version }})
+  lock:
+    name: Lockfile
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12"]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
           enable-cache: true
           cache-dependency-glob: uv.lock
 
       - name: Verify lockfile
-        run: uv lock --check
+        run: ./tools/check lock
+
+  lint:
+    name: Lint and format
+    needs: lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install project and test dependencies
         run: uv sync --locked --extra dev
 
-      - name: Lint
-        run: uv run --locked ruff check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts tests
+      - name: Lint and check formatting
+        run: ./tools/check lint
 
-      - name: Check formatting
-        run: uv run --locked ruff format --check artifacts configuration datasets propagation receivers models learning evaluation experiments integrations compute loslab scripts tests
+  typecheck:
+    name: Type check
+    needs: lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
 
       - name: Type check
-        run: uv run --locked mypy
+        run: ./tools/check typecheck
 
-      - name: Run core tests
-        run: uv run --locked python -m pytest --no-cov
-
-  neural:
-    name: Neural and boosted baseline tests (Python 3.12)
+  test:
+    name: Core tests (Python 3.12)
+    needs: lock
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@v6
@@ -64,21 +96,24 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
-      - name: Install project and development dependencies
-        run: uv sync --locked --extra dev --extra boosting
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev --extra sionna --no-install-package torch
 
-      - name: Install CPU-only PyTorch
+      - name: Install CPU-only PyTorch for portable NR integration contracts
         run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
 
-      - name: Run full test suite including neural training
-        run: uv run --no-sync --locked python -m pytest
+      - name: Run core tests
+        run: ./tools/check test
 
-  build:
-    name: Build package
+  architecture:
+    name: Architecture and coverage policy
+    needs: lock
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@v6
@@ -87,5 +122,74 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
-      - name: Build wheel and source distribution
-        run: uv build
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Architecture, package lists and coverage policy
+        run: ./tools/check architecture
+
+  docs:
+    name: Documentation build
+    needs: lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install documentation dependencies
+        run: uv sync --locked --extra dev --extra docs
+
+      - name: Build the Sphinx site with warnings as errors
+        run: ./tools/check docs
+
+  build:
+    name: Build package and import smoke
+    needs: lock
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Build and import-smoke the package
+        run: ./tools/check build
+
+  ci-success:
+    name: CI result
+    if: always()
+    needs: [lock, lint, typecheck, architecture, docs, test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all jobs to succeed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          needs = json.loads(os.environ["NEEDS"])
+          failed = {name: value["result"] for name, value in needs.items() if value["result"] != "success"}
+          if failed:
+              print(f"Required CI jobs failed or were skipped: {failed}", file=sys.stderr)
+              raise SystemExit(1)
+          print("All required CI jobs passed")
+          PY

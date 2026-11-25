@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+import os
+import shutil
+import ast
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+UV = shutil.which("uv") or str(Path.home() / ".local/bin/uv")
+
+
+def _read_package_list():
+    """Read config/packages.toml without a TOML library (the gate runs on any python3)."""
+    text = (ROOT / "config" / "packages.toml").read_text(encoding="utf-8")
+    values = {}
+    for key in ("names", "test_roots"):
+        match = re.search(rf"^{key} = (\[.*?\])", text, re.S | re.M)
+        if match is None:
+            raise SystemExit(f"config/packages.toml: missing {key}")
+        values[key] = ast.literal_eval(match.group(1))
+    return values
+
+
+_PACKAGES = _read_package_list()
+PACKAGE_NAMES = list(_PACKAGES["names"])
+BASE = [*PACKAGE_NAMES, *_PACKAGES["test_roots"]]
+IMPORT_SMOKE = (
+    "import importlib; "
+    "[importlib.import_module(name) for name in " + repr(PACKAGE_NAMES) + "]; "
+    "print('import-smoke-ok')"
+)
+
+
+def dirty_paths():
+    result = subprocess.run(
+        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        cwd=ROOT,
+        shell=False,
+        check=False,
+        capture_output=True,
+        timeout=10,
+    )
+    if result.returncode:
+        raise SystemExit(result.returncode)
+    paths = []
+    entries = result.stdout.decode("utf-8", errors="strict").split("\0")
+    index = 0
+    while index < len(entries):
+        entry = entries[index]
+        index += 1
+        if not entry:
+            continue
+        status, path = entry[:2], entry[3:]
+        if "R" in status or "C" in status:
+            # With -z, a rename/copy source is a separate NUL field without an XY prefix.
+            index += 1
+        if (ROOT / path).is_file():
+            paths.append(path)
+    return sorted(set(paths))
+
+
+def active_python_paths():
+    return [path for path in dirty_paths() if path.endswith(".py")]
+
+
+def unique_paths(*groups):
+    return list(dict.fromkeys(item for group in groups for item in group))
+
+
+def run(argv):
+    print("+", " ".join(str(item) for item in argv), flush=True)
+    result = subprocess.run(argv, cwd=ROOT, shell=False, check=False)
+    if result.returncode:
+        raise SystemExit(result.returncode)
+
+
+def uv(*args):
+    run([UV, *args])
+
+
+gate = sys.argv[1] if len(sys.argv) == 2 else ""
+if gate == "fast":
+    active = active_python_paths()
+    active_tests = [path for path in active if path.startswith("tests/")]
+    mypy_paths = [path for path in active if not path.startswith(("tests/", "tools/"))]
+    if active:
+        uv("run", "--locked", "ruff", "check", *active)
+        uv("run", "--locked", "ruff", "format", "--check", *active)
+    if mypy_paths:
+        uv("run", "--locked", "mypy", *mypy_paths)
+    if active_tests:
+        uv(
+            "run",
+            "--locked",
+            "python",
+            "-m",
+            "pytest",
+            "--no-cov",
+            "-o",
+            "addopts=",
+            "-q",
+            *active_tests,
+        )
+elif gate == "lock":
+    uv("lock", "--check")
+elif gate == "lint":
+    uv("run", "--locked", "ruff", "check", *BASE)
+    uv("run", "--locked", "ruff", "format", "--check", *BASE)
+elif gate == "typecheck":
+    uv("run", "--locked", "mypy")
+elif gate == "architecture":
+    uv("run", "--locked", "python", "-m", "pytest", "--no-cov", "-q", "tests/architecture")
+    uv("run", "--locked", "python", "tools/coverage_policy.py")
+elif gate in {"core", "test"}:
+    uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
+elif gate == "neural":
+    # CI installs the boosting extra and CPU-only PyTorch before this gate runs.
+    # This full coverage gate runs nightly, so include native Sionna PHY cases while
+    # keeping the unrelated evidence-integrity suite outside the 5G NR behavior gate.
+    uv(
+        "run",
+        "--no-sync",
+        "--locked",
+        "python",
+        "-m",
+        "pytest",
+        "-m",
+        "not evidence_integrity",
+    )
+elif gate == "docs":
+    # Sphinx site: warnings are errors so that every broken link or docstring fails the gate.
+    uv("run", "--locked", "--extra", "docs", "sphinx-build", "-W", "--keep-going", "-q",
+       "-b", "html", "docs", "docs/_build/html")
+elif gate == "build":
+    uv("build")
+    uv("run", "--locked", "python", "-c", IMPORT_SMOKE)
+elif gate == "full":
+    uv("lock", "--check")
+    uv("run", "--locked", "ruff", "check", *BASE)
+    uv("run", "--locked", "ruff", "format", "--check", *BASE)
+    uv("run", "--locked", "mypy")
+    uv("run", "--locked", "python", "-m", "pytest", "--no-cov")
+    uv("build")
+elif gate == "native-smoke":
+    if os.environ.get("NR_ALLOW_NATIVE_SMOKE") != "1":
+        print(
+            "BLOCKED: native-smoke requires explicit NR_ALLOW_NATIVE_SMOKE=1",
+            file=sys.stderr,
+        )
+        raise SystemExit(4)
+    print(
+        "native-smoke authorization accepted; no generic native workload is defined",
+        file=sys.stderr,
+    )
+    raise SystemExit(4)
+else:
+    print(
+        "usage: tools/check {lock|lint|typecheck|architecture|test|core|neural|build|docs|fast|full|native-smoke}",
+        file=sys.stderr,
+    )
+    raise SystemExit(2)

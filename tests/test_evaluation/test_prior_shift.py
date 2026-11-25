@@ -5,12 +5,12 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from evaluation.prior_shift import (
+from evaluation.scoring.prior_shift import (
     adjust_probabilities_between_priors,
     adjust_probabilities_for_prior_shift,
     validate_prior_shift_spec,
 )
-from evaluation.probability_calibration import (
+from evaluation.scoring.probability_calibration import (
     apply_platt_calibrator,
     fit_group_balanced_platt_calibrator,
     invert_platt_calibrator,
@@ -34,7 +34,7 @@ def test_prior_shift_estimates_equal_weight_per_group_and_adjusts_odds():
     probabilities, report = adjust_probabilities_for_prior_shift(
         np.array([0.5, 0.0, 1.0]),
         np.array([1, 0, 0, 0, 0]),
-        np.array(["g1", "g1", "g2", "g2", "g2"]),
+        np.array(["group1", "group1", "group2", "group2", "group2"]),
         _spec(),
     )
 
@@ -68,9 +68,9 @@ def test_prior_shift_spec_is_strict_and_rejects_non_natural_target():
 @pytest.mark.parametrize(
     ("labels", "groups", "message"),
     [
-        ([1, 1], ["g1", "g2"], "both classes"),
-        ([0, 1], ["g1"], "equal-length"),
-        ([0, 1], ["g1", " g2 "], "canonical strings"),
+        ([1, 1], ["group1", "group2"], "both classes"),
+        ([0, 1], ["group1"], "equal-length"),
+        ([0, 1], ["group1", " group2 "], "canonical strings"),
     ],
 )
 def test_adjustment_requires_valid_training_only_roster(labels, groups, message):
@@ -78,6 +78,30 @@ def test_adjustment_requires_valid_training_only_roster(labels, groups, message)
         adjust_probabilities_for_prior_shift(
             np.array([0.5]), np.asarray(labels), np.asarray(groups), _spec()
         )
+
+
+@pytest.mark.parametrize(
+    "probabilities",
+    [
+        np.array([], dtype=float),
+        np.array([[0.5]]),
+        np.array([np.nan]),
+        np.array([1.5]),
+    ],
+    ids=["empty", "two-dimensional", "nonfinite", "out-of-range"],
+)
+def test_training_prior_adjustment_rejects_invalid_probability_vectors(probabilities):
+    with pytest.raises(ValueError, match="probabilities must be a finite one-dimensional vector"):
+        adjust_probabilities_for_prior_shift(
+            probabilities, np.array([0, 1]), np.array(["group0", "group1"]), _spec()
+        )
+
+
+@pytest.mark.parametrize("labels", [np.array([], dtype=int), np.array([0, 2])])
+def test_training_prior_adjustment_requires_nonempty_binary_labels(labels):
+    groups = np.array([f"group{index}" for index in range(len(labels))])
+    with pytest.raises(ValueError, match="training labels must be a nonempty binary vector"):
+        adjust_probabilities_for_prior_shift(np.array([0.5]), labels, groups, _spec())
 
 
 def test_prior_shift_declaration_and_report_match_versioned_schemas():
@@ -93,13 +117,13 @@ def test_prior_shift_declaration_and_report_match_versioned_schemas():
     )
     spec = validate_prior_shift_spec(_spec())
     _, report = adjust_probabilities_for_prior_shift(
-        np.array([0.4]), np.array([0, 1]), np.array(["g0", "g1"]), spec
+        np.array([0.4]), np.array([0, 1]), np.array(["group0", "group1"]), spec
     )
 
     jsonschema.Draft202012Validator(spec_schema).validate(spec)
     jsonschema.Draft202012Validator(report_schema).validate(report)
     _, calibrator = fit_group_balanced_platt_calibrator(
-        [0.1, 0.2, 0.8, 0.9], [0, 0, 1, 1], ["g0", "g1", "g2", "g3"]
+        [0.1, 0.2, 0.8, 0.9], [0, 0, 1, 1], ["group0", "group1", "group2", "group3"]
     )
     jsonschema.Draft202012Validator(calibrator_schema).validate(calibrator)
 
@@ -107,7 +131,7 @@ def test_prior_shift_declaration_and_report_match_versioned_schemas():
 def test_group_balanced_platt_uses_separate_calibration_rows_and_inverts_thresholds():
     raw = np.array([0.1, 0.2, 0.3, 0.4, 0.7, 0.9])
     labels = np.array([0, 0, 1, 0, 1, 1])
-    groups = np.array(["g0", "g0", "g1", "g2", "g2", "g3"])
+    groups = np.array(["group0", "group0", "group1", "group2", "group2", "group3"])
     calibrated, report = fit_group_balanced_platt_calibrator(raw, labels, groups)
 
     assert report["fit_partition"] == "calibration"
@@ -120,6 +144,6 @@ def test_group_balanced_platt_uses_separate_calibration_rows_and_inverts_thresho
 
 def test_group_balanced_platt_rejects_single_class_or_single_group_calibration():
     with pytest.raises(ValueError, match="both binary classes"):
-        fit_group_balanced_platt_calibrator([0.2, 0.3], [0, 0], ["g0", "g1"])
+        fit_group_balanced_platt_calibrator([0.2, 0.3], [0, 0], ["group0", "group1"])
     with pytest.raises(ValueError, match="two independent groups"):
-        fit_group_balanced_platt_calibrator([0.2, 0.8], [0, 1], ["g0", "g0"])
+        fit_group_balanced_platt_calibrator([0.2, 0.8], [0, 1], ["group0", "group0"])

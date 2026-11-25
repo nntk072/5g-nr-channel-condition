@@ -6,7 +6,7 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("sionna")
 
 from datasets.nr_store import read_nr_record, write_nr_record  # noqa: E402
-from experiments.g5_cp_bounded_dft_estimator import FiniteDelayDFTChannelEstimator  # noqa: E402
+from experiments.cp_bounded_dft_estimator import FiniteDelayDFTChannelEstimator  # noqa: E402
 from experiments.link_curves import (  # noqa: E402
     run_tdl_pusch_bler_curve,
     run_tdl_pusch_rx_diversity_curve,
@@ -156,10 +156,7 @@ def test_sample_domain_tdl_pusch_curve_runs_on_cpu() -> None:
     assert result["configuration"]["confidence_interval"] == (
         "two-sided 95% Wilson score interval across codewords"
     )
-    assert (
-        result["configuration"]["batch_cluster_confidence_interval"]["bootstrap_draws"]
-        == 5000
-    )
+    assert result["configuration"]["batch_cluster_confidence_interval"]["bootstrap_draws"] == 5000
     assert all(
         point["bler_batch_cluster_bootstrap"]["independent_groups"] == 2
         and point["bler_batch_cluster_bootstrap"]["status"] == "estimated"

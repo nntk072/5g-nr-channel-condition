@@ -1,17 +1,17 @@
-"""Differentiable two-path CFR rendering and uncertainty decoder contracts."""
+"""Two-path observation model: rendering, likelihoods, CRLB floor and decoder checkpoints."""
 
 from __future__ import annotations
 
 import hashlib
 import json
+import math
 
 import numpy as np
 import pytest
-from experiments.observable_multipath import (
-    generate_grouped_two_path_dataset,
-    two_path_model_artifact_contract,
-)
-from models.observable_multipath import (
+
+torch = pytest.importorskip("torch")
+
+from models.observable_multipath import (  # noqa: E402
     build_two_path_uncertainty_decoder,
     complex_pilot_gaussian_nll,
     heteroscedastic_delay_nll,
@@ -21,178 +21,532 @@ from models.observable_multipath import (
     render_two_path_cfr,
 )
 
-torch = pytest.importorskip("torch")
+FREQUENCIES = torch.linspace(-2e6, 2e6, 16, dtype=torch.float64)
 
 
-def test_two_path_renderer_matches_closed_form_and_backpropagates():
-    frequencies = torch.tensor([-2e6, -1e6, 0.0, 1e6, 2e6], dtype=torch.float64)
-    gains = torch.tensor([[1.0 + 0.2j, 0.4 - 0.3j]], dtype=torch.complex128, requires_grad=True)
-    delay = torch.tensor([0.2e-6], dtype=torch.float64, requires_grad=True)
+def _gains(batch: int = 2) -> torch.Tensor:
+    return torch.complex(
+        torch.linspace(0.8, 1.2, batch * 2, dtype=torch.float64).reshape(batch, 2),
+        torch.linspace(-0.3, 0.4, batch * 2, dtype=torch.float64).reshape(batch, 2),
+    )
 
-    result = render_two_path_cfr(frequencies, gains, delay)
+
+def test_render_matches_the_two_path_formula_and_fixes_the_reference_path() -> None:
+    gains = _gains()
+    delay = torch.tensor([50e-9, 120e-9], dtype=torch.float64)
+    cfr = render_two_path_cfr(FREQUENCIES, gains, delay)
     expected = gains[:, :1] + gains[:, 1:2] * torch.exp(
-        -2j * torch.pi * frequencies[None, :] * delay[:, None]
+        -2j * math.pi * FREQUENCIES[None, :] * delay[:, None]
     )
-    torch.testing.assert_close(result, expected)
-    result.abs().square().sum().backward()
-    assert gains.grad is not None and torch.isfinite(gains.grad).all()
-    assert delay.grad is not None and torch.isfinite(delay.grad).all()
+    assert torch.allclose(cfr, expected)
+    # Zero relative delay collapses both paths to one coherent sum: the gauge is fixed here.
+    zero = render_two_path_cfr(FREQUENCIES, gains, torch.zeros(2, dtype=torch.float64))
+    assert torch.allclose(zero, gains.sum(dim=1, keepdim=True).expand_as(zero))
 
 
-def test_decoder_returns_bounded_delay_and_positive_uncertainty_with_gradients():
-    torch.manual_seed(12)
-    frequencies = torch.linspace(-3e6, 3e6, 8)
-    gains = torch.tensor([[1.0 + 0.1j, 0.35 - 0.2j], [0.6 - 0.3j, 0.2 + 0.5j]])
-    truth_delay = torch.tensor([0.18e-6, 0.42e-6])
-    truth = render_two_path_cfr(frequencies, gains, truth_delay)
-    variance = torch.full((2,), 1e-3)
-    mask = torch.ones((2, 8), dtype=torch.bool)
-    model = build_two_path_uncertainty_decoder(8, 1e-6, hidden_dims=(24, 12))
+def test_render_accepts_batched_frequencies_and_column_delays() -> None:
+    gains = _gains()
+    batched = FREQUENCIES.expand(2, -1).contiguous()
+    delay = torch.tensor([[10e-9], [20e-9]], dtype=torch.float64)
+    shared = render_two_path_cfr(FREQUENCIES, gains, delay)
+    assert torch.allclose(render_two_path_cfr(batched, gains, delay), shared)
 
-    output = model(truth, mask, frequencies, variance)
-    reconstructed = render_two_path_cfr(frequencies, output["gains"], output["relative_delay_s"])
-    objective = complex_pilot_gaussian_nll(truth, reconstructed, variance, mask)
-    objective = objective + heteroscedastic_delay_nll(
-        truth_delay,
-        output["relative_delay_s"],
-        torch.log(output["relative_delay_std_s"]),
+
+def test_render_rejects_frequencies_on_a_different_device() -> None:
+    with pytest.raises(ValueError, match="same device"):
+        render_two_path_cfr(torch.ones(8, device="meta"), _gains(1), torch.zeros(1))
+
+
+@pytest.mark.parametrize(
+    ("frequencies", "gains", "delay", "error"),
+    [
+        (FREQUENCIES.numpy(), _gains(), torch.zeros(2), TypeError),
+        (FREQUENCIES, _gains().real, torch.zeros(2), ValueError),
+        (FREQUENCIES[:1], _gains(), torch.zeros(2), ValueError),
+        (FREQUENCIES, _gains(), torch.zeros(3), ValueError),
+        (FREQUENCIES.expand(3, -1), _gains(), torch.zeros(2), ValueError),
+        (FREQUENCIES, _gains(), torch.tensor([np.nan, 0.0]), ValueError),
+    ],
+)
+def test_render_rejects_invalid_inputs(frequencies, gains, delay, error) -> None:
+    with pytest.raises(error):
+        render_two_path_cfr(frequencies, gains, delay)
+
+
+def test_complex_nll_has_the_gaussian_value_and_ignores_unobserved_tones() -> None:
+    observed = torch.complex(
+        torch.zeros(1, 4, dtype=torch.float64), torch.zeros(1, 4, dtype=torch.float64)
     )
-    objective.backward()
-
-    assert torch.all(output["relative_delay_s"] > 0)
-    assert torch.all(output["relative_delay_s"] < 1e-6)
-    assert torch.all(output["relative_delay_std_s"] > 0)
-    assert any(parameter.grad is not None for parameter in model.parameters())
-
-
-def test_pilot_likelihood_ignores_unobserved_tones():
-    observed = torch.tensor([[1 + 0j, 2 + 1j, 3 - 1j]], dtype=torch.complex64)
-    predicted = torch.zeros_like(observed)
-    mask = torch.tensor([[True, False, True]])
-    altered = observed.clone()
-    altered[0, 1] = 1e6 - 1e6j
-
-    first = complex_pilot_gaussian_nll(observed, predicted, torch.ones(1), mask)
-    second = complex_pilot_gaussian_nll(altered, predicted, torch.ones(1), mask)
-
-    torch.testing.assert_close(first, second)
-
-
-def test_local_delay_crlb_tracks_bandwidth_and_noise_and_is_differentiable():
-    gains = torch.tensor([[1.0 + 0.2j, 0.5 - 0.1j]], dtype=torch.complex128)
-    delay = torch.tensor([0.2e-6], dtype=torch.float64)
-    mask = torch.ones((1, 32), dtype=torch.bool)
-    narrow_frequencies = torch.linspace(-1e6, 1e6, 32, dtype=torch.float64)
-    wide_frequencies = torch.linspace(-8e6, 8e6, 32, dtype=torch.float64)
-    low_noise = torch.tensor([1e-4], dtype=torch.float64)
-    high_noise = torch.tensor([1e-2], dtype=torch.float64)
-
-    narrow = relative_delay_crlb_scale_floor(
-        gains, delay, narrow_frequencies, low_noise, mask, 1e-6
+    predicted = observed.clone()
+    mask = torch.tensor([[True, True, False, False]])
+    variance = torch.tensor([2.0], dtype=torch.float64)
+    nll = complex_pilot_gaussian_nll(observed, predicted, variance, mask)
+    assert nll.item() == pytest.approx(math.log(math.pi * 2.0))
+    # Corrupting an unobserved tone must not change the likelihood.
+    corrupted = predicted.clone()
+    corrupted[0, 3] = 100.0
+    assert complex_pilot_gaussian_nll(observed, corrupted, variance, mask).item() == pytest.approx(
+        nll.item()
     )
-    wide = relative_delay_crlb_scale_floor(gains, delay, wide_frequencies, low_noise, mask, 1e-6)
-    noisy = relative_delay_crlb_scale_floor(gains, delay, wide_frequencies, high_noise, mask, 1e-6)
-    assert torch.all(wide < narrow)
-    assert torch.all(noisy > wide)
 
-    predicted_scale = torch.full((1,), 1e-15, dtype=torch.float64, requires_grad=True)
-    loss = identifiability_scale_floor_loss(
-        predicted_scale,
-        gains,
-        delay,
-        wide_frequencies,
-        low_noise,
-        mask,
-        1e-6,
+
+def test_complex_nll_penalizes_residuals_and_accepts_per_tone_variance() -> None:
+    observed = torch.ones(2, 3, dtype=torch.complex128)
+    predicted = observed + 1.0
+    mask = torch.ones(2, 3, dtype=torch.bool)
+    scalar = complex_pilot_gaussian_nll(
+        observed, predicted, torch.tensor([1.0, 1.0], dtype=torch.float64), mask
     )
-    loss.backward()
-    assert loss > 0
-    assert predicted_scale.grad is not None and torch.isfinite(predicted_scale.grad).all()
+    per_tone = complex_pilot_gaussian_nll(
+        observed, predicted, torch.ones(2, 3, dtype=torch.float64), mask
+    )
+    assert scalar.item() == pytest.approx(1.0 + math.log(math.pi))
+    assert per_tone.item() == pytest.approx(scalar.item())
 
 
-def test_decoder_rejects_too_sparse_or_nonfinite_inputs():
-    model = build_two_path_uncertainty_decoder(3, 1e-6, hidden_dims=(8,))
-    with pytest.raises(ValueError, match="at least two"):
-        model(
-            torch.ones((1, 3), dtype=torch.complex64),
-            torch.tensor([[True, False, False]]),
-            torch.arange(3, dtype=torch.float32),
-            torch.ones(1),
+@pytest.mark.parametrize(
+    ("observed", "predicted", "mask", "variance", "message"),
+    [
+        (
+            torch.ones(2, 3, dtype=torch.complex128),
+            torch.ones(2, 2, dtype=torch.complex128),
+            torch.ones(2, 3, dtype=torch.bool),
+            1.0,
+            "matching complex",
+        ),
+        (
+            torch.ones(2, 3),
+            torch.ones(2, 3),
+            torch.ones(2, 3, dtype=torch.bool),
+            1.0,
+            "matching complex",
+        ),
+        (
+            torch.full((1, 2), complex(np.nan, 0.0), dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.bool),
+            1.0,
+            "finite",
+        ),
+        (
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2),
+            1.0,
+            "boolean",
+        ),
+        (
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.zeros(1, 2, dtype=torch.bool),
+            1.0,
+            "at least one observed",
+        ),
+        (
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.bool),
+            torch.zeros(1, dtype=torch.float64),
+            "finite and positive",
+        ),
+        (
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.complex128),
+            torch.ones(1, 2, dtype=torch.bool),
+            torch.ones(3),
+            "batch] or",
+        ),
+    ],
+)
+def test_complex_nll_rejects_invalid_inputs(observed, predicted, mask, variance, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        complex_pilot_gaussian_nll(observed, predicted, variance, mask)
+
+
+def test_heteroscedastic_nll_is_minimal_at_the_predicted_delay() -> None:
+    target = torch.tensor([1.0, 2.0], dtype=torch.float64)
+    at_truth = heteroscedastic_delay_nll(target, target, torch.zeros(2, dtype=torch.float64))
+    assert at_truth.item() == pytest.approx(0.0)
+    off = heteroscedastic_delay_nll(target, target + 1.0, torch.zeros(2, dtype=torch.float64))
+    assert off.item() == pytest.approx(0.5)
+    # Integer targets are promoted to floating point before the likelihood.
+    assert heteroscedastic_delay_nll(
+        torch.tensor([1, 2]), torch.tensor([1.0, 2.0]), torch.zeros(2)
+    ).item() == pytest.approx(0.0)
+
+
+@pytest.mark.parametrize(
+    ("target", "mean", "log_scale", "message"),
+    [
+        (torch.ones(2), torch.ones(3), torch.zeros(2), "identical shapes"),
+        (torch.empty(0), torch.empty(0), torch.empty(0), "nonempty and finite"),
+        (torch.tensor([np.nan, 1.0]), torch.ones(2), torch.zeros(2), "nonempty and finite"),
+        (torch.ones(2), torch.tensor([np.inf, 1.0]), torch.zeros(2), "must be finite"),
+        (torch.ones(2), torch.ones(2), torch.tensor([np.nan, 0.0]), "must be finite"),
+    ],
+)
+def test_heteroscedastic_nll_rejects_invalid_inputs(target, mean, log_scale, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        heteroscedastic_delay_nll(target, mean, log_scale)
+
+
+def test_heteroscedastic_nll_clamps_extreme_log_scales() -> None:
+    value = heteroscedastic_delay_nll(
+        torch.tensor([1.0]), torch.tensor([0.0]), torch.tensor([1000.0])
+    )
+    assert math.isfinite(value.item())
+    assert value.item() == pytest.approx(
+        0.5 * math.exp(-30.0 * 2) * 0 + 30.0 + 0.5 * (1.0 * math.exp(-30.0)) ** 2, rel=1e-6
+    )
+
+
+def _crlb_inputs(batch: int = 2, tones: int = 12):
+    gains = _gains(batch)
+    delay = torch.tensor([60e-9, 90e-9], dtype=torch.float64)[:batch]
+    mask = torch.ones(batch, tones, dtype=torch.bool)
+    frequencies = torch.linspace(-3e6, 3e6, tones, dtype=torch.float64)
+    variance = torch.full((batch,), 1e-3, dtype=torch.float64)
+    return gains, delay, frequencies, variance, mask
+
+
+def test_crlb_floor_is_positive_and_capped_by_the_declared_delay_support() -> None:
+    gains, delay, frequencies, variance, mask = _crlb_inputs()
+    floor = relative_delay_crlb_scale_floor(gains, delay, frequencies, variance, mask, 5e-6)
+    assert floor.shape == (2, 1)
+    assert torch.all(floor > 0) and torch.all(floor <= 5e-6)
+    # Less noise means more information, so the floor must shrink.
+    quieter = relative_delay_crlb_scale_floor(
+        gains, delay, frequencies, variance / 100.0, mask, 5e-6
+    )
+    assert torch.all(quieter < floor)
+    # A tiny support caps the floor exactly.
+    capped = relative_delay_crlb_scale_floor(gains, delay, frequencies, variance, mask, 1e-12)
+    assert torch.allclose(capped, torch.full_like(capped, 1e-12))
+
+
+def test_crlb_floor_accepts_batched_frequencies_and_column_delays() -> None:
+    gains, delay, frequencies, variance, mask = _crlb_inputs()
+    shared = relative_delay_crlb_scale_floor(gains, delay, frequencies, variance, mask, 5e-6)
+    batched = relative_delay_crlb_scale_floor(
+        gains, delay[:, None], frequencies.expand(2, -1), variance, mask, 5e-6
+    )
+    assert torch.allclose(batched, shared)
+
+
+def test_crlb_floor_accepts_column_noise_variance() -> None:
+    gains, delay, frequencies, variance, mask = _crlb_inputs()
+    shared = relative_delay_crlb_scale_floor(gains, delay, frequencies, variance, mask, 5e-6)
+    column = relative_delay_crlb_scale_floor(
+        gains, delay, frequencies, variance[:, None], mask, 5e-6
+    )
+    assert torch.allclose(shared, column)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"gains": _gains().real}, "complex tensor"),
+        ({"mask": torch.ones(3, 12, dtype=torch.bool)}, "match the gain batch"),
+        ({"mask": torch.ones(2, 12)}, "boolean with at least two"),
+        (
+            {
+                "mask": torch.cat(
+                    [torch.zeros(1, 12, dtype=torch.bool), torch.ones(1, 12, dtype=torch.bool)]
+                )
+            },
+            "boolean with at least two",
+        ),
+        ({"frequencies": torch.ones(2, 5, dtype=torch.float64)}, "match the pilot mask"),
+        ({"delay": torch.zeros(3, dtype=torch.float64)}, "shape \\[batch\\] or"),
+        ({"variance": torch.zeros(2, dtype=torch.float64)}, "finite and positive"),
+        ({"max_delay": 0.0}, "finite and positive"),
+        ({"frequencies": torch.full((12,), np.nan, dtype=torch.float64)}, "must be finite"),
+    ],
+)
+def test_crlb_floor_rejects_invalid_inputs(kwargs, message) -> None:
+    gains, delay, frequencies, variance, mask = _crlb_inputs()
+    args = {
+        "gains": gains,
+        "delay": delay,
+        "frequencies": frequencies,
+        "variance": variance,
+        "mask": mask,
+        "max_delay": 5e-6,
+    }
+    args.update(kwargs)
+    with pytest.raises(ValueError, match=message):
+        relative_delay_crlb_scale_floor(
+            args["gains"],
+            args["delay"],
+            args["frequencies"],
+            args["variance"],
+            args["mask"],
+            args["max_delay"],
         )
 
 
-def test_npz_checkpoint_round_trip_is_pickle_free_and_architecture_checked(tmp_path):
-    model = build_two_path_uncertainty_decoder(4, 1e-6, hidden_dims=(8,))
-    path = tmp_path / "state.npz"
-    import numpy as np
+def test_identifiability_loss_penalizes_only_scales_below_the_floor() -> None:
+    gains, delay, frequencies, variance, mask = _crlb_inputs()
+    floor = relative_delay_crlb_scale_floor(gains, delay, frequencies, variance, mask, 5e-6)
+    args = (gains, delay, frequencies, variance, mask, 5e-6)
+    understated = identifiability_scale_floor_loss(floor / 10.0, *args)
+    overstated = identifiability_scale_floor_loss(floor * 10.0, *args)
+    vector_scale = identifiability_scale_floor_loss(floor.flatten() / 10.0, *args)
+    assert understated.item() > 0.0
+    assert torch.allclose(vector_scale, understated)
+    assert overstated.item() == pytest.approx(0.0)
+    with pytest.raises(ValueError, match="finite and positive"):
+        identifiability_scale_floor_loss(torch.zeros(2, 1, dtype=torch.float64), *args)
 
-    np.savez_compressed(
+
+def _decoder_inputs(batch: int = 3, tones: int = 8):
+    cfr = torch.complex(
+        torch.linspace(0.1, 1.0, batch * tones, dtype=torch.float32).reshape(batch, tones),
+        torch.linspace(-0.5, 0.5, batch * tones, dtype=torch.float32).reshape(batch, tones),
+    )
+    mask = torch.ones(batch, tones, dtype=torch.bool)
+    frequencies = torch.linspace(0.0, 4e6, tones, dtype=torch.float32)
+    variance = torch.full((batch,), 0.5, dtype=torch.float32)
+    return cfr, mask, frequencies, variance
+
+
+def test_decoder_outputs_bounded_delay_and_positive_scale() -> None:
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(16,))
+    cfr, mask, frequencies, variance = _decoder_inputs()
+    out = decoder(cfr, mask, frequencies, variance)
+    assert out["gains"].shape == (3, 2) and out["gains"].is_complex()
+    assert torch.all(out["relative_delay_s"] >= 0) and torch.all(out["relative_delay_s"] <= 2e-6)
+    assert torch.all(out["relative_delay_std_s"] > 0)
+    assert torch.allclose(out["relative_delay_s"], out["delay_fraction"] * 2e-6)
+
+
+def test_decoder_accepts_batched_frequencies() -> None:
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    cfr, mask, frequencies, variance = _decoder_inputs()
+    shared = decoder(cfr, mask, frequencies, variance)
+    batched = decoder(cfr, mask, frequencies.expand(3, -1), variance)
+    column_variance = decoder(cfr, mask, frequencies, variance[:, None])
+    assert torch.allclose(shared["relative_delay_s"], batched["relative_delay_s"], atol=1e-6)
+    assert torch.allclose(shared["relative_delay_s"], column_variance["relative_delay_s"])
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"cfr": torch.ones(3, 7, dtype=torch.complex64)}, "shape \\[batch, n_tones\\]"),
+        ({"cfr": torch.ones(3, 8)}, "must be complex"),
+        ({"mask": torch.ones(3, 8)}, "boolean and match"),
+        (
+            {
+                "mask": torch.cat(
+                    [torch.zeros(1, 8, dtype=torch.bool), torch.ones(2, 8, dtype=torch.bool)]
+                )
+            },
+            "at least two pilot",
+        ),
+        ({"freq": torch.ones(5)}, "pilot-tone shape"),
+        ({"freq": torch.full((8,), np.nan)}, "pilot-tone shape"),
+        ({"freq": torch.zeros(8)}, "nonzero bandwidth"),
+        ({"variance": torch.ones(2)}, "shape \\[batch\\]"),
+        ({"variance": torch.zeros(3)}, "finite and positive"),
+    ],
+)
+def test_decoder_rejects_invalid_inputs(change, message) -> None:
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    cfr, mask, frequencies, variance = _decoder_inputs()
+    args = {"cfr": cfr, "mask": mask, "freq": frequencies, "variance": variance}
+    args.update(change)
+    with pytest.raises(ValueError, match=message):
+        decoder(args["cfr"], args["mask"], args["freq"], args["variance"])
+
+
+def test_decoder_rejects_nonfinite_observations() -> None:
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    cfr, mask, frequencies, variance = _decoder_inputs()
+    bad = cfr.clone()
+    bad[0, 0] = complex(float("nan"), 0.0)
+    with pytest.raises(ValueError, match="finite values"):
+        decoder(bad, mask, frequencies, variance)
+
+
+@pytest.mark.parametrize(
+    ("n_tones", "max_delay", "hidden", "message"),
+    [
+        (True, 2e-6, (8,), "integer >= 2"),
+        (1, 2e-6, (8,), "integer >= 2"),
+        (8, 0.0, (8,), "finite and positive"),
+        (8, 2e-6, (), "positive integers"),
+        (8, 2e-6, (0,), "positive integers"),
+        (8, 2e-6, (True,), "positive integers"),
+    ],
+)
+def test_decoder_build_rejects_invalid_architecture(n_tones, max_delay, hidden, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        build_two_path_uncertainty_decoder(n_tones, max_delay, hidden_dims=hidden)
+
+
+def _save_state(decoder, path):
+    np.savez(
         path,
-        **{key: value.detach().cpu().numpy() for key, value in model.state_dict().items()},
+        **{name: tensor.detach().cpu().numpy() for name, tensor in decoder.state_dict().items()},
     )
-    loaded = load_two_path_uncertainty_decoder(path, 4, 1e-6, hidden_dims=(8,))
-    assert loaded.artifact_contract_status == "external_input_contract_required"
-    for name, value in model.state_dict().items():
-        torch.testing.assert_close(loaded.state_dict()[name], value)
-
-    with pytest.raises(ValueError, match="architecture"):
-        load_two_path_uncertainty_decoder(path, 4, 1e-6, hidden_dims=(9,))
-    with pytest.raises(ValueError, match="contract is required"):
-        load_two_path_uncertainty_decoder(path, 4, 1e-6, hidden_dims=(8,), require_contract=True)
-    with pytest.raises(ValueError, match="finite"):
-        render_two_path_cfr(
-            torch.tensor([0.0, 1.0]),
-            torch.tensor([[1 + 0j, 1 + 0j]]),
-            torch.tensor([float("nan")]),
-        )
 
 
-def test_decoder_loader_replays_contract_and_rejects_checkpoint_tampering(tmp_path):
-    model = build_two_path_uncertainty_decoder(8, 1e-6, hidden_dims=(8,))
+def test_checkpoint_round_trip_restores_outputs_and_marks_contract_status(tmp_path) -> None:
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
     checkpoint = tmp_path / "decoder.npz"
-    np.savez_compressed(
-        checkpoint,
-        **{key: value.detach().cpu().numpy() for key, value in model.state_dict().items()},
+    _save_state(decoder, checkpoint)
+    loaded = load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+    cfr, mask, frequencies, variance = _decoder_inputs()
+    assert not loaded.training
+    assert loaded.artifact_contract_status == "external_input_contract_required"
+    assert torch.allclose(
+        decoder.eval()(cfr, mask, frequencies, variance)["relative_delay_s"],
+        loaded(cfr, mask, frequencies, variance)["relative_delay_s"],
     )
-    dataset = generate_grouped_two_path_dataset(
-        num_groups=40, samples_per_group=1, n_tones=8, seed=615
+
+
+def test_checkpoint_loader_requires_a_contract_when_asked(tmp_path) -> None:
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    with pytest.raises(ValueError, match="input contract is required"):
+        load_two_path_uncertainty_decoder(
+            checkpoint, 8, 2e-6, hidden_dims=(8,), require_contract=True
+        )
+    with pytest.raises(ValueError, match="input contract is required"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,), dataset=object())
+
+
+def test_checkpoint_loader_rejects_missing_and_mismatched_files(tmp_path) -> None:
+    with pytest.raises(ValueError, match="regular file"):
+        load_two_path_uncertainty_decoder(tmp_path / "absent.npz", 8, 2e-6, hidden_dims=(8,))
+    not_npz = tmp_path / "garbage.npz"
+    not_npz.write_bytes(b"not an archive")
+    with pytest.raises(ValueError, match="invalid decoder checkpoint"):
+        load_two_path_uncertainty_decoder(not_npz, 8, 2e-6, hidden_dims=(8,))
+
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    state = {name: tensor.detach().cpu().numpy() for name, tensor in decoder.state_dict().items()}
+    renamed = tmp_path / "renamed.npz"
+    np.savez(renamed, **{"extra." + name: value for name, value in state.items()})
+    with pytest.raises(ValueError, match="parameter names do not match"):
+        load_two_path_uncertainty_decoder(renamed, 8, 2e-6, hidden_dims=(8,))
+
+    name = next(iter(state))
+    wrong_shape = dict(state)
+    wrong_shape[name] = np.zeros((1,), dtype=state[name].dtype)
+    shaped = tmp_path / "shaped.npz"
+    np.savez(shaped, **wrong_shape)
+    with pytest.raises(ValueError, match="incompatible"):
+        load_two_path_uncertainty_decoder(shaped, 8, 2e-6, hidden_dims=(8,))
+
+    nonfinite = dict(state)
+    nonfinite[name] = np.full(state[name].shape, np.nan, dtype=state[name].dtype)
+    bad = tmp_path / "nonfinite.npz"
+    np.savez(bad, **nonfinite)
+    with pytest.raises(ValueError, match="nonfinite"):
+        load_two_path_uncertainty_decoder(bad, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_rejects_a_symlinked_checkpoint(tmp_path) -> None:
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    real = tmp_path / "real.npz"
+    _save_state(decoder, real)
+    link = tmp_path / "link.npz"
+    link.symlink_to(real)
+    with pytest.raises(ValueError, match="regular file"):
+        load_two_path_uncertainty_decoder(link, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_rejects_oversized_checkpoint(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    original_stat = type(checkpoint).stat
+
+    def oversized_stat(path, *args, **kwargs):
+        result = original_stat(path, *args, **kwargs)
+        if path == checkpoint:
+            return SimpleNamespace(st_mode=result.st_mode, st_size=268_435_457)
+        return result
+
+    monkeypatch.setattr(type(checkpoint), "stat", oversized_stat)
+    with pytest.raises(ValueError, match="checkpoint exceeds the size limit"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_rejects_contract_sidecar_shapes_and_bytes(tmp_path):
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    contract_path = checkpoint.with_suffix(".contract.json")
+
+    contract_path.mkdir()
+    with pytest.raises(ValueError, match="must be a regular file"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+    contract_path.rmdir()
+
+    contract_path.write_bytes(b" " * 1_048_577)
+    with pytest.raises(ValueError, match="contract exceeds the size limit"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+    contract_path.write_text("not json", encoding="utf-8")
+    with pytest.raises(ValueError, match="invalid two-path model input contract"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_rejects_contract_sidecar_symlink(tmp_path):
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    contract_target = tmp_path / "contract.json"
+    contract_target.write_text("{}", encoding="utf-8")
+    checkpoint.with_suffix(".contract.json").symlink_to(contract_target)
+
+    with pytest.raises(ValueError, match="contract must not be a symlink"):
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+
+
+def test_checkpoint_loader_binds_and_replays_input_contract(tmp_path, monkeypatch):
+    import jsonschema
+
+    decoder = build_two_path_uncertainty_decoder(8, 2e-6, hidden_dims=(8,))
+    checkpoint = tmp_path / "decoder.npz"
+    _save_state(decoder, checkpoint)
+    checkpoint_digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    contract_path = checkpoint.with_suffix(".contract.json")
+    contract_path.write_text(
+        json.dumps({"checkpoint_sha256": checkpoint_digest, "model_id": "fixture-model"}),
+        encoding="utf-8",
     )
-    contract = two_path_model_artifact_contract(
-        dataset,
-        model_id="two_path_uncertainty_decoder.fixture",
-        checkpoint_sha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
-    )
-    checkpoint.with_suffix(".contract.json").write_text(json.dumps(contract), encoding="utf-8")
+    monkeypatch.setattr(jsonschema, "validate", lambda *_args, **_kwargs: None)
+
+    loaded = load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))
+    assert loaded.artifact_contract_status == "checkpoint_bound_input_contract_not_replayed"
+
+    calls = []
+
+    def validator(contract, dataset, *, model_id, checkpoint_sha256):
+        calls.append((contract["model_id"], dataset, model_id, checkpoint_sha256))
 
     loaded = load_two_path_uncertainty_decoder(
-        checkpoint, 8, 1e-6, hidden_dims=(8,), dataset=dataset, require_contract=True
+        checkpoint,
+        8,
+        2e-6,
+        hidden_dims=(8,),
+        dataset="fixture-dataset",
+        contract_validator=validator,
     )
     assert loaded.artifact_contract_status == "input_contract_replayed"
+    assert calls == [("fixture-model", "fixture-dataset", "fixture-model", checkpoint_digest)]
 
-    checkpoint.write_bytes(checkpoint.read_bytes() + b"tamper")
+    with pytest.raises(ValueError, match="contract_validator is required"):
+        load_two_path_uncertainty_decoder(
+            checkpoint, 8, 2e-6, hidden_dims=(8,), dataset="fixture-dataset"
+        )
+
+    contract_path.write_text(json.dumps({"checkpoint_sha256": "0" * 64}), encoding="utf-8")
     with pytest.raises(ValueError, match="checkpoint digest does not match"):
-        load_two_path_uncertainty_decoder(checkpoint, 8, 1e-6, hidden_dims=(8,))
-
-
-def test_decoder_forward_and_backward_on_cuda_when_available():
-    if not torch.cuda.is_available():
-        pytest.skip("CUDA is unavailable")
-    device = torch.device("cuda")
-    frequencies = torch.linspace(-2e6, 2e6, 6, device=device)
-    observed = torch.ones((2, 6), dtype=torch.complex64, device=device)
-    mask = torch.ones((2, 6), dtype=torch.bool, device=device)
-    variance = torch.full((2,), 0.01, device=device)
-    model = build_two_path_uncertainty_decoder(6, 1e-6, hidden_dims=(12,)).to(device)
-
-    output = model(observed, mask, frequencies, variance)
-    rendered = render_two_path_cfr(frequencies, output["gains"], output["relative_delay_s"])
-    loss = complex_pilot_gaussian_nll(observed, rendered, variance, mask)
-    loss = loss + heteroscedastic_delay_nll(
-        torch.full((2,), 0.2e-6, device=device),
-        output["relative_delay_s"],
-        torch.log(output["relative_delay_std_s"]),
-    )
-    loss.backward()
-
-    assert output["gains"].is_cuda
-    assert all(parameter.grad is not None for parameter in model.parameters())
+        load_two_path_uncertainty_decoder(checkpoint, 8, 2e-6, hidden_dims=(8,))

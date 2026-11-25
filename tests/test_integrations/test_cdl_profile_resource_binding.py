@@ -93,3 +93,41 @@ def test_cdl_profile_metadata_parses_and_hashes_one_resource_snapshot() -> None:
     assert metadata["parameter_table_sha256"] == hashlib.sha256(payload).hexdigest()
     assert metadata["nominal_cluster_delays_s"] == [0.0, 100e-9]
     assert metadata["nominal_cluster_angles_deg"]["aod"] == [20.0, 10.0]
+
+
+def test_cdl_los_profile_metadata_separates_direct_component_from_diffuse_clusters() -> None:
+    payload = json.dumps(
+        {
+            "powers": [0.0, -3.0, -6.0],
+            "los": True,
+            "delays": [0.0, 1.0, 2.0],
+            "aod": [11.0, 21.0, 31.0],
+            "aoa": [12.0, 22.0, 32.0],
+            "zod": [13.0, 23.0, 33.0],
+            "zoa": [14.0, 24.0, 34.0],
+            "cASD": 5.0,
+            "cASA": 6.0,
+            "cZSD": 7.0,
+            "cZSA": 8.0,
+            "xpr": 9.0,
+        },
+        separators=(",", ":"),
+    ).encode("utf-8")
+    metadata = _profile_metadata(
+        "A",
+        "19.2",
+        100e-9,
+        _ProfileResources(_Resource(payload)),
+        _TensorOps(),
+        "cpu",
+        "float64",
+    )
+
+    assert metadata["profile_los_component"] is True
+    assert metadata["nominal_los_angles_deg"] == {
+        "aod": 11.0,
+        "aoa": 12.0,
+        "zod": 13.0,
+        "zoa": 14.0,
+    }
+    assert metadata["nominal_cluster_delays_s"] == [100e-9, 200e-9]

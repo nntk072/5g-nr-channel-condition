@@ -9,14 +9,15 @@ import re
 import stat
 import tempfile
 import zipfile
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterator
+from typing import Any
 from urllib.parse import urlsplit
 
 _POLICY_PATH = (
     Path(__file__).resolve().parents[1]
-    / "docs/research/licenses/odbl-osm-scene-release-policy-20261023.json"
+    / "config/reference/licenses/odbl-osm-scene-release-policy-20261023.json"
 )
 _ODBL_URL = "https://opendatacommons.org/licenses/odbl/1-0/"
 _OSM_COPYRIGHT_URL = "https://www.openstreetmap.org/copyright"
@@ -151,11 +152,13 @@ def _write_verified_artifact(
 ) -> None:
     """Stream the exact hash-checked descriptor bytes into the temporary ZIP."""
     digest = hashlib.sha256()
-    with _open_release_artifact(root_fd, relative_path) as source_fd:
-        with archive.open(archive_name, "w", force_zip64=True) as destination:
-            while block := os.read(source_fd, 1024 * 1024):
-                digest.update(block)
-                destination.write(block)
+    with (
+        _open_release_artifact(root_fd, relative_path) as source_fd,
+        archive.open(archive_name, "w", force_zip64=True) as destination,
+    ):
+        while block := os.read(source_fd, 1024 * 1024):
+            digest.update(block)
+            destination.write(block)
     if digest.hexdigest() != expected_sha256:
         raise ValueError(f"release artifact hash mismatch: {relative_path.as_posix()}")
 
@@ -185,7 +188,7 @@ def _required_https_url(value: Any, *, name: str) -> str:
     try:
         parsed = urlsplit(text)
         hostname = parsed.hostname
-        parsed.port
+        _ = parsed.port  # raises ValueError for an invalid port
     except ValueError as error:
         raise ValueError(f"public release requires a valid HTTPS URL for {name}") from error
     if parsed.scheme != "https" or not hostname or parsed.username or parsed.password:
@@ -492,7 +495,7 @@ def export_public_release(
         raise ValueError(f"public release manifest must be strict UTF-8 JSON: {error}") from error
     manifest = validate_public_release_manifest(manifest_value)
 
-    from evaluation.g3_signed_attestation import verify_openssh_signature_for_bytes
+    from evaluation.acceptance.signed_attestation import verify_openssh_signature_for_bytes
 
     signature_path = Path(os.path.abspath(manifest_signature_path))
     trust_path = Path(os.path.abspath(trusted_allowed_signers_path))

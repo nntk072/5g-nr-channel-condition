@@ -22,6 +22,14 @@ sionna = ["sionna-no-rt==2.2.0", "torch>=2.9"]
 sionna-rt = ["sionna-no-rt==2.2.0", "sionna-rt==2.2.0", "torch>=2.9"]
 boosting = ["xgboost-cpu>=2.1,<4"]
 plots = ["matplotlib>=3.8,<4", "Pillow>=10"]
+docs = [
+  "myst-nb>=1.2",
+  "myst-parser>=4.0",
+  "pydata-sphinx-theme>=0.19",
+  "sphinx>=8.2",
+  "sphinx-autoapi>=3.6",
+  "sphinx-design>=0.6",
+]
 
 [tool.uv.sources]
 torch = [
@@ -35,30 +43,32 @@ url = "https://download.pytorch.org/whl/cu126"
 explicit = true
 
 [project.scripts]
-loslab = "loslab.__main__:main"
-loslab-audit-channel-population = "scripts.audit_channel_population:main"
-loslab-audit-odbl-scene-source = "scripts.audit_odbl_scene_source_snapshot:main"
 loslab-pilot = "experiments.pilot_cli:main"
 loslab-runtime-inventory = "integrations.runtime_inventory:main"
-loslab-build-implementation-feature-map = "scripts.build_implementation_feature_map:main"
 loslab-report-standardized-capabilities = "scripts.report_standardized_capabilities:main"
 loslab-build-standardized-split-registry = "scripts.build_standardized_split_registry:main"
-loslab-audit-helper-wiring = "scripts.audit_helper_wiring:main"
 loslab-bind-split-registry-children = "scripts.bind_split_registry_children:main"
 loslab-pair-stored-frequency-views = "scripts.pair_stored_frequency_views:main"
 loslab-materialize-direct-path-ablation = "scripts.materialize_direct_path_ablation:main"
 loslab-materialize-benchmark-partitions = "scripts.materialize_benchmark_partitions:main"
-loslab-build-result-promotion-manifest = "scripts.build_result_promotion_manifest:main"
-loslab-g3-joint-evidence = "evaluation.g3_joint_evidence_artifact:main"
-loslab-verify-g3-run-report-signature = "scripts.verify_g3_run_report_signature:main"
+loslab-joint-evidence-artifact = "evaluation.joint_evidence_artifact:main"
 loslab-export-public-release = "scripts.export_public_release:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = [
-  "artifacts*", "configuration*", "datasets*", "propagation*", "receivers*",
-  "models*", "learning*", "evaluation*", "experiments*", "integrations*",
-  "compute*", "loslab*", "scripts",
+  "artifacts*",
+  "configuration*",
+  "datasets*",
+  "propagation*",
+  "receivers*",
+  "models*",
+  "learning*",
+  "evaluation*",
+  "experiments*",
+  "integrations*",
+  "compute*",
+  "scripts*",
 ]
 exclude = ["tests*", "archive*", "notebooks*"]
 
@@ -72,39 +82,80 @@ compute = ["schema/*.json"]
 testpaths = ["tests"]
 addopts = [
   "-q",
-  "--cov=artifacts",
-  "--cov=configuration",
-  "--cov=datasets",
-  "--cov=propagation",
-  "--cov=receivers",
-  "--cov=models",
-  "--cov=learning",
-  "--cov=evaluation",
-  "--cov=experiments",
-  "--cov=integrations",
-  "--cov=loslab",
+  "-m",
+  "not evidence_integrity and not native_sionna",
+  "--cov",
   "--cov-report=term-missing",
-  "--cov-fail-under=75",
 ]
 markers = [
+  "evidence_integrity: cryptographic evidence-package integrity tests outside the 5G NR behavior gate",
   "integration: tests for optional integrations and external libraries",
   "native_sionna: requires Sionna 2.2 PHY; RT cases additionally require the sionna-rt extra",
+]
+
+# Coverage covers the product packages. Every exclusion is listed with its reason in
+# docs/architecture/coverage-policy.md; tools/coverage_policy.py fails on any mismatch.
+[tool.coverage.run]
+source = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "scripts"]
+branch = true
+omit = [
+  "evaluation/acceptance/signed_attestation.py",
+  "integrations/sionna/rt_trajectory.py",
+  "integrations/sionna/rt_network.py",
+  "integrations/sionna/adapter/raytrace.py",
+  "integrations/sionna/adapter/generate.py",
+  "integrations/sionna/path_lineage.py",
+]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+skip_covered = false
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+  'if not hasattr\(os, "O_NOFOLLOW"\)',
+  'if not hasattr\(os, "O_DIRECTORY"\) or os\.open',
+  'if os\.name != "posix"',
+  'if device\.startswith\("cuda"\) and not torch\.cuda\.is_available',
+  'if not torch\.cuda\.is_available\(\)',
+  'if not torch_cuda_available\(\)',
+  'if temp_path is not None:',
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "loslab"]
+src = ["artifacts", "configuration", "datasets", "propagation", "receivers", "models", "learning", "evaluation", "experiments", "integrations", "compute", "scripts"]
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I"]
+select = ["E4", "E7", "E9", "F", "I", "D2", "D3", "D4", "B", "UP", "SIM"]
+# B008: immutable configuration objects used as defaults are deliberate.
+# B009: getattr on duck-typed simulator objects is deliberate (typed attribute access breaks mypy).
+# B905: zip(strict=...) changes behaviour on length mismatch; reviewed per call site.
+ignore = ["B008", "B009", "B905"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D205"]
 
 [tool.mypy]
 python_version = "3.11"
 files = [
-  "artifacts", "configuration", "datasets", "propagation", "receivers",
-  "models", "learning", "evaluation", "experiments", "integrations",
-  "compute", "loslab", "scripts",
+  "artifacts",
+  "configuration",
+  "datasets",
+  "propagation",
+  "receivers",
+  "models",
+  "learning",
+  "evaluation",
+  "experiments",
+  "integrations",
+  "compute",
+  "scripts",
 ]
 ignore_missing_imports = true
 check_untyped_defs = true

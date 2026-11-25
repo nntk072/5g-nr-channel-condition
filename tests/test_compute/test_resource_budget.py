@@ -2,11 +2,22 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
+from pathlib import Path
+from types import SimpleNamespace
 
+import compute.resource_budget as resource_budget
 import pytest
-from compute.resource_budget import build_resource_budget_report, run_resource_budget
+from compute.resource_budget import (
+    _headroom_integer,
+    _load_schema,
+    _read_stable_json,
+    _validate,
+    build_resource_budget_report,
+    run_resource_budget,
+)
 
 
 def _request() -> dict:
@@ -141,8 +152,7 @@ def test_resource_budget_cli_publishes_versioned_report(tmp_path):
         [
             sys.executable,
             "-m",
-            "loslab",
-            "resource-budget",
+            "compute.resource_budget",
             "--request",
             str(request_path),
             "--output",
@@ -175,3 +185,120 @@ def test_resource_budget_rejects_duplicate_json_keys(tmp_path):
 
     with pytest.raises(ValueError, match="duplicate JSON key"):
         run_resource_budget(request_path, tmp_path / "out.json")
+
+
+def test_resource_budget_rejects_duplicate_stratum_ids():
+    request = _request()
+    duplicate = dict(request["strata"][0])
+    duplicate["family_id"] = "family-b"
+    request["strata"].append(duplicate)
+    with pytest.raises(ValueError, match="stratum IDs must be unique"):
+        build_resource_budget_report(request, request_sha256="b" * 64)
+
+
+def test_resource_budget_validates_request_digest_and_integer_quantiles():
+    request = _request()
+    with pytest.raises(ValueError, match="request_sha256 must be lowercase"):
+        build_resource_budget_report(request, request_sha256="not-a-digest")
+    with pytest.raises(TypeError, match="must remain integral"):
+        _headroom_integer(2.5, 10, 2.0)
+    with pytest.raises(TypeError, match="must remain integral"):
+        _headroom_integer(True, 10, 2.0)
+
+
+@pytest.mark.parametrize("content", [b"\xff", b"not json", b"[]"])
+def test_stable_json_rejects_invalid_encoding_json_and_root(tmp_path: Path, content: bytes) -> None:
+    path = tmp_path / "request.json"
+    path.write_bytes(content)
+    message = "root must be an object" if content == b"[]" else "must be strict UTF-8 JSON"
+    with pytest.raises(ValueError, match=message):
+        _read_stable_json(path)
+
+
+def test_stable_json_rejects_nonregular_and_oversized_request(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="single-link regular file"):
+        _read_stable_json(tmp_path)
+    path = tmp_path / "large.json"
+    path.write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="exceeds its byte bound"):
+        _read_stable_json(path, maximum_bytes=1)
+
+
+def test_stable_json_rejects_changed_file_descriptor_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "request.json"
+    path.write_text("{}", encoding="utf-8")
+    real_fstat = os.fstat
+
+    def changed_inode(descriptor: int) -> SimpleNamespace:
+        actual = real_fstat(descriptor)
+        return SimpleNamespace(
+            st_size=actual.st_size,
+            st_dev=actual.st_dev,
+            st_ino=actual.st_ino + 1,
+        )
+
+    monkeypatch.setattr(resource_budget.os, "fstat", changed_inode)
+    with pytest.raises(ValueError, match="changed on open"):
+        _read_stable_json(path)
+
+
+def test_stable_json_rejects_changed_file_during_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "request.json"
+    path.write_text("{}", encoding="utf-8")
+    real_fstat = os.fstat
+    calls = 0
+
+    def changed_mtime(descriptor: int) -> SimpleNamespace:
+        nonlocal calls
+        calls += 1
+        actual = real_fstat(descriptor)
+        return SimpleNamespace(
+            st_dev=actual.st_dev,
+            st_ino=actual.st_ino,
+            st_size=actual.st_size,
+            st_mtime_ns=actual.st_mtime_ns + (calls == 2),
+            st_ctime_ns=actual.st_ctime_ns,
+            st_nlink=actual.st_nlink,
+        )
+
+    monkeypatch.setattr(resource_budget.os, "fstat", changed_mtime)
+    with pytest.raises(ValueError, match="changed during bounded read"):
+        _read_stable_json(path)
+
+
+def test_stable_json_stops_after_reading_past_byte_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "request.json"
+    path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(resource_budget.os, "read", lambda _descriptor, _size: b"xxx")
+    with pytest.raises(ValueError, match="changed during bounded read"):
+        _read_stable_json(path, maximum_bytes=2)
+
+
+def test_schema_helpers_convert_read_and_validation_errors(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="cannot load resource-budget schema"):
+        _load_schema(tmp_path / "missing.json")
+    schema = Path(resource_budget._REQUEST_SCHEMA)
+    with pytest.raises(ValueError, match="fixture violates schema"):
+        _validate({}, schema, "fixture")
+
+
+def test_main_prints_resource_budget_summary(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
+    monkeypatch.setattr(
+        resource_budget,
+        "run_resource_budget",
+        lambda _request, _output: {
+            "status": "MEASUREMENT_CONDITIONAL_NOT_QUALIFIED",
+            "request_id": "pilot-1",
+        },
+    )
+    assert resource_budget.main(["--request", "request.json", "--output", "report.json"]) == 0
+    assert json.loads(capsys.readouterr().out) == {
+        "status": "MEASUREMENT_CONDITIONAL_NOT_QUALIFIED",
+        "request_id": "pilot-1",
+    }

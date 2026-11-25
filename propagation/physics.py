@@ -63,7 +63,7 @@ def observable_features(h: np.ndarray, *, include_phase: bool = False) -> np.nda
     """Stable, per-example amplitude-invariant CFO-agnostic features.
 
     Channels are not identified by label, simulator name, path kind or location.
-    The default uses normalized |H| + time-domain |IFFT(H)| PDP and moments.
+    The default uses normalized ``|H|`` and time-domain ``|IFFT(H)|`` power delay profile and moments.
     Complex phase is optional; raw phase is sensitive to synchronization.
     """
     h = np.asarray(h)

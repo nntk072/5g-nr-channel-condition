@@ -1,0 +1,201 @@
+"""Frozen native CDL 2x2 TX/RX joint space-time covariance family."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+from pathlib import Path
+from statistics import NormalDist
+from typing import Any
+
+import pytest
+from evaluation.covariance.cdl.joint_tx_rx import (
+    cdl_joint_tx_rx_spatiotemporal_covariance_reference,
+)
+
+torch = pytest.importorskip("torch")
+pytest.importorskip("sionna.phy")
+
+from integrations.sionna.cdl import CDLArrayConfig, generate_cdl_frequency_response  # noqa: E402
+from sionna.phy.channel.tr38901 import models as profile_resources  # noqa: E402
+
+_MODELS = tuple("ABCDE")
+_VELOCITY = (10.0, 20.0, 20.0)
+_SEED_START = 2_811_000
+_BATCH_SIZE = 16_384
+# Draws are generated in chunks of this size, each with its own seed, to bound peak memory.
+_CHUNK_BATCH_SIZE = 4_096
+_CHUNK_SEED_STRIDE = 100_003
+_CARRIER_FREQUENCY_HZ = 3.5e9
+_LAG_S = 0.7e-3
+_TX_COUNT = 2
+_RX_COUNT = 2
+_PORT_COUNT = _TX_COUNT * _RX_COUNT
+_FAMILYWISE_ALPHA = 0.01
+_CLAIM_COUNT = len(_MODELS) * _PORT_COUNT * _PORT_COUNT * 2
+_MAX_INTERVAL_HALF_WIDTH = 0.05
+_PROFILE_SHA256 = {
+    "A": "b96f8a179646ee468717c615e8061103d1e66eb1ff1ea78301de243740254cb7",
+    "B": "7c87c092cb2bb44891d301ee3c1991cdda1c6b64094a03f18746ec5fa14ee2a2",
+    "C": "f2044ecc3b72a1967221805ba70b1f0dab9634bb831478c1337b737ced6e4a28",
+    "D": "a8960f176347de457c0cb90fbc8cf137ac98bb1c5295b096f004d8d5c6e40176",
+    "E": "04328f33d8d79b24aa3d0303fecb58b465ed7e13874930b05e76be0d97743480",
+}
+_REFERENCE_PATH = (
+    Path(__file__).resolve().parents[2] / "config/reference/CDL_TAP_ANGLE_REFERENCE_2026-10-26.json"
+)
+_REFERENCE_SHA256 = "24ee2f8f73f26e27522a296a4a0860bdaa7f284e9138855666e09636bc97b090"
+
+
+def _claims(
+    estimate: Any,
+    reference: tuple[tuple[complex, ...], ...],
+    half_width_real: Any,
+    half_width_imag: Any,
+) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for row in range(_PORT_COUNT):
+        for column in range(_PORT_COUNT):
+            expected = reference[row][column]
+            for component, observed, target, half_width in (
+                (
+                    "real",
+                    float(estimate[row, column].real),
+                    expected.real,
+                    float(half_width_real[row, column]),
+                ),
+                (
+                    "imag",
+                    float(estimate[row, column].imag),
+                    expected.imag,
+                    float(half_width_imag[row, column]),
+                ),
+            ):
+                error = abs(observed - target)
+                result.append(
+                    {
+                        "row": row,
+                        "column": column,
+                        "component": component,
+                        "estimate": observed,
+                        "reference": float(target),
+                        "absolute_error": error,
+                        "half_width": half_width,
+                        "passed": error <= half_width and half_width <= _MAX_INTERVAL_HALF_WIDTH,
+                    }
+                )
+    return result
+
+
+# Pre-registered calibration seeds (50 per case). A case passes when at most
+# _MAX_SEEDS_WITH_MISS seeds show any component outside its 99% half-width.
+_COVERAGE_SEEDS = tuple(30_000_000 + index for index in range(50))
+_MAX_SEEDS_WITH_MISS = 2
+
+
+def _joint_seed_claims(
+    model: str, seed: int, expected: Any, table_digest: str
+) -> list[dict[str, Any]]:
+    samples_chunks: list[torch.Tensor] = []
+    for chunk_index in range(_BATCH_SIZE // _CHUNK_BATCH_SIZE):
+        chunk_seed = seed + _CHUNK_SEED_STRIDE * chunk_index
+        channel = generate_cdl_frequency_response(
+            model=model,
+            seed=chunk_seed,
+            carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
+            subcarrier_spacing_hz=30_000.0,
+            num_subcarriers=8,
+            batch_size=_CHUNK_BATCH_SIZE,
+            delay_spread_s=100e-9,
+            num_time_steps=2,
+            sampling_frequency_hz=1.0 / _LAG_S,
+            ut_velocity_mps=_VELOCITY,
+            ut_array=CDLArrayConfig(num_cols_per_panel=_RX_COUNT, element_horizontal_spacing=0.5),
+            bs_array=CDLArrayConfig(num_cols_per_panel=_TX_COUNT, element_horizontal_spacing=0.5),
+            ut_orientation_rad=(0.0, 0.0, 0.0),
+            bs_orientation_rad=(0.0, 0.0, 0.0),
+            spec_version="19.2",
+            device="cpu",
+        )
+
+        path = channel.h_path[:, 0, :, 0, :, :, :].to(torch.complex128)
+        samples = path.sum(dim=3).reshape(_CHUNK_BATCH_SIZE, _PORT_COUNT, 2)
+        assert tuple(samples.shape) == (_CHUNK_BATCH_SIZE, _PORT_COUNT, 2)
+        samples_chunks.append(samples)
+    samples = torch.cat(samples_chunks, dim=0)
+    assert tuple(samples.shape[:1]) == (_BATCH_SIZE,)
+    h0 = samples[:, :, 0]
+    h1 = samples[:, :, 1]
+    cross = h0.conj()[:, :, None] * h1[:, None, :]
+    power_draw = h0.abs().square().mean(dim=1)
+    mean_power = power_draw.mean()
+    estimate = cross.mean(dim=0) / mean_power
+    influence = cross - estimate[None, :, :] * power_draw[:, None, None]
+    standard_error_real = influence.real.std(dim=0, unbiased=True) / (
+        mean_power * math.sqrt(_BATCH_SIZE)
+    )
+    standard_error_imag = influence.imag.std(dim=0, unbiased=True) / (
+        mean_power * math.sqrt(_BATCH_SIZE)
+    )
+    z_simultaneous = NormalDist().inv_cdf(1.0 - _FAMILYWISE_ALPHA / (2.0 * _CLAIM_COUNT))
+    half_width_real = z_simultaneous * standard_error_real
+    half_width_imag = z_simultaneous * standard_error_imag
+    claims = _claims(estimate, expected, half_width_real, half_width_imag)
+
+    assert channel.metadata["profile_model"] == model
+    assert channel.metadata["profile_los_component"] is (model in {"D", "E"})
+    assert channel.metadata["parameter_table_sha256"] == table_digest
+    assert channel.metadata["batch_axis_semantics"] == "independent_stochastic_channel_draws"
+    assert channel.metadata["ut_velocity_mps"] == list(_VELOCITY)
+    assert channel.metadata["rx_antenna_count"] == _RX_COUNT
+    assert channel.metadata["tx_antenna_count"] == _TX_COUNT
+    return claims
+
+
+@pytest.mark.native_sionna
+@pytest.mark.parametrize("model", _MODELS)
+def test_cdl_joint_tx_rx_spatiotemporal_covariance_matches_independent_reference(
+    model: str, record_property: Any
+) -> None:
+    assert hashlib.sha256(_REFERENCE_PATH.read_bytes()).hexdigest() == _REFERENCE_SHA256
+    expected = cdl_joint_tx_rx_spatiotemporal_covariance_reference(
+        model,
+        _VELOCITY,
+        carrier_frequency_hz=_CARRIER_FREQUENCY_HZ,
+        lag_s=_LAG_S,
+        tx_count=_TX_COUNT,
+        rx_count=_RX_COUNT,
+        element_spacing_wavelengths=0.5,
+    )
+    table_path = profile_resources.parameter_file(f"CDL-{model}.json", "19.2")
+    table_digest = hashlib.sha256(table_path.read_bytes()).hexdigest()
+    assert table_digest == _PROFILE_SHA256[model]
+
+    seeds_with_miss = 0
+    worst_ratio = 0.0
+    for seed in _COVERAGE_SEEDS:
+        claims = _joint_seed_claims(model, seed, expected, table_digest)
+        if any(not claim["passed"] for claim in claims):
+            seeds_with_miss += 1
+        worst_ratio = max(
+            worst_ratio, max(claim["absolute_error"] / claim["half_width"] for claim in claims)
+        )
+    assert seeds_with_miss <= _MAX_SEEDS_WITH_MISS, (model, seeds_with_miss)
+
+    record_property(
+        "cdl_joint_tx_rx_spatiotemporal_covariance_coverage",
+        json.dumps(
+            {
+                "model": model,
+                "seed_count": len(_COVERAGE_SEEDS),
+                "seeds_with_miss": seeds_with_miss,
+                "max_seeds_with_miss": _MAX_SEEDS_WITH_MISS,
+                "worst_error_to_half_width": worst_ratio,
+                "draw_count": _BATCH_SIZE,
+                "family_claim_count": _CLAIM_COUNT,
+                "familywise_alpha": _FAMILYWISE_ALPHA,
+            },
+            sort_keys=True,
+        ),
+    )

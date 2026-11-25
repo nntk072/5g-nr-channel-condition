@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence, cast
+from typing import Any, cast
 
 import numpy as np
 from artifacts.provenance import atomic_json, canonical_hash
@@ -87,7 +88,9 @@ def network_episode_identity(episode: NetworkEpisode) -> dict[str, Any]:
             "orientations_local_to_world": timeline.orientations_local_to_world.tolist(),
         }
     if episode.pose_time_alignment is not None:
-        payload["pose_time_alignment_sha256"] = episode.pose_time_alignment.sha256
+        payload["pose_time_alignment_sha256"] = canonical_hash(
+            episode.pose_time_alignment.to_dict()
+        )
     if episode.source_time_alignment is not None:
         payload["source_time_alignment_sha256"] = episode.source_time_alignment.sha256
     return {**payload, "sha256": canonical_hash(payload)}
@@ -708,9 +711,9 @@ def build_sionna_rt_episode_bundle(
         raise TypeError("derive_rms_delay_spread_targets must be a bool")
     oracle = sionna_bindings_to_episode_oracle(episode, bindings)
     channels = tuple(channel_views)
-    target_values = list(targets)
+    target_items = list(targets)
     if derive_rms_delay_spread_targets:
-        target_values.extend(
+        target_items.extend(
             rms_delay_spread_target(
                 oracle,
                 link_id=link.link_id,
@@ -718,7 +721,7 @@ def build_sionna_rt_episode_bundle(
             )
             for link in episode.links
         )
-    target_values = tuple(target_values)
+    target_values = tuple(target_items)
     observations = tuple(receiver_observations)
     layers = ["oracle_paths"]
     if channels:
@@ -902,9 +905,13 @@ def _validate_static_network_run_binding(
         raise ValueError("D1 request lacks its generation configuration")
     from integrations.sionna.rt_identity import static_rt_solver_config
 
-    expected_solver_config = static_rt_solver_config(
-        config.get("max_depth"), config.get("max_num_paths_per_src")
-    )
+    max_depth = config.get("max_depth")
+    max_num_paths_per_src = config.get("max_num_paths_per_src")
+    if isinstance(max_depth, bool) or not isinstance(max_depth, int):
+        raise ValueError("D1 request max_depth must be an integer")
+    if isinstance(max_num_paths_per_src, bool) or not isinstance(max_num_paths_per_src, int):
+        raise ValueError("D1 request max_num_paths_per_src must be an integer")
+    expected_solver_config = static_rt_solver_config(max_depth, max_num_paths_per_src)
     if config.get("solver_config") != expected_solver_config:
         raise ValueError("D1 request solver switches do not match its bounded solver settings")
     if inputs.get("solver_config") != config.get("solver_config"):
@@ -1001,7 +1008,7 @@ def _validate_live_static_network_scene(
         episode_id=episode.episode_id,
         split_group_id=episode.split_group_id,
         family_id=episode.family_id,
-        subcarrier_offsets_hz=episode.subcarrier_offsets_hz,
+        subcarrier_offsets_hz=tuple(float(value) for value in episode.subcarrier_offsets_hz),
         rf_chain_count_by_node=rf_counts,
         node_roles=roles,
         tx_pattern_labels=pattern_labels(NodeRole.GNB),
@@ -1055,6 +1062,7 @@ def run_authorized_static_network_episode(
     )
     require_d1_authorization(authorization, request, expected_operation="rt_data")
     require_pilot_destination(authorization, store_root, publisher="umcd_bundle")
+    assert authorization is not None
     _validate_live_static_network_scene(scene, episode, request)
 
     config = request["config"]
@@ -1151,10 +1159,12 @@ def run_authorized_static_network_episode(
     receipt_path = Path(store_root) / "reports" / "network-rt" / f"{stored.bundle_sha256}.json"
     try:
         atomic_json(receipt_path, receipt, overwrite=False)
-    except FileExistsError:
+    except FileExistsError as err:
         existing = json.loads(receipt_path.read_text(encoding="utf-8"))
         if existing != receipt:
-            raise ValueError("immutable network RT receipt already exists with different content")
+            raise ValueError(
+                "immutable network RT receipt already exists with different content"
+            ) from err
     return StaticNetworkRTGenerationResult(
         status=outcome_status,
         candidate_path_counts_per_source=candidate_counts,

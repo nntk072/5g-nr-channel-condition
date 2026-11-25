@@ -14,6 +14,17 @@ def test_time_axis_accepts_numpy_real_scalars_and_normalizes_to_float():
     assert canonical_time_axis((np.int64(0), np.float64(0.5)), name="times") == (0.0, 0.5)
 
 
+def test_time_axis_rejects_noniterable_and_unrepresentable_real_values():
+    class OverflowingReal(float):
+        def __float__(self):
+            raise OverflowError("too large")
+
+    with pytest.raises(TypeError, match="must be an iterable"):
+        canonical_time_axis(1.0, name="times")
+    with pytest.raises(ValueError, match="finite real timestamps"):
+        canonical_time_axis((OverflowingReal(1.0),), name="times")
+
+
 @pytest.mark.parametrize("value", ["0.5", 0.5 + 0j, True])
 def test_time_axis_rejects_coercible_nonreal_values(value):
     with pytest.raises(TypeError, match="real numeric timestamps"):
@@ -54,6 +65,18 @@ def test_time_axis_alignment_report_replays_and_rejects_claim_drift():
         TimeAxisAlignment.from_dict(boolean_alias)
 
 
+def test_time_axis_alignment_report_rejects_invalid_contract_fields():
+    report = align_time_axes((0.0,), (0.0,), tolerance_s=0.0).to_dict()
+    with pytest.raises(ValueError, match="fields do not match"):
+        TimeAxisAlignment.from_dict({**report, "extra": True})
+    with pytest.raises(ValueError, match="unsupported time-axis alignment schema"):
+        TimeAxisAlignment.from_dict({**report, "schema": "future"})
+    with pytest.raises(ValueError, match="unsupported time-axis alignment method"):
+        TimeAxisAlignment.from_dict({**report, "method": "interpolate"})
+    with pytest.raises(TypeError, match="tolerance_s must be real"):
+        TimeAxisAlignment.from_dict({**report, "tolerance_s": True})
+
+
 def test_named_source_alignment_reports_each_clock_without_interpolation():
     report = align_named_time_axes(
         (0.0, 1.0, 2.0),
@@ -85,6 +108,63 @@ def test_named_source_alignment_replays_and_rejects_source_or_match_drift():
     changed["sources"][0]["alignment"]["observed_indices"] = [1, 0]
     with pytest.raises(ValueError, match="deterministic replay"):
         MultiSourceTimeAlignment.from_dict(changed)
+
+
+def test_named_source_alignment_rejects_invalid_report_shapes_and_claims():
+    report = align_named_time_axes((0.0,), {"rx": (0.0,)}, tolerance_s=0.0).to_dict()
+    with pytest.raises(ValueError, match="fields do not match"):
+        MultiSourceTimeAlignment.from_dict({**report, "extra": True})
+    with pytest.raises(ValueError, match="unsupported multi-source"):
+        MultiSourceTimeAlignment.from_dict({**report, "schema": "future"})
+    with pytest.raises(ValueError, match="non-empty list"):
+        MultiSourceTimeAlignment.from_dict({**report, "sources": []})
+    malformed = {**report, "sources": [{"source_id": "rx"}]}
+    with pytest.raises(ValueError, match="invalid field roster"):
+        MultiSourceTimeAlignment.from_dict(malformed)
+    changed = {**report, "complete": False}
+    with pytest.raises(ValueError, match="deterministic replay"):
+        MultiSourceTimeAlignment.from_dict(changed)
+
+
+@pytest.mark.parametrize(
+    ("rows", "error", "message"),
+    [
+        ((), ValueError, "at least one named source"),
+        ((("rx",),), TypeError, "entries must be"),
+        (
+            ((" rx ", align_time_axes((0.0,), (0.0,), tolerance_s=0.0)),),
+            ValueError,
+            "canonical strings",
+        ),
+        ((("rx", object()),), TypeError, "must be a TimeAxisAlignment"),
+        (
+            (("rx", align_time_axes((1.0,), (1.0,), tolerance_s=0.0)),),
+            ValueError,
+            "shared reference axis",
+        ),
+        (
+            (
+                ("rx", align_time_axes((0.0,), (0.0,), tolerance_s=0.0)),
+                ("rx", align_time_axes((0.0,), (0.0,), tolerance_s=0.0)),
+            ),
+            ValueError,
+            "must be unique",
+        ),
+    ],
+)
+def test_multi_source_alignment_rejects_invalid_source_entries(rows, error, message):
+    with pytest.raises(error, match=message):
+        MultiSourceTimeAlignment((0.0,), rows)
+
+
+def test_named_source_alignment_rejects_invalid_source_mappings():
+    with pytest.raises(ValueError, match="non-empty source mapping"):
+        align_named_time_axes((0.0,), {}, tolerance_s=0.0)
+    with pytest.raises(ValueError, match="non-empty source mapping"):
+        align_named_time_axes((0.0,), [], tolerance_s=0.0)
+    with pytest.raises(TypeError, match="keys must be source ID strings"):
+        align_named_time_axes((0.0,), {1: (0.0,)}, tolerance_s=0.0)
+    assert len(align_named_time_axes((0.0,), {"rx": (0.0,)}, tolerance_s=0.0).sha256) == 64
 
 
 def test_time_axis_alignment_requires_unique_one_to_one_matches():

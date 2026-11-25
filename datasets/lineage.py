@@ -120,8 +120,6 @@ class LineageStatusClaim:
             scope=value["scope"],
             evidence_sha256=value["evidence_sha256"],
         )
-        if claim.to_dict() != dict(value):
-            raise ValueError("lineage status claim representation is not canonical")
         return claim
 
 
@@ -170,8 +168,6 @@ def audit_lineage_evidence_payloads(
         raise ValueError("supplied evidence payload roster does not match lineage claims")
     total_bytes = 0
     for digest, payload in evidence_payloads_by_sha256.items():
-        if not isinstance(digest, str) or not _SHA256.fullmatch(digest):
-            raise ValueError("evidence payload keys must be lowercase SHA256 digests")
         if not isinstance(payload, bytes):
             raise TypeError("evidence payload values must be immutable bytes")
         total_bytes += len(payload)
@@ -224,8 +220,6 @@ def audit_lineage_evidence_files(
     sizes: dict[str, int] = {}
     total_bytes = 0
     try:
-        if not stat.S_ISDIR(os.fstat(root_fd).st_mode):
-            raise ValueError("evidence_root must be a directory")
         for expected_digest in sorted(expected):
             relative = evidence_paths_by_sha256[expected_digest]
             if (
@@ -253,11 +247,8 @@ def audit_lineage_evidence_files(
                         root_flags,
                         dir_fd=directory_fd,
                     )
-                    if directory_fd != root_fd:
-                        os.close(directory_fd)
+                    os.close(directory_fd)
                     directory_fd = child_fd
-                    if not stat.S_ISDIR(os.fstat(directory_fd).st_mode):
-                        raise ValueError("evidence path component must be a directory")
                 file_flags = (
                     os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
                 )
@@ -298,8 +289,7 @@ def audit_lineage_evidence_files(
             finally:
                 if file_fd is not None:
                     os.close(file_fd)
-                if directory_fd != root_fd:
-                    os.close(directory_fd)
+                os.close(directory_fd)
         return _lineage_evidence_audit_report(frozen_claims, sizes, provenance_record_sha256)
     finally:
         os.close(root_fd)

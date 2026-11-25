@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 import hashlib
-import importlib
+import io
 import json
-import sys
+from copy import copy
 from dataclasses import dataclass, replace
 from pathlib import Path
 
 import datasets.scenario_gbsm as scenario_gbsm_store
 import numpy as np
 import pytest
-from datasets.channel import ChannelDataset
 from datasets.episode_store import EpisodeBundle, read_episode_bundle, write_episode_bundle
 from datasets.network import (
     AntennaArraySpec,
@@ -27,6 +26,7 @@ from datasets.provenance import UMCDRunProvenance
 from datasets.scenario_gbsm import (
     ScenarioGBSMRecord,
     ScenarioGBSMRun,
+    _scenario_array_spec,
     read_scenario_gbsm_run,
     scenario_gbsm_episode_bundle,
     scenario_gbsm_run_from_channel,
@@ -36,11 +36,9 @@ from datasets.scenario_gbsm import (
 from datasets.split_policy import (
     LeakageNamespace,
     LeakageRelation,
-    SplitChildBinding,
     SplitParentType,
     SplitPolicy,
     SplitSubject,
-    VerifiedOpenSSHArtifact,
     make_split_policy_registry,
 )
 
@@ -213,74 +211,31 @@ def test_scenario_gbsm_run_split_audit_rejects_missing_shared_relation() -> None
         run.audit_split_assignment(registry)
 
 
-def test_signed_child_roster_semantically_audits_scenario_gbsm_run(tmp_path) -> None:
-    repository_root = str(Path(__file__).resolve().parents[2])
-    sys.path.insert(0, repository_root)
-    try:
-        audit_module = importlib.import_module("scripts.audit_channel_split_lineage")
-    finally:
-        sys.path.remove(repository_root)
-    _load_split_child_artifact_roster = audit_module._load_split_child_artifact_roster
+def test_scenario_gbsm_run_split_audit_requires_registry_type() -> None:
+    with pytest.raises(TypeError, match="registry must be a SplitPolicyRegistry"):
+        _two_record_run().audit_split_assignment(object())
 
+
+def test_scenario_gbsm_run_split_audit_rejects_missing_parent() -> None:
     run = _two_record_run()
-    artifact_root = tmp_path / "children"
-    artifact_root.mkdir()
-    store_pointer = write_scenario_gbsm_run(artifact_root, run)
-    manifest_path = artifact_root / store_pointer.relative_path
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    parent_to_child = {record.sample_id: f"child-{record.sample_id}" for record in run.records}
-    bindings = {
-        child_id: SplitChildBinding(child_id, parent_id, "receiver_observation")
-        for parent_id, child_id in parent_to_child.items()
-    }
-    entries: list[dict[str, object]] = []
-
-    def declare(
-        artifact_id: str, artifact_type: str, relative_path: str, *, child_id=None, child_ids=None
-    ):
-        payload = (artifact_root / relative_path).read_bytes()
-        entry: dict[str, object] = {
-            "artifact_id": artifact_id,
-            "artifact_type": artifact_type,
-            "path": relative_path,
-            "bytes": len(payload),
-            "sha256": hashlib.sha256(payload).hexdigest(),
-        }
-        if child_id is not None:
-            entry["child_id"] = child_id
-        if child_ids is not None:
-            entry["child_ids"] = child_ids
-        entries.append(entry)
-
-    for record in run.records:
-        child_id = parent_to_child[record.sample_id]
-        dataset_path = f"datasets/{child_id}.npz"
-        dataset = ChannelDataset(
-            h=np.ones((1, 1, 8), dtype=np.complex64),
-            y=np.zeros(1, dtype=np.uint8),
-            group=np.asarray([record.sample_id]),
-            domain=np.asarray([record.scenario]),
-            source=np.asarray(["scenario_gbsm"]),
-            metadata=({"split_subject_id": record.sample_id},),
-        ).with_split_child_binding(child_id, "receiver_observation")
-        dataset.save(artifact_root / dataset_path)
-        declare(f"dataset-{child_id}", "channel_dataset_npz", dataset_path, child_id=child_id)
-    declare(
-        "scenario-run",
-        "scenario_gbsm_run_manifest_json",
-        store_pointer.relative_path,
-        child_ids=sorted(bindings),
+    registry = make_split_policy_registry(
+        [
+            SplitSubject("unrelated-a", SplitParentType.NETWORK_EPISODE, "fixture"),
+            SplitSubject("unrelated-b", SplitParentType.NETWORK_EPISODE, "fixture"),
+            SplitSubject("unrelated-c", SplitParentType.NETWORK_EPISODE, "fixture"),
+        ],
+        policy=SplitPolicy(
+            seed="missing-scenario-parent",
+            split_fractions={"train": 0.8, "validation": 0.1, "test": 0.1},
+        ),
     )
-    for reference in manifest["records"]:
-        parent_id = reference["sample_id"]
-        declare(
-            f"scenario-record-{parent_id}",
-            "scenario_gbsm_record_content_npz",
-            reference["relative_path"],
-            child_ids=[parent_to_child[parent_id]],
-        )
+    with pytest.raises(ValueError, match="parent is absent from frozen split registry"):
+        run.audit_split_assignment(registry)
 
-    run_relation = LeakageRelation(
+
+def test_scenario_gbsm_run_split_audit_rejects_split_component_drift() -> None:
+    run = _two_record_run()
+    shared_relation = LeakageRelation(
         LeakageNamespace.TRAJECTORY_SESSION, f"scenario_gbsm_run:{run.run_id}"
     )
     registry = make_split_policy_registry(
@@ -289,97 +244,25 @@ def test_signed_child_roster_semantically_audits_scenario_gbsm_run(tmp_path) -> 
                 record.sample_id,
                 SplitParentType.NETWORK_EPISODE,
                 "scenario_gbsm:UMi",
-                (run_relation,),
+                (shared_relation,),
             )
             for record in run.records
         ]
         + [
-            SplitSubject("unrelated-parent-a", SplitParentType.NETWORK_EPISODE, "fixture"),
-            SplitSubject("unrelated-parent-b", SplitParentType.NETWORK_EPISODE, "fixture"),
+            SplitSubject(f"unrelated-{index}", SplitParentType.NETWORK_EPISODE, "fixture")
+            for index in range(3)
         ],
         policy=SplitPolicy(
-            seed="scenario-roster-audit",
+            seed="scenario-component-drift",
             split_fractions={"train": 0.8, "validation": 0.1, "test": 0.1},
         ),
     )
-    roster_payload = json.dumps(
-        {
-            "schema": "umcd.channel_dataset_child_artifact_roster.v6",
-            "child_kind": "receiver_observation",
-            "artifact_root": "children",
-            "artifacts": entries,
-        },
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
-    jsonschema = pytest.importorskip("jsonschema")
-    roster_schema = json.loads(
-        (
-            Path(__file__).resolve().parents[2]
-            / "datasets/schema/channel-dataset-child-artifact-roster.v6.schema.json"
-        ).read_text(encoding="utf-8")
-    )
-    jsonschema.Draft202012Validator.check_schema(roster_schema)
-    jsonschema.Draft202012Validator(roster_schema).validate(json.loads(roster_payload))
-    verified = VerifiedOpenSSHArtifact(
-        payload=roster_payload,
-        artifact_sha256=hashlib.sha256(roster_payload).hexdigest(),
-        signature_sha256="a" * 64,
-        allowed_signers_sha256="b" * 64,
-        signer_id="test-signer",
-        namespace="umcd-channel-child-artifact-roster-v1@github.com",
-    )
-    result = _load_split_child_artifact_roster(
-        tmp_path / "roster.json",
-        expected_child_kind="receiver_observation",
-        expected_child_bindings=bindings,
-        verified_artifact=verified,
-        split_registry=registry,
-    )["audit"]
+    subject_to_component = dict(registry.subject_to_component)
+    subject_to_component[run.records[1].sample_id] = subject_to_component["unrelated-0"]
+    object.__setattr__(registry, "subject_to_component", subject_to_component)
 
-    assert result["schema"] == "umcd.split_child_artifact_audit.v7"
-    assert result["semantic_artifact_count"] == len(entries)
-    scenario_entry = next(
-        item
-        for item in result["artifacts"]
-        if item["artifact_type"] == "scenario_gbsm_run_manifest_json"
-    )
-    assert scenario_entry["scenario_parent_count"] == 2
-    assert scenario_entry["scenario_split"] == run.audit_split_assignment(registry)["split"]
-
-    altered_entries = [dict(entry) for entry in entries]
-    manifest_entry = next(
-        entry
-        for entry in altered_entries
-        if entry["artifact_type"] == "scenario_gbsm_run_manifest_json"
-    )
-    manifest_entry["child_ids"] = manifest_entry["child_ids"][:1]
-    altered_payload = json.dumps(
-        {
-            "schema": "umcd.channel_dataset_child_artifact_roster.v6",
-            "child_kind": "receiver_observation",
-            "artifact_root": "children",
-            "artifacts": altered_entries,
-        },
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
-    altered_verified = VerifiedOpenSSHArtifact(
-        payload=altered_payload,
-        artifact_sha256=hashlib.sha256(altered_payload).hexdigest(),
-        signature_sha256="c" * 64,
-        allowed_signers_sha256="b" * 64,
-        signer_id="test-signer",
-        namespace="umcd-channel-child-artifact-roster-v1@github.com",
-    )
-    with pytest.raises(ValueError, match="omits a record parent owner"):
-        _load_split_child_artifact_roster(
-            tmp_path / "altered-roster.json",
-            expected_child_kind="receiver_observation",
-            expected_child_bindings=bindings,
-            verified_artifact=altered_verified,
-            split_registry=registry,
-        )
+    with pytest.raises(ValueError, match="share one frozen split component"):
+        run.audit_split_assignment(registry)
 
 
 def test_scenario_gbsm_conversion_assembles_canonical_episode_bundle(tmp_path) -> None:
@@ -406,6 +289,285 @@ def test_scenario_gbsm_conversion_assembles_canonical_episode_bundle(tmp_path) -
     assert restored.scenario_gbsm_records[0].scenario_los is True
     assert restored.scenario_gbsm_records[0].metadata["geometric_los_label"] is None
     np.testing.assert_array_equal(restored.scenario_gbsm_records[0].cfr, run.records[0].cfr)
+
+
+def test_scenario_gbsm_run_rejects_mixed_models() -> None:
+    run = _two_record_run()
+    mixed = copy(run.records[1])
+    object.__setattr__(mixed, "scenario", "UMa")
+    with pytest.raises(ValueError, match="cannot mix scenario models"):
+        ScenarioGBSMRun(run.run_id, (run.records[0], mixed))
+
+
+def test_scenario_gbsm_episode_bundle_supports_uplink() -> None:
+    record = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="uplink", sample_ids=["drop-000"]
+    ).records[0]
+    record = _record_with_metadata_edit(record, direction="uplink")
+    bundle = scenario_gbsm_episode_bundle(record)
+    assert bundle.episode.links[0].direction is LinkDirection.UPLINK
+
+
+def test_scenario_gbsm_episode_bundle_requires_typed_record() -> None:
+    with pytest.raises(TypeError, match="record must be a ScenarioGBSMRecord"):
+        scenario_gbsm_episode_bundle(object())
+
+
+def test_scenario_gbsm_writer_requires_typed_run(tmp_path) -> None:
+    with pytest.raises(TypeError, match="run must be a ScenarioGBSMRun"):
+        write_scenario_gbsm_run(tmp_path, object())
+
+
+def test_scenario_gbsm_writer_enforces_archive_size_limit(tmp_path, monkeypatch) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="archive-limit", sample_ids=["drop-000"]
+    )
+    monkeypatch.setattr(scenario_gbsm_store, "_record_bytes", lambda _record: b"too large")
+    monkeypatch.setattr(scenario_gbsm_store, "MAX_SCENARIO_GBSM_OBJECT_BYTES", 1)
+    with pytest.raises(ValueError, match="record exceeds its byte ceiling"):
+        write_scenario_gbsm_run(tmp_path, run)
+
+
+def test_scenario_gbsm_writer_enforces_manifest_size_limit(tmp_path, monkeypatch) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="manifest-limit", sample_ids=["drop-000"]
+    )
+    monkeypatch.setattr(scenario_gbsm_store, "MAX_SCENARIO_GBSM_MANIFEST_BYTES", 1)
+    with pytest.raises(ValueError, match="manifest exceeds its byte ceiling"):
+        write_scenario_gbsm_run(tmp_path, run)
+
+
+def test_scenario_gbsm_reader_accepts_an_absolute_manifest_path(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="absolute-manifest", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    restored = read_scenario_gbsm_run(tmp_path, tmp_path / pointer.relative_path)
+    assert restored.run_id == run.run_id
+
+
+def test_scenario_gbsm_reader_rejects_extra_manifest_fields(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="extra-manifest-field", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    manifest_path = tmp_path / pointer.relative_path
+    manifest = json.loads(manifest_path.read_text())
+    manifest["extra"] = True
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="manifest fields are invalid"):
+        read_scenario_gbsm_run(tmp_path, pointer)
+
+
+def test_scenario_gbsm_reader_requires_the_canonical_manifest_path(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="noncanonical-manifest", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    relocated = tmp_path / "relocated-manifest.json"
+    relocated.write_bytes((tmp_path / pointer.relative_path).read_bytes())
+
+    with pytest.raises(ValueError, match="not at its canonical run path"):
+        read_scenario_gbsm_run(tmp_path, relocated)
+
+
+def test_scenario_gbsm_reader_compares_run_id_with_its_pointer(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="run-id-pointer", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    manifest = json.loads((tmp_path / pointer.relative_path).read_text())
+    manifest["run_id"] = "different-run-id"
+    core = {key: manifest[key] for key in ("schema", "schema_version", "run_id", "records")}
+    digest = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    manifest["content_sha256"] = digest
+    relative_path = (
+        f"scenario_gbsm/manifests/{hashlib.sha256(manifest['run_id'].encode()).hexdigest()}.json"
+    )
+    manifest_path = tmp_path / relative_path
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n")
+    changed_pointer = replace(pointer, relative_path=relative_path, content_sha256=digest)
+
+    with pytest.raises(ValueError, match="run ID disagrees with its pointer"):
+        read_scenario_gbsm_run(tmp_path, changed_pointer)
+
+
+def test_scenario_gbsm_reader_rejects_malformed_record_references(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="malformed-record-reference", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    manifest = json.loads((tmp_path / pointer.relative_path).read_text())
+    manifest["records"][0]["content_sha256"] = "not-a-sha256"
+    core = {key: manifest[key] for key in ("schema", "schema_version", "run_id", "records")}
+    digest = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    manifest["content_sha256"] = digest
+    (tmp_path / pointer.relative_path).write_text(
+        json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n"
+    )
+    changed_pointer = replace(pointer, content_sha256=digest)
+
+    with pytest.raises(ValueError, match="manifest record reference is malformed"):
+        read_scenario_gbsm_run(tmp_path, changed_pointer)
+
+
+def test_scenario_gbsm_reader_rejects_blank_manifest_run_id(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="blank-manifest-id", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    manifest_path = tmp_path / pointer.relative_path
+    manifest = json.loads(manifest_path.read_text())
+    manifest["run_id"] = " "
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="manifest run ID is invalid"):
+        read_scenario_gbsm_run(tmp_path, pointer)
+
+
+def test_scenario_gbsm_reader_rejects_pointer_sample_order_drift(tmp_path) -> None:
+    run = _two_record_run()
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    changed = replace(pointer, sample_ids=tuple(reversed(pointer.sample_ids)))
+    with pytest.raises(ValueError, match="sample order disagrees with run pointer"):
+        read_scenario_gbsm_run(tmp_path, changed)
+
+
+def _replace_first_object_payload(tmp_path, pointer, payload: bytes):
+    manifest_path = tmp_path / pointer.relative_path
+    manifest = json.loads(manifest_path.read_text())
+    digest = hashlib.sha256(payload).hexdigest()
+    relative_path = f"scenario_gbsm/records/{digest[:2]}/{digest}.npz"
+    object_path = tmp_path / relative_path
+    object_path.parent.mkdir(parents=True, exist_ok=True)
+    object_path.write_bytes(payload)
+    manifest["records"][0]["content_sha256"] = digest
+    manifest["records"][0]["relative_path"] = relative_path
+    core = {key: manifest[key] for key in ("schema", "schema_version", "run_id", "records")}
+    manifest_digest = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    manifest["content_sha256"] = manifest_digest
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n")
+    return replace(pointer, content_sha256=manifest_digest)
+
+
+def test_scenario_gbsm_reader_rejects_wrong_archive_members(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="wrong-archive-members", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    stream = io.BytesIO()
+    np.savez_compressed(
+        stream,
+        h_path=np.asarray([1]),
+        tau_s=np.asarray([1]),
+        cfr=np.asarray([1]),
+        subcarrier_offsets_hz=np.asarray([1]),
+        unexpected=np.asarray([1]),
+    )
+    pointer = _replace_first_object_payload(tmp_path, pointer, stream.getvalue())
+
+    with pytest.raises(ValueError, match="archive fields are invalid"):
+        read_scenario_gbsm_run(tmp_path, pointer)
+
+
+def test_scenario_gbsm_reader_rejects_archive_member_count_drift(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="extra-archive-member", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    stream = io.BytesIO()
+    np.savez_compressed(
+        stream,
+        h_path=np.asarray([1]),
+        tau_s=np.asarray([1]),
+        cfr=np.asarray([1]),
+        subcarrier_offsets_hz=np.asarray([1]),
+        metadata_json=np.asarray([1], dtype=np.uint8),
+        extra=np.asarray([1]),
+    )
+    pointer = _replace_first_object_payload(tmp_path, pointer, stream.getvalue())
+
+    with pytest.raises(ValueError, match="archive exceeds its member contract"):
+        read_scenario_gbsm_run(tmp_path, pointer)
+
+
+def test_scenario_gbsm_reader_rejects_unknown_record_schema(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="unknown-record-schema", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    stream = io.BytesIO()
+    metadata = {
+        "schema": "umcd.scenario_gbsm_record.unknown",
+        "sample_id": "drop-000",
+        "run_id": "unknown-record-schema",
+        "sample_index": 0,
+        "scenario": "UMi",
+        "scenario_los": False,
+        "metadata": {},
+    }
+    np.savez_compressed(
+        stream,
+        h_path=np.zeros((1,)),
+        tau_s=np.zeros((1,)),
+        cfr=np.zeros((1,)),
+        subcarrier_offsets_hz=np.zeros((1,)),
+        metadata_json=np.frombuffer(
+            json.dumps(metadata, sort_keys=True, separators=(",", ":")).encode(), dtype=np.uint8
+        ),
+    )
+    pointer = _replace_first_object_payload(tmp_path, pointer, stream.getvalue())
+
+    with pytest.raises(ValueError, match="unsupported scenario GBSM record"):
+        read_scenario_gbsm_run(tmp_path, pointer)
+
+
+def test_scenario_gbsm_reader_checks_record_identity_against_manifest(tmp_path) -> None:
+    run = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="wrong-archive-id", sample_ids=["drop-000"]
+    )
+    pointer = write_scenario_gbsm_run(tmp_path, run)
+    stream = io.BytesIO()
+    metadata = {
+        "schema": "umcd.scenario_gbsm_record.v1",
+        "sample_id": "other-drop",
+        "run_id": "wrong-archive-id",
+        "sample_index": 0,
+        "scenario": "UMi",
+        "scenario_los": False,
+        "metadata": {},
+    }
+    np.savez_compressed(
+        stream,
+        h_path=np.zeros((1,)),
+        tau_s=np.zeros((1,)),
+        cfr=np.zeros((1,)),
+        subcarrier_offsets_hz=np.zeros((1,)),
+        metadata_json=np.frombuffer(
+            json.dumps(metadata, sort_keys=True, separators=(",", ":")).encode(), dtype=np.uint8
+        ),
+    )
+    pointer = _replace_first_object_payload(tmp_path, pointer, stream.getvalue())
+
+    with pytest.raises(ValueError, match="identity disagrees with manifest"):
+        read_scenario_gbsm_run(tmp_path, pointer)
+
+
+def test_episode_store_enforces_compressed_scenario_layer_limit(tmp_path, monkeypatch) -> None:
+    record = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="episode-layer-limit", sample_ids=["drop-000"]
+    ).records[0]
+    bundle = scenario_gbsm_episode_bundle(record)
+    monkeypatch.setattr(scenario_gbsm_store, "_record_bytes", lambda _record: b"too large")
+    monkeypatch.setattr(scenario_gbsm_store, "MAX_SCENARIO_GBSM_OBJECT_BYTES", 1)
+    with pytest.raises(ValueError, match="compressed byte ceiling"):
+        write_episode_bundle(tmp_path, bundle)
 
 
 def test_scenario_gbsm_episode_rejects_split_group_drift() -> None:
@@ -709,7 +871,7 @@ def test_scenario_gbsm_episode_layer_publication_failure_is_retryable(
             raise OSError("injected scenario GBSM episode-layer publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_scenario_layer)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_scenario_layer)
     with pytest.raises(OSError, match="scenario GBSM episode-layer publication failure"):
         write_episode_bundle(tmp_path, bundle)
 
@@ -717,7 +879,7 @@ def test_scenario_gbsm_episode_layer_publication_failure_is_retryable(
     assert not (tmp_path / "objects" / "scenario_gbsm").exists()
     assert not (tmp_path / "manifests" / "episodes").exists()
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     pointer = write_episode_bundle(tmp_path, bundle)
     restored = read_episode_bundle(tmp_path, pointer)
     assert restored.episode.episode_id == "drop-000"
@@ -751,3 +913,195 @@ def test_scenario_gbsm_layer_accepts_bound_provenance_round_trip(tmp_path) -> No
     restored = read_episode_bundle(tmp_path, pointer)
     assert restored.provenance_records[0].subject_layer == "scenario_gbsm"
     assert restored.provenance_records[0].to_dict() == provenance.to_dict()
+
+
+def _record_with_metadata_edit(record: ScenarioGBSMRecord, **edits) -> ScenarioGBSMRecord:
+    metadata = json.loads(json.dumps(scenario_gbsm_store._plain_json(record.metadata)))
+    for key, value in edits.items():
+        metadata["generator_configuration"][key] = value
+    changed = copy(record)
+    object.__setattr__(changed, "metadata", metadata)
+    return changed
+
+
+def test_scenario_array_spec_accepts_legacy_single_port_layout() -> None:
+    record = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="legacy-layout", sample_ids=["drop-000"]
+    ).records[0]
+    from datasets.scenario_gbsm import _sionna_orientation_matrix
+
+    spec = _scenario_array_spec(
+        record,
+        endpoint="bs",
+        carrier_hz=3.5e9,
+        port_count=1,
+        orientation=_sionna_orientation_matrix((0.0, 0.0, 0.0)),
+    )
+    assert spec.port_ids == ("V:element-0",)
+
+
+@pytest.mark.parametrize(
+    ("layout", "port_count", "message"),
+    [
+        (None, 2, "lacks captured bs array layout"),
+        ({"schema": "wrong"}, 1, "unsupported contract"),
+        (
+            {
+                "schema": "umcd.sionna_array_layout.v1",
+                "port_order": "pattern_major_element_minor",
+                "normalized_element_positions_wavelengths": [[0.0, float("nan"), 0.0]],
+                "pattern_labels_in_port_order": ["V"],
+            },
+            1,
+            "array layout is malformed",
+        ),
+        (
+            {
+                "schema": "umcd.sionna_array_layout.v1",
+                "port_order": "pattern_major_element_minor",
+                "normalized_element_positions_wavelengths": [[0.0, 0.0, 0.0]],
+                "pattern_labels_in_port_order": ["V"],
+            },
+            2,
+            "array layout does not match its channel axis",
+        ),
+    ],
+)
+def test_scenario_array_spec_rejects_incomplete_layouts(layout, port_count, message) -> None:
+    record = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="array-layout", sample_ids=["drop-000"]
+    ).records[0]
+    record = _record_with_metadata_edit(record, bs_array_layout=layout)
+    from datasets.scenario_gbsm import _sionna_orientation_matrix
+
+    with pytest.raises(ValueError, match=message):
+        _scenario_array_spec(
+            record,
+            endpoint="bs",
+            carrier_hz=3.5e9,
+            port_count=port_count,
+            orientation=_sionna_orientation_matrix((0.0, 0.0, 0.0)),
+        )
+
+
+def test_scenario_bundle_rejects_unsupported_link_direction() -> None:
+    record = scenario_gbsm_run_from_channel(
+        _native_channel(), run_id="bad-direction", sample_ids=["drop-000"]
+    ).records[0]
+    record = _record_with_metadata_edit(record, direction="sideways")
+    with pytest.raises(ValueError, match="unsupported link direction"):
+        scenario_gbsm_episode_bundle(record)
+
+
+def test_run_to_episode_bundles_requires_a_typed_run() -> None:
+    with pytest.raises(TypeError, match="run must be a ScenarioGBSMRun"):
+        scenario_gbsm_run_to_episode_bundles(object())
+
+
+@pytest.mark.parametrize(
+    ("run_id", "sample_ids", "message"),
+    [
+        ("", ["drop-000"], "run_id must be a non-empty string"),
+        ("run", [], "sample_ids must contain non-empty strings"),
+        ("run", ["drop-000", " "], "sample_ids must contain non-empty strings"),
+        ("run", ["drop-000", "drop-000"], "sample_ids must be unique"),
+    ],
+)
+def test_channel_conversion_requires_canonical_run_and_sample_ids(run_id, sample_ids, message):
+    with pytest.raises(ValueError, match=message):
+        scenario_gbsm_run_from_channel(_native_channel(), run_id=run_id, sample_ids=sample_ids)
+
+
+def test_channel_conversion_requires_generator_metadata() -> None:
+    channel = _native_channel()
+    channel.metadata = None
+    with pytest.raises(TypeError, match="must expose generator metadata"):
+        scenario_gbsm_run_from_channel(channel, run_id="run", sample_ids=["drop-000"])
+
+
+@pytest.mark.parametrize(
+    ("metadata_change", "message"),
+    [
+        (
+            lambda metadata: metadata.update(topology_rows=[]),
+            "lacks aligned scenario topology rows",
+        ),
+        (
+            lambda metadata: metadata.update(topology_rows=[None]),
+            "topology rows must be objects",
+        ),
+        (
+            lambda metadata: metadata.update(topology_sha256="0" * 64),
+            "batch topology digest is invalid",
+        ),
+        (
+            lambda metadata: metadata.update(topology_row_sha256=["0" * 64]),
+            "topology row digest differs",
+        ),
+        (
+            lambda metadata: metadata.update(configuration_sha256="0" * 64),
+            "configuration identity is invalid",
+        ),
+        (
+            lambda metadata: metadata["generator_configuration"].update(batch_size=2),
+            "configuration disagrees with scenario batch metadata",
+        ),
+        (
+            lambda metadata: metadata["generator_configuration"].update(scenario="UMa"),
+            "configuration disagrees with scenario batch metadata",
+        ),
+        (
+            lambda metadata: metadata["generator_configuration"].update(num_subcarriers=7),
+            "invalid subcarrier count",
+        ),
+        (
+            lambda metadata: metadata["generator_configuration"].update(subcarrier_spacing_hz=0.0),
+            "invalid subcarrier count",
+        ),
+    ],
+)
+def test_channel_conversion_rejects_inconsistent_batch_metadata(metadata_change, message):
+    channel = _native_channel()
+    channel.metadata = dict(channel.metadata)
+    channel.metadata["generator_configuration"] = dict(channel.metadata["generator_configuration"])
+    metadata_change(channel.metadata)
+    if message not in {"configuration identity is invalid"}:
+        channel.metadata["configuration_sha256"] = scenario_gbsm_store._digest_json(
+            channel.metadata["generator_configuration"], label="generator configuration"
+        )
+    with pytest.raises(ValueError, match=message):
+        scenario_gbsm_run_from_channel(channel, run_id="run", sample_ids=["drop-000"])
+
+
+def test_channel_conversion_checks_sample_id_batch_axis() -> None:
+    channel = _native_channel()
+    channel.h_path = np.concatenate((channel.h_path, channel.h_path), axis=0)
+    with pytest.raises(ValueError, match="match the generator result batch axis"):
+        scenario_gbsm_run_from_channel(channel, run_id="run", sample_ids=["drop-000"])
+
+
+def test_channel_conversion_rejects_different_topology_field_rosters() -> None:
+    channel = _native_channel()
+    channel.h_path = np.concatenate((channel.h_path, channel.h_path), axis=0)
+    channel.tau_s = np.concatenate((channel.tau_s, channel.tau_s), axis=0)
+    channel.channel_frequency_response = np.concatenate(
+        (channel.channel_frequency_response, channel.channel_frequency_response), axis=0
+    )
+    metadata = dict(channel.metadata)
+    configuration = dict(metadata["generator_configuration"])
+    configuration["batch_size"] = 2
+    metadata["generator_configuration"] = configuration
+    metadata["configuration_sha256"] = scenario_gbsm_store._digest_json(
+        configuration, label="generator configuration"
+    )
+    first = metadata["topology_rows"][0]
+    second = {**first, "extra": 1}
+    metadata["topology_rows"] = [first, second]
+    metadata["topology_row_sha256"] = [
+        scenario_gbsm_store._digest_json(row, label="topology row") for row in (first, second)
+    ]
+    metadata["scenario_los_rows"] = [False, False]
+    channel.metadata = metadata
+
+    with pytest.raises(ValueError, match="do not share one canonical field roster"):
+        scenario_gbsm_run_from_channel(channel, run_id="run", sample_ids=["drop-000", "drop-001"])

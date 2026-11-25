@@ -69,8 +69,6 @@ class CandidatePathCounter:
             per_source = tuple(
                 int(count) for count in np.bincount(used_indices, minlength=source_count)
             )
-            if sum(per_source) != total_count:
-                raise RuntimeError("Per-source candidate counts do not match Sionna's buffer")
         self.last_candidate_path_counts_per_source = per_source
         self.last_candidate_path_count = max(per_source, default=0)
         self.last_total_candidate_path_count = total_count

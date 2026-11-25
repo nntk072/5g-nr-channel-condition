@@ -10,8 +10,9 @@ import re
 import stat
 import tempfile
 import zipfile
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from artifacts.provenance import canonical_hash
 from datasets.channel import ChannelDataset
@@ -136,7 +137,7 @@ def _atomic_immutable_write(path: Path, payload: bytes) -> None:
             temp_path = Path(stream.name)
         try:
             os.link(temp_path, path)
-        except FileExistsError:
+        except FileExistsError as err:
             try:
                 existing = _read_stable_file(
                     path, label="immutable RT cache entry", max_bytes=len(payload)
@@ -146,7 +147,7 @@ def _atomic_immutable_write(path: Path, payload: bytes) -> None:
                     f"immutable RT cache entry conflicts at {path}"
                 ) from error
             if existing != payload:
-                raise RTCacheConflictError(f"immutable RT cache entry conflicts at {path}")
+                raise RTCacheConflictError(f"immutable RT cache entry conflicts at {path}") from err
     finally:
         if temp_path is not None:
             temp_path.unlink(missing_ok=True)

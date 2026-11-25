@@ -78,12 +78,16 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         assert not np.allclose(symbol_channels, symbol_channels[0:1], rtol=0.0, atol=1e-8)
         assert bool(np.asarray(record.target_masks["channel_cfr"]).all())
         assert bool(np.asarray(record.target_masks["geometric_los"]).all())
-        assert record.provenance["target_semantics"]["geometric_los"].startswith(
-            "independent Mitsuba"
+        # The oracle is a digest-bound NumPy inventory cross-checked by Mitsuba, not an
+        # independent Mitsuba oracle; the test asserts that description.
+        geometric_los_semantics = record.provenance["target_semantics"]["geometric_los"]
+        assert geometric_los_semantics.startswith(
+            "digest-bound NumPy loaded-scene triangle inventory"
         )
+        assert "cross-checked by Mitsuba segment intersection" in geometric_los_semantics
         assert (
             record.target_definitions["geometric_los"].source
-            == "mitsuba_segment_intersection_oracle"
+            == "numpy_loaded_scene_triangle_inventory"
         )
         assert record.target_definitions["channel_cfr"].units.startswith("complex channel gain")
         assert not hasattr(model_inputs, "targets")
@@ -106,8 +110,10 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
     assert len(bundle.receiver_observations) == 2
     assert len(bundle.channel_views) == 1
     assert bundle.channel_views[0].delay_reference.value == "absolute_propagation_delay"
+    # One visibility target, then one derived RMS delay-spread target per link (one link here).
     assert [target.definition.semantic for target in bundle.targets] == [
-        "geometric direct-path visibility"
+        "geometric direct-path visibility",
+        "rms_delay_spread",
     ]
     assert {record.subject_layer for record in bundle.provenance_records} == {
         "oracle_paths",
@@ -120,7 +126,8 @@ def test_cpu_rt_path_retraces_and_stores_receiver_only_trajectory(tmp_path, monk
         bundle.provenance_records[0].run_identity_sha256
         == generation["rt_run_identity"]["cache_key_sha256"]
     )
-    material_state = generation["rt_run_identity"]["inputs"]["physical_config"]["material_state"]
+    # The structured scene material manifest is stored as the identity's material_config input.
+    material_state = generation["rt_run_identity"]["inputs"]["material_config"]
     assert material_state["schema"] == "sionna_rt_material_state.v1"
     assert material_state["materials"]["reflector-mat"]["properties"]["scattering_coefficient"] == [
         0.0

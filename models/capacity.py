@@ -38,7 +38,7 @@ def architecture_widths(capacity: str, architecture: str) -> tuple[int, int, int
     if match:
         if match.group(1) != architecture:
             raise ValueError("matched capacity was resolved for a different architecture")
-        widths = tuple(int(value) for value in match.groups()[1:])
+        widths = (int(match.group(2)), int(match.group(3)), int(match.group(4)))
         if any(width < 1 for width in widths):
             raise ValueError("matched widths must be positive")
         return widths
@@ -85,7 +85,7 @@ def matched_capacity_names(*, links: int, subcarriers: int) -> dict[str, int | f
         raise ValueError("matched-capacity inputs require positive links and at least eight tones")
     mlp_widths = capacity_spec("medium").mlp_widths
     target = _mlp_parameters(2 * links * subcarriers, mlp_widths)
-    result: dict[str, int | str] = {
+    result: dict[str, int | float | str] = {
         "target_parameters": target,
         "mlp_capacity": f"matched_mlp_{'_'.join(map(str, mlp_widths))}",
         "mlp_parameters": target,

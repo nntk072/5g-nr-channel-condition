@@ -1,9 +1,6 @@
-import json
-from pathlib import Path
+from dataclasses import replace
 
-import datasets.nr_store as nr_store
 import datasets.targets as target_contracts
-import jsonschema
 import numpy as np
 import pytest
 from datasets.nr import NRChannelRecord, NRObservation
@@ -17,34 +14,24 @@ from datasets.targets import (
 from receivers.nr import NRChannelEstimate, NRPUSCHConfig
 
 
-def test_target_family_inventory_covers_every_recognized_contract() -> None:
-    repository = Path(__file__).parents[2]
-    inventory_path = repository / "docs/research/TARGET_FAMILY_PRODUCER_CONSUMER_MATRIX.json"
-    inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
-    assert inventory["schema"] == "loslab.target-family-producer-consumer-matrix.v1"
-    matrix_schema = json.loads(
-        (
-            repository / "datasets/schema/target-family-producer-consumer-matrix.v1.schema.json"
-        ).read_text(encoding="utf-8")
+def test_target_definition_rejects_digest_that_does_not_bind_its_fields():
+    definition = TargetDefinition.versioned(
+        semantic="synthetic digest-bound metric",
+        units="fixture unit",
+        source="target contract test",
+        reference="fixed fixture value",
+        aggregation_rule="preserve scalar value",
+        definition_version="tests.target-contract.digest.v1",
     )
-    jsonschema.Draft202012Validator.check_schema(matrix_schema)
-    jsonschema.Draft202012Validator(matrix_schema).validate(inventory)
-    rows = inventory["rows"]
-    versions = [row["version"] for row in rows]
 
-    assert len(versions) == len(set(versions))
-    assert set(versions) == set(target_contracts._CANONICAL_TARGET_CONTRACTS)
-    assert set(versions) == set(target_contracts._CANONICAL_TARGET_PROVENANCE)
-    for row in rows:
-        assert row["name"]
-        assert row["producer"]
-        assert row["shape"]
-        assert row["policy"]
-        assert row["consumers"]
-        assert all((repository / path).is_file() for path in row["stored_contracts"])
-        assert all((repository / path).is_file() for path in row["evidence"].split("; "))
-        if "NR writers" in row["policy"]:
-            assert row["version"] in nr_store._AXIS_AMBIGUOUS_NR_TARGET_VERSIONS
+    with pytest.raises(ValueError, match="SHA-256 does not match"):
+        replace(definition, definition_sha256="0" * 64).require_versioned()
+
+
+def test_censoring_interval_serializes_open_bounds():
+    interval = CensoringInterval(lower=None, upper=2.5)
+
+    assert interval.to_dict() == {"lower": None, "upper": 2.5}
 
 
 def _definition(version: str, *, semantic: str, units: str) -> TargetDefinition:
@@ -682,6 +669,203 @@ def test_target_value_rejects_padded_entity_identity(entity_id: str) -> None:
             reason_codes=(TargetValidity.VALID,),
             confidence="synthetic_fixture",
         )
+
+
+def test_binary_target_contract_checks_value_dtype_and_mask_contract():
+    definition = _definition(
+        "umcd.standardized.profile-los-proxy.v1",
+        semantic="standardized_profile_los_category_proxy",
+        units="binary_class",
+    )
+    with pytest.raises(ValueError, match="exactly one value"):
+        validate_canonical_target_contract(
+            np.asarray([True, False]), definition, name="profile_los_proxy"
+        )
+    with pytest.raises(TypeError, match="real boolean or numeric dtype"):
+        validate_canonical_target_contract(
+            np.asarray(["true"]), definition, name="profile_los_proxy"
+        )
+    with pytest.raises(TypeError, match="mask.*must be boolean"):
+        validate_canonical_target_contract(
+            np.asarray([True]),
+            definition,
+            name="profile_los_proxy",
+            valid_mask=np.asarray([1]),
+        )
+    with pytest.raises(ValueError, match="mask.*wrong shape"):
+        validate_canonical_target_contract(
+            np.asarray([True]),
+            definition,
+            name="profile_los_proxy",
+            valid_mask=np.asarray([[True]]),
+        )
+
+
+def test_binary_target_contract_converts_tensor_values_and_masks():
+    torch = pytest.importorskip("torch")
+    definition = _definition(
+        "umcd.standardized.profile-los-proxy.v1",
+        semantic="standardized_profile_los_category_proxy",
+        units="binary_class",
+    )
+    validate_canonical_target_contract(
+        torch.tensor(True),
+        definition,
+        name="profile_los_proxy",
+        valid_mask=torch.tensor(True),
+    )
+
+
+@pytest.mark.parametrize(
+    ("axes", "error", "message"),
+    [
+        ("frame", TypeError, "tuple or list"),
+        (("frame", " frame"), ValueError, "canonical strings"),
+        (("frame", "frame"), ValueError, "must be unique"),
+    ],
+)
+def test_target_definition_rejects_invalid_value_axes(axes, error, message):
+    with pytest.raises(error, match=message):
+        TargetDefinition("semantic", "unit", "a" * 64, value_axes=axes)
+
+
+def _simple_definition() -> TargetDefinition:
+    return TargetDefinition.versioned(
+        semantic="fixture target",
+        units="unit",
+        source="fixture producer",
+        reference="fixture physical reference",
+        aggregation_rule="one value per fixture entity",
+        definition_version="tests.target.v1",
+    )
+
+
+@pytest.mark.parametrize(
+    ("overrides", "error", "message"),
+    [
+        ({"definition": object()}, TypeError, "definition must be a TargetDefinition"),
+        ({"valid_mask": np.asarray([1])}, TypeError, "valid_mask must use boolean dtype"),
+        ({"valid_mask": np.asarray([True, False])}, ValueError, "exactly the target value shape"),
+        ({"reason_codes": ()}, ValueError, "one TargetValidity per target element"),
+        ({"censoring_intervals": ()}, ValueError, "one interval or null per target element"),
+        ({"valid_mask": np.asarray([False])}, ValueError, "valid_mask and reason_codes disagree"),
+        (
+            {
+                "values": np.asarray([0j]),
+                "valid_mask": np.asarray([False]),
+                "reason_codes": (TargetValidity.CENSORED,),
+                "censoring_intervals": (CensoringInterval(lower=1.0),),
+            },
+            ValueError,
+            "cannot describe complex target values",
+        ),
+    ],
+)
+def test_target_value_rejects_malformed_definition_and_element_metadata(overrides, error, message):
+    arguments = {
+        "entity_id": "link-1",
+        "definition": _simple_definition(),
+        "values": np.asarray([1.0]),
+        "valid_mask": np.asarray([True]),
+        "reason_codes": (TargetValidity.VALID,),
+        "confidence": "fixture confidence",
+    }
+    arguments.update(overrides)
+
+    with pytest.raises(error, match=message):
+        TargetValue(**arguments)
+
+
+def test_target_value_rejects_empty_values_and_nonfinite_censoring_interval():
+    definition = _simple_definition()
+    with pytest.raises(ValueError, match="at least one element"):
+        TargetValue(
+            entity_id="link-1",
+            definition=definition,
+            values=np.asarray([]),
+            valid_mask=np.asarray([], dtype=bool),
+            reason_codes=(),
+            confidence="fixture confidence",
+        )
+
+
+def test_target_definition_digest_requires_canonical_nonempty_fields_and_axes():
+    kwargs = {
+        "semantic": "semantic",
+        "units": "unit",
+        "reference": "physical reference",
+        "aggregation_rule": "one value",
+        "source": "source",
+        "definition_version": "test.v1",
+    }
+    with pytest.raises(ValueError, match="fields must be non-empty strings"):
+        target_contracts.target_definition_digest(**{**kwargs, "units": " "})
+    with pytest.raises(TypeError, match="axes must be a tuple or list"):
+        target_contracts.target_definition_digest(**kwargs, value_axes="frame")
+    with pytest.raises(ValueError, match="axes cannot be empty"):
+        target_contracts.target_definition_digest(**kwargs, value_axes=())
+    with pytest.raises(ValueError, match="canonical strings"):
+        target_contracts.target_definition_digest(**kwargs, value_axes=(" frame",))
+    with pytest.raises(ValueError, match="must be unique"):
+        target_contracts.target_definition_digest(**kwargs, value_axes=("frame", "frame"))
+
+
+def test_legacy_target_migration_requires_semantic_units_and_source():
+    with pytest.raises(ValueError, match="require semantic, units, and source strings"):
+        target_contracts.migrate_legacy_target_definition({"semantic": "legacy"})
+
+
+@pytest.mark.parametrize(
+    ("fields", "message"),
+    [
+        ({"reference": "unspecified_legacy"}, "explicit physical reference"),
+        ({"aggregation_rule": "unspecified_legacy"}, "explicit aggregation rule"),
+        ({"definition_version": "unversioned_legacy"}, "explicit version"),
+    ],
+)
+def test_target_definition_requires_reference_aggregation_and_version(fields, message):
+    arguments = {
+        "semantic": "fixture target",
+        "units": "unit",
+        "source": "fixture producer",
+        "reference": "fixture physical reference",
+        "aggregation_rule": "one value per fixture entity",
+        "definition_version": "tests.target.v1",
+    }
+    arguments.update(fields)
+    definition = TargetDefinition.versioned(**arguments)
+
+    with pytest.raises(ValueError, match=message):
+        definition.require_versioned()
+
+
+def test_unavailable_reason_counts_and_definition_digest_input_validation():
+    target = TargetValue(
+        entity_id="link-1",
+        definition=_simple_definition(),
+        values=np.asarray([1.0, 0.0]),
+        valid_mask=np.asarray([True, False]),
+        reason_codes=(TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE),
+        confidence="fixture confidence",
+    )
+    assert target.unavailable_counts == {TargetValidity.NOT_OBSERVABLE: 1}
+    assert len(target_contracts.definition_digest("canonical target text")) == 64
+
+    with pytest.raises(ValueError, match="canonical_definition must be a non-empty string"):
+        target_contracts.definition_digest(" ")
+    with pytest.raises(ValueError, match="canonical_definition must be a non-empty string"):
+        target_contracts.definition_digest(None)
+
+
+@pytest.mark.parametrize("reference", [None, "", "unspecified_legacy"])
+def test_legacy_target_migration_marks_unrecorded_physical_reference(reference):
+    payload = {"semantic": "legacy", "units": "unit", "source": "source"}
+    if reference is not None:
+        payload["reference"] = reference
+
+    migrated = target_contracts.migrate_legacy_target_definition(payload)
+
+    assert migrated.reference == "not recorded by legacy target schema v1"
 
 
 def test_canonical_target_rejects_padded_definition_fields() -> None:

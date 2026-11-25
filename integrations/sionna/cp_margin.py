@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import math
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 
 def run_static_cp_margin_experiment(  # pragma: no cover - exercised by native CUDA integration test

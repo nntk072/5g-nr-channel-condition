@@ -13,7 +13,7 @@ from datasets.targets import (
 from datasets.targets import (
     TargetDefinition as DatasetTargetDefinition,
 )
-from evaluation.target_coverage import (
+from evaluation.scoring.target_coverage import (
     ExpectedInventoryCell,
     TargetDefinition,
     TargetObservation,
@@ -464,3 +464,122 @@ def test_target_map_bridge_revalidates_gauge_and_aggregation_digest(
 
     with pytest.raises(ValueError, match="does not match its canonical fields"):
         convert_target_map({"delay_spread": target_value})
+
+
+def _unchecked_target_value(*, values, valid_mask, censoring_intervals):
+    target = object.__new__(TargetValue)
+    object.__setattr__(target, "definition", _dataset_definition())
+    object.__setattr__(target, "values", values)
+    object.__setattr__(target, "valid_mask", valid_mask)
+    object.__setattr__(target, "censoring_intervals", censoring_intervals)
+    object.__setattr__(target, "reason_codes", (TargetValidity.VALID,) * len(values.reshape(-1)))
+    return target
+
+
+@pytest.mark.parametrize(
+    ("target_map", "message"),
+    [
+        ({"delay_spread": object()}, "must be a TargetValue"),
+        ({}, "target_map must be nonempty"),
+    ],
+)
+def test_target_map_bridge_rejects_invalid_membership_and_empty_map(target_map, message):
+    with pytest.raises((TypeError, ValueError), match=message):
+        convert_target_map(target_map)
+
+
+@pytest.mark.parametrize(
+    ("target", "message"),
+    [
+        (
+            _unchecked_target_value(
+                values=np.asarray([1.0]), valid_mask=np.asarray([True]), censoring_intervals=None
+            ),
+            "lacks normalized censoring intervals",
+        ),
+        (
+            _unchecked_target_value(
+                values=np.asarray([]), valid_mask=np.asarray([], dtype=bool), censoring_intervals=()
+            ),
+            "must contain at least one element",
+        ),
+    ],
+)
+def test_target_map_bridge_rejects_corrupted_validated_values(target, message):
+    with pytest.raises((RuntimeError, ValueError), match=message):
+        convert_target_map({"delay_spread": target})
+
+
+@pytest.mark.parametrize(
+    ("records", "definitions", "inventory", "message"),
+    [
+        ((), (DEFINITION,), _inventory(("test", "urban", "path_loss")), "records must be nonempty"),
+        (
+            (_record("r1"),),
+            (),
+            _inventory(("test", "urban", "path_loss")),
+            "target_definitions must be nonempty",
+        ),
+        ((_record("r1"),), (DEFINITION,), (), "expected_inventory must be nonempty"),
+    ],
+)
+def test_coverage_audit_requires_records_definitions_and_inventory(
+    records, definitions, inventory, message
+):
+    with pytest.raises(ValueError, match=message):
+        audit_target_coverage(records, definitions, inventory)
+
+
+@pytest.mark.parametrize("element_count", [True, 1.5, 0])
+def test_coverage_audit_requires_positive_integer_definition_size(element_count):
+    with pytest.raises(ValueError, match="element_count.*positive integer"):
+        audit_target_coverage(
+            (_record("r1"),),
+            (replace(DEFINITION, element_count=element_count),),
+            _inventory(("test", "urban", "path_loss")),
+        )
+
+
+@pytest.mark.parametrize("minimum", [True, 1.5, 0])
+def test_coverage_audit_requires_positive_integer_group_minimum(minimum):
+    cell = ExpectedInventoryCell("test", "urban", "path_loss", minimum)
+    with pytest.raises(ValueError, match="minimum_independent_groups must be a positive integer"):
+        audit_target_coverage((_record("r1"),), (DEFINITION,), (cell,))
+
+
+@pytest.mark.parametrize(
+    ("record", "observation", "message"),
+    [
+        (
+            replace(_record("r1"), independent_group_id=None),
+            None,
+            "lacks an explicit independent_group_id",
+        ),
+        (_record("r1"), _observation(target_id="unknown"), "unknown target"),
+        (
+            _record("r1"),
+            None,
+            "duplicate target",
+        ),
+        (_record("r1"), _observation(values=(True, 2.0, None)), "must have a numeric value"),
+        (
+            _record("r1"),
+            _observation(reason_codes=("unexpected", None, "missing")),
+            "cannot have a reason code",
+        ),
+        (_record("r1"), _observation(valid_mask=(1, True, False)), "must contain booleans"),
+    ],
+)
+def test_coverage_audit_rejects_invalid_record_group_and_elements(record, observation, message):
+    if message == "duplicate target":
+        record = replace(record, targets=(record.targets[0], record.targets[0]))
+    elif observation is not None:
+        record = replace(record, targets=(observation,))
+    with pytest.raises(ValueError, match=message):
+        audit_target_coverage((record,), (DEFINITION,), _inventory(("test", "urban", "path_loss")))
+
+
+def test_coverage_audit_rejects_empty_record_stratum():
+    record = replace(_record("r1"), split_id=" ")
+    with pytest.raises(ValueError, match="split_id for record 'r1' must be a nonempty string"):
+        audit_target_coverage((record,), (DEFINITION,), _inventory(("test", "urban", "path_loss")))

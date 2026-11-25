@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import evaluation.uncertainty as uncertainty
+import evaluation.scoring.uncertainty as uncertainty
 import numpy as np
 import pytest
-from evaluation.uncertainty import evaluate_grouped_regression_uncertainty
+from evaluation.scoring.uncertainty import evaluate_grouped_regression_uncertainty
 
 
 def _evaluate(*, calibration_groups: tuple[str, ...] = ("c1", "c2", "c3", "c4")):
@@ -165,9 +165,7 @@ def test_grouped_uncertainty_rejects_coercive_input_domains(field, value, except
         ("risk_coverages", (1 + 0j,), TypeError, "real numeric"),
     ],
 )
-def test_grouped_uncertainty_rejects_coercive_probability_grids(
-    field, value, exception, message
-):
+def test_grouped_uncertainty_rejects_coercive_probability_grids(field, value, exception, message):
     inputs = {
         "calibration_target": [0.0, 1.0],
         "calibration_prediction": [0.1, 0.9],
@@ -207,3 +205,105 @@ def test_group_bootstrap_rejects_excessive_draw_count_before_allocation(monkeypa
     monkeypatch.setattr(uncertainty, "_MAX_BOOTSTRAP_DRAWS", 100)
     with pytest.raises(ValueError, match="draw ceiling"):
         _evaluate()
+
+
+@pytest.mark.parametrize("value", [[], [[1.0]], [float("inf")]])
+def test_real_vector_rejects_empty_multidimensional_and_nonfinite_inputs(value):
+    with pytest.raises(ValueError):
+        uncertainty._real_vector(value, name="probe")
+
+
+def test_real_vector_rejects_values_outside_float64_range():
+    with pytest.raises(TypeError, match="representable as float64"):
+        uncertainty._real_vector([10**1000], name="probe")
+
+
+@pytest.mark.parametrize(
+    ("prediction", "scale", "groups", "message"),
+    [
+        ([0.0], [1.0, 1.0], ["a", "b"], "target, prediction, and uncertainty"),
+        ([0.0, 1.0], [1.0, 1.0], ["a"], "groups must be nonempty and match"),
+    ],
+)
+def test_vectors_reject_mismatched_prediction_scale_or_group_shapes(
+    prediction, scale, groups, message
+):
+    with pytest.raises(ValueError, match=message):
+        uncertainty._vectors([0.0, 1.0], prediction, scale, groups, name="probe")
+
+
+@pytest.mark.parametrize("value", [[], [["a"]], [""]])
+def test_canonical_string_vector_rejects_empty_or_noncanonical_shape(value):
+    with pytest.raises(ValueError):
+        uncertainty._canonical_string_vector(value, name="probe")
+
+
+@pytest.mark.parametrize(
+    ("value", "exception", "message"),
+    [
+        (None, TypeError, "must be a sequence"),
+        ((), ValueError, "must be nonempty"),
+        ((0.0,), ValueError, "finite and in"),
+        ((1.0,), ValueError, "finite and in"),
+        ((0.5, 0.5), ValueError, "must be unique"),
+    ],
+)
+def test_probability_vector_rejects_invalid_bounds_and_duplicates(value, exception, message):
+    with pytest.raises(exception, match=message):
+        uncertainty._probability_vector(value, name="probe", upper_inclusive=False)
+
+
+def test_conformal_order_statistic_validates_level_and_unbounded_rank():
+    with pytest.raises(ValueError, match="coverage levels"):
+        uncertainty._conformal_order_statistic(np.asarray([0.2]), 1.0)
+    assert uncertainty._conformal_order_statistic(np.asarray([0.2]), 0.9) == float("inf")
+
+
+def test_group_bootstrap_single_group_is_unassessable_without_draws():
+    result = uncertainty._group_bootstrap_rmse(
+        np.asarray([0.2, 0.4]), np.asarray(["one", "one"]), seed=0, draws=1
+    )
+    assert result["group_macro_rmse_ci95"] is None
+    assert result["bootstrap_draws"] == 0
+
+
+@pytest.mark.parametrize("draws", [True, 99])
+def test_group_bootstrap_rejects_invalid_draw_count(draws):
+    with pytest.raises(ValueError, match="integer >= 100"):
+        uncertainty._group_bootstrap_rmse(
+            np.asarray([0.2, 0.4]), np.asarray(["one", "two"]), seed=0, draws=draws
+        )
+
+
+def test_group_bootstrap_rejects_peak_index_limit(monkeypatch):
+    monkeypatch.setattr(uncertainty, "_MAX_BOOTSTRAP_PEAK_INDEX_CELLS", 1)
+    with pytest.raises(ValueError, match="peak ceiling"):
+        _evaluate()
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "exception", "message"),
+    [
+        ("seed", True, ValueError, "seed must be"),
+        ("seed", -1, ValueError, "seed must be"),
+        ("group_unit", "unknown", ValueError, "group_unit must be"),
+        ("bootstrap_draws", True, TypeError, "bootstrap_draws must be"),
+        ("bootstrap_draws", 99, ValueError, "bootstrap_draws must be"),
+        ("test_stratum", ["only-one"], ValueError, "test_stratum must"),
+    ],
+)
+def test_grouped_uncertainty_rejects_invalid_evaluation_options(field, value, exception, message):
+    options = {
+        "calibration_target": [0.0, 1.0],
+        "calibration_prediction": [0.0, 1.0],
+        "calibration_scale": [1.0, 1.0],
+        "calibration_group": ["cal-a", "cal-b"],
+        "test_target": [2.0, 3.0],
+        "test_prediction": [2.0, 3.0],
+        "test_scale": [1.0, 1.0],
+        "test_group": ["test-a", "test-b"],
+        "bootstrap_draws": 100,
+    }
+    options[field] = value
+    with pytest.raises(exception, match=message):
+        evaluate_grouped_regression_uncertainty(**options)

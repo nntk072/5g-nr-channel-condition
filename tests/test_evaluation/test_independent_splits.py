@@ -1,13 +1,13 @@
 import json
 
 import pytest
-from evaluation.independent_splits import (
+from datasets.independent_splits import (
     IndependentSplit,
     audit_group_leakage,
     freeze_split_lock,
     make_independent_split,
 )
-from evaluation.spatial_audit import audit_spatial_buffer
+from evaluation.audits.spatial_audit import audit_spatial_buffer
 
 
 def records():
@@ -107,7 +107,13 @@ def test_split_rejects_non_string_seed_and_identity_field_names():
         ({None: "train"}, {"scene-a": "train"}, "seed", "scene_group_id", "sample assignment IDs"),
         ({"sample-a": "train"}, {17: "train"}, "seed", "scene_group_id", "group assignment IDs"),
         ({"sample-a": "unknown"}, {"scene-a": "train"}, "seed", "scene_group_id", "split names"),
-        ({"sample-a": "train"}, {"scene-a": "train"}, None, "scene_group_id", "seed and group_field"),
+        (
+            {"sample-a": "train"},
+            {"scene-a": "train"},
+            None,
+            "scene_group_id",
+            "seed and group_field",
+        ),
     ],
 )
 def test_split_value_object_rejects_malformed_lock_fields(

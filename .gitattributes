@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.ipynb linguist-generated=true
+*.npz binary
+*.pdf binary

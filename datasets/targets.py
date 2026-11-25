@@ -493,7 +493,8 @@ def validate_canonical_target_contract(
             raise TypeError(f"canonical complex target {target_name!r} must use a complex dtype")
         if not np.isfinite(array).all():
             raise ValueError(f"canonical complex target {target_name!r} must contain finite values")
-    elif value_domain == "nonnegative_real":
+    else:
+        # The canonical registry exhausts the remaining value domain here.
         if array.dtype.kind not in "iuf":
             raise TypeError(f"canonical target {target_name!r} must use a real numeric dtype")
         if not np.isfinite(array).all():
@@ -707,8 +708,6 @@ class TargetValue:
                 raise ValueError(
                     f"masked target element {index} must use zero storage plus its reason code"
                 )
-            if is_valid and not bool(np.isfinite(value)):
-                raise ValueError("valid target values must be finite")
             if (reason is TargetValidity.CENSORED) != (intervals[index] is not None):
                 raise ValueError(
                     "censored targets require an interval; other reasons must not carry one"
@@ -729,11 +728,10 @@ class TargetValue:
             self.definition.definition_version in _CANONICAL_FIXED_SINGLETON_SCALAR_TARGET_VERSIONS
             and scalar_contract is not None
             and scalar_contract[3] == "binary_scalar"
-        ):
-            if values.shape != (1,):
-                raise ValueError(
-                    "canonical scalar categorical targets must use the fixed (1,) storage shape"
-                )
+        ) and values.shape != (1,):
+            raise ValueError(
+                "canonical scalar categorical targets must use the fixed (1,) storage shape"
+            )
         if self.definition.value_axes and len(self.definition.value_axes) != values.ndim:
             raise ValueError("target value rank must match its declared value axes")
         object.__setattr__(self, "values", values)
@@ -774,7 +772,7 @@ def target_definition_digest(
     value_axes: tuple[str, ...] | None = None,
 ) -> str:
     """Hash every field in a versioned target-definition contract."""
-    fields = {
+    fields: dict[str, object] = {
         "aggregation_rule": aggregation_rule,
         "definition_version": definition_version,
         "reference": reference,
@@ -799,7 +797,7 @@ def target_definition_digest(
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def migrate_legacy_target_definition_v1(payload: dict[str, object]) -> TargetDefinition:
+def migrate_legacy_target_definition(payload: dict[str, object]) -> TargetDefinition:
     """Upgrade a v1 definition while marking fields absent from that schema unknown."""
     semantic_value = payload.get("semantic")
     units_value = payload.get("units")

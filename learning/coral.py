@@ -76,7 +76,7 @@ def fit_coral_mlp(
     best_state = None
     best_loss = float("inf")
     patience = 0
-    for epoch in range(epochs):
+    for epoch in range(epochs):  # noqa: B007 - the last value is reported below
         model.train()
         subset = np.concatenate(
             [

@@ -52,8 +52,9 @@ def test_grid_invalid():
 def test_rt_data_request_binds_effective_path_solver_switches(monkeypatch):
     import integrations.sionna.adapter as adapter
 
-    monkeypatch.setattr(adapter, "package_source_sha256", lambda: "a" * 64)
-    monkeypatch.setattr(adapter, "versions", lambda: {"sionna-rt": "2.2.0"})
+    for module in (adapter.raytrace, adapter.generate):
+        monkeypatch.setattr(module, "package_source_sha256", lambda: "a" * 64)
+        monkeypatch.setattr(module, "versions", lambda: {"sionna-rt": "2.2.0"})
     scene = RayScene(max_depth=4, max_num_paths_per_src=1234)
     inventory = types.SimpleNamespace(
         scene_geometry_sha256="b" * 64,

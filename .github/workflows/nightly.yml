@@ -1,0 +1,60 @@
+name: Nightly full coverage
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  neural:
+    name: Full neural, boosted and native PHY coverage (Python 3.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install project and development dependencies
+        run: uv sync --locked --extra dev --extra boosting --extra sionna --no-install-package torch
+
+      - name: Install CPU-only PyTorch
+        run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Run full suite with branch coverage
+        id: neural
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          ./tools/check neural 2>&1 | tee neural-test-output.txt
+
+      - name: Keep full test output and coverage data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-neural-test-output
+          path: |
+            neural-test-output.txt
+            .coverage*
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail the job when the full coverage gate failed
+        if: steps.neural.outcome != 'success'
+        run: exit 1

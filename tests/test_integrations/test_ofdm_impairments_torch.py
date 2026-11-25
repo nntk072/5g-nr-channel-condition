@@ -1,5 +1,6 @@
 """CPU-level checks for optional PyTorch waveform impairment helpers."""
 
+import builtins
 import math
 
 import pytest
@@ -7,6 +8,7 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from integrations.sionna.ofdm_impairments import (  # noqa: E402
+    NRWaveformImpairments,
     apply_fractional_timing_offset,
     apply_integer_timing_offset,
     apply_iq_imbalance,
@@ -19,11 +21,288 @@ from integrations.sionna.ofdm_impairments import (  # noqa: E402
 )
 
 
+@pytest.mark.parametrize(
+    ("settings", "error", "message"),
+    [
+        ({"cfo_hz": True}, TypeError, "cfo_hz must be a real number"),
+        ({"tx_iq_gain_imbalance_db": float("inf")}, ValueError, "must be finite"),
+        (
+            {"tx_phase_noise_linewidth_hz": True},
+            ValueError,
+            "must be finite and nonnegative",
+        ),
+        (
+            {"rx_phase_noise_linewidth_hz": -1.0},
+            ValueError,
+            "must be finite and nonnegative",
+        ),
+        ({"integer_timing_offset_samples": True}, TypeError, "must be an integer"),
+        (
+            {"fractional_timing_offset_samples": -1.0},
+            ValueError,
+            "magnitude below one",
+        ),
+    ],
+)
+def test_waveform_impairment_settings_reject_invalid_values(settings, error, message) -> None:
+    with pytest.raises(error, match=message):
+        NRWaveformImpairments(**settings)
+
+
+def test_valid_waveform_impairment_settings_allow_fractional_timing() -> None:
+    settings = NRWaveformImpairments(fractional_timing_offset_samples=0.5)
+
+    assert settings.fractional_timing_offset_samples == 0.5
+
+
+@pytest.mark.parametrize(
+    ("waveform", "error", "message"),
+    [
+        ([1.0 + 0j], TypeError, "complex PyTorch tensor"),
+        (torch.ones(2), TypeError, "complex PyTorch tensor"),
+        (torch.empty(0, dtype=torch.complex64), ValueError, "non-empty final time-sample axis"),
+        (
+            torch.tensor([complex(float("nan"), 0)], dtype=torch.complex64),
+            ValueError,
+            "finite samples",
+        ),
+    ],
+)
+def test_waveform_helpers_reject_invalid_input_tensors(waveform, error, message) -> None:
+    with pytest.raises(error, match=message):
+        apply_phase_noise(waveform, phase_noise_rad=0.0)
+
+
+@pytest.mark.parametrize(
+    ("arguments", "error", "message"),
+    [
+        ({"sampling_frequency_hz": True}, ValueError, "sampling_frequency_hz"),
+        ({"symbol_length_samples": True}, ValueError, "symbol_length_samples"),
+        ({"path_delays_samples": [0.5]}, ValueError, "path_delays_samples must contain integers"),
+        ({"path_delays_samples": [-1]}, ValueError, "path delays must be nonnegative"),
+        ({"path_delays_samples": []}, ValueError, "non-empty one-dimensional sequence"),
+        ({"path_delays_samples": [[0]]}, ValueError, "non-empty one-dimensional sequence"),
+        ({"path_coefficients": [1.0]}, TypeError, "complex-valued"),
+        ({"path_coefficients": [1.0 + 0j, 0.5 + 0j]}, ValueError, "equal lengths"),
+        ({"path_dopplers_hz": [float("nan")]}, ValueError, "must be finite"),
+    ],
+)
+def test_time_varying_multipath_validates_channel_controls(arguments, error, message) -> None:
+    defaults = {
+        "path_coefficients": [1.0 + 0j],
+        "path_delays_samples": [0],
+        "path_dopplers_hz": [0.0],
+        "sampling_frequency_hz": 1_000.0,
+    }
+    defaults.update(arguments)
+    with pytest.raises(error, match=message):
+        apply_time_varying_multipath(torch.ones(8, dtype=torch.complex64), **defaults)
+
+
+@pytest.mark.parametrize(
+    ("arguments", "error", "message"),
+    [
+        ({"sample_count": True}, ValueError, "sample_count"),
+        ({"sampling_frequency_hz": True}, ValueError, "sampling_frequency_hz"),
+        ({"linewidth_hz": True}, ValueError, "linewidth_hz"),
+        ({"initial_phase_rad": float("nan")}, ValueError, "initial_phase_rad"),
+        ({"generator": object()}, TypeError, "torch.Generator"),
+        ({"leading_shape": [2]}, ValueError, "leading_shape"),
+        ({"leading_shape": (True,)}, ValueError, "leading_shape"),
+        ({"device": ""}, ValueError, "device"),
+    ],
+)
+def test_wiener_phase_noise_validates_generator_contract(arguments, error, message) -> None:
+    settings = {
+        "sample_count": 4,
+        "sampling_frequency_hz": 1_000.0,
+        "linewidth_hz": 10.0,
+        "generator": torch.Generator().manual_seed(7),
+    }
+    settings.update(arguments)
+    with pytest.raises(error, match=message):
+        generate_wiener_phase_noise_rad(**settings)
+
+
+def test_single_sample_wiener_phase_noise_preserves_initial_phase() -> None:
+    phase = generate_wiener_phase_noise_rad(
+        1,
+        sampling_frequency_hz=1_000.0,
+        linewidth_hz=10.0,
+        generator=torch.Generator().manual_seed(7),
+        leading_shape=(2,),
+        initial_phase_rad=0.25,
+    )
+
+    torch.testing.assert_close(phase, torch.full((2, 1), 0.25))
+
+
+def test_residual_cfo_rejects_unbroadcastable_shape_and_unrepresentable_phase() -> None:
+    waveform = torch.ones((2, 3, 4), dtype=torch.complex64)
+    with pytest.raises(ValueError, match="dimensions must broadcast"):
+        apply_residual_cfo(
+            waveform,
+            cfo_hz=torch.ones((2, 3, 4)),
+            sampling_frequency_hz=1_000.0,
+        )
+    with pytest.raises(ValueError, match="sampling_frequency_hz must be finite"):
+        apply_residual_cfo(
+            waveform,
+            cfo_hz=1.0,
+            sampling_frequency_hz=float("nan"),
+        )
+    with pytest.raises(ValueError, match="phase trajectory is not representable"):
+        apply_residual_cfo(
+            torch.ones(2, dtype=torch.complex64),
+            cfo_hz=1e38,
+            sampling_frequency_hz=1.0,
+        )
+
+
+def test_time_varying_multipath_skips_paths_delayed_past_capture() -> None:
+    waveform = torch.ones(8, dtype=torch.complex64)
+    received = apply_time_varying_multipath(
+        waveform,
+        path_coefficients=[1.0 + 0j],
+        path_delays_samples=[8],
+        path_dopplers_hz=[0.0],
+        sampling_frequency_hz=1_000.0,
+    )
+
+    torch.testing.assert_close(received, torch.zeros_like(waveform))
+
+
+def test_timing_offsets_cover_identity_and_reject_invalid_controls() -> None:
+    waveform = torch.arange(8, dtype=torch.float32).to(torch.complex64)
+    assert torch.equal(apply_integer_timing_offset(waveform, offset_samples=0), waveform)
+    assert torch.equal(apply_fractional_timing_offset(waveform, offset_samples=0.0), waveform)
+    with pytest.raises(TypeError, match="offset_samples must be an integer"):
+        apply_integer_timing_offset(waveform, offset_samples=True)
+    with pytest.raises(TypeError, match="kernel_radius must be an integer"):
+        apply_fractional_timing_offset(waveform, offset_samples=0.25, kernel_radius=True)
+    with pytest.raises(ValueError, match="kernel_radius must be in"):
+        apply_fractional_timing_offset(waveform, offset_samples=0.25, kernel_radius=1)
+
+
+def test_waveform_impairment_helpers_report_missing_torch(monkeypatch) -> None:
+    original_import = builtins.__import__
+
+    def import_without_torch(name, *args, **kwargs):
+        if name == "torch":
+            raise ImportError("test simulated absent torch")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_torch)
+    with pytest.raises(RuntimeError, match="Install PyTorch to apply"):
+        apply_phase_noise(object(), phase_noise_rad=0.0)
+    with pytest.raises(RuntimeError, match="Install PyTorch to generate"):
+        generate_wiener_phase_noise_rad(
+            1, sampling_frequency_hz=1_000.0, linewidth_hz=0.0, generator=None
+        )
+
+
+def test_residual_cfo_rejects_conversion_and_output_overflow() -> None:
+    with pytest.raises(TypeError, match="real numeric values"):
+        apply_residual_cfo(
+            torch.ones(2, dtype=torch.complex64),
+            cfo_hz="invalid",
+            sampling_frequency_hz=1_000.0,
+        )
+    large = torch.tensor([complex(torch.finfo(torch.float32).max, torch.finfo(torch.float32).max)])
+    with pytest.raises(ValueError, match="waveform is not finite"):
+        apply_residual_cfo(
+            large,
+            cfo_hz=0.0,
+            sampling_frequency_hz=1_000.0,
+            initial_phase_rad=math.pi / 4.0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("delays", "coefficients", "dopplers", "error", "message"),
+    [
+        ([0j], [1.0 + 0j], [0.0], TypeError, "delays_samples must contain integers"),
+        ([0], [[1.0 + 0j]], [0.0], ValueError, "must be one-dimensional"),
+    ],
+)
+def test_time_varying_multipath_rejects_invalid_path_shapes(
+    delays, coefficients, dopplers, error, message
+) -> None:
+    with pytest.raises(error, match=message):
+        apply_time_varying_multipath(
+            torch.ones(8, dtype=torch.complex64),
+            path_coefficients=coefficients,
+            path_delays_samples=delays,
+            path_dopplers_hz=dopplers,
+            sampling_frequency_hz=1_000.0,
+        )
+
+
+@pytest.mark.parametrize(
+    ("arguments", "message"),
+    [
+        ({"fft_size": 0}, "fft_size"),
+        ({"cyclic_prefix_length": 0}, "cyclic_prefix_length"),
+        ({"guard_samples": True}, "guard_samples must be an integer"),
+        ({"guard_samples": 2}, "guard_samples must be in"),
+        ({"sampling_frequency_hz": float("nan")}, "sampling_frequency_hz"),
+    ],
+)
+def test_cyclic_prefix_cfo_estimator_rejects_bad_controls(arguments, message) -> None:
+    settings = {
+        "fft_size": 4,
+        "cyclic_prefix_length": 2,
+        "sampling_frequency_hz": 1_000.0,
+    }
+    settings.update(arguments)
+    with pytest.raises((TypeError, ValueError), match=message):
+        estimate_residual_cfo_from_cp(torch.ones(12, dtype=torch.complex64), **settings)
+
+
+@pytest.mark.parametrize(
+    ("arguments", "message"),
+    [
+        ({"fft_size": 0}, "fft_size"),
+        ({"cyclic_prefix_length": 0}, "cyclic_prefix_length"),
+        ({"max_offset_samples": True}, "max_offset_samples must be an integer"),
+        ({"max_offset_samples": 12}, "max_offset_samples must be nonnegative"),
+        ({"guard_samples": True}, "guard_samples must be an integer"),
+        ({"guard_samples": 2}, "guard_samples must be in"),
+    ],
+)
+def test_cyclic_prefix_timing_estimator_rejects_bad_controls(arguments, message) -> None:
+    settings = {
+        "fft_size": 4,
+        "cyclic_prefix_length": 2,
+        "max_offset_samples": 1,
+    }
+    settings.update(arguments)
+    with pytest.raises((TypeError, ValueError), match=message):
+        estimate_integer_timing_offset_from_cp(torch.ones(12, dtype=torch.complex64), **settings)
+
+
+def test_cyclic_prefix_estimators_reject_zero_energy_frames() -> None:
+    waveform = torch.zeros(12, dtype=torch.complex64)
+    with pytest.raises(ValueError, match="insufficient energy"):
+        estimate_residual_cfo_from_cp(
+            waveform,
+            fft_size=4,
+            cyclic_prefix_length=2,
+            sampling_frequency_hz=1_000.0,
+        )
+    with pytest.raises(ValueError, match="insufficient signal energy"):
+        estimate_integer_timing_offset_from_cp(
+            waveform,
+            fft_size=4,
+            cyclic_prefix_length=2,
+            max_offset_samples=1,
+        )
+
+
 def test_time_varying_paths_can_appear_and_disappear_at_receive_samples() -> None:
     waveform = torch.arange(1, 9, dtype=torch.float64).to(torch.complex128)
     activity = torch.tensor(
-        [[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-         [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.5, 0.0]],
+        [[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.5, 0.0]],
         dtype=torch.float64,
     )
 

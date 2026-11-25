@@ -10,6 +10,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
+import datasets.public_release as release
 import pytest
 from datasets.public_release import (
     PUBLIC_RELEASE_SIGNATURE_NAMESPACE,
@@ -527,3 +528,233 @@ def test_public_release_hashes_the_exact_bytes_written_to_zip(tmp_path, monkeypa
 
     assert mutated
     assert archive_path.read_bytes() == b"previous archive remains intact"
+
+
+def test_stable_release_reader_rejects_nonregular_and_oversized_files(tmp_path) -> None:
+    with pytest.raises(ValueError, match="single-link regular file"):
+        release._read_stable_release_file(tmp_path, limit=10, label="fixture")
+    path = tmp_path / "large.bin"
+    path.write_bytes(b"payload")
+    with pytest.raises(ValueError, match="exceeds 2 bytes"):
+        release._read_stable_release_file(path, limit=2, label="fixture")
+
+
+def test_stable_release_reader_rejects_identity_change_before_open(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "input.bin"
+    path.write_bytes(b"payload")
+    real_fstat = os.fstat
+
+    def changed_identity(descriptor: int):
+        actual = real_fstat(descriptor)
+        return os.stat_result(
+            (
+                actual.st_mode,
+                actual.st_ino + 1,
+                actual.st_dev,
+                actual.st_nlink,
+                actual.st_uid,
+                actual.st_gid,
+                actual.st_size,
+                actual.st_atime,
+                actual.st_mtime,
+                actual.st_ctime,
+            )
+        )
+
+    monkeypatch.setattr(release.os, "fstat", changed_identity)
+    with pytest.raises(ValueError, match="changed while opening"):
+        release._read_stable_release_file(path, limit=20, label="fixture")
+
+
+def test_stable_release_reader_rejects_growth_and_mutation_during_read(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "input.bin"
+    path.write_bytes(b"x")
+    monkeypatch.setattr(release.os, "read", lambda _descriptor, _size: b"xxx")
+    with pytest.raises(ValueError, match="exceeds 2 bytes"):
+        release._read_stable_release_file(path, limit=2, label="fixture")
+
+    monkeypatch.undo()
+    real_fstat = os.fstat
+    calls = 0
+
+    def changed_snapshot(descriptor: int):
+        nonlocal calls
+        calls += 1
+        actual = real_fstat(descriptor)
+        if calls == 2:
+            return os.stat_result(
+                (
+                    actual.st_mode,
+                    actual.st_ino,
+                    actual.st_dev,
+                    actual.st_nlink,
+                    actual.st_uid,
+                    actual.st_gid,
+                    actual.st_size,
+                    actual.st_atime,
+                    actual.st_mtime + 1,
+                    actual.st_ctime,
+                )
+            )
+        return actual
+
+    monkeypatch.setattr(release.os, "fstat", changed_snapshot)
+    with pytest.raises(ValueError, match="changed while being read"):
+        release._read_stable_release_file(path, limit=20, label="fixture")
+
+
+def test_open_release_artifact_rejects_missing_dir_fd_support(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root_fd = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+    monkeypatch.setattr(release.os, "supports_dir_fd", set())
+    try:
+        with (
+            pytest.raises(ValueError, match="lacks safe directory-relative"),
+            release._open_release_artifact(root_fd, release.PurePosixPath("data/item.bin")),
+        ):
+            pass
+    finally:
+        os.close(root_fd)
+
+
+def test_public_release_rejects_nonfinite_manifest_json(tmp_path) -> None:
+    manifest_path = tmp_path / "release.json"
+    manifest_path.write_text('{"value":NaN}', encoding="utf-8")
+    with pytest.raises(ValueError, match="non-finite JSON value"):
+        export_public_release(
+            tmp_path,
+            manifest_path,
+            tmp_path / "release.zip",
+            manifest_signature_path=tmp_path / "release.json.sig",
+            trusted_allowed_signers_path=tmp_path / "allowed_signers",
+            signer_id=_RELEASE_SIGNER_ID,
+        )
+
+
+def _mock_export_signature(monkeypatch: pytest.MonkeyPatch, signature_bytes: bytes) -> None:
+    from evaluation.acceptance import signed_attestation
+
+    monkeypatch.setattr(
+        signed_attestation,
+        "verify_openssh_signature_for_bytes",
+        lambda *_args, **kwargs: {
+            "signature_sha256": hashlib.sha256(signature_bytes).hexdigest(),
+            "allowed_signers_sha256": "e" * 64,
+            "signer_id": kwargs["signer_id"],
+            "namespace": kwargs["namespace"],
+        },
+    )
+
+
+def test_public_release_detects_signature_changed_after_verification(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest_path = tmp_path / "release.json"
+    manifest_path.write_text(json.dumps(_manifest(b"payload")), encoding="utf-8")
+    signature_path = tmp_path / "release.json.sig"
+    signature_path.write_bytes(b"changed-signature")
+    trust_path = tmp_path / "allowed_signers"
+    trust_path.write_text("fixture trust", encoding="utf-8")
+    _mock_export_signature(monkeypatch, b"verified-signature")
+
+    with pytest.raises(ValueError, match="signature changed after verification"):
+        export_public_release(
+            tmp_path,
+            manifest_path,
+            tmp_path / "release.zip",
+            manifest_signature_path=signature_path,
+            trusted_allowed_signers_path=trust_path,
+            signer_id=_RELEASE_SIGNER_ID,
+        )
+
+
+def test_public_release_refuses_archive_overwrite_of_manifest(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest_path = tmp_path / "release.json"
+    manifest_path.write_text(json.dumps(_manifest(b"payload")), encoding="utf-8")
+    signature_path = tmp_path / "release.json.sig"
+    signature_path.write_bytes(b"signature")
+    trust_path = tmp_path / "allowed_signers"
+    trust_path.write_text("fixture trust", encoding="utf-8")
+    _mock_export_signature(monkeypatch, b"signature")
+
+    with pytest.raises(ValueError, match="cannot overwrite an input artifact or manifest"):
+        export_public_release(
+            tmp_path,
+            manifest_path,
+            manifest_path,
+            manifest_signature_path=signature_path,
+            trusted_allowed_signers_path=trust_path,
+            signer_id=_RELEASE_SIGNER_ID,
+        )
+
+
+def test_public_release_rejects_artifact_symlink_resolving_outside_source(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest_path = tmp_path / "release.json"
+    manifest_path.write_text(json.dumps(_manifest(b"payload")), encoding="utf-8")
+    signature_path = tmp_path / "release.json.sig"
+    signature_path.write_bytes(b"signature")
+    trust_path = tmp_path / "allowed_signers"
+    trust_path.write_text("fixture trust", encoding="utf-8")
+    outside = tmp_path.parent / f"{tmp_path.name}-outside.bin"
+    outside.write_bytes(b"payload")
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data/sample.bin").symlink_to(outside)
+    _mock_export_signature(monkeypatch, b"signature")
+
+    with pytest.raises(ValueError, match="artifact path resolves outside source_root"):
+        export_public_release(
+            tmp_path,
+            manifest_path,
+            tmp_path / "release.zip",
+            manifest_signature_path=signature_path,
+            trusted_allowed_signers_path=trust_path,
+            signer_id=_RELEASE_SIGNER_ID,
+        )
+
+
+def test_public_release_requires_manifest_inside_source_root(tmp_path) -> None:
+    outside_manifest = tmp_path.parent / f"{tmp_path.name}-release.json"
+    outside_manifest.write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="manifest must be inside source_root"):
+        export_public_release(tmp_path, outside_manifest, tmp_path / "release.zip")
+
+
+def test_public_release_rejects_manifest_symlink_traversal(tmp_path) -> None:
+    outside_manifest = tmp_path.parent / f"{tmp_path.name}-outside.json"
+    outside_manifest.write_text("{}", encoding="utf-8")
+    linked_manifest = tmp_path / "release.json"
+    linked_manifest.symlink_to(outside_manifest)
+    with pytest.raises(ValueError, match="manifest path cannot traverse outside"):
+        export_public_release(tmp_path, linked_manifest, tmp_path / "release.zip")
+
+
+def test_public_release_requires_safe_directory_relative_opens(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest_path = tmp_path / "release.json"
+    manifest_path.write_text(json.dumps(_manifest(b"payload")), encoding="utf-8")
+    signature_path = tmp_path / "release.json.sig"
+    signature_path.write_bytes(b"signature")
+    trust_path = tmp_path / "allowed_signers"
+    trust_path.write_text("fixture trust", encoding="utf-8")
+    _mock_export_signature(monkeypatch, b"signature")
+    monkeypatch.setattr(release.os, "supports_dir_fd", set())
+
+    with pytest.raises(ValueError, match="lacks safe directory-relative"):
+        export_public_release(
+            tmp_path,
+            manifest_path,
+            tmp_path / "release.zip",
+            manifest_signature_path=signature_path,
+            trusted_allowed_signers_path=trust_path,
+            signer_id=_RELEASE_SIGNER_ID,
+        )

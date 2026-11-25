@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from evaluation.statistics import paired_group_regression_comparison
+from evaluation.scoring.statistics import paired_group_regression_comparison
 
 
 def test_group_bootstrap_preserves_paired_methods_and_equal_group_weight():

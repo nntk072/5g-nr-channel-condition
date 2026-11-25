@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 from numbers import Integral, Real
-from typing import Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -56,7 +56,7 @@ def nr_pbch_receive_ofdm(
 ) -> PBCHOFDMReception:
     """Decode one CP-OFDM SSB whose cell, candidate, and timing are known.
 
-    ``noise_variance`` is complex-sample variance (E[|n|^2]); the unitary FFT
+    ``noise_variance`` is complex-sample variance (``E[|n|^2]``); the unitary FFT
     preserves this variance. It may be a scalar shared by all receive chains
     or one variance per chain. PBCH-DM-RS is independently interpolated across
     frequency for each data-bearing SSB symbol and chain, then combined with

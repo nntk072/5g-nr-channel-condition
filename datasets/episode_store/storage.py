@@ -1,0 +1,1013 @@
+"""Immutable JSON, NPZ, and manifest storage helpers for episode bundles."""
+
+from __future__ import annotations
+
+import hashlib
+import io
+import json
+import os
+import stat
+import tempfile
+import zipfile
+from collections.abc import Iterator
+from dataclasses import asdict, dataclass
+from functools import lru_cache
+from pathlib import Path, PurePosixPath
+from typing import TYPE_CHECKING, Any, cast
+
+import jsonschema
+import numpy as np
+from receivers.nr import NRChannelEstimate, NRPUSCHConfig
+
+from ..channel_view import PhysicalChannelView
+from ..counterfactual import DirectPathAblation, validate_direct_path_ablation_source
+from ..network import (
+    AntennaArraySpec,
+    DirectedLink,
+    LinkDirection,
+    LinkRole,
+    NetworkEpisode,
+    NetworkNode,
+    NodePoseTimeline,
+    NodeRole,
+)
+from ..nr import (
+    LinkedNRObservation,
+    NRObservation,
+)
+from ..observations import (
+    FrequencyDomainModelInputs,
+    FrequencyDomainObservation,
+    LinkedFrequencyDomainObservation,
+)
+from ..path_oracle import (
+    PATH_COEFFICIENT_CONVENTION,
+    PathOracleTable,
+    PathSolveStatus,
+    rms_delay_spread_target,
+)
+from ..provenance import UMCDRunProvenance
+from ..targets import (
+    TargetValue,
+)
+from ..time_axis import MultiSourceTimeAlignment, TimeAxisAlignment
+
+if TYPE_CHECKING:
+    from ..scenario_gbsm import ScenarioGBSMRecord
+
+
+_EPISODE_METADATA_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[1] / "schema/umcd-episode-metadata.v1.schema.json"
+)
+
+
+_DIRECT_PATH_ABLATION_SCHEMA_V2_PATH = (
+    Path(__file__).resolve().parents[1] / "schema/umcd-direct-path-ablation-layer.v2.schema.json"
+)
+
+
+_READ_ONLY_UMCD_TARGET_VERSIONS = frozenset(
+    {
+        "umcd.standardized.effective-cfr.v1",
+        "umcd.tdl-pusch.effective-cfr.v1",
+        "umcd.rt-trajectory.absolute-cfr.v1",
+        "umcd.rt-trajectory.symbol-cfr.v1",
+        "umcd.rt-trajectory.geometric-los.v1",
+        "umcd.rt-trajectory.geometric-los.v2",
+        "umcd.f03_rt_static.direct_visibility.v1",
+        "umcd.f04_rt_dynamic.direct_visibility.v2",
+        "umcd.f04_rt_dynamic.direct_visibility.v3",
+    }
+)
+
+
+@lru_cache(maxsize=1)
+def _episode_metadata_validator() -> jsonschema.Draft202012Validator:
+    schema = json.loads(_EPISODE_METADATA_SCHEMA_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    return jsonschema.Draft202012Validator(schema)
+
+
+@lru_cache(maxsize=1)
+def _direct_path_ablation_v2_validator() -> jsonschema.Draft202012Validator:
+    schema = json.loads(_DIRECT_PATH_ABLATION_SCHEMA_V2_PATH.read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator.check_schema(schema)
+    return jsonschema.Draft202012Validator(schema)
+
+
+@dataclass(frozen=True, slots=True)
+class EpisodeBundle:
+    """Episode with separately stored receiver, oracle, channel, and target views."""
+
+    episode: NetworkEpisode
+    path_oracle: PathOracleTable | None
+    channel_views: tuple[PhysicalChannelView, ...]
+    targets: tuple[TargetValue, ...]
+    receiver_observations: tuple[LinkedNRObservation | LinkedFrequencyDomainObservation, ...] = ()
+    provenance_records: tuple[UMCDRunProvenance, ...] = ()
+    scenario_gbsm_records: tuple[ScenarioGBSMRecord, ...] = ()
+    direct_path_ablations: tuple[DirectPathAblation, ...] = ()
+
+    def __post_init__(self) -> None:
+        channels, targets = tuple(self.channel_views), tuple(self.targets)
+        observations = tuple(self.receiver_observations)
+        provenance = tuple(self.provenance_records)
+        scenario_gbsm_records = tuple(self.scenario_gbsm_records)
+        direct_path_ablations = tuple(self.direct_path_ablations)
+        if self.path_oracle is not None:
+            self.path_oracle.validate_for(self.episode)
+        for view in channels:
+            view.validate_for(self.episode)
+        if len({view.view_id for view in channels}) != len(channels):
+            raise ValueError("channel view IDs must be unique within an episode bundle")
+        if len({(target.entity_id, target.definition.semantic) for target in targets}) != len(
+            targets
+        ):
+            raise ValueError("target semantic must be unique per episode/link entity")
+        valid_entities = {self.episode.episode_id, *(link.link_id for link in self.episode.links)}
+        if any(target.entity_id not in valid_entities for target in targets):
+            raise ValueError("target entity_id must reference the episode or one of its links")
+        link_ids = {link.link_id for link in self.episode.links}
+        frame_count = len(self.episode.frame_times_s)
+        frame_visibility_versions = {
+            "umcd.rt-trajectory.geometric-los.v1",
+            "umcd.rt-trajectory.geometric-los.v2",
+            "umcd.f04_rt_dynamic.direct_visibility.v2",
+            "umcd.f04_rt_dynamic.direct_visibility.v3",
+            "umcd.f04_rt_dynamic.direct_visibility.v4",
+        }
+        static_visibility_versions = {
+            "umcd.f03_rt_static.direct_visibility.v1",
+            "umcd.f03_rt_static.direct_visibility.v2",
+        }
+        per_frame_numeric_target_versions = {"umcd.rms_delay_spread.v2"}
+        for target in targets:
+            version = target.definition.definition_version
+            if "effective_subcarrier" in target.definition.value_axes:
+                subcarrier_axis = target.definition.value_axes.index("effective_subcarrier")
+                if target.values.shape[subcarrier_axis] != len(self.episode.subcarrier_offsets_hz):
+                    raise ValueError(
+                        "target effective-subcarrier axis must match the episode frequency grid"
+                    )
+            if version in frame_visibility_versions:
+                if target.entity_id not in link_ids:
+                    raise ValueError("frame visibility target must identify an episode link")
+                if target.values.shape != (frame_count,):
+                    raise ValueError(
+                        "frame visibility target shape must match the episode frame-time roster"
+                    )
+            elif version in static_visibility_versions and target.entity_id not in link_ids:
+                raise ValueError("static visibility target must identify an episode link")
+            elif version in per_frame_numeric_target_versions:
+                if target.entity_id not in link_ids:
+                    raise ValueError("per-frame numeric target must identify an episode link")
+                if target.values.shape != (frame_count,):
+                    raise ValueError(
+                        "per-frame numeric target shape must match the episode frame-time roster"
+                    )
+                if self.path_oracle is None:
+                    raise ValueError(
+                        "RMS delay-spread v2 requires its declared path-oracle source layer"
+                    )
+                expected = rms_delay_spread_target(
+                    self.path_oracle,
+                    link_id=target.entity_id,
+                    frame_count=frame_count,
+                )
+                if (
+                    target.definition != expected.definition
+                    or not np.array_equal(target.values, expected.values)
+                    or not np.array_equal(target.valid_mask, expected.valid_mask)
+                    or target.reason_codes != expected.reason_codes
+                    or target.censoring_intervals != expected.censoring_intervals
+                ):
+                    raise ValueError(
+                        "RMS delay-spread v2 target must exactly replay from its path-oracle source"
+                    )
+        for binding in observations:
+            if binding.link_id not in link_ids:
+                raise ValueError("receiver observation link_id must reference an episode link")
+            if binding.frame_index >= frame_count:
+                raise ValueError("receiver observation frame_index must reference an episode frame")
+            if isinstance(binding, LinkedFrequencyDomainObservation):
+                observation_inputs = binding.observation.model_inputs
+                link = self.episode.link(binding.link_id)
+                expected_shape = (
+                    len(link.rx_port_indices),
+                    len(link.tx_port_indices),
+                    len(self.episode.subcarrier_offsets_hz),
+                )
+                if observation_inputs.observed_cfr.shape != expected_shape:
+                    raise ValueError("frequency observation axes do not match link ports and grid")
+                if observation_inputs.carrier_hz != self.episode.carrier_hz or not np.array_equal(
+                    observation_inputs.subcarrier_offsets_hz,
+                    self.episode.subcarrier_offsets_hz,
+                ):
+                    raise ValueError("frequency observation grid differs from its parent episode")
+            elif not isinstance(binding, LinkedNRObservation):
+                raise TypeError("receiver observations must use a supported linked contract")
+        observation_keys = [(item.link_id, item.frame_index) for item in observations]
+        sample_ids = [item.observation.sample_id for item in observations]
+        if len(set(observation_keys)) != len(observation_keys):
+            raise ValueError("receiver observations must be unique per link and frame")
+        if len(set(sample_ids)) != len(sample_ids):
+            raise ValueError("receiver observation sample IDs must be unique")
+        if any(not isinstance(item, UMCDRunProvenance) for item in provenance):
+            raise TypeError("provenance_records must contain UMCDRunProvenance values")
+        if len({item.record_id for item in provenance}) != len(provenance):
+            raise ValueError("provenance record IDs must be unique within a bundle")
+        if len(scenario_gbsm_records) > 1:
+            raise ValueError("an episode bundle can contain one scenario GBSM drop")
+        for record in scenario_gbsm_records:
+            validator = getattr(record, "validate_for_episode", None)
+            if not callable(validator):
+                raise TypeError("scenario_gbsm_records must contain scenario GBSM records")
+            validator(self.episode)
+        if any(not isinstance(item, DirectPathAblation) for item in direct_path_ablations):
+            raise TypeError("direct_path_ablations must contain DirectPathAblation values")
+        if direct_path_ablations and self.path_oracle is None:
+            raise ValueError("direct-path ablations require their source path-oracle layer")
+        source_paths = self.path_oracle
+        ablation_children: set[str] = set()
+        for item in direct_path_ablations:
+            assert source_paths is not None
+            if item.parent_subject_id != self.episode.episode_id:
+                raise ValueError("direct-path ablation parent must match the episode ID")
+            if item.carrier_hz is not None and item.carrier_hz != self.episode.carrier_hz:
+                raise ValueError("direct-path ablation carrier differs from its parent episode")
+            validate_direct_path_ablation_source(source_paths, item)
+            if not np.array_equal(item.frequency_offset_hz, self.episode.subcarrier_offsets_hz):
+                raise ValueError("direct-path ablation frequency grid differs from episode grid")
+            pair_children = {item.base_child_id, item.ablated_child_id}
+            if ablation_children.intersection(pair_children):
+                raise ValueError("direct-path ablation child IDs must be unique within the bundle")
+            ablation_children.update(pair_children)
+        if not any(
+            (
+                self.path_oracle is not None,
+                channels,
+                targets,
+                observations,
+                scenario_gbsm_records,
+                direct_path_ablations,
+            )
+        ):
+            raise ValueError("episode bundle needs at least one non-episode data layer")
+        available_layers = {"episode"}
+        if self.path_oracle is not None:
+            available_layers.add("oracle_paths")
+        if channels:
+            available_layers.add("oracle_channels")
+        if targets:
+            available_layers.add("targets")
+        if observations:
+            available_layers.add("receiver_observations")
+        if scenario_gbsm_records:
+            available_layers.add("scenario_gbsm")
+        if direct_path_ablations:
+            available_layers.add("counterfactual_ablations")
+        if any(item.subject_layer not in available_layers for item in provenance):
+            raise ValueError("provenance subject_layer must identify a populated bundle layer")
+        object.__setattr__(self, "channel_views", channels)
+        object.__setattr__(self, "targets", targets)
+        object.__setattr__(self, "receiver_observations", observations)
+        object.__setattr__(self, "provenance_records", provenance)
+        object.__setattr__(self, "scenario_gbsm_records", scenario_gbsm_records)
+        object.__setattr__(self, "direct_path_ablations", direct_path_ablations)
+
+
+@dataclass(frozen=True, slots=True)
+class StoredEpisodeBundle:
+    """Immutable pointer to the manifest-last committed episode bundle."""
+
+    episode_id: str
+    bundle_sha256: str
+    relative_path: str
+    schema_version: int = 1
+
+
+def _json_bytes(value: Any) -> bytes:
+    try:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+            "utf-8"
+        )
+    except (TypeError, ValueError) as exc:
+        raise TypeError("episode metadata must contain finite JSON-compatible values") from exc
+
+
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Reject duplicate JSON keys so signed/hash-bound metadata is unambiguous."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON constant is forbidden: {value}")
+
+
+def _parse_json_bytes(payload: bytes, *, label: str) -> Any:
+    try:
+        return json.loads(
+            payload.decode("utf-8"),
+            object_pairs_hook=_unique_json_object,
+            parse_constant=_reject_json_constant,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as error:
+        raise ValueError(f"{label} is not valid strict UTF-8 JSON: {error}") from error
+
+
+def _object_ref(layer: str, payload: bytes) -> dict[str, str]:
+    digest = hashlib.sha256(payload).hexdigest()
+    return {
+        "sha256": digest,
+        "path": f"objects/{layer}/{digest[:2]}/{digest}.npz",
+    }
+
+
+def _pack_npz(metadata: dict[str, Any], **arrays: np.ndarray) -> bytes:
+    entries: dict[str, np.ndarray] = {}
+    for name, value in arrays.items():
+        array = np.asarray(value)
+        if array.dtype.hasobject or array.dtype.kind not in "biufc":
+            raise TypeError(f"stored array {name!r} must use a non-object numeric dtype")
+        entries[name] = np.ascontiguousarray(array)
+    entries["metadata_json"] = np.frombuffer(_json_bytes(metadata), dtype=np.uint8)
+    buffer = io.BytesIO()
+    np.savez_compressed(buffer, **cast(Any, entries))
+    return buffer.getvalue()
+
+
+def _publish_immutable(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="wb", dir=path.parent, prefix=f".{path.name}.", delete=False
+        ) as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+            temp_path = stream.name
+        try:
+            os.link(temp_path, path)
+        except FileExistsError as err:
+            existing = _stable_file_bytes(
+                path, label="existing immutable episode object", max_bytes=len(payload)
+            )
+            if existing != payload:
+                raise FileExistsError(
+                    "immutable episode object path already contains different bytes"
+                ) from err
+        _fsync_directory(path.parent)
+    finally:
+        if temp_path is not None:
+            Path(temp_path).unlink(missing_ok=True)
+
+
+def _fsync_directory(directory: Path) -> None:
+    """Persist a newly linked immutable entry where directory fsync is supported."""
+    if os.name != "posix" or not hasattr(os, "O_DIRECTORY"):
+        return
+    descriptor = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _stable_file_bytes(path: Path, *, label: str, max_bytes: int | None = None) -> bytes:
+    """Read a single-link regular file and reject observable concurrent changes."""
+    before_path = os.lstat(path)
+    if not stat.S_ISREG(before_path.st_mode) or before_path.st_nlink != 1:
+        raise ValueError(f"{label} must be a single-link regular file")
+    descriptor = os.open(
+        path,
+        os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0),
+    )
+    try:
+        before_fd = os.fstat(descriptor)
+        if _file_identity(before_fd) != _file_identity(before_path):
+            raise ValueError(f"{label} changed while opening")
+        if max_bytes is not None and before_fd.st_size > max_bytes:
+            raise ValueError(f"{label} exceeds the configured byte limit")
+        chunks: list[bytes] = []
+        size = 0
+        while True:
+            request_size = 1024 * 1024
+            if max_bytes is not None:
+                request_size = min(request_size, max_bytes + 1 - size)
+            chunk = os.read(descriptor, request_size)
+            if not chunk:
+                break
+            chunks.append(chunk)
+            size += len(chunk)
+            if max_bytes is not None and size > max_bytes:
+                raise ValueError(f"{label} exceeds the configured byte limit")
+        after_fd = os.fstat(descriptor)
+        after_path = os.lstat(path)
+        identity = _file_identity(before_fd)
+        if size != before_fd.st_size or _file_identity(after_fd) != identity:
+            raise ValueError(f"{label} changed while being read")
+        if _file_identity(after_path) != identity:
+            raise ValueError(f"{label} path changed while being read")
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
+
+
+def _file_identity(info: os.stat_result) -> tuple[int, ...]:
+    return (
+        info.st_dev,
+        info.st_ino,
+        info.st_mode,
+        info.st_nlink,
+        info.st_size,
+        info.st_mtime_ns,
+        info.st_ctime_ns,
+    )
+
+
+def _episode_object_size_estimate(
+    base: Path,
+    reference: dict[str, str],
+    *,
+    max_shard_bytes: int,
+) -> int:
+    """Hash-check an NPZ layer and conservatively estimate its decoded memory."""
+    relative = PurePosixPath(reference["path"])
+    if relative.is_absolute() or ".." in relative.parts or not relative.parts:
+        raise ValueError("episode object path must remain inside the store")
+    if relative.suffix != ".npz" or relative.name != f"{reference['sha256']}.npz":
+        raise ValueError("episode object path must be content-addressed")
+    path = base.joinpath(*relative.parts)
+    resolved = path.resolve(strict=True)
+    if not resolved.is_relative_to(base):
+        raise ValueError("episode object path resolves outside the store")
+    payload = _stable_file_bytes(
+        path,
+        label="episode object under max_shard_bytes",
+        max_bytes=max_shard_bytes,
+    )
+    if hashlib.sha256(payload).hexdigest() != reference["sha256"]:
+        raise ValueError("episode object content hash does not match its manifest")
+    try:
+        with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+            members = archive.infolist()
+            names = [item.filename for item in members]
+            if not members or len(names) != len(set(names)):
+                raise ValueError("episode object archive must have unique nonempty members")
+            if any(not name.endswith(".npy") for name in names):
+                raise ValueError("episode object archive members must be NPY arrays")
+            uncompressed_bytes = sum(item.file_size for item in members)
+    except zipfile.BadZipFile as error:
+        raise ValueError("episode object is not a readable NPZ archive") from error
+    estimate = 2 * len(payload) + 2 * uncompressed_bytes
+    if estimate > max_shard_bytes:
+        raise ValueError(
+            f"episode layer estimate ({estimate} bytes) exceeds max_shard_bytes ({max_shard_bytes})"
+        )
+    return estimate
+
+
+def _iter_episode_manifest_paths(directory: Path) -> Iterator[Path]:
+    """Yield manifest entries without materializing a potentially large listing."""
+    with os.scandir(directory) as entries:
+        for entry in entries:
+            if entry.name.endswith(".json"):
+                yield Path(entry.path)
+
+
+def _episode_payload(episode: NetworkEpisode) -> bytes:
+    metadata = {
+        "schema": "umcd.episode.v1",
+        "episode_id": episode.episode_id,
+        "split_group_id": episode.split_group_id,
+        "family_id": episode.family_id,
+        "split_leakage_relations": [
+            {"namespace": namespace, "identity": identity}
+            for namespace, identity in episode.split_leakage_relations
+        ],
+        "carrier_hz": episode.carrier_hz,
+        "frame_times_s": list(episode.frame_times_s),
+        "has_pose_timeline": episode.pose_timeline is not None,
+        "pose_time_alignment": (
+            None if episode.pose_time_alignment is None else episode.pose_time_alignment.to_dict()
+        ),
+        "source_time_alignment": (
+            None
+            if episode.source_time_alignment is None
+            else episode.source_time_alignment.to_dict()
+        ),
+        "arrays": [
+            {
+                "array_id": array.array_id,
+                "polarization_per_element": list(array.polarization_per_element),
+                "port_ids": list(array.port_ids),
+            }
+            for array in episode.arrays
+        ],
+        "nodes": [
+            {
+                "node_id": node.node_id,
+                "role": node.role.value,
+                "array_id": node.array_id,
+                "position_world_m": list(node.position_world_m),
+                "rf_chain_count": node.rf_chain_count,
+            }
+            for node in episode.nodes
+        ],
+        "links": [
+            {
+                "link_id": link.link_id,
+                "tx_node_id": link.tx_node_id,
+                "rx_node_id": link.rx_node_id,
+                "tx_port_indices": list(link.tx_port_indices),
+                "rx_port_indices": list(link.rx_port_indices),
+                "direction": link.direction.value,
+                "role": link.role.value,
+            }
+            for link in episode.links
+        ],
+    }
+    _episode_metadata_validator().validate(metadata)
+    arrays = {
+        f"array_positions_{index:04d}": array.element_positions_local_m
+        for index, array in enumerate(episode.arrays)
+    }
+    arrays.update(
+        {
+            f"array_orientation_{index:04d}": array.orientation_local_to_world
+            for index, array in enumerate(episode.arrays)
+        }
+    )
+    arrays.update(
+        {
+            f"array_port_weights_{index:04d}": array.port_element_weights
+            for index, array in enumerate(episode.arrays)
+        }
+    )
+    arrays["subcarrier_offsets_hz"] = episode.subcarrier_offsets_hz
+    if episode.pose_timeline is not None:
+        arrays["pose_positions_world_m"] = episode.pose_timeline.positions_world_m
+        arrays["pose_orientations_local_to_world"] = (
+            episode.pose_timeline.orientations_local_to_world
+        )
+    return _pack_npz(metadata, **arrays)
+
+
+def _path_payload(paths: PathOracleTable) -> bytes:
+    metadata = {
+        "schema": "umcd.path_oracle.v1",
+        "link_ids": list(paths.link_ids),
+        "solve_status": [value.value for value in paths.solve_status],
+        "path_kind": None if paths.path_kind is None else list(paths.path_kind),
+        "coefficient_convention": paths.coefficient_convention,
+        "optional_fields": {
+            "doppler_hz": paths.doppler_hz is not None,
+            "aoa_azimuth_elevation_rad": paths.aoa_azimuth_elevation_rad is not None,
+            "aod_azimuth_elevation_rad": paths.aod_azimuth_elevation_rad is not None,
+            "interaction_geometry": paths.interaction_offsets is not None,
+            "interaction_vertex_frame": paths.interaction_vertex_frame,
+        },
+    }
+    arrays = {
+        "frame_indices": paths.frame_indices,
+        "rx_port_indices": paths.rx_port_indices,
+        "tx_port_indices": paths.tx_port_indices,
+        "path_offsets": paths.path_offsets,
+        "delay_s": paths.delay_s,
+        "complex_gain": paths.complex_gain,
+        "interaction_order": paths.interaction_order,
+    }
+    for name in (
+        "doppler_hz",
+        "aoa_azimuth_elevation_rad",
+        "aod_azimuth_elevation_rad",
+    ):
+        value = getattr(paths, name)
+        if value is not None:
+            arrays[name] = value
+    for name in (
+        "interaction_offsets",
+        "interaction_types",
+        "object_ids",
+        "primitive_ids",
+        "interaction_vertices_m",
+    ):
+        value = getattr(paths, name)
+        if value is not None:
+            arrays[name] = value
+    return _pack_npz(metadata, **arrays)
+
+
+_PATH_ORACLE_REQUIRED_ARRAYS = frozenset(
+    {
+        "frame_indices",
+        "rx_port_indices",
+        "tx_port_indices",
+        "path_offsets",
+        "delay_s",
+        "complex_gain",
+        "interaction_order",
+    }
+)
+
+
+_PATH_ORACLE_OPTIONAL_ARRAYS = {
+    "doppler_hz": frozenset({"doppler_hz"}),
+    "aoa_azimuth_elevation_rad": frozenset({"aoa_azimuth_elevation_rad"}),
+    "aod_azimuth_elevation_rad": frozenset({"aod_azimuth_elevation_rad"}),
+    "interaction_geometry": frozenset(
+        {
+            "interaction_offsets",
+            "interaction_types",
+            "object_ids",
+            "primitive_ids",
+            "interaction_vertices_m",
+        }
+    ),
+}
+
+
+_PATH_ORACLE_METADATA_FIELDS = frozenset(
+    {"schema", "link_ids", "solve_status", "path_kind", "coefficient_convention", "optional_fields"}
+)
+
+
+_PATH_ORACLE_OPTIONAL_METADATA_FIELDS = frozenset(
+    {
+        "doppler_hz",
+        "aoa_azimuth_elevation_rad",
+        "aod_azimuth_elevation_rad",
+        "interaction_geometry",
+        "interaction_vertex_frame",
+    }
+)
+
+
+def _validate_path_oracle_layer(
+    metadata: dict[str, Any], array_names: set[str] | frozenset[str]
+) -> None:
+    """Reject path-layer metadata or arrays outside the v1 storage contract."""
+    if not isinstance(metadata, dict) or set(metadata) != _PATH_ORACLE_METADATA_FIELDS:
+        raise ValueError("path-oracle metadata fields do not match the v1 contract")
+    if metadata["schema"] != "umcd.path_oracle.v1":
+        raise ValueError("unsupported path-oracle layer schema")
+    links = metadata["link_ids"]
+    statuses = metadata["solve_status"]
+    if (
+        not isinstance(links, list)
+        or not links
+        or any(not isinstance(value, str) or not value.strip() for value in links)
+    ):
+        raise ValueError("path-oracle link_ids must be non-empty strings")
+    if not isinstance(statuses, list) or len(statuses) != len(links):
+        raise ValueError("path-oracle solve_status must match link_ids")
+    valid_statuses = {status.value for status in PathSolveStatus}
+    if any(not isinstance(value, str) or value not in valid_statuses for value in statuses):
+        raise ValueError("path-oracle solve_status contains an unknown value")
+    path_kind = metadata["path_kind"]
+    if path_kind is not None and (
+        not isinstance(path_kind, list)
+        or any(not isinstance(value, str) or not value for value in path_kind)
+    ):
+        raise ValueError("path-oracle path_kind must be null or an array of non-empty strings")
+    convention = metadata["coefficient_convention"]
+    if convention != PATH_COEFFICIENT_CONVENTION:
+        raise ValueError(
+            "path-oracle coefficient_convention is unsupported; "
+            f"expected {PATH_COEFFICIENT_CONVENTION!r}"
+        )
+    optional = metadata["optional_fields"]
+    if not isinstance(optional, dict) or set(optional) != _PATH_ORACLE_OPTIONAL_METADATA_FIELDS:
+        raise ValueError("path-oracle optional_fields do not match the v1 contract")
+    for name in (
+        "doppler_hz",
+        "aoa_azimuth_elevation_rad",
+        "aod_azimuth_elevation_rad",
+        "interaction_geometry",
+    ):
+        if not isinstance(optional[name], bool):
+            raise ValueError(f"path-oracle optional_fields.{name} must be boolean")
+    vertex_frame = optional["interaction_vertex_frame"]
+    if optional["interaction_geometry"]:
+        if not isinstance(vertex_frame, str) or not vertex_frame.strip():
+            raise ValueError("path-oracle interaction geometry requires a named vertex frame")
+    elif vertex_frame is not None:
+        raise ValueError("path-oracle vertex frame requires interaction geometry")
+    expected = set(_PATH_ORACLE_REQUIRED_ARRAYS)
+    for flag, names in _PATH_ORACLE_OPTIONAL_ARRAYS.items():
+        if optional[flag]:
+            expected.update(names)
+    if set(array_names) != expected:
+        raise ValueError("path-oracle NPZ arrays do not match the metadata optional_fields")
+
+
+def _direct_path_ablation_payload(ablation: DirectPathAblation) -> bytes:
+    if ablation.carrier_hz is None:
+        raise ValueError("legacy direct-path ablations without carrier phase are read-only")
+    metadata = {
+        "schema": "umcd.direct_path_ablation.v2",
+        "parent_subject_id": ablation.parent_subject_id,
+        "base_child_id": ablation.base_child_id,
+        "ablated_child_id": ablation.ablated_child_id,
+        "split": ablation.split,
+        "path_table_sha256": ablation.path_table_sha256,
+        "link_ids": list(ablation.link_ids),
+        "carrier_hz": ablation.carrier_hz,
+    }
+    _direct_path_ablation_v2_validator().validate(metadata)
+    return _pack_npz(
+        metadata,
+        frame_indices=ablation.frame_indices,
+        rx_port_indices=ablation.rx_port_indices,
+        tx_port_indices=ablation.tx_port_indices,
+        frequency_offset_hz=ablation.frequency_offset_hz,
+        full_cfr=ablation.full_cfr,
+        without_direct_cfr=ablation.without_direct_cfr,
+        removed_direct_path_count=ablation.removed_direct_path_count,
+    )
+
+
+def _channel_payload(view: PhysicalChannelView) -> bytes:
+    if view.valid_mask is None:
+        raise ValueError("physical channel view is missing its validity mask")
+    metadata = {
+        "schema": "umcd.physical_channel.v1",
+        "view_id": view.view_id,
+        "link_id": view.link_id,
+        "frame_times_s": list(view.frame_times_s),
+        "rx_port_ids": list(view.rx_port_ids),
+        "tx_port_ids": list(view.tx_port_ids),
+        "carrier_hz": view.carrier_hz,
+        "delay_reference": view.delay_reference.value,
+        "power_scale": view.power_scale.value,
+        "normalization_recipe": view.normalization_recipe,
+        "phase_gauge_id": view.phase_gauge_id,
+        "source_time_alignment_sha256": view.source_time_alignment_sha256,
+        "axes": list(view.axes),
+    }
+    return _pack_npz(
+        metadata,
+        channel=view.channel,
+        valid_mask=view.valid_mask,
+        subcarrier_offsets_hz=view.subcarrier_offsets_hz,
+    )
+
+
+def _target_payload(target: TargetValue) -> bytes:
+    if (
+        target.definition.definition_version
+        in {
+            "migrated_from_legacy_target_v1",
+            "umcd.rms_delay_spread.v1",
+        }
+        | _READ_ONLY_UMCD_TARGET_VERSIONS
+    ):
+        raise ValueError(
+            "legacy or superseded target definitions are read-only for canonical UMCD "
+            "publication; use a current producer-backed target definition"
+        )
+    metadata = {
+        "schema": "umcd.target.v2",
+        "entity_id": target.entity_id,
+        "definition": asdict(target.definition),
+        "reason_codes": [reason.value for reason in target.reason_codes],
+        "confidence": target.confidence,
+        "censoring_intervals": [
+            None if interval is None else interval.to_dict()
+            for interval in (target.censoring_intervals or ())
+        ],
+    }
+    return _pack_npz(metadata, values=target.values, valid_mask=target.valid_mask)
+
+
+def _receiver_payload(binding: LinkedNRObservation) -> bytes:
+    observation = binding.observation
+    estimate = observation.channel_estimate
+    metadata = {
+        "schema": "umcd.receiver_observation.v1",
+        "link_id": binding.link_id,
+        "frame_index": binding.frame_index,
+        "sample_id": observation.sample_id,
+        "fft_bin_indices": list(observation.fft_bin_indices),
+        "receiver_config": asdict(observation.receiver_config),
+        "estimate_metadata": dict(estimate.metadata),
+    }
+    return _pack_npz(
+        metadata,
+        received_grid=observation.received_grid,
+        h_hat=estimate.h_hat,
+        error_variance=estimate.error_variance,
+        pilot_mask=estimate.pilot_mask,
+    )
+
+
+def _frequency_receiver_payload(binding: LinkedFrequencyDomainObservation) -> bytes:
+    inputs = binding.observation.model_inputs
+    metadata = {
+        "schema": "umcd.receiver_frequency_observation.v1",
+        "link_id": binding.link_id,
+        "frame_index": binding.frame_index,
+        "sample_id": binding.observation.sample_id,
+        "noise_variance": inputs.noise_variance,
+        "snr_db": inputs.snr_db,
+        "carrier_hz": inputs.carrier_hz,
+        "measurement_semantics": "complex_frequency_response_plus_awgn",
+        "waveform_model": "direct_noisy_cfr_not_a_pusch_dmrs_observation",
+    }
+    return _pack_npz(
+        metadata,
+        observed_cfr=inputs.observed_cfr,
+        subcarrier_offsets_hz=inputs.subcarrier_offsets_hz,
+    )
+
+
+def _provenance_payload(record: UMCDRunProvenance) -> bytes:
+    return _pack_npz(record.to_dict())
+
+
+def _read_receiver(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> LinkedNRObservation:
+    if metadata.get("schema") != "umcd.receiver_observation.v1":
+        raise ValueError("unsupported receiver-observation layer schema")
+    observation = NRObservation(
+        sample_id=metadata["sample_id"],
+        received_grid=arrays["received_grid"],
+        channel_estimate=NRChannelEstimate(
+            h_hat=arrays["h_hat"],
+            error_variance=arrays["error_variance"],
+            pilot_mask=arrays["pilot_mask"],
+            metadata=metadata["estimate_metadata"],
+        ),
+        fft_bin_indices=tuple(metadata["fft_bin_indices"]),
+        receiver_config=NRPUSCHConfig(**metadata["receiver_config"]),
+    )
+    return LinkedNRObservation(metadata["link_id"], metadata["frame_index"], observation)
+
+
+def _read_frequency_receiver(
+    metadata: dict[str, Any], arrays: dict[str, np.ndarray]
+) -> LinkedFrequencyDomainObservation:
+    if metadata.get("schema") != "umcd.receiver_frequency_observation.v1":
+        raise ValueError("unsupported frequency receiver-observation schema")
+    if metadata.get("measurement_semantics") != "complex_frequency_response_plus_awgn":
+        raise ValueError("unsupported frequency observation measurement semantics")
+    if metadata.get("waveform_model") != "direct_noisy_cfr_not_a_pusch_dmrs_observation":
+        raise ValueError("unsupported frequency observation waveform model")
+    inputs = FrequencyDomainModelInputs(
+        observed_cfr=arrays["observed_cfr"],
+        noise_variance=metadata["noise_variance"],
+        snr_db=metadata["snr_db"],
+        carrier_hz=metadata["carrier_hz"],
+        subcarrier_offsets_hz=arrays["subcarrier_offsets_hz"],
+    )
+    observation = FrequencyDomainObservation(metadata["sample_id"], inputs)
+    return LinkedFrequencyDomainObservation(
+        metadata["link_id"], metadata["frame_index"], observation
+    )
+
+
+def _read_object(
+    base: Path, reference: dict[str, str], *, max_bytes: int | None = None
+) -> tuple[dict[str, Any], dict[str, np.ndarray]]:
+    relative = PurePosixPath(reference["path"])
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError("object paths must remain inside the episode store")
+    object_path = base / Path(*relative.parts)
+    if not object_path.resolve(strict=True).is_relative_to(base.resolve()):
+        raise ValueError("episode object path resolves outside the store")
+    payload = _stable_file_bytes(object_path, label="episode object", max_bytes=max_bytes)
+    digest = hashlib.sha256(payload).hexdigest()
+    if digest != reference.get("sha256") or relative.name != f"{digest}.npz":
+        raise ValueError("episode object content hash does not match its manifest")
+    with np.load(io.BytesIO(payload), allow_pickle=False) as archive:
+        if (
+            len(archive.files) != len(set(archive.files))
+            or archive.files.count("metadata_json") != 1
+        ):
+            raise ValueError("episode object archive must have unique names and one metadata entry")
+        metadata = _parse_json_bytes(
+            archive["metadata_json"].tobytes(), label="episode object metadata"
+        )
+        arrays = {
+            name: np.array(archive[name], copy=True)
+            for name in archive.files
+            if name != "metadata_json"
+        }
+    return metadata, arrays
+
+
+def _validated_manifest(
+    base: Path,
+    manifest: StoredEpisodeBundle | str | Path,
+    *,
+    max_bytes: int | None = None,
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    if isinstance(manifest, StoredEpisodeBundle):
+        relative_path = PurePosixPath(manifest.relative_path)
+        if relative_path.is_absolute() or ".." in relative_path.parts:
+            raise ValueError("episode manifest path must remain inside the store")
+        manifest_path = base / Path(*relative_path.parts)
+    else:
+        manifest_path = Path(manifest)
+        if not manifest_path.is_absolute():
+            manifest_path = base / manifest_path
+    manifest_bytes = _stable_file_bytes(
+        manifest_path, label="episode manifest", max_bytes=max_bytes
+    )
+    metadata = _parse_json_bytes(manifest_bytes, label="episode manifest")
+    if not isinstance(metadata, dict):
+        raise ValueError("episode manifest must be a JSON object")
+    if metadata.get("schema") != "umcd.bundle.v1" or metadata.get("schema_version") != 1:
+        raise ValueError("unsupported episode bundle schema")
+    manifest_core = {
+        key: metadata[key] for key in ("schema", "schema_version", "episode_id", "layers")
+    }
+    digest = hashlib.sha256(_json_bytes(manifest_core)).hexdigest()
+    if digest != metadata.get("bundle_sha256"):
+        raise ValueError("episode bundle manifest hash is invalid")
+    if isinstance(manifest, StoredEpisodeBundle) and (
+        manifest.episode_id != metadata["episode_id"] or manifest.bundle_sha256 != digest
+    ):
+        raise ValueError("stored episode pointer does not match its manifest")
+    layers = metadata["layers"]
+    if not isinstance(layers, list):
+        raise ValueError("episode bundle layers must be a list")
+    return metadata, layers
+
+
+def _read_episode(metadata: dict[str, Any], arrays: dict[str, np.ndarray]) -> NetworkEpisode:
+    antenna_arrays = tuple(
+        AntennaArraySpec(
+            item["array_id"],
+            arrays[f"array_positions_{index:04d}"],
+            tuple(item["polarization_per_element"]),
+            arrays[f"array_orientation_{index:04d}"],
+            tuple(item["port_ids"]),
+            arrays[f"array_port_weights_{index:04d}"],
+        )
+        for index, item in enumerate(metadata["arrays"])
+    )
+    nodes = tuple(
+        NetworkNode(
+            item["node_id"],
+            NodeRole(item["role"]),
+            item["array_id"],
+            tuple(item["position_world_m"]),
+            item["rf_chain_count"],
+        )
+        for item in metadata["nodes"]
+    )
+    links = tuple(
+        DirectedLink(
+            item["link_id"],
+            item["tx_node_id"],
+            item["rx_node_id"],
+            tuple(item["tx_port_indices"]),
+            tuple(item["rx_port_indices"]),
+            LinkDirection(item["direction"]),
+            LinkRole(item["role"]),
+        )
+        for item in metadata["links"]
+    )
+    pose_timeline = None
+    if metadata.get("has_pose_timeline", False):
+        pose_timeline = NodePoseTimeline(
+            node_ids=tuple(item["node_id"] for item in metadata["nodes"]),
+            frame_times_s=tuple(metadata["frame_times_s"]),
+            positions_world_m=arrays["pose_positions_world_m"],
+            orientations_local_to_world=arrays["pose_orientations_local_to_world"],
+        )
+    alignment_value = metadata.get("pose_time_alignment")
+    alignment = None if alignment_value is None else TimeAxisAlignment.from_dict(alignment_value)
+    source_alignment_value = metadata.get("source_time_alignment")
+    source_alignment = (
+        None
+        if source_alignment_value is None
+        else MultiSourceTimeAlignment.from_dict(source_alignment_value)
+    )
+    relations_value = metadata.get("split_leakage_relations", [])
+    if not isinstance(relations_value, list) or any(
+        not isinstance(item, dict) or set(item) != {"namespace", "identity"}
+        for item in relations_value
+    ):
+        raise ValueError("episode split_leakage_relations must be a list of namespace identities")
+    return NetworkEpisode(
+        metadata["episode_id"],
+        metadata["split_group_id"],
+        metadata["family_id"],
+        metadata["carrier_hz"],
+        antenna_arrays,
+        nodes,
+        links,
+        tuple(metadata["frame_times_s"]),
+        arrays["subcarrier_offsets_hz"],
+        pose_timeline,
+        alignment,
+        source_alignment,
+        tuple((item["namespace"], item["identity"]) for item in relations_value),
+    )

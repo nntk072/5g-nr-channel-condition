@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 
+import experiments.pilot_sampling as pilot_sampling
 import pytest
 from experiments.pilot_sampling import audit_pilot_outcomes, build_pilot_sample
 
@@ -143,6 +144,60 @@ def test_pilot_design_rejects_malformed_frozen_factors(mutate, message: str) -> 
         build_pilot_sample(design, _candidates())
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("mandatory_difficulties", ["low", "medium"], "include low and high"),
+        ("required_prior_kinds", ["natural_prevalence"], "include natural and enriched"),
+    ],
+)
+def test_pilot_design_requires_complete_mandatory_rosters(field, value, message):
+    design = _design()
+    design[field] = value
+
+    with pytest.raises(ValueError, match=message):
+        build_pilot_sample(design, _candidates())
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        (
+            "mandatory_difficulties",
+            ["low", "medium", "high"],
+            "cells do not cover the mandatory difficulty roster exactly",
+        ),
+        (
+            "required_prior_kinds",
+            ["natural_prevalence", "enriched_stress"],
+            "cells do not cover the natural/enriched prior roster exactly",
+        ),
+    ],
+)
+def test_pilot_design_requires_cells_to_cover_the_frozen_rosters(field, value, message):
+    design = _design()
+    design[field] = value
+    if field == "required_prior_kinds":
+        design["cells"] = [
+            cell for cell in design["cells"] if cell["prior_kind"] != "enriched_stress"
+        ]
+
+    with pytest.raises(ValueError, match=message):
+        build_pilot_sample(design, _candidates())
+
+
+@pytest.mark.parametrize("value", [None, " padded ", ""])
+def test_pilot_text_contract_rejects_noncanonical_identities(value):
+    with pytest.raises(ValueError, match="nonempty canonical string"):
+        pilot_sampling._text(value, field="fixture")
+
+
+@pytest.mark.parametrize("value", [True, 10**400])
+def test_pilot_probability_contract_rejects_boolean_and_overflow_values(value):
+    with pytest.raises(ValueError, match="finite probability"):
+        pilot_sampling._population_probability(value, field="fixture")
+
+
 def test_pilot_audit_rejects_extra_or_duplicate_outcome_rows() -> None:
     sample = build_pilot_sample(_design(), _candidates())
     outcome = {
@@ -172,3 +227,141 @@ def test_pilot_design_requires_full_difficulty_prior_cross_per_family_topology()
 
     with pytest.raises(ValueError, match="must cross every mandatory difficulty and prior"):
         build_pilot_sample(design, _candidates())
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (
+            lambda sample: sample.update(selected_candidate_count=-1),
+            "selected_candidate_count is invalid",
+        ),
+        (
+            lambda sample: sample.update(candidate_count=0),
+            "selected more candidates than the roster",
+        ),
+        (lambda sample: sample.update(limitations=[]), "limitations must be a nonempty list"),
+        (
+            lambda sample: sample.update(selected_candidates=[]),
+            "selected-candidate count is inconsistent",
+        ),
+        (
+            lambda sample: sample["selected_candidates"][1].update(
+                candidate_id=sample["selected_candidates"][0]["candidate_id"]
+            ),
+            "duplicate selected candidate IDs",
+        ),
+        (
+            lambda sample: sample["cells"][0].update(requested_independent_groups=0),
+            "counts are inconsistent",
+        ),
+        (lambda sample: sample["cells"][0].update(shortfall=99), "shortfall is inconsistent"),
+        (
+            lambda sample: sample["cells"][0].update(cell_id="0" * 64),
+            "identity is duplicate or inconsistent",
+        ),
+        (
+            lambda sample: sample["cells"][0].update(sample_share_within_prior=0.4),
+            "sample share is inconsistent",
+        ),
+        (
+            lambda sample: sample["cells"][0].update(design_importance_weight=99.0),
+            "importance weight is inconsistent",
+        ),
+        (
+            lambda sample: sample.update(status="INCOMPLETE_DESIGN"),
+            "status does not match cell shortfalls",
+        ),
+    ],
+)
+def test_pilot_sample_validator_rejects_corrupt_summary_fields(mutate, message: str) -> None:
+    sample = copy.deepcopy(build_pilot_sample(_design(), _candidates()))
+    mutate(sample)
+
+    with pytest.raises(ValueError, match=message):
+        pilot_sampling._validate_sample(sample)
+
+
+def test_pilot_sample_validator_rejects_reused_groups_within_a_cell() -> None:
+    sample = copy.deepcopy(build_pilot_sample(_design(), _candidates()))
+    cell = sample["cells"][0]
+    selected = [row for row in sample["selected_candidates"] if row["cell_id"] == cell["cell_id"]]
+    assert len(selected) == 2
+    selected[1]["independent_group_id"] = selected[0]["independent_group_id"]
+
+    with pytest.raises(ValueError, match="repeats an independent group within a cell"):
+        pilot_sampling._validate_sample(sample)
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda cell: cell.update(difficulty="unsupported"), "cell factor is unsupported"),
+        (
+            lambda cell: cell.update(target_population_probability=0.2),
+            "enriched prior must not declare a population probability",
+        ),
+    ],
+)
+def test_pilot_sample_validator_rejects_unsupported_cell_factors(mutate, message):
+    sample = copy.deepcopy(build_pilot_sample(_design(), _candidates()))
+    cell = next(cell for cell in sample["cells"] if cell["prior_kind"] == "enriched_stress")
+    mutate(cell)
+    cell["cell_id"] = pilot_sampling._cell_id(cell)
+
+    with pytest.raises(ValueError, match=message):
+        pilot_sampling._validate_sample(sample)
+
+
+def test_pilot_sample_validator_checks_empty_prior_shares_and_weights():
+    candidates = _candidates()
+    candidates["candidates"] = [
+        row for row in candidates["candidates"] if row["prior_kind"] == "natural_prevalence"
+    ]
+    sample = build_pilot_sample(_design(), candidates)
+    empty_prior_cell = next(
+        cell for cell in sample["cells"] if cell["prior_kind"] == "enriched_stress"
+    )
+
+    malformed_share = copy.deepcopy(sample)
+    next(
+        cell for cell in malformed_share["cells"] if cell["cell_id"] == empty_prior_cell["cell_id"]
+    )["sample_share_within_prior"] = 0.1
+    with pytest.raises(ValueError, match="empty pilot prior must have null sample shares"):
+        pilot_sampling._validate_sample(malformed_share)
+
+    malformed_weight = copy.deepcopy(sample)
+    next(
+        cell for cell in malformed_weight["cells"] if cell["cell_id"] == empty_prior_cell["cell_id"]
+    )["design_importance_weight"] = 1.0
+    with pytest.raises(ValueError, match="without a target population probability has a weight"):
+        pilot_sampling._validate_sample(malformed_weight)
+
+
+def test_pilot_sample_validator_rejects_probability_sum_drift():
+    sample = copy.deepcopy(build_pilot_sample(_design(), _candidates()))
+    for cell in sample["cells"]:
+        if cell["prior_kind"] == "natural_prevalence":
+            cell["target_population_probability"] = 0.4
+            cell["design_importance_weight"] = 0.8
+
+    with pytest.raises(ValueError, match="probabilities do not sum to one"):
+        pilot_sampling._validate_sample(sample)
+
+
+def test_pilot_sample_validator_rejects_selected_candidates_for_undeclared_cells():
+    sample = copy.deepcopy(build_pilot_sample(_design(), _candidates()))
+    sample["selected_candidates"].append(
+        {
+            "candidate_id": "undeclared-cell-candidate",
+            "independent_group_id": "undeclared-cell-group",
+            "cell_id": _digest("f"),
+            "source_record_sha256": _digest("e"),
+        }
+    )
+    sample["candidate_count"] += 1
+    sample["selected_candidate_count"] += 1
+    sample["selected_unique_independent_group_count"] += 1
+
+    with pytest.raises(ValueError, match="references an undeclared cell"):
+        pilot_sampling._validate_sample(sample)

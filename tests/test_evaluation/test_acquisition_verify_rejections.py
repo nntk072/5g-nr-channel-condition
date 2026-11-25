@@ -1,0 +1,842 @@
+"""Rejection contracts of the acquisition-package consistency verifier.
+
+Each case edits one declared relation in an otherwise consistent synthetic package and
+checks the verifier's named finding. The fixtures are the same synthetic records used by
+the verifier's main test module; none of them is measurement evidence.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
+
+import pytest
+from evaluation.acquisition import verify as verify_module
+from evaluation.acquisition.verify import verify_acquisition_package
+from tests.test_evaluation.test_acquisition_package_verifier import (
+    _error_text,
+    _make_package,
+    _put,
+)
+
+V02 = "acquisition-package.v0.2"
+V04 = "acquisition-package.v0.4"
+Mutation = Callable[[Path, dict[str, Any]], None]
+
+
+def _load(tmp_path: Path, schema: str = V02) -> tuple[Path, dict[str, Any]]:
+    package_path = _make_package(tmp_path, schema_version=schema)
+    return package_path, json.loads(package_path.read_text(encoding="utf-8"))
+
+
+def _save(package_path: Path, package: dict[str, Any]) -> None:
+    package_path.write_text(json.dumps(package), encoding="utf-8")
+
+
+def _file_document(root: Path, package: dict[str, Any], file_id: str) -> dict[str, Any]:
+    entry = next(item for item in package["files"] if item["file_id"] == file_id)
+    return json.loads((root / entry["path"]).read_bytes())
+
+
+def _rewrite_file(root: Path, package: dict[str, Any], file_id: str, document: Any) -> None:
+    _put(root, package, file_id, json.dumps(document).encode("utf-8"))
+
+
+def _rewrite_scorer(mutate: Callable[[dict[str, Any]], None]) -> Mutation:
+    def apply(root: Path, package: dict[str, Any]) -> None:
+        document = _file_document(root, package, "file.scorer.input")
+        mutate(document)
+        _rewrite_file(root, package, "file.scorer.input", document)
+
+    return apply
+
+
+def _rewrite_output(mutate: Callable[[dict[str, Any]], None]) -> Mutation:
+    def apply(root: Path, package: dict[str, Any]) -> None:
+        document = _file_document(root, package, "file.evaluator.output")
+        mutate(document)
+        _rewrite_file(root, package, "file.evaluator.output", document)
+
+    return apply
+
+
+def _rewrite_mapping(mutate: Callable[[dict[str, Any]], None]) -> Mutation:
+    def apply(root: Path, package: dict[str, Any]) -> None:
+        document = _file_document(root, package, "file.material.mapping")
+        mutate(document)
+        _rewrite_file(root, package, "file.material.mapping", document)
+
+    return apply
+
+
+def _package_edit(mutate: Callable[[dict[str, Any]], None]) -> Mutation:
+    def apply(root: Path, package: dict[str, Any]) -> None:
+        mutate(package)
+
+    return apply
+
+
+CASES = [
+    pytest.param(
+        _package_edit(lambda d: d.update(proposal_status="accepted")),
+        "package must use a supported proposal schema and remain proposal_only",
+        id="not-proposal-only",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d.update(schema_version="acquisition-package.v9")),
+        "unsupported acquisition package schema version",
+        id="unsupported-schema-version",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["evaluator_binding"].update(execution_status="executed")),
+        "evaluator binding must remain not_executed_proposal_only",
+        id="binding-executed",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["campaigns"][0].update(study_id="study.other")),
+        "study_id differs from package study_id",
+        id="campaign-other-study",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["campaigns"][0].update(start_utc="2099-01-01T00:00:00Z")),
+        "interval starts after it ends",
+        id="campaign-inverted-interval",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["protocols"][0].update(split_manifest_file_id="file.absent")),
+        "references unknown split manifest file",
+        id="protocol-unknown-split-file",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["protocols"][0].update(split_manifest_file_id="file.scorer.input")
+        ),
+        "split-manifest file binding differs",
+        id="protocol-split-binding-differs",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["protocols"][0].update(split_manifest_canonical_sha256="0" * 64)),
+        "canonical split hash differs",
+        id="protocol-split-hash-differs",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["uncertainty_records"][0].update(sample_ids=["sample.absent"])),
+        "references unknown sample",
+        id="uncertainty-unknown-sample",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["external_attestations"][0].update(signature_file_id="file.absent")
+        ),
+        "references unknown signature file",
+        id="attestation-unknown-signature-file",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["evaluator_binding"]["scorer_input"].update(file_id="file.absent")
+        ),
+        "evaluator_binding.scorer_input references unknown file_id",
+        id="binding-unknown-file",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["evaluator_binding"]["scorer_input"].update(exact_bytes_size=1)),
+        "exact-byte reference disagrees with file bytes",
+        id="binding-exact-bytes-disagree",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: next(f for f in d["files"] if f["file_id"] == "file.scorer.input").update(
+                role="other"
+            )
+        ),
+        "evaluator_binding.scorer_input file must have inventory role",
+        id="binding-wrong-inventory-role",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d.update(schema="loslab.other.v1")),
+        "scorer input schema does not match evaluator input contract",
+        id="scorer-schema-mismatch",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d.update(full_split_manifest="not-an-object")),
+        "scorer input full_split_manifest must be an object",
+        id="scorer-manifest-not-object",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d.update(expected_strata=[])),
+        "expected_strata differs from",
+        id="scorer-expected-strata-differs",
+    ),
+    pytest.param(
+        _rewrite_output(lambda d: d.update(schema="loslab.other.v1")),
+        "evaluator output schema does not match output contract",
+        id="output-schema-mismatch",
+    ),
+    pytest.param(
+        _rewrite_output(lambda d: d.update(strata="not-a-list")),
+        "evaluator output strata must be an array",
+        id="output-strata-not-array",
+    ),
+    pytest.param(
+        _rewrite_output(lambda d: d.update(strata=[1])),
+        "evaluator output strata contain non-object entries",
+        id="output-stratum-not-object",
+    ),
+    pytest.param(
+        _rewrite_output(lambda d: d["strata"].append(dict(d["strata"][0]))),
+        "evaluator output strata contain non-objects or duplicate keys",
+        id="output-duplicate-stratum",
+    ),
+    pytest.param(
+        _rewrite_output(lambda d: d["strata"][0].update(material_id=7)),
+        "evaluator output stratum keys must be strings",
+        id="output-stratum-key-not-string",
+    ),
+    pytest.param(
+        _rewrite_output(lambda d: d["strata"][0].update(material_id="material.other")),
+        "evaluator output strata do not exactly match scorer input expected_strata",
+        id="output-stratum-mismatch",
+    ),
+]
+
+
+@pytest.fixture
+def no_json_schema(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Disable the declared JSON Schema so the semantic cross-checks run on their own."""
+    import jsonschema
+
+    monkeypatch.setattr(
+        jsonschema.Draft202012Validator, "iter_errors", lambda self, instance: iter(())
+    )
+
+
+SEMANTIC_CASES = [
+    pytest.param(
+        _package_edit(lambda d: d["protocols"][0].update(target_frequency_hz=1.0)),
+        "target frequency differs from scorer input",
+        id="protocol-frequency-differs",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["evaluator_binding"].pop("split_manifest")),
+        "evaluator_binding.split_manifest is missing",
+        id="binding-missing-reference",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["evaluator_binding"]["scorer_input"].update(file_id=5)),
+        "evaluator_binding.scorer_input.file_id must be a string",
+        id="binding-file-id-not-string",
+    ),
+]
+
+
+@pytest.mark.usefixtures("no_json_schema")
+@pytest.mark.parametrize(("mutate", "message"), SEMANTIC_CASES)
+def test_verifier_semantic_checks_reject_without_schema_help(
+    tmp_path: Path, mutate: Mutation, message: str
+) -> None:
+    package_path, package = _load(tmp_path)
+    mutate(tmp_path, package)
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert message in _error_text(report)
+
+
+@pytest.mark.parametrize(("mutate", "message"), CASES)
+def test_verifier_reports_each_declared_relation_violation(
+    tmp_path: Path, mutate: Mutation, message: str
+) -> None:
+    package_path, package = _load(tmp_path)
+    mutate(tmp_path, package)
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert message in _error_text(report)
+
+
+def test_verifier_rejects_non_object_evaluator_output(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path)
+    _put(tmp_path, package, "file.evaluator.output", b"[]\n")
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "evaluator output must be a JSON object" in _error_text(report)
+
+
+def test_verifier_rejects_unparseable_bound_artifact(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path)
+    _put(tmp_path, package, "file.evaluator.output", b"not json")
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert _error_text(report)
+
+
+def test_verifier_rejects_package_root_that_is_not_a_directory(tmp_path: Path) -> None:
+    package_path, _ = _load(tmp_path)
+    report = verify_acquisition_package(package_path, package_root=package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "package root must be a directory" in _error_text(report)
+
+
+def test_verifier_bounds_inventory_file_count(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    package_path, _ = _load(tmp_path)
+    monkeypatch.setattr(verify_module, "MAX_INVENTORY_FILES", 1)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "inventory exceeds 1 files" in _error_text(report)
+
+
+def test_verifier_bounds_total_inventory_bytes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    package_path, package = _load(tmp_path)
+    # Budget exactly the bytes of every inventory file except the last one, so the
+    # final read finds no remaining budget.
+    earlier_bytes = sum(item["size_bytes"] for item in package["files"][:-1])
+    monkeypatch.setattr(verify_module, "MAX_TOTAL_FILE_BYTES", earlier_bytes)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "inventory exceeds total byte-read bound" in _error_text(report)
+
+
+def test_verifier_reports_platform_without_directory_descriptors(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    package_path, _ = _load(tmp_path)
+    monkeypatch.setattr(os, "supports_dir_fd", set())
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "cannot securely open package root" in _error_text(report)
+
+
+def _set_angular(update: Callable[[dict[str, Any]], None]) -> Mutation:
+    def apply(root: Path, package: dict[str, Any]) -> None:
+        update(package["angular_measurements"][0])
+
+    return apply
+
+
+def _set_csi(update: Callable[[dict[str, Any]], None]) -> Mutation:
+    def apply(root: Path, package: dict[str, Any]) -> None:
+        update(package["csi_measurements"][0])
+
+    return apply
+
+
+def _zero_power(record: dict[str, Any]) -> None:
+    record["power_per_bin_w"] = [[0.0 for _ in row] for row in record["power_per_bin_w"]]
+
+
+def _negative_first_power(record: dict[str, Any]) -> None:
+    record["power_per_bin_w"][0][0] = -1.0
+
+
+def _scale_solid_angles(record: dict[str, Any]) -> None:
+    record["solid_angle_sr"] = [[2.0 * value for value in row] for row in record["solid_angle_sr"]]
+
+
+def _shorten_power_matrix(record: dict[str, Any]) -> None:
+    record["power_per_bin_w"] = record["power_per_bin_w"][:-1]
+
+
+def _set_nonfinite_power(record: dict[str, Any]) -> None:
+    record["power_per_bin_w"][0][0] = float("nan")
+
+
+def _set_boolean_solid_angle(record: dict[str, Any]) -> None:
+    record["solid_angle_sr"][0][0] = True
+
+
+SEMANTIC_BREADTH_CASES = [
+    pytest.param(
+        _set_csi(lambda r: r.update(h_floor=[])),
+        "amplitude_linear must be finite and strictly positive",
+        id="csi-h-floor-not-an-object",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d.update(attestations=[])),
+        "references unknown attestation",
+        id="legacy-attestations-not-an-object",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["samples"][0].update(campaign_id="campaign.absent")),
+        "campaign_id references unknown ID",
+        id="sample-campaign-absent",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["samples"][0].update(instrument_id="instrument.absent")),
+        "instrument_id references unknown ID",
+        id="sample-instrument-absent",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d.update(evaluator_binding=[])),
+        "evaluator binding",
+        id="evaluator-binding-not-an-object",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["evaluator_binding"].update(input_contract="unsupported")),
+        "scorer input schema does not match evaluator input contract",
+        id="evaluator-input-contract-unsupported",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"][0].update(acquisition_sample_id=None)),
+        "crosswalk acquisition_sample_id is not in package samples",
+        id="crosswalk-acquisition-sample-id-not-string",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(material_id=7)),
+        "material mapping must assign every package specimen exactly once",
+        id="mapping-nonstring-material-id",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(specimen_ids=[7])),
+        "material mapping must assign every package specimen exactly once",
+        id="mapping-nonstring-specimen-id",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["row_crosswalk"][0].update(acquisition_sample_id="sample.absent")
+        ),
+        "crosswalk acquisition_sample_id is not in package samples",
+        id="crosswalk-unknown-acquisition-sample",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["row_crosswalk"][0].update(angular_measurement_id="angular.absent")
+        ),
+        "crosswalk angular_measurement_id is not in package angular_measurements",
+        id="crosswalk-unknown-angular-measurement",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["angular_measurements"][0].update(sample_id="sample.other")),
+        "crosswalk angular measurement belongs to a different acquisition sample",
+        id="crosswalk-angular-measurement-wrong-sample",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["samples"][0].update(unit_id="unit.absent")),
+        "crosswalk acquisition sample references an unknown measurement unit",
+        id="crosswalk-unknown-measurement-unit",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["incidence_groups"][0].update(sample_ids=[])),
+        "crosswalk row sample is absent from scorer input group",
+        id="crosswalk-sample-not-in-scorer-group",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"][0].update(polarization="H")),
+        "crosswalk polarization differs from scorer input row",
+        id="crosswalk-polarization-drift",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d.update(incidence_groups=[])),
+        "crosswalk incidence_group_id is absent from scorer input groups",
+        id="crosswalk-scorer-group-missing",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["incidence_groups"][0].update(incidence_angle_deg=30.0)),
+        "scorer input row angle differs from incidence group",
+        id="scorer-group-angle-drift",
+    ),
+    pytest.param(
+        _rewrite_scorer(
+            lambda d: d["full_split_manifest"].update(test_sample_assignments="malformed")
+        ),
+        "crosswalk sample is absent from embedded split-manifest assignments",
+        id="split-assignment-records-not-an-array",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["test_predictions"][0].update(incidence_angle_deg=30.0)),
+        "scorer input row angle differs from split assignment",
+        id="scorer-row-angle-differs-from-assignment",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"].append(dict(d["row_crosswalk"][0]))),
+        "row_crosswalk repeats angular_measurement_id",
+        id="crosswalk-repeats-angular-measurement",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"][0].update(angular_measurement_id=None)),
+        "crosswalk angular_measurement_id is not in package angular_measurements",
+        id="crosswalk-angular-measurement-id-not-string",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["row_crosswalk"].append(
+                {**d["row_crosswalk"][0], "material_id": "material.other"}
+            )
+        ),
+        "one evaluator sample is mapped to multiple output strata",
+        id="crosswalk-evaluator-sample-output-stratum-drift",
+    ),
+    pytest.param(
+        _package_edit(lambda d: d["row_crosswalk"].append(dict(d["row_crosswalk"][0]))),
+        "row_crosswalk repeats an input_row_pointer",
+        id="crosswalk-repeats-input-pointer",
+    ),
+    pytest.param(
+        _rewrite_scorer(
+            lambda d: d["full_split_manifest"]["test_sample_assignments"].append(
+                dict(d["full_split_manifest"]["test_sample_assignments"][0])
+            )
+        ),
+        "duplicate or invalid test sample assignments",
+        id="split-assignments-duplicate-sample",
+    ),
+    pytest.param(
+        _rewrite_scorer(
+            lambda d: d["full_split_manifest"]["groups"].append(
+                dict(d["full_split_manifest"]["groups"][0])
+            )
+        ),
+        "duplicate or invalid group IDs",
+        id="split-groups-duplicate-id",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["incidence_groups"].append(dict(d["incidence_groups"][0]))),
+        "duplicate or invalid incidence group IDs",
+        id="scorer-groups-duplicate-id",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"].append(dict(d["materials"][0]))),
+        "duplicate material_id entries",
+        id="mapping-duplicate-material-and-specimen",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(specimen_ids=["specimen.absent"])),
+        "references an unknown specimen_id",
+        id="mapping-unknown-specimen",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(material_claims=[])),
+        "does not include the mapped specimen material_claim",
+        id="mapping-claim-differs",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d["materials"][0].update(evidence_file_ids=["file.absent"])),
+        "references an unknown evidence file",
+        id="mapping-unknown-evidence-file",
+    ),
+    pytest.param(
+        _rewrite_mapping(lambda d: d.update(material_mapping_id="mapping.other")),
+        "bound material mapping ID differs from scorer input",
+        id="mapping-id-differs-from-input",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["expected_strata"].append("malformed-row")),
+        "each expected_strata entry must be an object",
+        id="expected-strata-ignores-nonobject-rows",
+    ),
+    pytest.param(
+        _rewrite_scorer(lambda d: d["expected_strata"][0].update(material_id=7)),
+        "evaluator output strata do not exactly match scorer input expected_strata",
+        id="expected-strata-requires-string-keys",
+    ),
+    pytest.param(
+        _package_edit(lambda d: [item.update(size_bytes="12") for item in d["files"]]),
+        "size_bytes must be an integer",
+        id="size-not-integer",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["attestations"]["calibration_truth"].update(
+                attestation_id=d["external_attestations"][0]["attestation_id"]
+            )
+        ),
+        "is not globally unique",
+        id="legacy-attestation-id-collision",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["attestations"]["calibration_truth"].update(
+                evidence_file_ids=["file.absent"]
+            )
+        ),
+        "legacy attestation references unknown file_id",
+        id="legacy-attestation-unknown-file",
+    ),
+    pytest.param(
+        _package_edit(
+            lambda d: d["evaluator_binding"].update(run_configuration_file_ids="not-a-list")
+        ),
+        "evaluator_binding.run_configuration_file_ids must be an array",
+        id="binding-refs-not-array",
+    ),
+    pytest.param(
+        _set_csi(lambda r: r.update(shape=[0, 1, 1, 1])),
+        "shape must contain four positive integers",
+        id="csi-shape-not-positive",
+    ),
+    pytest.param(
+        _set_csi(lambda r: r["h_floor"].update(method="other-method")),
+        "h_floor method must be",
+        id="csi-h-floor-method",
+    ),
+    pytest.param(
+        _set_angular(lambda r: r.update(phi_edges_deg=list(reversed(r["phi_edges_deg"])))),
+        "edges must be strictly increasing",
+        id="angular-edges-not-increasing",
+    ),
+    pytest.param(
+        _set_angular(lambda r: r.update(missing_bin_indices=[[999, 999]])),
+        "invalid missing-bin index",
+        id="angular-missing-bin-out-of-range",
+    ),
+    pytest.param(
+        _set_angular(lambda r: r.update(missing_bin_indices=[[0, 0], [0, 0]])),
+        "repeats a missing-bin index",
+        id="angular-missing-bin-repeated",
+    ),
+    pytest.param(
+        _set_angular(_shorten_power_matrix),
+        "dimensions must match theta/phi bins",
+        id="angular-power-matrix-dimensions",
+    ),
+    pytest.param(
+        _set_angular(_negative_first_power),
+        "must be finite and nonnegative",
+        id="angular-negative-power",
+    ),
+    pytest.param(
+        _set_angular(_set_boolean_solid_angle),
+        "must be finite and nonnegative",
+        id="angular-boolean-solid-angle",
+    ),
+    pytest.param(
+        _set_angular(_zero_power),
+        "must have a positive sum",
+        id="angular-zero-power",
+    ),
+    pytest.param(
+        _set_angular(_scale_solid_angles),
+        "must match the spherical bin geometry",
+        id="angular-solid-angle-geometry",
+    ),
+]
+
+
+@pytest.mark.usefixtures("no_json_schema")
+@pytest.mark.parametrize(("mutate", "message"), SEMANTIC_BREADTH_CASES)
+def test_verifier_breadth_checks_reject_without_schema_help(
+    tmp_path: Path, mutate: Mutation, message: str
+) -> None:
+    package_path, package = _load(tmp_path, V04)
+    mutate(tmp_path, package)
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert message in _error_text(report)
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_rejects_nonfinite_angular_cells(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    _set_nonfinite_power(package["angular_measurements"][0])
+    # 1e999 is valid JSON syntax and parses as infinity; JSON's named Infinity
+    # token is rejected by the package parser before the angular contract runs.
+    package_path.write_text(
+        json.dumps(package).replace("Infinity", "1e999").replace("NaN", "1e999"),
+        encoding="utf-8",
+    )
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "must be finite and nonnegative" in _error_text(report)
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_rejects_overflowing_number_in_embedded_split_manifest(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    scorer = _file_document(tmp_path, package, "file.scorer.input")
+    scorer["full_split_manifest"]["nonfinite"] = float("inf")
+    encoded = json.dumps(scorer, sort_keys=True).encode("utf-8").replace(b"Infinity", b"1e999")
+    _put(tmp_path, package, "file.scorer.input", encoded)
+    package["evaluator_binding"].pop("split_manifest")
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "cannot canonicalize embedded split manifest" in _error_text(report)
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_skips_non_object_material_mapping_rows(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    mapping = _file_document(tmp_path, package, "file.material.mapping")
+    mapping["materials"].append(None)
+    _rewrite_file(tmp_path, package, "file.material.mapping", mapping)
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "consistent_proposal_only", _error_text(report)
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_skips_untyped_optional_attestation_rows(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    package["attestations"]["malformed"] = "not-an-object"
+    package["external_attestations"][0]["attestation_type"] = 7
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "consistent_proposal_only"
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_skips_missing_bin_semantics_when_field_is_not_an_array(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    _set_angular(lambda record: record.update(missing_bin_indices=None))(tmp_path, package)
+    _rewrite_scorer(
+        lambda document: document["test_predictions"][0].update(missing_angular_bin_indices=None)
+    )(tmp_path, package)
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "has missing bins and cannot support a complete pattern" not in _error_text(report)
+
+
+@pytest.mark.parametrize(
+    ("description", "error_message"),
+    [
+        ("evaluator input schema", "cannot validate evaluator input schema"),
+        ("material mapping schema", "cannot validate material mapping schema"),
+    ],
+)
+def test_verifier_reports_schema_read_failures(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, description: str, error_message: str
+) -> None:
+    package_path, _ = _load(tmp_path, V04)
+    real_read = verify_module._read_bounded_regular_file
+    fail_description = description
+
+    def fail_selected_schema(path, *, limit, description: str):
+        if description == fail_description:
+            raise OSError("injected schema read failure")
+        return real_read(path, limit=limit, description=description)
+
+    monkeypatch.setattr(verify_module, "_read_bounded_regular_file", fail_selected_schema)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert error_message in _error_text(report)
+    assert "injected schema read failure" in _error_text(report)
+
+
+def _noise_entry(package: dict[str, Any]) -> dict[str, Any]:
+    return next(item for item in package["files"] if item["role"] == "noise_measurement")
+
+
+def _csi_with_noise(package: dict[str, Any]) -> dict[str, Any]:
+    return package["csi_measurements"][0]
+
+
+NOISE_CASES = [
+    pytest.param(
+        lambda root, d: _noise_entry(d).update(role="other"),
+        "h_floor noise input",
+        id="noise-wrong-role",
+    ),
+    pytest.param(
+        lambda root, d: _noise_entry(d).update(media_type="application/octet-stream"),
+        "must declare media_type 'application/x-npy'",
+        id="noise-wrong-media-type",
+    ),
+    pytest.param(
+        lambda root, d: _noise_entry(d).update(sample_ids=["sample.absent"]),
+        "h_floor noise input",
+        id="noise-bound-to-other-sample",
+    ),
+    pytest.param(
+        lambda root, d: _csi_with_noise(d)["h_floor"].update(noise_input_file_ids=["file.absent"]),
+        "h_floor",
+        id="noise-input-absent",
+    ),
+    pytest.param(
+        lambda root, d: (root / _noise_entry(d)["path"]).unlink(),
+        "has no captured, hash-verified bytes",
+        id="noise-bytes-unavailable",
+    ),
+    pytest.param(
+        lambda root, d: _noise_entry(d).update(path="noise/not-numpy.bin"),
+        "must use a .npy inventory path",
+        id="noise-not-npy-path",
+    ),
+]
+
+
+@pytest.mark.parametrize(("mutate", "message"), NOISE_CASES)
+def test_verifier_rejects_unbound_or_unreadable_noise_inputs(
+    tmp_path: Path, mutate: Callable[[Path, dict[str, Any]], None], message: str
+) -> None:
+    package_path, package = _load(tmp_path, V04)
+    mutate(tmp_path, package)
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert message in _error_text(report)
+
+
+def test_verifier_rejects_duplicate_legacy_attestation_ids(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path)
+    package["attestations"]["physical_independence"]["attestation_id"] = package["attestations"][
+        "calibration_truth"
+    ]["attestation_id"]
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "is not globally unique" in _error_text(report)
+
+
+def test_verifier_rejects_unknown_run_configuration_reference(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path)
+    package["evaluator_binding"]["run_configuration_file_ids"] = ["file.absent"]
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "run_configuration_file_ids references unknown file_id" in _error_text(report)
+
+
+def test_verifier_rejects_fit_covariance_reference_to_unknown_file(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path)
+    package["fits"][0]["parameters"][0]["covariance_file_id"] = "file.absent"
+    _save(package_path, package)
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "references unknown covariance file" in _error_text(report)

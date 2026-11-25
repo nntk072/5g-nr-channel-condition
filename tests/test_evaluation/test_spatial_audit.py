@@ -1,6 +1,6 @@
 import pytest
-from evaluation.independent_splits import make_independent_split
-from evaluation.spatial_audit import audit_spatial_buffer
+from datasets.independent_splits import make_independent_split
+from evaluation.audits.spatial_audit import audit_spatial_buffer
 
 
 def make_records():

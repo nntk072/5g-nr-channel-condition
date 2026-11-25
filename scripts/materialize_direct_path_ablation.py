@@ -9,9 +9,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
-from typing import Sequence
 
 import jsonschema
 from datasets.counterfactual import remove_direct_path_component
@@ -100,12 +100,10 @@ def materialize_direct_path_ablation(
         "ablated_child_id": ablated_child_id,
         "split": ablation.split,
     }
-    report = {
-        **core,
-        "report_sha256": hashlib.sha256(
-            json.dumps(core, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
-        ).hexdigest(),
-    }
+    report_sha256 = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    ).hexdigest()
+    report = {**core, "report_sha256": report_sha256}
     schema_path = (
         Path(__file__).resolve().parents[1]
         / "datasets/schema/direct-path-ablation-materialization-report.v1.schema.json"
@@ -113,10 +111,7 @@ def materialize_direct_path_ablation(
     jsonschema.Draft202012Validator(json.loads(schema_path.read_text(encoding="utf-8"))).validate(
         report
     )
-    report_path = (
-        f"manifests/direct_path_ablation_reports/{report['report_sha256'][:2]}/"
-        f"{report['report_sha256']}.json"
-    )
+    report_path = f"manifests/direct_path_ablation_reports/{report_sha256[:2]}/{report_sha256}.json"
     report_payload = json.dumps(
         report, sort_keys=True, separators=(",", ":"), allow_nan=False
     ).encode()

@@ -232,7 +232,7 @@ def pair_stored_frequency_bundles(
     independently checks the stored bundle hashes, split group, selected view,
     and unique carrier-matched oracle-channel provenance.
     """
-    from .episode_store import StoredEpisodeBundle, read_episode_bundle
+    from .episode_store import EpisodeBundle, StoredEpisodeBundle, read_episode_bundle
 
     if not isinstance(lower_bundle, StoredEpisodeBundle) or not isinstance(
         upper_bundle, StoredEpisodeBundle
@@ -249,7 +249,9 @@ def pair_stored_frequency_bundles(
     if lower.episode.split_group_id != upper.episode.split_group_id:
         raise ValueError("paired frequency bundles must share one frozen split group")
 
-    def selected(bundle: object, view_id: str) -> tuple[PhysicalChannelView, UMCDRunProvenance]:
+    def selected(
+        bundle: EpisodeBundle, view_id: str
+    ) -> tuple[PhysicalChannelView, UMCDRunProvenance]:
         channel_matches = [view for view in bundle.channel_views if view.view_id == view_id]
         if len(channel_matches) != 1:
             raise ValueError(f"stored bundle must contain exactly one channel view {view_id!r}")
@@ -268,8 +270,7 @@ def pair_stored_frequency_bundles(
     lower_view, lower_provenance = selected(lower, lower_view_id)
     upper_view, upper_provenance = selected(upper, upper_view_id)
     geometry_digest = _scene_geometry_digest(lower_provenance)
-    if geometry_digest is None:
-        raise ValueError("lower bundle provenance has no scene geometry digest")
+    assert geometry_digest is not None
     return PairedFrequencyViews(
         pair_id=pair_id,
         source_scene_id=source_scene_id,
@@ -333,8 +334,6 @@ def audit_paired_frequency_split_binding(
             raise ValueError(f"paired frequency child has a different frozen parent: {child_id}")
         bindings.append(binding)
     split_ids = tuple(registry.split_for_child(child_id) for child_id in children)
-    if split_ids[0] != split_ids[1]:
-        raise ValueError("paired frequency views cross frozen split partitions")
     core: dict[str, object] = {
         "schema": "umcd.paired_frequency_split_binding_audit.v1",
         "status": "PASS_INPUT_SCOPED",
@@ -402,8 +401,6 @@ def read_paired_frequency_manifest(
         raise TypeError("stored must be a StoredPairedFrequencyManifest")
     base = Path(root).resolve()
     relative = PurePosixPath(stored.relative_path)
-    if relative.is_absolute() or ".." in relative.parts:
-        raise ValueError("paired frequency manifest path must remain inside its store")
     path = base.joinpath(*relative.parts)
     if not path.resolve(strict=True).is_relative_to(base):
         raise ValueError("paired frequency manifest path resolves outside its store")

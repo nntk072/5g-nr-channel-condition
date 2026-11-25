@@ -8,7 +8,15 @@ import numpy as np
 import pytest
 from datasets.network import LinkDirection, LinkRole, NodeRole
 from datasets.path_oracle import PathSolveStatus
-from integrations.sionna.array_layouts import sionna_scene_to_network_episode
+from integrations.sionna.array_layouts import (
+    _array_spec,
+    _device_items,
+    _pattern_labels,
+    _scalar,
+    _vector3,
+    sionna_device_pose,
+    sionna_scene_to_network_episode,
+)
 from integrations.sionna.rt_network import sionna_bindings_to_episode_oracle
 
 
@@ -44,6 +52,159 @@ def _scene(*, moving_tx: bool = False) -> SimpleNamespace:
         rx_array=_array(),
         frequency=np.asarray(3.5e9),
     )
+
+
+def _extract(**changes):
+    options = {
+        "episode_id": "e",
+        "split_group_id": "s",
+        "family_id": "f",
+        "rf_chain_count_by_node": {
+            "tx:tx-z": 2,
+            "tx:tx-a": 2,
+            "rx:rx-z": 2,
+            "rx:rx-a": 2,
+        },
+    }
+    options.update(changes)
+    scene = _scene()
+    frequency = options.pop("frequency", None)
+    if frequency is not None:
+        scene.frequency = frequency
+    return sionna_scene_to_network_episode(scene, **options)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "error", "message"),
+    [
+        ("frequency", 0.0, ValueError, "must be positive"),
+        ("frequency", np.nan, ValueError, "must be finite"),
+        (
+            "rf_chain_count_by_node",
+            {"tx:tx-a": True, "tx:tx-z": 2, "rx:rx-a": 2, "rx:rx-z": 2},
+            TypeError,
+            "must be an integer",
+        ),
+        (
+            "node_roles",
+            {"tx:tx-a": "gnb"},
+            TypeError,
+            "must be a NodeRole",
+        ),
+        ("node_roles", {"tx:absent": NodeRole.GNB}, ValueError, "absent from this Sionna scene"),
+        (
+            "rf_chain_count_by_node",
+            {"tx:tx-a": 2, "tx:tx-z": 2, "rx:rx-a": 2, "rx:rx-z": 2, "rx:ghost": 1},
+            ValueError,
+            "contain a node absent",
+        ),
+        ("associations", (), ValueError, "at least one"),
+        (
+            "associations",
+            (("tx:tx-a", "rx:rx-a"), ("tx:tx-a", "rx:rx-a")),
+            ValueError,
+            "must be unique",
+        ),
+        (
+            "associations",
+            (("tx:tx-a", "rx:rx-a"),),
+            ValueError,
+            "cover every selected",
+        ),
+        (
+            "link_roles_by_association",
+            {
+                (tx, rx): "serving" if (tx, rx) == ("tx:tx-a", "rx:rx-a") else LinkRole.OTHER
+                for tx in ("tx:tx-a", "tx:tx-z")
+                for rx in ("rx:rx-a", "rx:rx-z")
+            },
+            TypeError,
+            "LinkRole values",
+        ),
+        (
+            "associations",
+            (("rx:rx-a", "tx:tx-a"),),
+            ValueError,
+            "extracted TX followed by an RX",
+        ),
+    ],
+)
+def test_scene_extraction_rejects_invalid_contract_fields(field, value, error, message):
+    if field == "associations" and value == (("tx:tx-a", "rx:rx-a"),):
+        with pytest.raises(error, match=message):
+            _extract(
+                associations=value,
+                link_roles_by_association={},
+            )
+        return
+    with pytest.raises(error, match=message):
+        _extract(**{field: value})
+
+
+def test_scene_extraction_validates_device_maps_and_pattern_labels():
+    with pytest.raises(ValueError, match="non-empty device mapping"):
+        _device_items({}, name="transmitters")
+    with pytest.raises(ValueError, match="invalid device name"):
+        _device_items({"": object()}, name="transmitters")
+    with pytest.raises(TypeError, match="antenna_pattern.patterns"):
+        _pattern_labels(SimpleNamespace(), None, name="tx_pattern_labels")
+    array = _array()
+    array.antenna_pattern.patterns = []
+    with pytest.raises(TypeError, match="antenna_pattern.patterns"):
+        _pattern_labels(array, None, name="tx_pattern_labels")
+    array.antenna_pattern.patterns = [object(), object()]
+    for labels in (("V",), ("V", " "), ("V", 2)):
+        with pytest.raises(ValueError, match="label each Sionna antenna pattern"):
+            _pattern_labels(array, labels, name="tx_pattern_labels")
+    with pytest.raises(ValueError, match="must be unique"):
+        _pattern_labels(array, ("V", "V"), name="tx_pattern_labels")
+
+
+def test_scene_extraction_validates_array_layout_and_pose_contracts():
+    array = _array()
+    with pytest.raises(TypeError, match="pinned AntennaArray layout API"):
+        _array_spec(SimpleNamespace(), ("V",), 1.0, np.eye(3), "array")
+    malformed = _array()
+    malformed.array_size = 1
+    with pytest.raises(ValueError, match="unexpected shape"):
+        _array_spec(malformed, ("V", "H"), 1.0, np.eye(3), "array")
+    with pytest.raises(ValueError, match="feed count"):
+        _array_spec(array, ("V",), 1.0, np.eye(3), "array")
+    with pytest.raises(TypeError, match="position must expose"):
+        sionna_device_pose(
+            SimpleNamespace(position=object(), orientation=_vector(0, 0, 0)), node_id="x"
+        )
+    with pytest.raises(ValueError, match="three finite components"):
+        _vector3(_vector(np.nan, 0, 0), name="position")
+    with pytest.raises(TypeError, match="scalar convertible"):
+        _scalar([], name="frequency")
+    with pytest.raises(ValueError, match="must be finite"):
+        _scalar(np.inf, name="frequency")
+
+
+def test_scene_network_path_binding_requires_exact_roster_and_known_statuses():
+    network = _extract()
+    expected = {link.link_id for link in network.episode.links}
+    with pytest.raises(ValueError, match="exactly every"):
+        network.bind_paths({})
+    paths = {link_id: object() for link_id in expected}
+    with pytest.raises(ValueError, match="unknown extracted"):
+        network.bind_paths(paths, solve_status_by_link_id={"unknown": PathSolveStatus.SOLVED})
+    bindings = network.bind_paths(
+        paths,
+        frame_index=2,
+        solve_status_by_link_id={link_id: PathSolveStatus.NO_PATH for link_id in expected},
+    )
+    assert len(bindings) == len(expected)
+    assert {binding.frame_index for binding in bindings} == {2}
+
+
+def test_scene_device_items_and_pose_accept_numpy_backed_values():
+    assert len(_device_items({"tx": object()}, name="transmitters")) == 1
+    device = _device((1.0, 2.0, 3.0))
+    position, orientation = sionna_device_pose(device, node_id="tx")
+    np.testing.assert_array_equal(position, [1.0, 2.0, 3.0])
+    np.testing.assert_array_equal(orientation, np.eye(3))
 
 
 def test_scene_extraction_preserves_geometry_feeds_roles_and_solver_axis_mapping():

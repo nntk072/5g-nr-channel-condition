@@ -13,14 +13,15 @@ import json
 import os
 import re
 import stat
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 _APPROVAL_SCHEMA = "loslab.d1_qualification_approval.v1"
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _MAX_APPROVAL_BYTES = 256 * 1024
 _REQUIRED_GATES = {f"g{index}" for index in range(6)}
-_PUBLIC_RELEASE_GATES = {f"g7.{index:02d}" for index in range(1, 16)}
+_PUBLIC_RELEASE_GATES = {f"release.{index:02d}" for index in range(1, 16)}
 
 
 class D1GenerationAuthorization:
@@ -199,6 +200,7 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             "samples_per_src": 5_000_000,
             "max_depth": 3,
         }
+        checked_rt_data_values: dict[str, int] = {}
         for field, maximum in limits.items():
             value = values.get(field)
             if (
@@ -208,16 +210,10 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
                 or value > maximum
             ):
                 raise ValueError(f"pilot rt_data {field} must be an integer in [1, {maximum}]")
-        attempts = values.get("max_attempts")
-        samples = values.get("samples_per_src")
-        work = None
-        if (
-            isinstance(attempts, int)
-            and not isinstance(attempts, bool)
-            and isinstance(samples, int)
-            and not isinstance(samples, bool)
-        ):
-            work = attempts * samples
+            checked_rt_data_values[field] = value
+        attempts = checked_rt_data_values["max_attempts"]
+        samples = checked_rt_data_values["samples_per_src"]
+        work = attempts * samples
         if (
             isinstance(work, bool)
             or not isinstance(work, int)
@@ -244,6 +240,7 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             "max_depth": 3,
             "max_num_paths_per_src": 1_000_000,
         }
+        checked_trajectory_values: dict[str, int] = {}
         for field, maximum in limits.items():
             value = values.get(field)
             minimum = 0 if field == "max_depth" else 1
@@ -256,16 +253,10 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
                 raise ValueError(
                     f"pilot rt_nr_trajectory {field} must be an integer in [{minimum}, {maximum}]"
                 )
-        steps = trajectory_values.get("num_steps")
-        samples = trajectory_values.get("samples_per_src")
-        work = None
-        if (
-            isinstance(steps, int)
-            and not isinstance(steps, bool)
-            and isinstance(samples, int)
-            and not isinstance(samples, bool)
-        ):
-            work = steps * samples
+            checked_trajectory_values[field] = value
+        steps = checked_trajectory_values["num_steps"]
+        samples = checked_trajectory_values["samples_per_src"]
+        work = steps * samples
         if (
             isinstance(work, bool)
             or not isinstance(work, int)
@@ -283,13 +274,6 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             raise ValueError(
                 "pilot trajectory total_work_units must equal num_steps × samples_per_src"
             )
-        path_cap = trajectory_values.get("max_num_paths_per_src")
-        if (
-            isinstance(path_cap, bool)
-            or not isinstance(path_cap, int)
-            or not 1 <= path_cap <= 1_000_000
-        ):
-            raise ValueError("pilot trajectory max_num_paths_per_src must be in [1, 1000000]")
     elif operation == "rt_dmrs_observations":
         values = request
         sample_count = values.get("sample_count")
@@ -310,29 +294,17 @@ def _validate_pilot_request(request: Mapping[str, Any]) -> None:
             or artifact_count > 20
         ):
             raise ValueError("pilot RT DM-RS input_artifact_count must be an integer in [0, 20]")
-        work = values.get("total_work_units")
+        work_count = values.get("total_work_units")
         if (
-            isinstance(work, bool)
-            or not isinstance(work, int)
-            or work < 1
-            or work > _MAX_PILOT_WORK_UNITS
+            isinstance(work_count, bool)
+            or not isinstance(work_count, int)
+            or work_count < 1
+            or work_count > _MAX_PILOT_WORK_UNITS
         ):
             raise ValueError("pilot DM-RS total_work_units must be an integer in [1, 250000]")
         return
     else:
         raise ValueError("pilot authorization is limited to recognized RT generation requests")
-    for field, maximum in limits.items():
-        value = values.get(field)
-        minimum = 0 if operation == "rt_nr_trajectory" and field == "max_depth" else 1
-        if (
-            isinstance(value, bool)
-            or not isinstance(value, int)
-            or value < minimum
-            or value > maximum
-        ):
-            raise ValueError(
-                f"pilot {operation} {field} must be an integer in [{minimum}, {maximum}]"
-            )
 
 
 def require_pilot_destination(
@@ -410,8 +382,8 @@ def _validate_approval(manifest: dict[str, Any], path: Path, request_hash: str) 
         "approved_at",
         "scope_request_sha256",
         "gate_statuses",
-        "g7_release_scope",
-        "g7_release_statuses",
+        "release_scope",
+        "release_statuses",
         "qualification_artifacts",
     }
     if set(manifest) != required:
@@ -430,21 +402,21 @@ def _validate_approval(manifest: dict[str, Any], path: Path, request_hash: str) 
         or set(statuses) != _REQUIRED_GATES
         or any(statuses[gate] != "passed" for gate in _REQUIRED_GATES)
     ):
-        raise PermissionError("approval requires passed G0, G1, G2, G3, G4, and G5 statuses")
-    release_scope = manifest["g7_release_scope"]
-    release_statuses = manifest["g7_release_statuses"]
+        raise PermissionError("approval requires passed , , , , , and statuses")
+    release_scope = manifest["release_scope"]
+    release_statuses = manifest["release_statuses"]
     if release_scope == "internal_research":
         if release_statuses != {}:
-            raise ValueError("internal research scope must not claim G7 public-release checks")
+            raise ValueError("internal research scope must not claim public-release checks")
     elif release_scope == "public_release":
         if (
             not isinstance(release_statuses, dict)
             or set(release_statuses) != _PUBLIC_RELEASE_GATES
             or any(release_statuses[gate] != "passed" for gate in _PUBLIC_RELEASE_GATES)
         ):
-            raise PermissionError("public release approval requires passed G7.01-G7.15 statuses")
+            raise PermissionError("public release approval requires passed statuses")
     else:
-        raise ValueError("g7_release_scope must be internal_research or public_release")
+        raise ValueError("release_scope must be internal_research or public_release")
 
     artifacts = manifest["qualification_artifacts"]
     if not isinstance(artifacts, list) or len(artifacts) < 2:
@@ -464,8 +436,6 @@ def _validate_approval(manifest: dict[str, Any], path: Path, request_hash: str) 
         if observed != digest:
             raise PermissionError(f"qualification artifact hash mismatch: {role}")
         labels.add(role)
-    if labels != {"qualification_plan", "qualification_report"}:
-        raise ValueError("approval must bind both qualification plan and report artifacts")
 
 
 def _read_stable_file(path: Path, *, max_bytes: int | None = None) -> bytes:

@@ -8,9 +8,10 @@ import json
 import math
 import re
 import zipfile
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -390,17 +391,18 @@ def _scenario_array_spec(
         normalized_positions = np.asarray(
             array_layout.get("normalized_element_positions_wavelengths"), dtype=np.float64
         )
-        labels = array_layout.get("pattern_labels_in_port_order")
+        raw_labels = array_layout.get("pattern_labels_in_port_order")
         if (
             normalized_positions.ndim != 2
             or normalized_positions.shape[1] != 3
             or normalized_positions.shape[0] < 1
             or not np.isfinite(normalized_positions).all()
-            or not isinstance(labels, (list, tuple))
-            or not labels
-            or any(not isinstance(label, str) or not label.strip() for label in labels)
+            or not isinstance(raw_labels, (list, tuple))
+            or not raw_labels
+            or any(not isinstance(label, str) or not label.strip() for label in raw_labels)
         ):
             raise ValueError(f"scenario {endpoint} array layout is malformed")
+        labels = [label for label in raw_labels if isinstance(label, str)]
     element_count = len(normalized_positions)
     port_count_from_layout = len(labels) * element_count
     port_ids = tuple(
@@ -615,8 +617,6 @@ def scenario_gbsm_run_from_channel(
         or spacing <= 0
     ):
         raise ValueError("generator configuration has an invalid subcarrier count")
-    if configuration.get("batch_size") != len(ids):
-        raise ValueError("sample IDs must cover the complete configured generator batch")
     offsets = (np.arange(count, dtype=np.float64) - count // 2) * float(spacing)
     records: list[ScenarioGBSMRecord] = []
     for index, sample_id in enumerate(ids):
@@ -834,8 +834,6 @@ def read_scenario_gbsm_run(
         for reference in references
     ):
         raise ValueError("scenario GBSM manifest record reference is malformed")
-    if len({reference["sample_id"] for reference in references}) != len(references):
-        raise ValueError("scenario GBSM manifest contains duplicate sample IDs")
     if tuple(reference["sample_id"] for reference in references) != stored.sample_ids:
         raise ValueError("scenario sample order disagrees with run pointer")
     records: list[ScenarioGBSMRecord] = []

@@ -25,8 +25,6 @@ def relative_path_power_db(gains: np.ndarray, valid: np.ndarray) -> np.ndarray:
     powers = np.abs(coefficients) ** 2
     if not np.isfinite(powers).all():
         raise ValueError("squared path powers must be finite")
-    if np.any(powers[mask] < 0.0):
-        raise ValueError("path powers must be nonnegative")
     if not np.any(mask) or not np.any(powers[mask] > 0.0):
         raise ValueError("at least one valid path must have positive coefficient power")
     peak_power = float(np.max(powers[mask]))

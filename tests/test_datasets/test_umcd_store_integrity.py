@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import resource
 import sys
@@ -9,6 +10,7 @@ import threading
 from dataclasses import replace
 from pathlib import Path
 
+import datasets.episode_store.episode as episode_module
 import numpy as np
 import pytest
 from datasets.channel_view import (
@@ -22,6 +24,8 @@ from datasets.episode_store import (
     _episode_object_size_estimate,
     iter_episode_bundle_shards,
     read_episode_bundle,
+    read_receiver_inference_records,
+    read_receiver_model_inputs,
     write_episode_bundle,
 )
 from datasets.network import (
@@ -154,9 +158,9 @@ def _versioned_complex_cfr_target() -> TargetValue:
     return TargetValue(
         entity_id="gNB-0-to-UE-0",
         definition=definition,
-        values=np.asarray([1.25 - 0.5j, 0.0 + 0.0j], dtype=np.complex64),
-        valid_mask=np.asarray([True, False]),
-        reason_codes=(TargetValidity.VALID, TargetValidity.NOT_OBSERVABLE),
+        values=np.asarray([1.25 - 0.5j], dtype=np.complex64),
+        valid_mask=np.asarray([True]),
+        reason_codes=(TargetValidity.VALID,),
         confidence="synthetic_fixture",
     )
 
@@ -179,7 +183,7 @@ def _episode_bundle() -> EpisodeBundle:
         port_element_weights=np.ones((1, 1), dtype=np.complex128),
     )
     episode = NetworkEpisode(
-        episode_id="g7-06-integrity-episode",
+        episode_id="integrity-episode",
         split_group_id="integrity-group-0",
         family_id="integrity-test-scene",
         carrier_hz=3.5e9,
@@ -214,7 +218,7 @@ def _episode_bundle() -> EpisodeBundle:
         interaction_order=np.asarray([0]),
     )
     channel = PhysicalChannelView(
-        view_id="g7-12-precision-channel",
+        view_id="precision-channel",
         link_id="gNB-0-to-UE-0",
         channel=np.asarray([[[[0.123456789012345 + 0.987654321098765j]]]], dtype=np.complex128),
         frame_times_s=(0.0,),
@@ -226,7 +230,7 @@ def _episode_bundle() -> EpisodeBundle:
         power_scale=ChannelPowerScale.ABSOLUTE,
     )
     channel_complex64 = PhysicalChannelView(
-        view_id="g7-12-precision-channel-complex64",
+        view_id="precision-channel-complex64",
         link_id="gNB-0-to-UE-0",
         channel=np.asarray([[[[0.1234567 + 0.9876543j]]]], dtype=np.complex64),
         frame_times_s=(0.0,),
@@ -388,6 +392,79 @@ def test_episode_bundle_reader_applies_optional_shard_byte_ceiling(tmp_path):
         read_episode_bundle(store, stored, max_shard_bytes=1)
 
 
+def test_episode_bundle_reader_rejects_total_estimate_over_shard_ceiling(tmp_path, monkeypatch):
+    store = tmp_path / "umcd-estimated-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    monkeypatch.setattr(
+        episode_module, "_episode_object_size_estimate", lambda *_args, **_kwargs: 2
+    )
+
+    with pytest.raises(ValueError, match="episode bundle exceeds max_shard_bytes"):
+        read_episode_bundle(store, stored, max_shard_bytes=1)
+
+
+@pytest.mark.parametrize(
+    ("layer", "object_metadata", "arrays", "message"),
+    [
+        ("episode", {"schema": "other"}, {}, "unsupported episode layer schema"),
+        ("targets", {"schema": "other"}, {}, "unsupported target layer schema"),
+        (
+            "receiver_observations",
+            {"schema": "other"},
+            {},
+            "unsupported receiver-observation layer schema",
+        ),
+        (
+            "scenario_gbsm",
+            {
+                "schema": "umcd.scenario_gbsm_record.v1",
+                "sample_id": "sample",
+                "run_id": "run",
+                "sample_index": 0,
+                "scenario": "UMi",
+                "scenario_los": True,
+                "metadata": {},
+            },
+            {},
+            "scenario GBSM episode layer arrays are invalid",
+        ),
+        (
+            "counterfactual_ablations",
+            {"schema": "umcd.direct_path_ablation.invalid"},
+            {},
+            "unsupported direct-path ablation layer schema",
+        ),
+    ],
+)
+def test_episode_bundle_reader_rejects_unsupported_layer_payloads(
+    tmp_path, monkeypatch, layer, object_metadata, arrays, message
+):
+    store = tmp_path / "umcd-invalid-layer-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, references = episode_module._validated_manifest(store, stored)
+    fake_reference = {"layer": layer, "path": "injected-object"}
+    injected_references = (
+        [fake_reference if item["layer"] == "episode" else item for item in references]
+        if layer == "episode"
+        else references + [fake_reference]
+    )
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, injected_references),
+    )
+    original_read_object = episode_module._read_object
+
+    def read_injected_object(base, reference, **kwargs):
+        if reference is fake_reference:
+            return object_metadata, arrays
+        return original_read_object(base, reference, **kwargs)
+
+    monkeypatch.setattr(episode_module, "_read_object", read_injected_object)
+    with pytest.raises(ValueError, match=message):
+        read_episode_bundle(store, stored)
+
+
 def test_episode_bundle_manifest_publication_failure_is_retryable(tmp_path, monkeypatch):
     import datasets.episode_store as episode_store
 
@@ -403,7 +480,7 @@ def test_episode_bundle_manifest_publication_failure_is_retryable(tmp_path, monk
             raise OSError("injected manifest publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_before_manifest)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_before_manifest)
     with pytest.raises(OSError, match="injected manifest publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -434,7 +511,7 @@ def test_episode_bundle_mid_object_publication_failure_is_retryable(tmp_path, mo
                 raise OSError("injected mid-object publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_during_object_publication)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_during_object_publication)
     with pytest.raises(OSError, match="injected mid-object publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -464,7 +541,7 @@ def test_episode_bundle_layer_publication_failure_is_retryable(tmp_path, monkeyp
             raise OSError(f"injected {layer} publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_layer_once)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_layer_once)
     with pytest.raises(OSError, match=f"injected {layer} publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -472,7 +549,7 @@ def test_episode_bundle_layer_publication_failure_is_retryable(tmp_path, monkeyp
     assert not (store / "manifests" / "episodes").exists()
     assert not [path for path in store.rglob(".*") if path.is_file()]
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert loaded.episode.episode_id == bundle.episode.episode_id
@@ -498,7 +575,7 @@ def test_episode_bundle_counterfactual_object_publication_failure_is_retryable(
             raise OSError("injected counterfactual object publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_counterfactual_object)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_counterfactual_object)
     with pytest.raises(OSError, match="counterfactual object publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -507,7 +584,7 @@ def test_episode_bundle_counterfactual_object_publication_failure_is_retryable(
     assert not (store / "objects" / "counterfactual_ablations").exists()
     assert not (store / "manifests" / "episodes").exists()
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert len(loaded.direct_path_ablations) == 1
@@ -535,7 +612,7 @@ def test_episode_bundle_provenance_object_publication_failure_is_retryable(tmp_p
             raise OSError("injected provenance object publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_provenance_object)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_provenance_object)
     with pytest.raises(OSError, match="provenance object publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -544,7 +621,7 @@ def test_episode_bundle_provenance_object_publication_failure_is_retryable(tmp_p
     assert not (store / "objects" / "provenance").exists()
     assert not (store / "manifests" / "episodes").exists()
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert loaded.provenance_records[0].record_id == "counterfactual-ablation-provenance"
@@ -569,7 +646,7 @@ def test_episode_bundle_receiver_observation_publication_failure_is_retryable(
             raise OSError("injected receiver observation publication failure")
         publish(path, payload)
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", fail_receiver_observation)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", fail_receiver_observation)
     with pytest.raises(OSError, match="receiver observation publication failure"):
         write_episode_bundle(store, bundle)
 
@@ -578,7 +655,7 @@ def test_episode_bundle_receiver_observation_publication_failure_is_retryable(
     assert not (store / "objects" / "receiver_observations").exists()
     assert not (store / "manifests" / "episodes").exists()
 
-    monkeypatch.setattr(episode_store, "_publish_immutable", publish)
+    monkeypatch.setattr(episode_store.episode, "_publish_immutable", publish)
     stored = write_episode_bundle(store, bundle)
     loaded = read_episode_bundle(store, stored)
     assert loaded.receiver_observations[0].observation.sample_id == ("receiver-observation-fixture")
@@ -592,7 +669,7 @@ def test_episode_bundle_receiver_observation_publication_failure_is_retryable(
 def test_episode_bundle_shards_are_deterministic_and_budgeted(tmp_path):
     store = tmp_path / "umcd-store"
     template = _episode_bundle()
-    second_episode = replace(template.episode, episode_id="g7-06-integrity-episode-b")
+    second_episode = replace(template.episode, episode_id="integrity-episode-b")
     write_episode_bundle(store, template)
     write_episode_bundle(
         store,
@@ -608,15 +685,15 @@ def test_episode_bundle_shards_are_deterministic_and_budgeted(tmp_path):
 
     assert len(shards) == 1
     assert [bundle.episode.episode_id for bundle in shards[0]] == [
-        "g7-06-integrity-episode",
-        "g7-06-integrity-episode-b",
+        "integrity-episode",
+        "integrity-episode-b",
     ]
 
 
 def test_episode_bundle_shards_split_before_exceeding_accounting_budget(tmp_path):
     store = tmp_path / "umcd-store"
     template = _episode_bundle()
-    second_episode = replace(template.episode, episode_id="g7-06-integrity-episode-b")
+    second_episode = replace(template.episode, episode_id="integrity-episode-b")
     write_episode_bundle(store, template)
     write_episode_bundle(
         store,
@@ -642,8 +719,8 @@ def test_episode_bundle_shards_split_before_exceeding_accounting_budget(tmp_path
     shards = list(iter_episode_bundle_shards(store, max_shard_bytes=budget))
 
     assert [[bundle.episode.episode_id for bundle in shard] for shard in shards] == [
-        ["g7-06-integrity-episode"],
-        ["g7-06-integrity-episode-b"],
+        ["integrity-episode"],
+        ["integrity-episode-b"],
     ]
 
 
@@ -682,6 +759,291 @@ def test_episode_bundle_shards_reject_a_budget_smaller_than_one_bundle(tmp_path)
         list(iter_episode_bundle_shards(store, max_shard_bytes=1))
 
 
+@pytest.mark.parametrize(
+    ("budget", "error", "message"),
+    [
+        (True, TypeError, "max_shard_bytes must be an integer"),
+        (1.5, TypeError, "max_shard_bytes must be an integer"),
+        (0, ValueError, "max_shard_bytes must be positive"),
+    ],
+)
+def test_episode_bundle_shards_validate_budget_type_and_value(tmp_path, budget, error, message):
+    with pytest.raises(error, match=message):
+        list(iter_episode_bundle_shards(tmp_path, max_shard_bytes=budget))
+
+
+def test_episode_bundle_shards_return_empty_when_inventory_is_absent(tmp_path):
+    assert list(iter_episode_bundle_shards(tmp_path, max_shard_bytes=1024)) == []
+
+
+def test_episode_bundle_shards_require_a_real_manifest_directory(tmp_path):
+    manifest_directory = tmp_path / "manifests" / "episodes"
+    manifest_directory.parent.mkdir(parents=True)
+    manifest_directory.write_text("not a directory")
+    with pytest.raises(ValueError, match="manifest directory must be a real directory"):
+        list(iter_episode_bundle_shards(tmp_path, max_shard_bytes=1024))
+
+
+def test_episode_bundle_shards_reject_manifest_directory_symlink(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    manifest_directory = tmp_path / "umcd-store" / "manifests" / "episodes"
+    manifest_directory.parent.mkdir(parents=True)
+    manifest_directory.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ValueError, match="manifest directory must be a real directory"):
+        list(iter_episode_bundle_shards(tmp_path / "umcd-store", max_shard_bytes=1024))
+
+
+def test_episode_bundle_shards_reject_manifest_parent_resolving_outside_store(tmp_path):
+    store = tmp_path / "umcd-store"
+    outside = tmp_path / "outside"
+    (outside / "episodes").mkdir(parents=True)
+    store.mkdir()
+    (store / "manifests").symlink_to(outside, target_is_directory=True)
+    with pytest.raises(ValueError, match="manifest directory resolves outside the store"):
+        list(iter_episode_bundle_shards(store, max_shard_bytes=1024))
+
+
+def _rewrite_shard_manifest(tmp_path, stored, edit):
+    path = tmp_path / stored.relative_path
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    edit(manifest)
+    core = {key: manifest[key] for key in ("schema", "schema_version", "episode_id", "layers")}
+    manifest["bundle_sha256"] = hashlib.sha256(
+        json.dumps(core, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    path.write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")), encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("edit", "message"),
+    [
+        (lambda manifest: manifest.update(schema="other"), "unsupported episode bundle schema"),
+        (lambda manifest: manifest.update(episode_id=" "), "episode_id must be nonempty"),
+        (lambda manifest: manifest.update(layers=[]), "layers must be a nonempty list"),
+        (
+            lambda manifest: manifest["layers"].extend(
+                [item for item in manifest["layers"] if item["layer"] == "oracle_paths"]
+            ),
+            "at most one path-oracle layer",
+        ),
+        (
+            lambda manifest: manifest.update(
+                layers=[item for item in manifest["layers"] if item["layer"] != "episode"]
+            ),
+            "exactly one episode layer",
+        ),
+        (
+            lambda manifest: manifest["layers"].append(
+                next(item for item in manifest["layers"] if item["layer"] == "episode")
+            ),
+            "exactly one episode layer",
+        ),
+        (
+            lambda manifest: manifest.update(
+                layers=[item for item in manifest["layers"] if item["layer"] == "episode"]
+            ),
+            "at least one non-episode data layer",
+        ),
+        (
+            lambda manifest: manifest["layers"][0].pop("path"),
+            "layer reference fields are invalid",
+        ),
+        (
+            lambda manifest: next(
+                item for item in manifest["layers"] if item["layer"] == "oracle_paths"
+            ).update(layer=""),
+            "layer name must be nonempty",
+        ),
+        (
+            lambda manifest: manifest["layers"][0].update(sha256="z" * 64),
+            "digest must be hexadecimal",
+        ),
+        (
+            lambda manifest: manifest["layers"][0].update(sha256="abc"),
+            "digest must be a SHA-256 hex digest",
+        ),
+        (
+            lambda manifest: manifest["layers"][0].update(path=1),
+            "layer path must be a string",
+        ),
+    ],
+)
+def test_episode_bundle_shards_reject_malformed_manifests(tmp_path, edit, message):
+    store = tmp_path / "umcd-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    _rewrite_shard_manifest(tmp_path / "umcd-store", stored, edit)
+    with pytest.raises(ValueError, match=message):
+        list(iter_episode_bundle_shards(store, max_shard_bytes=10_000_000))
+
+
+def test_episode_bundle_shards_reject_an_invalid_manifest_digest(tmp_path):
+    store = tmp_path / "umcd-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    manifest_path = store / stored.relative_path
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["bundle_sha256"] = "0" * 64
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError, match="manifest hash is invalid"):
+        list(iter_episode_bundle_shards(store, max_shard_bytes=10_000_000))
+
+
+def test_episode_bundle_shards_reject_nonobject_manifests(tmp_path):
+    store = tmp_path / "umcd-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    (store / stored.relative_path).write_text("[]", encoding="utf-8")
+    with pytest.raises(ValueError, match="manifest must be a JSON object"):
+        list(iter_episode_bundle_shards(store, max_shard_bytes=10_000_000))
+
+
+def test_episode_bundle_shards_fail_before_deserializing_when_total_estimate_exceeds_budget(
+    tmp_path,
+):
+    store = tmp_path / "umcd-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    manifest = json.loads((store / stored.relative_path).read_text(encoding="utf-8"))
+    estimates = [
+        _episode_object_size_estimate(store, reference, max_shard_bytes=10_000_000)
+        for reference in manifest["layers"]
+    ]
+    budget = max(estimates)
+    assert sum(estimates) > budget
+    with pytest.raises(ValueError, match="estimate exceeds max_shard_bytes"):
+        list(iter_episode_bundle_shards(store, max_shard_bytes=budget))
+
+
+def test_episode_bundle_shards_reject_duplicate_inventory_entries(tmp_path, monkeypatch):
+    store = tmp_path / "umcd-store"
+    write_episode_bundle(store, _episode_bundle())
+    manifest_directory = store / "manifests" / "episodes"
+    original = list(manifest_directory.glob("*.json"))
+    monkeypatch.setattr(
+        "datasets.episode_store.episode._iter_episode_manifest_paths",
+        lambda _directory: iter(original + original),
+    )
+    with pytest.raises(ValueError, match="duplicate episode manifest"):
+        list(iter_episode_bundle_shards(store, max_shard_bytes=10_000_000))
+
+
+@pytest.mark.parametrize(
+    ("references", "message"),
+    [
+        ([{"layer": "unknown"}], "unsupported episode bundle layer"),
+        ([{"layer": "targets"}], "exactly one episode layer"),
+        ([{"layer": "episode"}], "contains no receiver observations"),
+    ],
+)
+def test_receiver_inference_manifest_layer_guards(tmp_path, monkeypatch, references, message):
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: ({"episode_id": "fixture"}, references),
+    )
+    with pytest.raises(ValueError, match=message):
+        episode_module.read_receiver_inference_records(tmp_path, object())
+
+
+def test_receiver_inference_returns_separate_ids_and_model_inputs(tmp_path):
+    bundle = _episode_bundle_with_receiver_observation()
+    stored = write_episode_bundle(tmp_path, bundle)
+    records = read_receiver_inference_records(tmp_path, stored)
+    inputs = read_receiver_model_inputs(tmp_path, stored)
+    assert len(records) == len(inputs) == 1
+    assert records[0].sample_id == "receiver-observation-fixture"
+    np.testing.assert_array_equal(records[0].model_inputs.received_grid, inputs[0].received_grid)
+
+
+@pytest.mark.parametrize(
+    ("link_id", "frame_index", "message"),
+    [
+        ("unlisted-link", 0, "unknown link or frame"),
+        ("gNB-0-to-UE-0", 1, "unknown link or frame"),
+    ],
+)
+def test_receiver_inference_rejects_unknown_link_or_frame(
+    tmp_path, monkeypatch, link_id, frame_index, message
+):
+    bundle = _episode_bundle_with_receiver_observation()
+    stored = write_episode_bundle(tmp_path, bundle)
+    original = bundle.receiver_observations[0]
+    monkeypatch.setattr(
+        episode_module,
+        "_read_receiver",
+        lambda *_args: replace(original, link_id=link_id, frame_index=frame_index),
+    )
+    with pytest.raises(ValueError, match=message):
+        read_receiver_inference_records(tmp_path, stored)
+
+
+def test_receiver_inference_rejects_duplicate_link_frame_bindings(tmp_path, monkeypatch):
+    bundle = _episode_bundle_with_receiver_observation()
+    stored = write_episode_bundle(tmp_path, bundle)
+    metadata, references = episode_module._validated_manifest(tmp_path, stored)
+    receiver = next(item for item in references if item["layer"] == "receiver_observations")
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references + [receiver]),
+    )
+    with pytest.raises(ValueError, match="duplicated for a link/frame"):
+        read_receiver_inference_records(tmp_path, stored)
+
+
+def test_receiver_inference_rejects_duplicate_sample_ids(tmp_path, monkeypatch):
+    bundle = _episode_bundle_with_receiver_observation()
+    stored = write_episode_bundle(tmp_path, bundle)
+    metadata, references = episode_module._validated_manifest(tmp_path, stored)
+    receiver = next(item for item in references if item["layer"] == "receiver_observations")
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references + [receiver]),
+    )
+    original_read_episode = episode_module._read_episode
+    monkeypatch.setattr(
+        episode_module,
+        "_read_episode",
+        lambda *args: replace(original_read_episode(*args), frame_times_s=(0.0, 1.0)),
+    )
+    original = bundle.receiver_observations[0]
+    reads = iter((0, 1))
+    monkeypatch.setattr(
+        episode_module,
+        "_read_receiver",
+        lambda *_args: replace(original, frame_index=next(reads)),
+    )
+    with pytest.raises(ValueError, match="sample IDs are duplicated"):
+        read_receiver_inference_records(tmp_path, stored)
+
+
+def test_receiver_inference_rejects_unsupported_episode_schema(tmp_path, monkeypatch):
+    bundle = _episode_bundle_with_receiver_observation()
+    stored = write_episode_bundle(tmp_path, bundle)
+    original = episode_module._read_object
+
+    def unsupported_episode(base, reference, **kwargs):
+        if reference["layer"] == "episode":
+            return {"schema": "other"}, {}
+        return original(base, reference, **kwargs)
+
+    monkeypatch.setattr(episode_module, "_read_object", unsupported_episode)
+    with pytest.raises(ValueError, match="unsupported episode layer schema"):
+        read_receiver_inference_records(tmp_path, stored)
+
+
+def test_receiver_inference_rejects_manifest_episode_id_drift(tmp_path, monkeypatch):
+    bundle = _episode_bundle_with_receiver_observation()
+    stored = write_episode_bundle(tmp_path, bundle)
+    original = episode_module._validated_manifest
+    metadata, references = original(tmp_path, stored)
+    metadata["episode_id"] = "other-episode"
+    monkeypatch.setattr(
+        episode_module, "_validated_manifest", lambda *_args, **_kwargs: (metadata, references)
+    )
+    with pytest.raises(ValueError, match="manifest and episode payload IDs differ"):
+        read_receiver_inference_records(tmp_path, stored)
+
+
 def test_episode_bundle_reader_rejects_duplicate_manifest_keys(tmp_path):
     store = tmp_path / "umcd-store"
     stored = write_episode_bundle(store, _episode_bundle())
@@ -700,7 +1062,7 @@ def test_episode_bundle_reader_rejects_duplicate_manifest_keys(tmp_path):
         read_episode_bundle(store, stored)
 
 
-def test_g7_12_compressed_round_trip_preserves_physical_values_and_dtypes(tmp_path):
+def test_compressed_round_trip_preserves_physical_values_and_dtypes(tmp_path):
     store = tmp_path / "precision-store"
     bundle = _episode_bundle()
     stored = write_episode_bundle(store, bundle)
@@ -727,7 +1089,7 @@ def test_g7_12_compressed_round_trip_preserves_physical_values_and_dtypes(tmp_pa
         assert stored_target.definition == source_target.definition
 
 
-def test_g7_complex_cfr_target_survives_episode_store_round_trip(tmp_path):
+def test_complex_cfr_target_survives_episode_store_round_trip(tmp_path):
     store = tmp_path / "complex-cfr-store"
     source_bundle = _episode_bundle()
     target = _versioned_complex_cfr_target()
@@ -784,8 +1146,8 @@ def test_umcd_episode_store_process_peak_rss_scaling(tmp_path, bundle_count, sub
     for index in range(bundle_count):
         episode = replace(
             base_bundle.episode,
-            episode_id=f"g7-memory-scaling-{index:04d}",
-            split_group_id=f"g7-memory-scaling-group-{index:04d}",
+            episode_id=f"memory-scaling-{index:04d}",
+            split_group_id=f"memory-scaling-group-{index:04d}",
             subcarrier_offsets_hz=offsets,
         )
         channels = tuple(
@@ -825,3 +1187,174 @@ def test_umcd_episode_store_process_peak_rss_scaling(tmp_path, bundle_count, sub
             sort_keys=True,
         )
     )
+
+
+@pytest.mark.parametrize("budget", [True, 1.5, 0])
+def test_episode_reader_requires_positive_integer_shard_budget(tmp_path, budget):
+    store = tmp_path / "reader-budget-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+
+    with pytest.raises(ValueError, match="max_shard_bytes must be a positive integer"):
+        read_episode_bundle(store, stored, max_shard_bytes=budget)
+
+
+@pytest.mark.parametrize(
+    ("references", "message"),
+    [
+        ([{"layer": "unknown"}], "unsupported episode bundle layer"),
+        ([], "bundle must contain one episode"),
+    ],
+)
+def test_episode_reader_requires_supported_layers_and_one_episode(
+    tmp_path, monkeypatch, references, message
+):
+    store = tmp_path / "reader-roster-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, _ = episode_module._validated_manifest(store, stored)
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references),
+    )
+
+    with pytest.raises(ValueError, match=message):
+        read_episode_bundle(store, stored)
+
+
+@pytest.mark.parametrize(
+    ("layer", "object_metadata", "arrays", "message"),
+    [
+        (
+            "oracle_channels",
+            {"schema": "unknown-channel-schema"},
+            {},
+            "unsupported physical-channel layer schema",
+        ),
+        (
+            "scenario_gbsm",
+            {"schema": "umcd.scenario_gbsm_record.v1"},
+            {},
+            "unsupported scenario GBSM episode layer schema",
+        ),
+        (
+            "counterfactual_ablations",
+            {"schema": "umcd.direct_path_ablation.v1"},
+            {},
+            "unsupported direct-path ablation layer schema",
+        ),
+        (
+            "counterfactual_ablations",
+            {
+                "schema": "umcd.direct_path_ablation.v1",
+                "parent_subject_id": "subject",
+                "base_child_id": "base",
+                "ablated_child_id": "ablated",
+                "split": "train",
+                "path_table_sha256": "a" * 64,
+                "link_ids": ["link"],
+            },
+            {},
+            "direct-path ablation layer arrays are invalid",
+        ),
+    ],
+)
+def test_episode_reader_rejects_malformed_optional_layer_payloads(
+    tmp_path, monkeypatch, layer, object_metadata, arrays, message
+):
+    store = tmp_path / "reader-layer-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, references = episode_module._validated_manifest(store, stored)
+    fake_reference = {"layer": layer, "path": "injected-object"}
+    original_read = episode_module._read_object
+
+    def read_object(base, reference, *, max_bytes=None):
+        if reference.get("path") == "injected-object":
+            return object_metadata, arrays
+        return original_read(base, reference, max_bytes=max_bytes)
+
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, [*references, fake_reference]),
+    )
+    monkeypatch.setattr(episode_module, "_read_object", read_object)
+
+    with pytest.raises(ValueError, match=message):
+        read_episode_bundle(store, stored)
+
+
+def test_episode_reader_rejects_manifest_episode_id_drift_after_payload_read(tmp_path, monkeypatch):
+    store = tmp_path / "reader-identity-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, references = episode_module._validated_manifest(store, stored)
+    metadata["episode_id"] = "another-episode"
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references),
+    )
+
+    with pytest.raises(ValueError, match="manifest and episode payload IDs differ"):
+        read_episode_bundle(store, stored)
+
+
+def test_episode_reader_migrates_legacy_target_and_marks_missing_censor_detail(
+    tmp_path, monkeypatch
+):
+    store = tmp_path / "reader-legacy-target-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, references = episode_module._validated_manifest(store, stored)
+    target_metadata = {
+        "schema": "umcd.target.v1",
+        "entity_id": "gNB-0-to-UE-0",
+        "definition": {
+            "semantic": "legacy path visibility",
+            "units": "boolean",
+            "source": "legacy path oracle",
+        },
+        "reason_codes": [TargetValidity.CENSORED.value],
+        "confidence": "legacy_fixture",
+    }
+    target_arrays = {
+        "values": np.asarray([0], dtype=np.uint8),
+        "valid_mask": np.asarray([False]),
+    }
+    references = [*references, {"layer": "targets", "path": "injected-legacy-target"}]
+    original_read = episode_module._read_object
+
+    def read_object(base, reference, *, max_bytes=None):
+        if reference.get("path") == "injected-legacy-target":
+            return target_metadata, target_arrays
+        return original_read(base, reference, max_bytes=max_bytes)
+
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references),
+    )
+    monkeypatch.setattr(episode_module, "_read_object", read_object)
+
+    targets = read_episode_bundle(store, stored).targets
+    target = next(
+        target
+        for target in targets
+        if target.definition.definition_version == "migrated_from_legacy_target_v1"
+    )
+    assert target.definition.definition_version == "migrated_from_legacy_target_v1"
+    assert target.reason_codes == (TargetValidity.LEGACY_REASON_UNRECORDED,)
+
+
+def test_episode_bundle_shard_reader_handles_empty_manifest_inventory(tmp_path):
+    (tmp_path / "manifests" / "episodes").mkdir(parents=True)
+
+    assert list(iter_episode_bundle_shards(tmp_path, max_shard_bytes=1024)) == []
+
+
+def test_episode_bundle_reader_accepts_sufficient_shard_byte_ceiling(tmp_path):
+    store = tmp_path / "reader-budget-success-store"
+    bundle = _episode_bundle()
+    stored = write_episode_bundle(store, bundle)
+
+    loaded = read_episode_bundle(store, stored, max_shard_bytes=10_000_000)
+
+    assert loaded.episode.episode_id == bundle.episode.episode_id

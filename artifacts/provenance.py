@@ -58,7 +58,7 @@ def require_file_matches_git_head(path: str | Path) -> None:
         )
 
 
-def canonical_hash(data: dict[str, Any]) -> str:
+def canonical_hash(data: Any) -> str:
     return hashlib.sha256(
         json.dumps(data, sort_keys=True, separators=(",", ":"), default=str).encode()
     ).hexdigest()
@@ -99,7 +99,6 @@ def package_source_sha256() -> str:
         "experiments",
         "integrations",
         "compute",
-        "loslab",
     )
     for package in packages:
         folder = root / package
@@ -117,11 +116,7 @@ def versions() -> dict[str, str]:
     d = {"python": sys.version.split()[0]}
     for p in ("numpy", "scikit-learn", "torch", "sionna", "sionna-rt", "sionna-phy"):
         try:
-            distribution = (
-                "sionna-no-rt"
-                if p == "sionna-phy"
-                else p
-            )
+            distribution = "sionna-no-rt" if p == "sionna-phy" else p
             try:
                 d[p] = importlib.metadata.version(distribution)
             except importlib.metadata.PackageNotFoundError:

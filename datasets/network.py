@@ -251,10 +251,7 @@ class NodePoseTimeline:
             raise TypeError("frame_index must be an integer")
         if not 0 <= frame_index < len(self.frame_times_s):
             raise IndexError("frame_index is outside the pose timeline")
-        try:
-            return self.positions_world_m[frame_index, self.node_index(node_id)]
-        except IndexError as exc:
-            raise KeyError(node_id) from exc
+        return self.positions_world_m[frame_index, self.node_index(node_id)]
 
     def orientation(self, node_id: str, frame_index: int) -> np.ndarray:
         """Return a read-only local-array-to-world rotation for one node and frame."""
@@ -262,10 +259,7 @@ class NodePoseTimeline:
             raise TypeError("frame_index must be an integer")
         if not 0 <= frame_index < len(self.frame_times_s):
             raise IndexError("frame_index is outside the pose timeline")
-        try:
-            return self.orientations_local_to_world[frame_index, self.node_index(node_id)]
-        except IndexError as exc:
-            raise KeyError(node_id) from exc
+        return self.orientations_local_to_world[frame_index, self.node_index(node_id)]
 
     def align_to(
         self,

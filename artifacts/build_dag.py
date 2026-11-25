@@ -8,9 +8,10 @@ import os
 import re
 import stat
 import tempfile
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Mapping
+from typing import Any
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _NODE_SCHEMA = "loslab.build_node_manifest.v1"
@@ -299,10 +300,10 @@ def _publish_object(root: Path, source: Path) -> tuple[str, int]:
         try:
             os.link(temporary, destination)
             _fsync_directory(object_directory)
-        except FileExistsError:
+        except FileExistsError as err:
             actual, actual_size = _file_digest(destination, require_single_link=True)
             if actual != digest or actual_size != size:
-                raise ValueError("content-addressed object collision or corruption")
+                raise ValueError("content-addressed object collision or corruption") from err
     finally:
         temporary.unlink(missing_ok=True)
     return digest, size
@@ -331,9 +332,11 @@ def _publish_manifest(root: Path, spec: BuildNodeSpec, artifacts: list[dict[str,
         try:
             os.link(temporary, path)
             _fsync_directory(node_directory)
-        except FileExistsError:
+        except FileExistsError as err:
             if _stable_bytes(path, maximum_bytes=16 * 1024 * 1024) != payload:
-                raise ValueError("immutable build-node key already has a different manifest")
+                raise ValueError(
+                    "immutable build-node key already has a different manifest"
+                ) from err
     finally:
         temporary.unlink(missing_ok=True)
     return path

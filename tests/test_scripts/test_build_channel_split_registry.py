@@ -144,7 +144,7 @@ def test_candidate_split_registry_reuses_exact_cached_build_node(tmp_path):
 def _write_legacy_rt_dataset(path: Path, *, index: int) -> None:
     scene_name = f"legacy-scene-{index}"
     block_size = 1.0
-    asset_payload = f"scene-bytes-{index}".encode("utf-8")
+    asset_payload = f"scene-bytes-{index}".encode()
     asset_rows = [
         {
             "path": f"{scene_name}.xml",

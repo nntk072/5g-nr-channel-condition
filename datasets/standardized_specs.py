@@ -213,9 +213,9 @@ def standardized_generator_capability_report() -> dict[str, object]:
         ],
     }
     payload = {"families": families, "scenario_gbsm": scenario_gbsm}
-    encoded = json.dumps(
-        payload, sort_keys=True, separators=(",", ":"), allow_nan=False
-    ).encode("utf-8")
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode(
+        "utf-8"
+    )
     return {
         "schema": "umcd.standardized_generator_capabilities.v2",
         "status": "CODE_SCOPE_ONLY_NOT_CONFORMANCE_QUALIFICATION",
@@ -226,17 +226,24 @@ def standardized_generator_capability_report() -> dict[str, object]:
 
 def _standardized_family_versions(family: str) -> dict[str, list[str]]:
     entries = [
-        row for (row_family, _), row in STANDARDIZED_PROFILE_APPLICABILITY.items()
+        row
+        for (row_family, _), row in STANDARDIZED_PROFILE_APPLICABILITY.items()
         if row_family == family
     ]
     return {
         "scalable": sorted(
-            {version for row in entries if not row.fixed_profile for version in row.supported_versions}
+            {
+                version
+                for row in entries
+                if not row.fixed_profile
+                for version in row.supported_versions
+            }
         ),
         "fixed": sorted(
             {version for row in entries if row.fixed_profile for version in row.supported_versions}
         ),
     }
+
 
 _TDL_RESOLVED_PROFILE_FIELDS = (
     "profile_proxy",
@@ -315,6 +322,7 @@ def cdl_parameter_table_binding_sha256(metadata: Mapping[str, object]) -> str:
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError("CDL parameter table binding is incomplete or invalid") from exc
     return hashlib.sha256(encoded).hexdigest()
+
 
 # TS 38.101-4 V19.2.2 Annex B.2.2, Tables B.2.2-1 and B.2.2-2.
 # Values are (fixed TDL profile, frequency range, maximum Doppler in Hz).

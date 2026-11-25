@@ -1,0 +1,13 @@
+# The single list of code packages. tools/check, pyproject.toml, ruff, mypy,
+# coverage and the packaging include list are all derived from this file by
+# tools/sync_packages.py. Edit this file, then run `python tools/sync_packages.py`.
+
+[packages]
+# Importable top-level packages shipped with the project.
+names = [
+  "artifacts", "configuration", "datasets", "propagation", "receivers",
+  "models", "learning", "evaluation", "experiments", "integrations",
+  "compute", "scripts",
+]
+# Directories linted with the packages but not shipped.
+test_roots = ["tests"]

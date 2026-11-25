@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 from propagation import extract_scene_triangle_inventory, query_scene_segment_visibility
+from propagation.scene_visibility import SceneTriangleInventory
 
 
 class _Buffer:
@@ -137,3 +138,154 @@ def test_scene_inventory_rejects_ambiguous_names_and_invalid_scale() -> None:
         extract_scene_triangle_inventory(scene)
     with pytest.raises(ValueError, match="meters_per_unit"):
         extract_scene_triangle_inventory(_triangle_scene(), meters_per_unit=True)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("object_names", (), "requires named mesh objects"),
+        ("object_names", ("",), "requires named mesh objects"),
+        ("object_names", ("screen", "screen"), "unique and sorted"),
+        ("object_names", ("z", "a"), "unique and sorted"),
+        ("triangles_m", np.zeros((3, 3)), r"shape \[n, 3, 3\]"),
+        ("triangles_m", np.full((1, 3, 3), np.nan), "must be finite"),
+        ("triangle_object_names", (), "each triangle must identify"),
+        ("triangle_object_names", ("missing",), "each triangle must identify"),
+        ("scene_geometry_sha256", "A" * 64, "lowercase SHA-256"),
+        ("scene_geometry_sha256", "abc", "lowercase SHA-256"),
+        ("meters_per_unit", True, "finite and positive"),
+        ("meters_per_unit", np.inf, "finite and positive"),
+        ("meters_per_unit", 0, "finite and positive"),
+    ],
+)
+def test_scene_triangle_inventory_record_rejects_invalid_fields(field, value, message):
+    options = {
+        "object_names": ("screen",),
+        "triangles_m": np.zeros((1, 3, 3)),
+        "triangle_object_names": ("screen",),
+        "scene_geometry_sha256": "a" * 64,
+        "meters_per_unit": 1.0,
+    }
+    options[field] = value
+    with pytest.raises(ValueError, match=message):
+        SceneTriangleInventory(**options)
+
+
+class _BareMesh:
+    def __init__(self, vertices, faces):
+        self.vertices = vertices
+        self.faces = faces
+
+    def vertex_positions_buffer(self):
+        return _Buffer(self.vertices.reshape(-1))
+
+    def faces_buffer(self):
+        return _Buffer(self.faces.reshape(-1))
+
+
+@pytest.mark.parametrize(
+    ("scene", "message"),
+    [
+        (SimpleNamespace(objects=None), "non-empty objects mapping"),
+        (SimpleNamespace(objects={"screen": SimpleNamespace()}), "no Mitsuba triangle mesh"),
+        (
+            SimpleNamespace(objects={"screen": SimpleNamespace(mi_mesh=object())}),
+            "does not expose supported mesh buffers",
+        ),
+        (
+            SimpleNamespace(
+                objects={
+                    "screen": SimpleNamespace(
+                        mi_mesh=_BareMesh(np.zeros((3, 3)), np.asarray([[0.0, 1.0, 2.0]]))
+                    )
+                }
+            ),
+            "faces must be integer triangles",
+        ),
+        (
+            SimpleNamespace(
+                objects={
+                    "screen": SimpleNamespace(
+                        mi_mesh=_BareMesh(np.zeros((3, 3)), np.asarray([[0, 1]]))
+                    )
+                }
+            ),
+            "faces must be integer triangles",
+        ),
+    ],
+)
+def test_scene_inventory_rejects_missing_objects_and_unsupported_mesh_buffers(scene, message):
+    with pytest.raises((TypeError, ValueError), match=message):
+        extract_scene_triangle_inventory(scene)
+
+
+def test_scene_inventory_supports_pretransformed_buffers_and_callable_matrix():
+    vertices = np.asarray([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.float64)
+    faces = np.asarray([[0, 1, 2]], dtype=np.int32)
+    bare = SimpleNamespace(mi_mesh=_BareMesh(vertices, faces))
+    without_transform = extract_scene_triangle_inventory(SimpleNamespace(objects={"bare": bare}))
+    np.testing.assert_array_equal(without_transform.triangles_m[0], vertices)
+
+    transform = np.eye(4)
+    transform[0, 3] = 5
+    mesh = _Mesh(vertices, faces)
+    mesh.to_world = lambda: SimpleNamespace(matrix=lambda: _Buffer(transform))
+    transformed = extract_scene_triangle_inventory(
+        SimpleNamespace(objects={"transformed": SimpleNamespace(mi_mesh=mesh)})
+    )
+    np.testing.assert_array_equal(transformed.triangles_m[0, :, 0], [5, 6, 5])
+
+
+def test_scene_inventory_reports_unreadable_mesh_buffers():
+    class BrokenBuffer:
+        def numpy(self):
+            raise RuntimeError("native buffer unavailable")
+
+    mesh = SimpleNamespace(
+        vertex_positions_buffer=lambda: BrokenBuffer(),
+        faces_buffer=lambda: _Buffer(np.asarray([[0, 1, 2]], dtype=np.uint32)),
+    )
+    with pytest.raises(ValueError, match="mesh buffers are unreadable"):
+        extract_scene_triangle_inventory(
+            SimpleNamespace(objects={"screen": SimpleNamespace(mi_mesh=mesh)})
+        )
+
+
+@pytest.mark.parametrize(
+    "transform",
+    [
+        None,
+        np.zeros((3, 3)),
+        np.full((4, 4), np.nan),
+        np.asarray([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 1, 1]]),
+    ],
+)
+def test_scene_inventory_rejects_invalid_object_to_world_transforms(transform):
+    vertices = np.asarray([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.float64)
+    mesh = _Mesh(vertices, np.asarray([[0, 1, 2]], dtype=np.int32))
+    mesh.to_world = lambda: SimpleNamespace(matrix=transform)
+    scene = SimpleNamespace(objects={"screen": SimpleNamespace(mi_mesh=mesh)})
+    expected = "unsupported object-to-world transform" if transform is None else "finite and affine"
+    with pytest.raises(ValueError, match=expected):
+        extract_scene_triangle_inventory(scene)
+
+
+def test_scene_inventory_rejects_transform_and_unit_overflow_and_bad_query_input():
+    vertices = np.asarray([[0, 0, 0], [1e308, 0, 0], [0, 1, 0]], dtype=np.float64)
+    mesh = _Mesh(vertices, np.asarray([[0, 1, 2]], dtype=np.int32))
+    transform = np.eye(4)
+    transform[0, 0] = 2
+    mesh.to_world = lambda: SimpleNamespace(matrix=transform)
+    scene = SimpleNamespace(objects={"screen": SimpleNamespace(mi_mesh=mesh)})
+    with np.errstate(over="ignore"), pytest.raises(ValueError, match="overflows world coordinates"):
+        extract_scene_triangle_inventory(scene)
+
+    mesh.to_world = lambda: SimpleNamespace(matrix=np.eye(4))
+    with (
+        np.errstate(over="ignore"),
+        pytest.raises(ValueError, match="overflows metric coordinates"),
+    ):
+        extract_scene_triangle_inventory(scene, meters_per_unit=2)
+
+    with pytest.raises(TypeError, match="SceneTriangleInventory"):
+        query_scene_segment_visibility(object(), (0, 0, 0), (1, 0, 0))

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from evaluation.population_audit import (
+from evaluation.audits.population_audit import (
     audit_expected_population,
     validate_expected_population_roster,
 )
