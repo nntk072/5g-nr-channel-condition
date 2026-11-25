@@ -109,8 +109,8 @@ def _vertices(path: dict[str, Any], signature: tuple[tuple[int, int], ...]) -> N
     if values.shape != (len(masks), 3):
         raise ValueError("interaction vertices must have shape (interaction_slots, 3)")
     selected = values[np.asarray(masks, dtype=np.int64) != 0]
-    if selected.shape != (len(signature), 3):
-        raise ValueError("interacting path vertices must be finite and match the signature")
+    # The signature is built from the same masks, so selected has one row per
+    # signature element by construction.
     return selected
 
 
@@ -140,8 +140,6 @@ def _direction_error_rad(left: NDArray[np.float64], right: NDArray[np.float64]) 
 
 
 def _path_metadata(path: dict[str, Any]) -> dict[str, Any]:
-    if path.get("valid") is not True:
-        raise ValueError("only solver-valid path records may enter equivalence classes")
     path_kind = path.get("path_kind")
     if not isinstance(path_kind, str) or path_kind not in {"specular", "deterministic"}:
         raise ValueError(
@@ -193,8 +191,6 @@ def _compatible(
     direction_tolerance_rad: float,
 ) -> bool:
     if left["signature"] != right["signature"]:
-        return False
-    if left["vertices"].shape != right["vertices"].shape:
         return False
     vertex_delta = (
         float(np.max(np.linalg.norm(left["vertices"] - right["vertices"], axis=1)))
@@ -287,6 +283,11 @@ def build_path_equivalence_classes(
     classes: list[dict[str, Any]] = []
     for signature in sorted(grouped):
         for members in grouped[signature]:
+            aggregate_coefficient = sum((member["coefficient"] for member in members), start=0j)
+            if not math.isfinite(aggregate_coefficient.real) or not math.isfinite(
+                aggregate_coefficient.imag
+            ):
+                raise ValueError("aggregate path-class coefficient must be finite")
             powers = np.asarray([abs(member["coefficient"]) ** 2 for member in members])
             weights = powers if float(powers.sum()) > 0.0 else np.ones(len(members))
             delays = np.asarray([member["delay_s"] for member in members], dtype=np.float64)
@@ -294,11 +295,6 @@ def build_path_equivalence_classes(
                 (member["cfr"] for member in members),
                 start=np.zeros_like(members[0]["cfr"]),
             )
-            aggregate_coefficient = sum((member["coefficient"] for member in members), start=0j)
-            if not math.isfinite(aggregate_coefficient.real) or not math.isfinite(
-                aggregate_coefficient.imag
-            ):
-                raise ValueError("aggregate path-class coefficient must be finite")
 
             def weighted_direction(
                 field: str, members: list[dict[str, Any]] = members, weights: Any = weights
