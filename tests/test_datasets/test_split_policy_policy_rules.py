@@ -12,7 +12,12 @@ from datasets.split_policy import (
     SplitPolicy,
     SplitSubject,
 )
-from datasets.split_policy.policy import derive_split_components
+from datasets.split_policy.policy import (
+    SpatiotemporalFootprint,
+    _derive_registry_assignments,
+    derive_spatiotemporal_leakage_relations,
+    derive_split_components,
+)
 
 
 def _subject(
@@ -152,3 +157,87 @@ def test_components_group_subjects_that_share_a_relation() -> None:
 def test_components_reject_malformed_subject_sets(subjects, error, message) -> None:
     with pytest.raises(error, match=message):
         derive_split_components(subjects)
+
+
+def test_registry_assignment_reconstruction_rejects_inconsistent_inputs(monkeypatch) -> None:
+    import datasets.split_policy.policy as policy_module
+
+    valid_subjects = {f"s{index}": _subject(f"s{index}") for index in range(4)}
+    policy = SplitPolicy.release_v2(seed="assignment-check")
+    with pytest.raises(TypeError, match="policy must be a SplitPolicy"):
+        _derive_registry_assignments(valid_subjects, "invalid")
+    with pytest.raises(ValueError, match="at least one split subject"):
+        _derive_registry_assignments({}, policy)
+    with pytest.raises(TypeError, match="must contain SplitSubject values"):
+        _derive_registry_assignments({"a": object()}, policy)
+    with pytest.raises(ValueError, match="mapping keys must equal subject IDs"):
+        _derive_registry_assignments({"wrong": _subject("right")}, policy)
+
+    duplicate_partition_subjects = {
+        "a": SplitSubject("a", SplitParentType.NETWORK_EPISODE, "family-a", partition_id="shared"),
+        "b": SplitSubject("b", SplitParentType.NETWORK_EPISODE, "family-a", partition_id="shared"),
+    }
+    with pytest.raises(ValueError, match="partition_id values must uniquely identify"):
+        _derive_registry_assignments(duplicate_partition_subjects, policy)
+
+    excluded_relation = _subject("excluded", (LeakageNamespace.SITE, "site-1"))
+    restricted_policy = SplitPolicy(
+        seed="restricted",
+        split_fractions=THREE_WAY,
+        relation_namespaces=(LeakageNamespace.SCENE_REALIZATION,),
+    )
+    with pytest.raises(ValueError, match="relations excluded by policy"):
+        _derive_registry_assignments({"excluded": excluded_relation}, restricted_policy)
+
+    monkeypatch.setattr(
+        policy_module,
+        "make_independent_split",
+        lambda *_args, **_kwargs: type("Assignment", (), {"group_to_split": {"only": "train"}})(),
+    )
+    with pytest.raises(ValueError, match="omitted a required split partition"):
+        _derive_registry_assignments(valid_subjects, policy)
+
+    malformed_subject = _subject("malformed")
+    object.__setattr__(malformed_subject, "partition_id", None)
+    with pytest.raises(ValueError, match="missing its canonical partition ID"):
+        _derive_registry_assignments({"malformed": malformed_subject}, restricted_policy)
+
+
+def test_spatial_relation_lookup_handles_overflow_and_repeated_component_roots() -> None:
+    footprints = (
+        SpatiotemporalFootprint("a", ((1e308, 0.0, 0.0), (1e308, 0.0, 0.0)), "map"),
+        SpatiotemporalFootprint("b", ((1e308, 0.0, 0.0),), "map"),
+    )
+    relations = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=1e-308)
+
+    assert relations["a"] == relations["b"]
+
+
+def test_spatiotemporal_time_groups_keep_disjoint_singletons_unlinked() -> None:
+    footprints = (
+        SpatiotemporalFootprint("first", time_scope_id="clock", start_time_s=0, end_time_s=1),
+        SpatiotemporalFootprint("second", time_scope_id="clock", start_time_s=1, end_time_s=2),
+        SpatiotemporalFootprint("third", time_scope_id="clock", start_time_s=4, end_time_s=5),
+    )
+
+    relations = derive_spatiotemporal_leakage_relations(footprints, spatial_buffer_m=0.0)
+
+    assert all(not relations[subject_id] for subject_id in ("first", "second", "third"))
+
+
+def test_spatial_relation_lookup_supports_zero_buffer_and_empty_inventories() -> None:
+    linked = derive_spatiotemporal_leakage_relations(
+        (
+            SpatiotemporalFootprint("left", ((0.0, 0.0, 0.0),), "map"),
+            SpatiotemporalFootprint("right", ((0.0, 0.0, 0.0),), "map"),
+        ),
+        spatial_buffer_m=0.0,
+    )
+    singleton = derive_spatiotemporal_leakage_relations(
+        (SpatiotemporalFootprint("alone", ((3.0, 4.0, 5.0),), "map"),),
+        spatial_buffer_m=0.0,
+    )
+
+    assert linked["left"] == linked["right"]
+    assert singleton["alone"] == ()
+    assert derive_spatiotemporal_leakage_relations((), spatial_buffer_m=0.0) == {}

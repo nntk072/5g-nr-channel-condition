@@ -53,6 +53,102 @@ def test_symlink_swapped_in_after_the_stat_is_refused_by_no_follow_open(
         _read_immutable_lock_bytes(link)
 
 
+def test_lock_reader_rejects_path_replacement_after_open(tmp_path: Path, monkeypatch) -> None:
+    lock = tmp_path / "lock.json"
+    lock.write_bytes(b"original")
+    replacement = tmp_path / "replacement.json"
+    replacement.write_bytes(b"replaced")
+    real_lstat = os.lstat
+    calls = 0
+
+    def replaced_path_stat(path, *args, **kwargs):
+        nonlocal calls
+        if Path(path) == lock:
+            calls += 1
+            if calls == 2:
+                return real_lstat(replacement)
+        return real_lstat(path, *args, **kwargs)
+
+    monkeypatch.setattr(policy_module.os, "lstat", replaced_path_stat)
+    with pytest.raises(ValueError, match="path changed while opening"):
+        _read_immutable_lock_bytes(lock)
+
+
+def test_lock_reader_rechecks_size_after_open(tmp_path: Path, monkeypatch) -> None:
+    lock = tmp_path / "growing.json"
+    lock.write_bytes(b"x")
+    real_fstat = os.fstat
+
+    def grow_before_fstat(descriptor):
+        with lock.open("ab") as stream:
+            stream.write(b"1234")
+        return real_fstat(descriptor)
+
+    monkeypatch.setattr(policy_module.os, "fstat", grow_before_fstat)
+    with pytest.raises(ValueError, match="exceeds its 4-byte limit"):
+        _read_immutable_lock_bytes(lock, max_bytes=4)
+
+
+def test_lock_reader_rejects_growth_during_stream_read(tmp_path: Path, monkeypatch) -> None:
+    lock = tmp_path / "growing-during-read.json"
+    lock.write_bytes(b"x")
+    real_fdopen = os.fdopen
+
+    def grow_after_fstat(descriptor, mode):
+        with lock.open("ab") as stream:
+            stream.write(b"1234")
+        return real_fdopen(descriptor, mode)
+
+    monkeypatch.setattr(policy_module.os, "fdopen", grow_after_fstat)
+    with pytest.raises(ValueError, match="exceeds its 4-byte limit"):
+        _read_immutable_lock_bytes(lock, max_bytes=4)
+
+
+def test_lock_reader_rejects_metadata_change_after_open(tmp_path: Path, monkeypatch) -> None:
+    lock = tmp_path / "changed-metadata.json"
+    lock.write_bytes(b"payload")
+    original_signature = policy_module._lock_stat_signature
+    calls = 0
+
+    def changed_signature(metadata):
+        nonlocal calls
+        calls += 1
+        signature = original_signature(metadata)
+        return (*signature, 1) if calls == 4 else signature
+
+    monkeypatch.setattr(policy_module, "_lock_stat_signature", changed_signature)
+    with pytest.raises(ValueError, match="changed while opening"):
+        _read_immutable_lock_bytes(lock)
+
+
+@pytest.mark.parametrize("swap_kind", ["symlink", "replacement"])
+def test_lock_reader_rejects_leaf_change_after_read(tmp_path: Path, monkeypatch, swap_kind) -> None:
+    lock = tmp_path / "lock.json"
+    lock.write_bytes(b"payload")
+    target = tmp_path / "target.json"
+    target.write_bytes(b"payload")
+    link = tmp_path / "link.json"
+    link.symlink_to(target)
+    real_lstat = os.lstat
+    calls = 0
+
+    def changed_leaf_stat(path, *args, **kwargs):
+        nonlocal calls
+        if Path(path) == lock:
+            calls += 1
+            if calls == 3:
+                if swap_kind == "symlink":
+                    lock.unlink()
+                    lock.symlink_to(target)
+                return real_lstat(link if swap_kind == "symlink" else target)
+        return real_lstat(path, *args, **kwargs)
+
+    monkeypatch.setattr(policy_module.os, "lstat", changed_leaf_stat)
+    message = "must not be a symlink" if swap_kind == "symlink" else "path changed while reading"
+    with pytest.raises(ValueError, match=message):
+        _read_immutable_lock_bytes(lock)
+
+
 def test_unreadable_lock_surfaces_the_operating_system_error(tmp_path: Path, monkeypatch) -> None:
     lock = tmp_path / "unreadable.json"
     lock.write_bytes(b"{}")

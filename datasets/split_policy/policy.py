@@ -486,9 +486,6 @@ def derive_spatiotemporal_leakage_relations(
         by_id[footprint.subject_id] = footprint
 
     def cell(point: tuple[float, float, float]) -> tuple[int, int, int]:
-        if buffer_m == 0:
-            raise RuntimeError("zero-radius points use exact-coordinate lookup")
-
         def coordinate_cell(coordinate: float) -> int:
             quotient = coordinate / buffer_m
             if math.isfinite(quotient):
@@ -593,8 +590,6 @@ def derive_spatiotemporal_leakage_relations(
         members: Sequence[str],
         evidence: Mapping[str, Any],
     ) -> None:
-        if len(members) < 2:
-            return
         canonical = _canonical_json(
             {
                 "algorithm": "umcd.spatiotemporal-leakage.v2",
@@ -815,8 +810,6 @@ class SplitPolicy:
             except OverflowError as error:
                 raise ValueError("split fractions must be finite and positive") from error
         if any(not 0 < value < 1 for value in ordered_fractions.values()):
-            raise ValueError("split fractions must be finite and positive")
-        if any(not math.isfinite(value) for value in ordered_fractions.values()):
             raise ValueError("split fractions must be finite and positive")
         if abs(sum(ordered_fractions.values()) - 1.0) > 1e-9:
             raise ValueError("split fractions must sum to one")
