@@ -66,6 +66,25 @@ def test_run_manifest_verifier_rejects_incomplete_signature_options(
     assert any(message in error for error in report["errors"])
 
 
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        (b"[]\n", "root must be an object"),
+        (b'{"schema":"unsupported"}\n', "unsupported run manifest schema"),
+    ],
+)
+def test_run_manifest_verifier_rejects_invalid_root_and_schema(
+    tmp_path: Path, payload: bytes, message: str
+) -> None:
+    manifest_path = tmp_path / "run-manifest.json"
+    manifest_path.write_bytes(payload)
+
+    report = run_manifest.verify_joint_evidence_run_manifest(manifest_path)
+
+    assert report["status"] == "INCONSISTENT"
+    assert any(message in error for error in report["errors"])
+
+
 def test_run_manifest_hashes_and_replays_exact_inventory_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
