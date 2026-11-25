@@ -347,6 +347,18 @@ def _scale_solid_angles(record: dict[str, Any]) -> None:
     record["solid_angle_sr"] = [[2.0 * value for value in row] for row in record["solid_angle_sr"]]
 
 
+def _shorten_power_matrix(record: dict[str, Any]) -> None:
+    record["power_per_bin_w"] = record["power_per_bin_w"][:-1]
+
+
+def _set_nonfinite_power(record: dict[str, Any]) -> None:
+    record["power_per_bin_w"][0][0] = float("nan")
+
+
+def _set_boolean_solid_angle(record: dict[str, Any]) -> None:
+    record["solid_angle_sr"][0][0] = True
+
+
 SEMANTIC_BREADTH_CASES = [
     pytest.param(
         _package_edit(lambda d: [item.update(size_bytes="12") for item in d["files"]]),
@@ -404,9 +416,19 @@ SEMANTIC_BREADTH_CASES = [
         id="angular-missing-bin-repeated",
     ),
     pytest.param(
+        _set_angular(_shorten_power_matrix),
+        "dimensions must match theta/phi bins",
+        id="angular-power-matrix-dimensions",
+    ),
+    pytest.param(
         _set_angular(_negative_first_power),
         "must be finite and nonnegative",
         id="angular-negative-power",
+    ),
+    pytest.param(
+        _set_angular(_set_boolean_solid_angle),
+        "must be finite and nonnegative",
+        id="angular-boolean-solid-angle",
     ),
     pytest.param(
         _set_angular(_zero_power),
@@ -434,6 +456,23 @@ def test_verifier_breadth_checks_reject_without_schema_help(
 
     assert report["status"] == "inconsistent"
     assert message in _error_text(report)
+
+
+@pytest.mark.usefixtures("no_json_schema")
+def test_verifier_rejects_nonfinite_angular_cells(tmp_path: Path) -> None:
+    package_path, package = _load(tmp_path, V04)
+    _set_nonfinite_power(package["angular_measurements"][0])
+    # 1e999 is valid JSON syntax and parses as infinity; JSON's named Infinity
+    # token is rejected by the package parser before the angular contract runs.
+    package_path.write_text(
+        json.dumps(package).replace("Infinity", "1e999").replace("NaN", "1e999"),
+        encoding="utf-8",
+    )
+
+    report = verify_acquisition_package(package_path)
+
+    assert report["status"] == "inconsistent"
+    assert "must be finite and nonnegative" in _error_text(report)
 
 
 def _noise_entry(package: dict[str, Any]) -> dict[str, Any]:
