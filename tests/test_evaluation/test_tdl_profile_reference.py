@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 
+import evaluation.covariance.tdl_profile_reference as reference_module
 import jsonschema
 import pytest
 from evaluation.covariance.tdl_profile_reference import (
@@ -151,3 +153,213 @@ def test_scalable_tdl_reference_rejects_unsupported_inputs(
 ) -> None:
     with pytest.raises(ValueError, match=message):
         scalable_tdl_pdp_reference(model, delay_spread_s=delay_spread_s)
+
+
+def _scalable_fixture() -> dict[str, object]:
+    return json.loads(REFERENCE_PATH.read_text(encoding="utf-8"))
+
+
+def _fixed_fixture() -> dict[str, object]:
+    return json.loads(FIXED_REFERENCE_PATH.read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize(
+    ("payload", "digest", "message"),
+    [
+        (b"{}", "wrong", "frozen digest"),
+        (b"[]", hashlib.sha256(b"[]").hexdigest(), "root must be an object"),
+    ],
+)
+def test_pinned_json_rejects_digest_or_root_mismatch(tmp_path, payload, digest, message):
+    path = tmp_path / "reference.json"
+    path.write_bytes(payload)
+
+    with pytest.raises(ValueError, match=message):
+        reference_module._read_pinned_json(path, digest, label="fixture")
+
+
+@pytest.mark.parametrize(
+    ("fixture_factory", "field", "value", "message", "model"),
+    [
+        (_scalable_fixture, "schema", "wrong", "invalid normative identity", "A"),
+        (_scalable_fixture, "profiles", [], "exactly one profile", "A"),
+        (_fixed_fixture, "schema", "wrong", "invalid normative identity", "A10"),
+        (_fixed_fixture, "profiles", None, "must contain a profile list", "A10"),
+        (_fixed_fixture, "profiles", [], "exactly one profile", "A10"),
+    ],
+    ids=[
+        "scalable-identity",
+        "scalable-profile",
+        "fixed-identity",
+        "fixed-profiles-invalid",
+        "fixed-profile-missing",
+    ],
+)
+def test_pinned_reference_rejects_mutated_authority(
+    fixture_factory, field, value, message, model, monkeypatch
+):
+    fixture = fixture_factory()
+    fixture[field] = value
+    monkeypatch.setattr(reference_module, "_read_pinned_json", lambda *_args, **_kwargs: fixture)
+
+    with pytest.raises(ValueError, match=message):
+        if fixture_factory is _scalable_fixture:
+            scalable_tdl_pdp_reference(model, delay_spread_s=1e-6)
+        else:
+            fixed_tdl_pdp_reference(model)
+
+
+@pytest.mark.parametrize(
+    ("profile", "message"),
+    [
+        (None, "must contain component rows"),
+        ({"components": ()}, "must contain component rows"),
+        ({"components": []}, "cannot be empty"),
+        ({"components": [{"component_index": 2}]}, "ordered contiguous index"),
+        ({"components": [{"component_index": 1, "power_db": True}]}, "finite real dB"),
+        ({"components": [{"component_index": 1, "power_db": "bad"}]}, "finite real dB"),
+        ({"components": [{"component_index": 1, "power_db": math.inf}]}, "finite real dB"),
+        (
+            {"components": [{"component_index": 1, "power_db": -4000, "normalized_delay": 0}]},
+            "not representable",
+        ),
+        (
+            {"components": [{"component_index": 1, "power_db": 0, "normalized_delay": True}]},
+            "finite and nonnegative",
+        ),
+        (
+            {"components": [{"component_index": 1, "power_db": 0, "normalized_delay": -1}]},
+            "finite and nonnegative",
+        ),
+        (
+            {"components": [{"component_index": 1, "power_db": 0, "normalized_delay": math.inf}]},
+            "finite and nonnegative",
+        ),
+    ],
+)
+def test_component_profile_rejects_malformed_rows(profile, message):
+    with pytest.raises(ValueError, match=message):
+        reference_module._component_profile(profile, name="fixture")
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("tap_index", True),
+        ("tap_index", 0),
+        ("delay_ns", True),
+        ("delay_ns", "zero"),
+        ("delay_ns", math.inf),
+        ("delay_ns", -1),
+        ("power_db", True),
+        ("power_db", "zero"),
+        ("power_db", math.inf),
+        ("fading_distribution", "unknown"),
+    ],
+)
+def test_fixed_reference_rejects_invalid_component_fields(field, value, monkeypatch):
+    fixture = _fixed_fixture()
+    profile = next(row for row in fixture["profiles"] if row["profile_model"] == "A10")
+    profile["components"][0][field] = value
+    monkeypatch.setattr(reference_module, "_read_pinned_json", lambda *_args, **_kwargs: fixture)
+
+    with pytest.raises(ValueError, match="component fields are invalid"):
+        fixed_tdl_pdp_reference("A10")
+
+
+def test_fixed_reference_rejects_unrepresentable_component_power(monkeypatch):
+    fixture = _fixed_fixture()
+    profile = next(row for row in fixture["profiles"] if row["profile_model"] == "A10")
+    profile["components"][0]["power_db"] = -4000
+    monkeypatch.setattr(reference_module, "_read_pinned_json", lambda *_args, **_kwargs: fixture)
+
+    with pytest.raises(ValueError, match="power is not representable"):
+        fixed_tdl_pdp_reference("A10")
+
+
+@pytest.mark.parametrize(
+    "components",
+    [
+        [
+            {
+                "component_index": 1,
+                "power_db": 0,
+                "normalized_delay": 0,
+                "fading_distribution": "LOS",
+            }
+        ],
+        [
+            {
+                "component_index": 1,
+                "power_db": 0,
+                "normalized_delay": 0,
+                "fading_distribution": "LOS",
+            },
+            {
+                "component_index": 2,
+                "power_db": 0,
+                "normalized_delay": 0,
+                "fading_distribution": "Rician",
+            },
+        ],
+        [
+            {
+                "component_index": 1,
+                "power_db": 0,
+                "normalized_delay": 0,
+                "fading_distribution": "LOS",
+            },
+            {
+                "component_index": 2,
+                "power_db": 0,
+                "normalized_delay": 1,
+                "fading_distribution": "Rayleigh",
+            },
+        ],
+    ],
+    ids=["missing-partner", "wrong-distribution", "different-delay"],
+)
+def test_scalable_los_reference_requires_paired_first_diffuse_component(components, monkeypatch):
+    fixture = _scalable_fixture()
+    profile = next(row for row in fixture["profiles"] if row["profile_model"] == "A")
+    profile["components"] = components
+    monkeypatch.setattr(reference_module, "_read_pinned_json", lambda *_args, **_kwargs: fixture)
+
+    with pytest.raises(ValueError, match="no paired first diffuse component"):
+        scalable_tdl_pdp_reference("A", delay_spread_s=1e-6)
+
+
+@pytest.mark.parametrize("components", [None, []], ids=["non-list", "empty"])
+def test_fixed_reference_requires_component_rows(components, monkeypatch):
+    fixture = _fixed_fixture()
+    profile = next(row for row in fixture["profiles"] if row["profile_model"] == "A10")
+    profile["components"] = components
+    monkeypatch.setattr(reference_module, "_read_pinned_json", lambda *_args, **_kwargs: fixture)
+
+    with pytest.raises(ValueError, match="must contain component rows"):
+        fixed_tdl_pdp_reference("A10")
+
+
+def test_fixed_reference_rejects_component_order_delay_and_roster_changes(monkeypatch):
+    mutations = (
+        (
+            lambda profile: profile["components"][0].update(component_index=2),
+            "ordered and contiguous",
+        ),
+        (
+            lambda profile: profile["components"][1].update(tap_index=1, delay_ns=999),
+            "different delays",
+        ),
+        (lambda profile: profile.update(tap_count=True), "roster is inconsistent"),
+    )
+    for mutate, message in mutations:
+        fixture = _fixed_fixture()
+        profile = next(row for row in fixture["profiles"] if row["profile_model"] == "A10")
+        mutate(profile)
+        monkeypatch.setattr(
+            reference_module,
+            "_read_pinned_json",
+            lambda *_args, _fixture=fixture, **_kwargs: _fixture,
+        )
+        with pytest.raises(ValueError, match=message):
+            fixed_tdl_pdp_reference("A10")

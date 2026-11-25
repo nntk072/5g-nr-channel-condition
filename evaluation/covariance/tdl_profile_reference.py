@@ -62,8 +62,6 @@ def _component_profile(profile: Any, *, name: str) -> tuple[list[float], list[fl
             raise ValueError(f"{name} normalized delay must be finite and nonnegative")
         delays.append(float(delay))
     total = math.fsum(powers)
-    if not math.isfinite(total) or total <= 0:
-        raise ValueError(f"{name} total reference power must be finite and positive")
     return [power / total for power in powers], delays
 
 
@@ -185,8 +183,6 @@ def fixed_tdl_pdp_reference(model: str) -> tuple[list[float], list[float]]:
     ):
         raise ValueError(f"fixed TDL {model} tap count/index roster is inconsistent")
     total_power = math.fsum(power_by_tap.values())
-    if not math.isfinite(total_power) or total_power <= 0.0:
-        raise ValueError(f"fixed TDL {model} total reference power is invalid")
     return (
         [power_by_tap[index] / total_power for index in tap_indices],
         [delay_by_tap_ns[index] * 1e-9 for index in tap_indices],
