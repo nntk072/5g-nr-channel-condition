@@ -9,6 +9,7 @@ import types
 import zipfile
 from typing import Any
 
+import integrations.sionna.rt_cache as rt_cache
 import numpy as np
 import pytest
 from datasets.channel import ChannelDataset
@@ -472,3 +473,91 @@ def test_cache_aware_rt_generator_bypasses_unresolved_scene_assets(tmp_path, mon
     assert len(generated) == 1
     assert result.generation_report["rt_run_identity"]["complete"] is False
     assert not cache_directory.exists()
+
+
+def test_rt_cache_rejects_malformed_identity_key():
+    identity = _identity()
+    identity["cache_key_sha256"] = "not-a-sha256"
+
+    with pytest.raises(ValueError, match="lowercase SHA256"):
+        rt_cache._cache_key(identity)
+
+
+def test_rt_cache_npz_archive_structure_guards():
+    with pytest.raises(ValueError, match="not a valid NPZ archive"):
+        rt_cache._validate_npz_uncompressed_size(b"not a zip", max_bytes=1024)
+
+    too_many = io.BytesIO()
+    with zipfile.ZipFile(too_many, "w") as archive:
+        for index in range(33):
+            archive.writestr(f"{index}.npy", b"")
+    with pytest.raises(ValueError, match="too many array entries"):
+        rt_cache._validate_npz_uncompressed_size(too_many.getvalue(), max_bytes=1024)
+
+    duplicate_names = io.BytesIO()
+    with zipfile.ZipFile(duplicate_names, "w") as archive:
+        archive.writestr("array.npy", b"first")
+        archive.writestr("array.npy", b"second")
+    with pytest.raises(ValueError, match="duplicate array entries"):
+        rt_cache._validate_npz_uncompressed_size(duplicate_names.getvalue(), max_bytes=1024)
+
+
+def test_rt_cache_stable_file_rejects_identity_change_while_opening(tmp_path, monkeypatch):
+    path = tmp_path / "manifest.json"
+    path.write_bytes(b"{}")
+    original_fstat = rt_cache.os.fstat
+
+    def changed_fstat(descriptor):
+        result = original_fstat(descriptor)
+        return types.SimpleNamespace(
+            st_dev=result.st_dev,
+            st_ino=result.st_ino,
+            st_mode=result.st_mode,
+            st_nlink=result.st_nlink,
+            st_size=result.st_size,
+            st_mtime_ns=result.st_mtime_ns + 1,
+            st_ctime_ns=result.st_ctime_ns,
+        )
+
+    monkeypatch.setattr(rt_cache.os, "fstat", changed_fstat)
+    with pytest.raises(ValueError, match="changed while opening"):
+        rt_cache._read_stable_file(path, label="manifest", max_bytes=10)
+
+
+def test_rt_cache_stable_file_rejects_oversized_read_and_changed_snapshot(tmp_path, monkeypatch):
+    path = tmp_path / "manifest.json"
+    path.write_bytes(b"{}")
+    original_read = rt_cache.os.read
+
+    monkeypatch.setattr(rt_cache.os, "read", lambda _fd, _size: b"x" * 11)
+    with pytest.raises(ValueError, match="byte limit"):
+        rt_cache._read_stable_file(path, label="manifest", max_bytes=10)
+
+    monkeypatch.setattr(rt_cache.os, "read", original_read)
+
+    def mutate_after_read(descriptor, size):
+        result = original_read(descriptor, size)
+        path.write_bytes(b"changed")
+        return result
+
+    monkeypatch.setattr(rt_cache.os, "read", mutate_after_read)
+    with pytest.raises(ValueError, match="changed while being read"):
+        rt_cache._read_stable_file(path, label="manifest", max_bytes=10)
+
+
+def test_rt_cache_immutable_write_rejects_unreadable_existing_entry(tmp_path):
+    target = tmp_path / "entry"
+    target.symlink_to(tmp_path / "missing-target")
+
+    with pytest.raises(RTCacheConflictError, match="conflicts"):
+        rt_cache._atomic_immutable_write(target, b"payload")
+
+
+def test_rt_cache_store_rejects_dataset_identity_mismatch(tmp_path):
+    expected = _identity()
+    foreign = _identity()
+    foreign["inputs"]["seed"] = 10
+    foreign["cache_key_sha256"] = rt_cache.canonical_hash(foreign["inputs"])
+
+    with pytest.raises(ValueError, match="does not match"):
+        store_rt_dataset(tmp_path, _dataset(foreign), expected)
