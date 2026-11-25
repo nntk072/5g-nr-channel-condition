@@ -4,8 +4,16 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+import numpy as np
 import pytest
 from datasets.episode_store import EpisodeBundle
+from datasets.targets import (
+    _CANONICAL_TARGET_CONTRACTS,
+    _CANONICAL_TARGET_PROVENANCE,
+    TargetDefinition,
+    TargetValidity,
+    TargetValue,
+)
 from tests.test_datasets.umcd_schema_support import _bundle, _provenance_record
 
 
@@ -89,4 +97,85 @@ def test_direct_path_ablations_must_be_typed() -> None:
             bundle.channel_views,
             bundle.targets,
             direct_path_ablations=("not-an-ablation",),
+        )
+
+
+def _visibility_target(version: str, *, entity_id: str = "gNB-1-to-UE-1", values=(1.0,)):
+    _name, semantic, units, _domain = _CANONICAL_TARGET_CONTRACTS[version]
+    source, references, aggregations = _CANONICAL_TARGET_PROVENANCE[version]
+    reference = next(iter(references))
+    aggregation = next(iter(aggregations)) if isinstance(aggregations, frozenset) else aggregations
+    definition = TargetDefinition.versioned(
+        semantic=semantic,
+        units=units,
+        source=source,
+        reference=reference,
+        aggregation_rule=aggregation,
+        definition_version=version,
+        value_axes=("frame",) if version == "umcd.rms_delay_spread.v2" else None,
+    )
+    values_array = np.asarray(values, dtype=np.float64)
+    return TargetValue(
+        entity_id,
+        definition,
+        values_array,
+        np.ones(values_array.shape, dtype=np.bool_),
+        (TargetValidity.VALID,) * values_array.size,
+        "synthetic_contract_check",
+    )
+
+
+def test_frame_visibility_targets_bind_to_link_and_frame_roster() -> None:
+    bundle = _bundle()
+    valid = _visibility_target("umcd.rt-trajectory.geometric-los.v2")
+    validated = EpisodeBundle(bundle.episode, bundle.path_oracle, (), (valid,))
+    assert validated.targets[0].entity_id == "gNB-1-to-UE-1"
+
+    with pytest.raises(ValueError, match="frame visibility target must identify an episode link"):
+        EpisodeBundle(
+            bundle.episode,
+            bundle.path_oracle,
+            (),
+            (
+                _visibility_target(
+                    "umcd.rt-trajectory.geometric-los.v2",
+                    entity_id=bundle.episode.episode_id,
+                ),
+            ),
+        )
+    with pytest.raises(ValueError, match="frame visibility target shape"):
+        EpisodeBundle(
+            bundle.episode,
+            bundle.path_oracle,
+            (),
+            (_visibility_target("umcd.rt-trajectory.geometric-los.v2", values=(1.0, 0.0)),),
+        )
+
+
+def test_static_visibility_targets_bind_to_episode_links() -> None:
+    bundle = _bundle()
+
+    with pytest.raises(ValueError, match="static visibility target must identify an episode link"):
+        EpisodeBundle(
+            bundle.episode,
+            bundle.path_oracle,
+            (),
+            (
+                _visibility_target(
+                    "umcd.f03_rt_static.direct_visibility.v2",
+                    entity_id=bundle.episode.episode_id,
+                ),
+            ),
+        )
+
+
+def test_rms_delay_spread_v2_requires_path_oracle_layer() -> None:
+    bundle = _bundle()
+
+    with pytest.raises(ValueError, match="requires its declared path-oracle source layer"):
+        EpisodeBundle(
+            bundle.episode,
+            None,
+            (),
+            (_visibility_target("umcd.rms_delay_spread.v2"),),
         )
