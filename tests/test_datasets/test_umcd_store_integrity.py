@@ -392,6 +392,79 @@ def test_episode_bundle_reader_applies_optional_shard_byte_ceiling(tmp_path):
         read_episode_bundle(store, stored, max_shard_bytes=1)
 
 
+def test_episode_bundle_reader_rejects_total_estimate_over_shard_ceiling(
+    tmp_path, monkeypatch
+):
+    store = tmp_path / "umcd-estimated-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    monkeypatch.setattr(episode_module, "_episode_object_size_estimate", lambda *_args, **_kwargs: 2)
+
+    with pytest.raises(ValueError, match="episode bundle exceeds max_shard_bytes"):
+        read_episode_bundle(store, stored, max_shard_bytes=1)
+
+
+@pytest.mark.parametrize(
+    ("layer", "object_metadata", "arrays", "message"),
+    [
+        ("episode", {"schema": "other"}, {}, "unsupported episode layer schema"),
+        ("targets", {"schema": "other"}, {}, "unsupported target layer schema"),
+        (
+            "receiver_observations",
+            {"schema": "other"},
+            {},
+            "unsupported receiver-observation layer schema",
+        ),
+        (
+            "scenario_gbsm",
+            {
+                "schema": "umcd.scenario_gbsm_record.v1",
+                "sample_id": "sample",
+                "run_id": "run",
+                "sample_index": 0,
+                "scenario": "UMi",
+                "scenario_los": True,
+                "metadata": {},
+            },
+            {},
+            "scenario GBSM episode layer arrays are invalid",
+        ),
+        (
+            "counterfactual_ablations",
+            {"schema": "umcd.direct_path_ablation.invalid"},
+            {},
+            "unsupported direct-path ablation layer schema",
+        ),
+    ],
+)
+def test_episode_bundle_reader_rejects_unsupported_layer_payloads(
+    tmp_path, monkeypatch, layer, object_metadata, arrays, message
+):
+    store = tmp_path / "umcd-invalid-layer-store"
+    stored = write_episode_bundle(store, _episode_bundle())
+    metadata, references = episode_module._validated_manifest(store, stored)
+    fake_reference = {"layer": layer, "path": "injected-object"}
+    injected_references = (
+        [fake_reference if item["layer"] == "episode" else item for item in references]
+        if layer == "episode"
+        else references + [fake_reference]
+    )
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, injected_references),
+    )
+    original_read_object = episode_module._read_object
+
+    def read_injected_object(base, reference, **kwargs):
+        if reference is fake_reference:
+            return object_metadata, arrays
+        return original_read_object(base, reference, **kwargs)
+
+    monkeypatch.setattr(episode_module, "_read_object", read_injected_object)
+    with pytest.raises(ValueError, match=message):
+        read_episode_bundle(store, stored)
+
+
 def test_episode_bundle_manifest_publication_failure_is_retryable(tmp_path, monkeypatch):
     import datasets.episode_store as episode_store
 
@@ -913,6 +986,35 @@ def test_receiver_inference_rejects_duplicate_link_frame_bindings(tmp_path, monk
         lambda *_args, **_kwargs: (metadata, references + [receiver]),
     )
     with pytest.raises(ValueError, match="duplicated for a link/frame"):
+        read_receiver_inference_records(tmp_path, stored)
+
+
+def test_receiver_inference_rejects_duplicate_sample_ids(tmp_path, monkeypatch):
+    bundle = _episode_bundle_with_receiver_observation()
+    stored = write_episode_bundle(tmp_path, bundle)
+    metadata, references = episode_module._validated_manifest(tmp_path, stored)
+    receiver = next(item for item in references if item["layer"] == "receiver_observations")
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references + [receiver]),
+    )
+    original_read_episode = episode_module._read_episode
+    monkeypatch.setattr(
+        episode_module,
+        "_read_episode",
+        lambda *args: replace(
+            original_read_episode(*args), frame_times_s=(0.0, 1.0)
+        ),
+    )
+    original = bundle.receiver_observations[0]
+    reads = iter((0, 1))
+    monkeypatch.setattr(
+        episode_module,
+        "_read_receiver",
+        lambda *_args: replace(original, frame_index=next(reads)),
+    )
+    with pytest.raises(ValueError, match="sample IDs are duplicated"):
         read_receiver_inference_records(tmp_path, stored)
 
 

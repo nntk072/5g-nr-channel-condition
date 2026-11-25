@@ -7,6 +7,7 @@ import json
 from dataclasses import replace
 from pathlib import Path
 
+import datasets.episode_store.episode as episode_module
 import numpy as np
 import pytest
 from datasets.channel_view import (
@@ -290,6 +291,172 @@ def test_frequency_observation_ids_must_be_canonical():
     observation = FrequencyDomainObservation("cfr-1", model_inputs)
     with pytest.raises(ValueError, match="canonical string"):
         LinkedFrequencyDomainObservation(" link-1 ", 0, observation)
+
+
+def _stored_frequency_bundle(tmp_path):
+    bundle = _bundle()
+    episode = bundle.episode
+    inputs = FrequencyDomainModelInputs(
+        observed_cfr=np.ones((1, 2, 3), dtype=np.complex64),
+        noise_variance=0.05,
+        snr_db=10.0,
+        carrier_hz=episode.carrier_hz,
+        subcarrier_offsets_hz=episode.subcarrier_offsets_hz,
+    )
+    binding = LinkedFrequencyDomainObservation(
+        "gNB-1-to-UE-1", 0, FrequencyDomainObservation("frequency-sample", inputs)
+    )
+    stored = write_episode_bundle(
+        tmp_path, replace(bundle, receiver_observations=(binding,))
+    )
+    return stored, binding
+
+
+def test_frequency_reader_requires_one_episode_and_an_observation(tmp_path, monkeypatch):
+    metadata = {"episode_id": "fixture"}
+    monkeypatch.setattr(
+        episode_module, "_validated_manifest", lambda *_args: (metadata, [])
+    )
+    with pytest.raises(ValueError, match="one episode and at least one"):
+        read_frequency_model_inputs(tmp_path, object())
+
+
+def test_frequency_reader_rejects_episode_schema_and_identity_drift(tmp_path, monkeypatch):
+    stored, _ = _stored_frequency_bundle(tmp_path)
+    original = episode_module._read_object
+
+    def bad_schema(base, reference, **kwargs):
+        if reference["layer"] == "episode":
+            return {"schema": "other"}, {}
+        return original(base, reference, **kwargs)
+
+    monkeypatch.setattr(episode_module, "_read_object", bad_schema)
+    with pytest.raises(ValueError, match="unsupported episode layer schema"):
+        read_frequency_model_inputs(tmp_path, stored)
+
+
+def test_frequency_reader_rejects_manifest_episode_id_drift(tmp_path, monkeypatch):
+    stored, _ = _stored_frequency_bundle(tmp_path)
+    metadata, references = episode_module._validated_manifest(tmp_path, stored)
+    metadata["episode_id"] = "different-episode"
+    monkeypatch.setattr(
+        episode_module, "_validated_manifest", lambda *_args: (metadata, references)
+    )
+    with pytest.raises(ValueError, match="manifest and episode payload IDs differ"):
+        read_frequency_model_inputs(tmp_path, stored)
+
+
+@pytest.mark.parametrize(
+    ("link_id", "frame_index", "message"),
+    [
+        ("unlisted-link", 0, "unknown link or frame"),
+        ("gNB-1-to-UE-1", 1, "unknown link or frame"),
+    ],
+)
+def test_frequency_reader_rejects_unknown_link_or_frame(
+    tmp_path, monkeypatch, link_id, frame_index, message
+):
+    stored, binding = _stored_frequency_bundle(tmp_path)
+    monkeypatch.setattr(
+        episode_module,
+        "_read_frequency_receiver",
+        lambda *_args: replace(binding, link_id=link_id, frame_index=frame_index),
+    )
+    with pytest.raises(ValueError, match=message):
+        read_frequency_model_inputs(tmp_path, stored)
+
+
+@pytest.mark.parametrize(
+    ("inputs", "message"),
+    [
+        (
+            FrequencyDomainModelInputs(
+                observed_cfr=np.ones((1, 1, 3), dtype=np.complex64),
+                noise_variance=0.05,
+                snr_db=10.0,
+                carrier_hz=3.5e9,
+                subcarrier_offsets_hz=np.asarray([-30e3, 0.0, 30e3]),
+            ),
+            "axes do not match",
+        ),
+        (
+            FrequencyDomainModelInputs(
+                observed_cfr=np.ones((1, 2, 3), dtype=np.complex64),
+                noise_variance=0.05,
+                snr_db=10.0,
+                carrier_hz=2.6e9,
+                subcarrier_offsets_hz=np.asarray([-30e3, 0.0, 30e3]),
+            ),
+            "grid differs",
+        ),
+    ],
+)
+def test_frequency_reader_rejects_input_axis_or_grid_drift(
+    tmp_path, monkeypatch, inputs, message
+):
+    stored, binding = _stored_frequency_bundle(tmp_path)
+    replacement = replace(
+        binding, observation=FrequencyDomainObservation("frequency-sample", inputs)
+    )
+    monkeypatch.setattr(
+        episode_module, "_read_frequency_receiver", lambda *_args: replacement
+    )
+    with pytest.raises(ValueError, match=message):
+        read_frequency_model_inputs(tmp_path, stored)
+
+
+def test_frequency_reader_rejects_duplicate_link_frame_observations(tmp_path, monkeypatch):
+    stored, _ = _stored_frequency_bundle(tmp_path)
+    metadata, references = episode_module._validated_manifest(tmp_path, stored)
+    receiver = next(item for item in references if item["layer"] == "receiver_observations")
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args, **_kwargs: (metadata, references + [receiver]),
+    )
+    with pytest.raises(ValueError, match="duplicated for a link/frame"):
+        read_frequency_model_inputs(tmp_path, stored)
+
+
+def test_frequency_reader_rejects_duplicate_sample_ids(tmp_path, monkeypatch):
+    stored, binding = _stored_frequency_bundle(tmp_path)
+    metadata, references = episode_module._validated_manifest(tmp_path, stored)
+    receiver = next(item for item in references if item["layer"] == "receiver_observations")
+    monkeypatch.setattr(
+        episode_module,
+        "_validated_manifest",
+        lambda *_args: (metadata, references + [receiver]),
+    )
+    original_read_episode = episode_module._read_episode
+    monkeypatch.setattr(
+        episode_module,
+        "_read_episode",
+        lambda *args: replace(
+            original_read_episode(*args), frame_times_s=(0.0, 1.0)
+        ),
+    )
+    reads = iter((0, 1))
+    monkeypatch.setattr(
+        episode_module,
+        "_read_frequency_receiver",
+        lambda *_args: replace(binding, frame_index=next(reads)),
+    )
+    with pytest.raises(ValueError, match="sample IDs are duplicated"):
+        read_frequency_model_inputs(tmp_path, stored)
+
+
+def test_frequency_reader_skips_other_receiver_schemas(tmp_path, monkeypatch):
+    stored, _ = _stored_frequency_bundle(tmp_path)
+    original = episode_module._read_object
+
+    def non_frequency_observation(base, reference, **kwargs):
+        if reference["layer"] == "receiver_observations":
+            return {"schema": "umcd.receiver_observation.v1"}, {}
+        return original(base, reference, **kwargs)
+
+    monkeypatch.setattr(episode_module, "_read_object", non_frequency_observation)
+    with pytest.raises(ValueError, match="contains no direct noisy-CFR"):
+        read_frequency_model_inputs(tmp_path, stored)
 
 
 def test_receiver_view_roundtrip_isolated_from_oracle_and_targets(tmp_path):
