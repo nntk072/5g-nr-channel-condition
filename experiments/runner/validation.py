@@ -654,8 +654,6 @@ def _locked_split_indices(
         subject_for_row.append(subject_id)
         if partition not in {"train", "validation", "test", "calibration"}:
             raise ValueError(f"unsupported locked split partition: {partition}")
-        if not isinstance(group, str) or not group or group != group.strip():
-            raise ValueError("dataset group IDs must be nonempty canonical strings")
         group_key = group
         prior = group_split.setdefault(group_key, partition)
         if prior != partition:
