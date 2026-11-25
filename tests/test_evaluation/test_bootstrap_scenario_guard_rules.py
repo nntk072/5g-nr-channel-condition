@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family
+from evaluation.sample_size import bootstrap as bootstrap_module
 from evaluation.sample_size.bootstrap import (
     plan_bootstrap_assurance,
     plan_complex_csi_bootstrap_assurance,
@@ -46,6 +47,32 @@ def _plan(scenarios, **overrides) -> dict[str, Any]:
     }
     kwargs.update(overrides)
     return plan_bootstrap_assurance(**kwargs)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"candidate_units_per_stratum": []}, "nonempty integer sequence"),
+        ({"candidate_units_per_stratum": [20, 20]}, "must be unique"),
+        ({"bootstrap_replicates": 999}, "bootstrap_replicates must be an integer"),
+        ({"seed": -1}, "seed must be a nonnegative integer"),
+        ({"familywise_claim_count": 1}, "must cover every material bootstrap claim"),
+    ],
+)
+def test_assurance_design_rejects_invalid_counts_and_seed(overrides, message):
+    with pytest.raises(ValueError, match=message):
+        plan_bootstrap_assurance(**_roster_kwargs(**overrides))
+
+
+def test_assurance_design_enforces_total_and_peak_bootstrap_work_bounds(monkeypatch):
+    monkeypatch.setattr(bootstrap_module, "_MAX_BOOTSTRAP_RESAMPLING_CELLS", 1)
+    with pytest.raises(ValueError, match="bounded bootstrap planning work limit"):
+        plan_bootstrap_assurance(**_roster_kwargs())
+
+    monkeypatch.setattr(bootstrap_module, "_MAX_BOOTSTRAP_RESAMPLING_CELLS", 10**9)
+    monkeypatch.setattr(bootstrap_module, "_MAX_BOOTSTRAP_PEAK_CELLS", 1)
+    with pytest.raises(ValueError, match="single bootstrap resample exceeds"):
+        plan_bootstrap_assurance(**_roster_kwargs())
 
 
 @pytest.mark.parametrize(

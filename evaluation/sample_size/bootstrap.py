@@ -380,8 +380,6 @@ def _validate_assumption_scenarios(
     validated: dict[str, tuple[np.ndarray, np.ndarray]] = {}
     canonical: dict[str, Any] = {}
     for stratum in sorted(scenarios):
-        if not isinstance(stratum, str) or not stratum.strip():
-            raise ValueError("scenario stratum names must be nonempty strings")
         scenario = scenarios[stratum]
         if not isinstance(scenario, Mapping) or set(scenario) != {
             "assumed_unit_summaries",
@@ -513,8 +511,6 @@ def plan_bootstrap_assurance(
         normalized_roster = {}
         observed: set[tuple[str, ...]] = set()
         for stratum_id, stratum in stratum_roster_by_id.items():
-            if not isinstance(stratum_id, str) or not stratum_id.strip():
-                raise ValueError("material stratum roster IDs must be nonempty strings")
             key = tuple(stratum)
             if len(key) != 3 or any(not isinstance(part, str) or not part for part in key):
                 raise ValueError("material stratum roster entries must have three nonempty strings")
