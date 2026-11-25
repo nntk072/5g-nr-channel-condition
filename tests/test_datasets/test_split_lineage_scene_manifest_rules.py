@@ -109,6 +109,23 @@ def test_generation_report_structure_is_checked() -> None:
         _derive({"components": ["x"]})
 
 
+def test_generation_report_walk_terminates_on_parent_cycles() -> None:
+    from datasets.split_lineage import _scene_geometry_asset_manifests
+
+    report: dict[str, Any] = {}
+    report["parent_generation_report"] = report
+
+    assert _scene_geometry_asset_manifests(report, context="test") == {}
+
+
+def test_rt_identity_manifest_digest_and_completeness_must_match_metadata() -> None:
+    with pytest.raises(ValueError, match="digest is absent from its generation manifests"):
+        _derive({"scene_asset_manifest": _manifest()})
+
+    with pytest.raises(ValueError, match="completeness disagrees with its generation manifest"):
+        _derive({"scene_asset_manifest": _manifest(complete=False, asset_set_sha256="a" * 64)})
+
+
 def _with_report_check(report: Any) -> None:
     from datasets.split_lineage import _scene_geometry_asset_manifests
 
