@@ -92,3 +92,46 @@ def test_nr_observe_cli_refuses_to_overwrite_existing_dataset(tmp_path, monkeypa
         main()
 
     assert output_path.read_text(encoding="utf-8") == "preserve"
+
+
+def test_nr_observe_cli_reports_authorization_failure_without_building_output(
+    tmp_path, monkeypatch, capsys
+) -> None:
+    import integrations.sionna.d1_generation_gate as gate
+
+    source_path = tmp_path / "source.npz"
+    output_path = tmp_path / "observed.npz"
+    ChannelDataset(
+        h=np.ones((2, 1, 16), dtype=np.complex64),
+        y=np.asarray([0, 1], dtype=np.uint8),
+        group=np.asarray(["group0", "group1"]),
+        domain=np.asarray(["scene", "scene"]),
+        source=np.asarray(["sionna_rt", "sionna_rt"]),
+        metadata=tuple(
+            {"grid_config": {"n_subcarriers": 16, "spacing_hz": 30_000.0}}
+            for _ in range(2)
+        ),
+    ).save(source_path)
+    monkeypatch.setattr(
+        gate,
+        "authorize_d1_generation",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError("approval rejected")),
+    )
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "generate_rt_dmrs_observations",
+            "--pilot",
+            "--input",
+            str(source_path),
+            "--output",
+            str(output_path),
+        ],
+    )
+
+    with pytest.raises(SystemExit) as error:
+        main()
+
+    assert error.value.code == 2
+    assert "approval rejected" in capsys.readouterr().err
+    assert not output_path.exists()
