@@ -94,11 +94,6 @@ def derive_pusch_intra_slot_hop_dmrs_plan(
     first_symbols = tuple(allocation_start_symbol + value for value in first_offsets)
     second_start = allocation_start_symbol + first_hop_symbol_count
     second_symbols = tuple(second_start + value for value in second_offsets)
-    if any(
-        symbol >= allocation_start_symbol + total_symbols
-        for symbol in (*first_symbols, *second_symbols)
-    ):
-        raise ValueError("derived DM-RS symbol falls outside its hop allocation")
     metadata = {
         "schema": "loslab.nr_pusch_intra_slot_hop_dmrs_plan.v1",
         "status": "DERIVED_NOT_QUALIFIED",
@@ -259,8 +254,6 @@ def build_pusch_intra_slot_hop_dmrs_grid(
     )
     for _, symbols in hop_symbols:
         for symbol in symbols:
-            if pilot_mask[symbol].any():
-                raise ValueError("overlapping hop DM-RS positions are unsupported")
             sequence = _pusch_dmrs_gold_sequence(
                 n_id=n_id,
                 n_scid=dmrs_n_scid,
