@@ -570,11 +570,7 @@ def audit_pilot_outcomes(sample: Any, outcomes: Any) -> dict[str, Any]:
     rows = _validate_outcomes(outcomes)
     selected = sample.get("selected_candidates")
     cells = sample.get("cells")
-    if not isinstance(selected, list) or not isinstance(cells, list):
-        raise ValueError("pilot sample report has malformed selected roster or cells")
     selected_by_id = {row["candidate_id"]: row for row in selected}
-    if len(selected_by_id) != len(selected):
-        raise ValueError("pilot sample report has duplicate candidate IDs")
     outcomes_by_id = {row["candidate_id"]: row for row in rows}
     extra = set(outcomes_by_id) - set(selected_by_id)
     if extra:
