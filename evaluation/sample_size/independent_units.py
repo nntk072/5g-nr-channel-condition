@@ -77,8 +77,6 @@ def plan_independent_acquisition_units(
     alpha = _probability(familywise_alpha, "familywise_alpha")
     power = _probability(familywise_power, "familywise_power")
     beta = 1.0 - power
-    if beta <= 0.0:
-        raise ValueError("familywise_power must be less than 1")
     if not isinstance(planned_quantile_pass_probabilities, Mapping):
         raise ValueError("planned_quantile_pass_probabilities must be a mapping")
     if set(planned_quantile_pass_probabilities) != set(_QUANTILE_TARGETS):

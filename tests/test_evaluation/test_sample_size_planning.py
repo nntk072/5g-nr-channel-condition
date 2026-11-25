@@ -35,6 +35,7 @@ from evaluation.acceptance.material_calibration import (
     MIN_INTERVAL_COVERAGE as EVALUATOR_MIN_INTERVAL_COVERAGE,
 )
 from evaluation.acceptance.material_calibration import _cluster_bootstrap_intervals
+from evaluation.sample_size import independent_units as independent_units_module
 from evaluation.sample_size_planning import (
     MAX_INTERVAL_COVERAGE,
     MAX_MEDIAN_INTERVAL_WIDTH_DB,
@@ -985,6 +986,92 @@ def test_planner_rejects_incomplete_or_incompatible_design_assumptions(
 
     with pytest.raises(ValueError, match=message):
         plan_independent_acquisition_units(**arguments)  # type: ignore[arg-type]
+
+
+def test_independent_unit_planner_rejects_nonmapping_assumptions() -> None:
+    with pytest.raises(ValueError, match="must be a mapping"):
+        plan_independent_acquisition_units(
+            stratum_count=1,
+            planned_quantile_pass_probabilities=None,  # type: ignore[arg-type]
+            planned_interval_coverage=0.95,
+            planned_complex_csi_failure_probability=0.01,
+        )
+
+
+def test_joint_unit_planner_rejects_inconsistent_family_allocation(monkeypatch) -> None:
+    original = independent_units_module.family_alpha_for_claim
+    calls = 0
+
+    def inconsistent_allocation(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        alpha, count = original(*args, **kwargs)
+        return (alpha + 0.001, count) if calls == 2 else (alpha, count)
+
+    monkeypatch.setattr(
+        independent_units_module, "family_alpha_for_claim", inconsistent_allocation
+    )
+    with pytest.raises(ValueError, match="allocation is internally inconsistent"):
+        _joint_v2_plan(_joint_family_v2())
+
+
+def test_joint_unit_planner_requires_propagation_assumptions_for_v1_families() -> None:
+    with pytest.raises(ValueError, match="assumptions require a v2 or v3 joint family"):
+        _joint_v2_plan(_joint_family())
+
+
+def test_joint_unit_planner_accepts_v1_family_without_propagation_claims() -> None:
+    result = plan_joint_independent_units(
+        joint_acceptance_family=_joint_family(),
+        planned_quantile_pass_probabilities=_assumptions(),
+        planned_interval_coverage=0.95,
+        planned_complex_csi_p95_pass_probability=0.99,
+        planned_complex_csi_failure_probability=0.01,
+        planned_angular_unit_pass_probability=None,
+    )
+    assert result["propagation_design"] is None
+    assert result["receiver_impact_design"] is None
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"planned_quantile_pass_probabilities": None}, "must be a mapping"),
+        ({"planned_interval_coverage": 0.90}, "strictly inside margins"),
+        ({"planned_complex_csi_failure_probability": 0.05}, "below 0.05"),
+        ({"planned_propagation_p95_pass_probabilities": {}}, "must specify exactly"),
+        (
+            {
+                "planned_propagation_cluster_failure_probabilities": {
+                    "first_arrival_delay_s": 0.05,
+                    "rms_delay_spread_s": 0.01,
+                    "arrival_angular_spread_deg": 0.01,
+                    "departure_angular_spread_deg": 0.01,
+                }
+            },
+            "must be below 0.05",
+        ),
+        ({"planned_angular_unit_pass_probability": 1.1}, r"must be in \[0, 1\]"),
+    ],
+)
+def test_joint_unit_planner_rejects_invalid_assumptions(kwargs, message) -> None:
+    arguments = {
+        "joint_acceptance_family": _joint_family_v2(),
+        "planned_quantile_pass_probabilities": _assumptions(),
+        "planned_interval_coverage": 0.95,
+        "planned_complex_csi_p95_pass_probability": 0.99,
+        "planned_complex_csi_failure_probability": 0.01,
+        "planned_angular_unit_pass_probability": None,
+        "planned_propagation_p95_pass_probabilities": {
+            metric: 0.99 for metric in independent_units_module._PROPAGATION_METRICS
+        },
+        "planned_propagation_cluster_failure_probabilities": {
+            metric: 0.01 for metric in independent_units_module._PROPAGATION_METRICS
+        },
+    }
+    arguments.update(kwargs)
+    with pytest.raises(ValueError, match=message):
+        plan_joint_independent_units(**arguments)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize("planned_mean", [0.90, 0.98, 0.89, 0.99])
