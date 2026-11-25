@@ -97,7 +97,7 @@ jobs:
           cache-dependency-glob: uv.lock
 
       - name: Install project and test dependencies
-        run: uv sync --locked --extra dev
+        run: uv sync --locked --extra dev --extra sionna --no-install-package torch
 
       - name: Install CPU-only PyTorch for portable NR integration contracts
         run: uv pip install --python .venv/bin/python torch==2.11.0 --index-url https://download.pytorch.org/whl/cpu
