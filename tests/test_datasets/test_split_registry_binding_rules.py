@@ -5,6 +5,7 @@ from __future__ import annotations
 import dataclasses
 import json
 from pathlib import Path
+from types import MappingProxyType
 
 import pytest
 from datasets.split_policy import (
@@ -12,15 +13,19 @@ from datasets.split_policy import (
     SplitChildBinding,
     SplitPolicy,
 )
+from datasets.split_policy import registry as registry_module
 from datasets.split_policy.registry import (
+    SplitPolicyRegistry,
     audit_split_policy_child_roster,
     audit_split_policy_parent_roster,
+    audit_split_policy_registry,
     bind_spatiotemporal_audit_to_registry,
     bind_split_children,
     freeze_split_policy_registry,
     make_split_policy_registry,
     read_split_policy_registry,
     verify_registry_spatiotemporal_audit,
+    verify_signed_split_policy_registry_attestation,
 )
 from tests.test_datasets.test_split_policy_v2 import (
     _four_way_registry,
@@ -124,10 +129,91 @@ def test_child_roster_audit_checks_types_duplicates_and_parent_binding() -> None
 
 def test_spatiotemporal_audit_cannot_be_replaced_once_frozen() -> None:
     _, registry = _registry()
+    subjects = list(registry.subjects.values())
     with pytest.raises(ValueError, match="no frozen spatiotemporal footprint audit"):
         verify_registry_spatiotemporal_audit(registry, [], spatial_buffer_m=0.0)
     with pytest.raises(TypeError, match="registry must be a SplitPolicyRegistry"):
         bind_spatiotemporal_audit_to_registry("registry", [], spatial_buffer_m=0.0)
+
+    from datasets.split_policy import SpatiotemporalFootprint
+
+    footprints = tuple(SpatiotemporalFootprint(subject.subject_id) for subject in subjects)
+    bound = bind_spatiotemporal_audit_to_registry(registry, footprints, spatial_buffer_m=0.0)
+    assert verify_registry_spatiotemporal_audit(bound, footprints, spatial_buffer_m=0.0) == dict(
+        bound.spatiotemporal_audit
+    )
+    changed = (
+        *footprints[:-1],
+        SpatiotemporalFootprint(footprints[-1].subject_id, ((1.0, 2.0, 3.0),), "map"),
+    )
+    with pytest.raises(ValueError, match="cannot be replaced"):
+        bind_spatiotemporal_audit_to_registry(bound, changed, spatial_buffer_m=0.0)
+    with pytest.raises(ValueError, match="inventory differs"):
+        verify_registry_spatiotemporal_audit(bound, changed, spatial_buffer_m=0.0)
+    with pytest.raises(ValueError, match="assign every registered parent"):
+        dataclasses.replace(registry, subject_to_component={})
+
+
+def test_registry_audit_checks_exact_parent_and_child_inventories() -> None:
+    _, registry = _registry()
+    subjects = list(registry.subjects.values())
+    with pytest.raises(ValueError, match="duplicate split subject in audit"):
+        audit_split_policy_registry(registry, [subjects[0], subjects[0]])
+    with pytest.raises(ValueError, match="absent from frozen split registry"):
+        audit_split_policy_registry(registry, [_subject("unknown")])
+    with pytest.raises(ValueError, match="do not cover exactly"):
+        audit_split_policy_registry(registry, subjects[:-1])
+
+    parent = subjects[0].subject_id
+    bound = bind_split_children(registry, [_binding("child-a", parent)])
+    with pytest.raises(ValueError, match="duplicate child binding"):
+        audit_split_policy_registry(
+            bound, subjects, [_binding("child-a", parent), _binding("child-a", parent)]
+        )
+    with pytest.raises(ValueError, match="child is absent from frozen split registry"):
+        audit_split_policy_registry(bound, subjects, [_binding("unknown-child", parent)])
+    with pytest.raises(ValueError, match="do not cover exactly the frozen child set"):
+        audit_split_policy_registry(bound, subjects)
+    audit_split_policy_registry(bound, subjects, [_binding("child-a", parent)])
+
+
+def test_registry_audit_rejects_cross_component_shared_relations() -> None:
+    from datasets.split_policy import LeakageRelation
+
+    _, registry = _registry()
+    original_subjects = list(registry.subjects.values())
+    relation = LeakageRelation(LeakageNamespace.SITE, "shared-site")
+    first, second = original_subjects[:2]
+    altered_subjects = dict(registry.subjects)
+    altered_subjects[first.subject_id] = dataclasses.replace(first, relations=(relation,))
+    altered_subjects[second.subject_id] = dataclasses.replace(second, relations=(relation,))
+    object.__setattr__(registry, "subjects", MappingProxyType(altered_subjects))
+    components = dict(registry.subject_to_component)
+    components[first.subject_id] = "forged-component-a"
+    components[second.subject_id] = "forged-component-b"
+    object.__setattr__(registry, "subject_to_component", MappingProxyType(components))
+
+    with pytest.raises(ValueError, match="shared leakage relation crosses components"):
+        audit_split_policy_registry(registry, list(altered_subjects.values()))
+
+
+def test_registry_constructor_rejects_corrupt_frozen_spatiotemporal_audit() -> None:
+    _, registry = _registry()
+    subjects = list(registry.subjects.values())
+    from datasets.split_policy import SpatiotemporalFootprint
+
+    footprints = tuple(SpatiotemporalFootprint(subject.subject_id) for subject in subjects)
+    bound = bind_spatiotemporal_audit_to_registry(registry, footprints, spatial_buffer_m=0.0)
+    invalid_audit = {**bound.spatiotemporal_audit, "parent_count": -1}
+    with pytest.raises(ValueError, match="audit is invalid or roster-mismatched"):
+        SplitPolicyRegistry(
+            bound.policy,
+            bound.subject_to_component,
+            bound.component_to_split,
+            bound.subjects,
+            bound.child_bindings,
+            invalid_audit,
+        )
 
 
 def test_registry_lock_round_trips_and_is_never_overwritten(tmp_path: Path) -> None:
@@ -171,3 +257,58 @@ def test_read_rejects_tampered_or_mislabelled_locks(tmp_path: Path) -> None:
     list_root.write_text("[1, 2]", encoding="utf-8")
     with pytest.raises(ValueError, match="root must be a JSON object"):
         read_split_policy_registry(list_root)
+
+
+def test_read_rejects_non_object_spatiotemporal_audit_for_v3(tmp_path: Path) -> None:
+    _, registry = _registry()
+    payload = registry.to_dict()
+    payload["schema"] = "umcd.split_registry.v3"
+    payload["schema_version"] = 3
+    payload["spatiotemporal_audit"] = None
+    path = tmp_path / "bad-v3-audit.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="spatiotemporal_audit must be a JSON object"):
+        read_split_policy_registry(path)
+
+
+@pytest.mark.parametrize("identical", [True, False])
+def test_registry_freeze_handles_concurrent_destination_creation(
+    tmp_path: Path, monkeypatch, identical: bool
+) -> None:
+    _, registry = _registry()
+    destination = tmp_path / "raced-registry.json"
+
+    def racing_link(source, target):
+        destination.write_bytes(Path(source).read_bytes() if identical else b"another lock")
+        raise FileExistsError(target)
+
+    monkeypatch.setattr(registry_module.os, "link", racing_link)
+    if identical:
+        assert freeze_split_policy_registry(destination, registry)
+    else:
+        with pytest.raises(FileExistsError, match="refusing to modify existing"):
+            freeze_split_policy_registry(destination, registry)
+
+
+def test_registry_freeze_propagates_temporary_file_creation_failure(
+    tmp_path: Path, monkeypatch
+) -> None:
+    _, registry = _registry()
+
+    def fail_temporary_file(*_args, **_kwargs):
+        raise OSError("temporary storage unavailable")
+
+    monkeypatch.setattr(registry_module.tempfile, "NamedTemporaryFile", fail_temporary_file)
+    with pytest.raises(OSError, match="temporary storage unavailable"):
+        freeze_split_policy_registry(tmp_path / "not-created.json", registry)
+
+
+def test_split_registry_signer_id_must_be_single_line() -> None:
+    with pytest.raises(ValueError, match="single-line principal"):
+        verify_signed_split_policy_registry_attestation(
+            "unused-lock",
+            "unused-signature",
+            trusted_allowed_signers_path="unused-trust",
+            signer_id="reviewer\nforged",
+        )

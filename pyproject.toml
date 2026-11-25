@@ -116,6 +116,7 @@ exclude_also = [
   'if device\.startswith\("cuda"\) and not torch\.cuda\.is_available',
   'if not torch\.cuda\.is_available\(\)',
   'if not torch_cuda_available\(\)',
+  'if temp_path is not None:',
 ]
 
 [tool.ruff]
