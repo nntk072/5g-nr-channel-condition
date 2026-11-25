@@ -553,6 +553,16 @@ def test_rt_cache_immutable_write_rejects_unreadable_existing_entry(tmp_path):
         rt_cache._atomic_immutable_write(target, b"payload")
 
 
+def test_rt_cache_immutable_write_cleans_up_before_temp_creation(tmp_path, monkeypatch):
+    def fail_temp_creation(**_kwargs):
+        raise OSError("temporary file creation failed")
+
+    monkeypatch.setattr(rt_cache.tempfile, "NamedTemporaryFile", fail_temp_creation)
+
+    with pytest.raises(OSError, match="temporary file creation failed"):
+        rt_cache._atomic_immutable_write(tmp_path / "entry", b"payload")
+
+
 def test_rt_cache_store_rejects_dataset_identity_mismatch(tmp_path):
     expected = _identity()
     foreign = _identity()
