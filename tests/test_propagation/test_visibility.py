@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from propagation import visibility
 from propagation.visibility import segment_mesh_visibility
 
 TRIANGLE = np.asarray(
@@ -108,3 +109,114 @@ def test_segment_visibility_rejects_malformed_geometry(kwargs):
     call = {"start": (-1, 0, 0), "end": (1, 0, 0), **kwargs}
     with pytest.raises(ValueError):
         segment_mesh_visibility(**call)
+
+
+def test_triangle_geometry_helpers_cover_degenerate_and_outside_cases():
+    degenerate = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0]])
+    assert visibility._barycentric(np.zeros(3), degenerate) is None
+    assert not visibility._point_in_triangle(np.zeros(3), degenerate, 1e-8)
+    assert visibility._intersect_open_segment_triangle(
+        np.asarray([-1.0, 0.0, 0.0]),
+        np.asarray([2.0, 0.0, 0.0]),
+        degenerate,
+        tolerance_m=1e-8,
+    ) == "ambiguous"
+    numerically_degenerate = np.asarray(
+        [[0.0, 0.0, 0.0], [1e-6, 0.0, 0.0], [0.0, 1e-6, 0.0]]
+    )
+    assert visibility._intersect_open_segment_triangle(
+        np.asarray([0.0, 0.0, -1.0]),
+        np.asarray([0.0, 0.0, 2.0]),
+        numerically_degenerate,
+        tolerance_m=1e-8,
+    ) == "ambiguous"
+
+
+def test_coplanar_segment_without_contact_is_visible_and_collinear_edge_is_ambiguous():
+    planar_triangle = np.asarray(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]], dtype=np.float64
+    )
+    assert not visibility._coplanar_segment_overlaps_triangle(
+        np.asarray([2.0, 2.0, 0.0]), np.asarray([1.0, 0.0, 0.0]), planar_triangle, 1e-8
+    )
+    assert visibility._coplanar_segment_overlaps_triangle(
+        np.asarray([-1.0, 0.0, 0.0]), np.asarray([3.0, 0.0, 0.0]), planar_triangle, 1e-8
+    )
+    clear = segment_mesh_visibility((2, 2, 0), (3, 2, 0), planar_triangle.reshape(1, 3, 3))
+    assert clear.outcome == "visible"
+
+
+def test_endpoint_contact_outside_triangle_is_not_an_intersection():
+    classification = visibility._intersect_open_segment_triangle(
+        np.asarray([0.0, 2.0, 0.0]),
+        np.asarray([1.0, 0.0, 0.0]),
+        TRIANGLE[0],
+        tolerance_m=1e-8,
+    )
+    assert classification == "none"
+    beyond = visibility._intersect_open_segment_triangle(
+        np.asarray([-1.0, 0.0, 0.0]),
+        np.asarray([0.5, 0.0, 0.0]),
+        TRIANGLE[0],
+        tolerance_m=1e-8,
+    )
+    assert beyond == "none"
+
+
+def test_near_parallel_plane_crossing_reports_ambiguity_only_near_the_face():
+    broad_triangle = np.asarray(
+        [[0.0, -100.0, -100.0], [0.0, 100.0, -100.0], [0.0, 0.0, 100.0]]
+    )
+    near = visibility._intersect_open_segment_triangle(
+        np.asarray([-2e-9, -1.0, 0.0]),
+        np.asarray([1.3e-8, 2.0, 0.0]),
+        broad_triangle,
+        tolerance_m=1e-8,
+    )
+    far = visibility._intersect_open_segment_triangle(
+        np.asarray([-2e-9, -1000.0, 0.0]),
+        np.asarray([1.3e-8, 2000.0, 0.0]),
+        broad_triangle,
+        tolerance_m=1e-8,
+    )
+    outside_parameter = visibility._intersect_open_segment_triangle(
+        np.asarray([2e-8, -1.0, 0.0]),
+        np.asarray([1e-8, 2.0, 0.0]),
+        broad_triangle,
+        tolerance_m=1e-8,
+    )
+    assert near == "ambiguous"
+    assert far == "none"
+    assert outside_parameter == "none"
+
+
+def test_coplanar_overlap_skips_zero_length_triangle_edge():
+    triangle_with_duplicate_vertex = np.asarray(
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+    )
+    assert not visibility._coplanar_segment_overlaps_triangle(
+        np.asarray([2.0, 2.0, 0.0]),
+        np.asarray([1.0, 0.0, 0.0]),
+        triangle_with_duplicate_vertex,
+        1e-8,
+    )
+
+
+def test_parallel_plane_without_crossing_is_clear_and_disjoint_collinear_edge_is_clear():
+    parallel = visibility._intersect_open_segment_triangle(
+        np.asarray([1.0, -1.0, 0.0]),
+        np.asarray([0.0, 2.0, 0.0]),
+        TRIANGLE[0],
+        tolerance_m=1e-8,
+    )
+    planar_triangle = np.asarray(
+        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]], dtype=np.float64
+    )
+    disjoint_collinear = visibility._coplanar_segment_overlaps_triangle(
+        np.asarray([2.0, 0.0, 0.0]),
+        np.asarray([1.0, 0.0, 0.0]),
+        planar_triangle,
+        1e-8,
+    )
+    assert parallel == "none"
+    assert not disjoint_collinear
