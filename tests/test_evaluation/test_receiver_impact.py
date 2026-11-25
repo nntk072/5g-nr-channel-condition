@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 from evaluation.acceptance.joint_acceptance import build_joint_acceptance_family_v3
-from evaluation.acceptance.receiver_impact import evaluate_receiver_impact
+from evaluation.acceptance.receiver_impact import _crossing_snr, evaluate_receiver_impact
 
 
 def _records(
@@ -348,3 +348,94 @@ def test_receiver_scorer_rejects_shared_family_with_different_strata() -> None:
             joint_acceptance_family=family,
             bootstrap_draws=1000,
         )
+
+
+@pytest.mark.parametrize(
+    ("records", "overrides", "message"),
+    [
+        ([], {"snr_grid_db": [10.0]}, "at least two finite values"),
+        ([], {"snr_grid_db": [0.0, 20.0, 10.0]}, "strictly increasing"),
+        ([], {"comparison_snr_db": 5.0}, "exact member of the frozen grid"),
+        ([], {"bootstrap_seed": True}, "bootstrap_seed must be a nonnegative integer"),
+        ([], {"bootstrap_draws": 999}, "bootstrap_draws must be an integer"),
+        ([], {"expected_strata": "family-a"}, "expected_strata must be a sequence"),
+        ([], {"expected_strata": [("family-a",)]}, "each expected stratum"),
+        ([], {"expected_strata": []}, "expected_strata must contain family IDs"),
+        (
+            [],
+            {"expected_strata": [("family-a", "LOS"), ("family-a", "LOS")]},
+            "must not contain duplicates",
+        ),
+        ([], {}, "records must be nonempty"),
+        ([{}], {}, "all receiver outcome fields"),
+        (
+            _records()[:1],
+            {"field": "cluster_id", "value": " "},
+            "cluster_id and transport_block_id",
+        ),
+        (_records()[:1], {"field": "snr_db", "value": 99.0}, "SNR is outside"),
+        (
+            _records()[:1],
+            {"field": "configuration_id", "value": "other"},
+            "unexpected configuration_id",
+        ),
+        (_records()[:1], {"field": "crc_error", "value": "false"}, "crc_error must be boolean"),
+        (
+            _records()[:1],
+            {"field": "decoder_outcome", "value": " "},
+            "decoder_outcome must be a nonempty string",
+        ),
+    ],
+)
+def test_receiver_impact_rejects_invalid_frozen_inputs(records, overrides, message):
+    arguments = {
+        "expected_strata": [("family-a", "LOS")],
+        "candidate_config_id": "candidate",
+        "challenger_config_id": "challenger",
+        "snr_grid_db": [0.0, 10.0, 20.0],
+        "comparison_snr_db": 10.0,
+        "bootstrap_draws": 1000,
+    }
+    record_field = overrides.pop("field", None)
+    record_value = overrides.pop("value", None)
+    if record_field is not None:
+        records[0][record_field] = record_value
+    arguments.update(overrides)
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_receiver_impact(records, **arguments)
+
+
+def test_receiver_crossing_rejects_malformed_bler_vectors():
+    import numpy as np
+
+    grid = np.asarray([0.0, 1.0, 2.0])
+    assert _crossing_snr(grid, np.asarray([[1.0, 0.1, 0.0]])) is None
+    assert _crossing_snr(grid, np.asarray([1.0, np.nan, 0.0])) is None
+    assert _crossing_snr(grid, np.asarray([1.1, 0.1, 0.0])) is None
+    assert _crossing_snr(grid, np.asarray([1.0, 0.2, 0.3])) is None
+
+
+def test_receiver_impact_keeps_expected_strata_cluster_inventories_separate():
+    records = _records()
+    second_stratum = _records()
+    for record in second_stratum:
+        record["family_id"] = "family-b"
+        record["condition"] = "NLOS"
+    records.extend(second_stratum)
+
+    report = evaluate_receiver_impact(
+        records,
+        expected_strata=[("family-a", "LOS"), ("family-b", "NLOS")],
+        candidate_config_id="candidate",
+        challenger_config_id="challenger",
+        snr_grid_db=[0.0, 10.0, 20.0],
+        comparison_snr_db=10.0,
+        bootstrap_seed=7,
+        bootstrap_draws=1000,
+    )
+
+    assert [(cell["family_id"], cell["condition"]) for cell in report["strata"]] == [
+        ("family-a", "LOS"),
+        ("family-b", "NLOS"),
+    ]
