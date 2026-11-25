@@ -143,3 +143,53 @@ def test_input_shape_and_partition_rules(overrides, message) -> None:
 def test_method_specific_inputs_are_required_and_exclusive(overrides, message) -> None:
     with pytest.raises(ValueError, match=message):
         _build(**overrides)
+
+
+@pytest.mark.parametrize(
+    ("method", "overrides", "message"),
+    [
+        (
+            "oracle_label_leak",
+            {"target_values": np.arange(_ROWS) % 2},
+            "differs from the declared target leakage transform",
+        ),
+        (
+            "row_shuffled",
+            {
+                "source_method_input": np.arange(_ROWS * 6, dtype=float).reshape(_ROWS, 6),
+                "feature_permutation_seed": 13,
+                "feature_permutation_run_seed": 17,
+            },
+            "differs from its declared permutation",
+        ),
+        (
+            "source_only",
+            {"source_values": np.asarray(["a", "b"] * 6)},
+            "differ from the training vocabulary transform",
+        ),
+        (
+            "metadata_only",
+            {
+                "metadata_values": {
+                    "group": np.asarray(["g0", "g1"] * 6),
+                    "domain": np.asarray(["d0", "d1"] * 6),
+                    "source": np.asarray(["s0", "s1"] * 6),
+                }
+            },
+            "differ from the training vocabulary transform",
+        ),
+        (
+            "group_only",
+            {"metadata_values": {"group": np.asarray(["g0", "g1"] * 6)}},
+            "differ from the training vocabulary transform",
+        ),
+        (
+            "domain_only",
+            {"metadata_values": {"domain": np.asarray(["d0", "d1"] * 6)}},
+            "differ from the training vocabulary transform",
+        ),
+    ],
+)
+def test_method_inputs_must_match_their_declared_transform(method, overrides, message) -> None:
+    with pytest.raises(ValueError, match=message):
+        _build(method=method, **overrides)
