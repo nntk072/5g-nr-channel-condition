@@ -16,6 +16,7 @@ from integrations.sionna.network_phy import (  # noqa: E402
 )
 from integrations.sionna.network_receiver import (  # noqa: E402
     NetworkPUSCHWorkflowResult,
+    _real_noise_profile,
     _receiver_implementation_identity,
     _tensor_sha256,
     _unitary_sionna_noise_conversion,
@@ -61,6 +62,32 @@ def test_network_receiver_implementation_identity_rejects_uninspectable_methods(
 
     with pytest.raises(ValueError, match="implementation source is unavailable"):
         _receiver_implementation_identity(BuiltinMethodReceiver())
+
+
+def test_real_noise_profile_normalizes_integer_and_float_profiles():
+    profile = _real_noise_profile(torch, (1, 0.25), rx_count=2, device="cpu")
+
+    assert profile.dtype == torch.float64
+    torch.testing.assert_close(profile, torch.tensor((1.0, 0.25), dtype=torch.float64))
+
+
+@pytest.mark.parametrize(
+    ("values", "rx_count", "message"),
+    [
+        (True, 1, "non-Boolean"),
+        (object(), 1, "real numeric"),
+        ([True], 1, "non-Boolean"),
+        ([1 + 2j], 1, r"real \[rx\] vector"),
+        (torch.ones(2, dtype=torch.float32).to_sparse(), 2, r"real \[rx\] vector"),
+        ([1.0], 2, r"real \[rx\] vector"),
+        ([float("nan")], 1, "finite and positive"),
+        ([0.0], 1, "finite and positive"),
+        ([-0.1], 1, "finite and positive"),
+    ],
+)
+def test_real_noise_profile_rejects_invalid_values(values, rx_count, message):
+    with pytest.raises(ValueError, match=message):
+        _real_noise_profile(torch, values, rx_count=rx_count, device="cpu")
 
 
 def _network_waveform():
@@ -538,6 +565,208 @@ def test_network_receiver_rejects_broken_source_sum_and_noise_lineage_before_dec
 
 
 @pytest.mark.parametrize(
+    ("target", "field", "value", "message"),
+    [
+        ("composition", "received_waveform", 1.0, "network waveforms must have"),
+        (
+            "composition",
+            "received_waveform",
+            torch.ones((1, 1, 1, 8)),
+            "network waveforms must have",
+        ),
+        (
+            "composition",
+            "received_waveform",
+            torch.ones((1, 1, 8), dtype=torch.complex64),
+            "network waveforms must have",
+        ),
+        (
+            "composition",
+            "source_contributions",
+            torch.ones((1, 1, 1, 8), dtype=torch.complex64),
+            "network waveforms must have",
+        ),
+        (
+            "composition",
+            "source_contributions",
+            torch.ones((1, 2, 1, 2, 8), dtype=torch.complex64),
+            "network waveforms must have",
+        ),
+        (
+            "noisy",
+            "noise_waveform",
+            torch.ones((1, 1, 1, 8)),
+            "network waveforms must have",
+        ),
+        (
+            "noisy",
+            "received_waveform",
+            torch.ones((1, 1, 1, 8)),
+            "network waveforms must have",
+        ),
+        (
+            "noisy",
+            "noise_waveform",
+            torch.zeros((1, 1, 1, 7), dtype=torch.complex64),
+            "axes must be nonempty",
+        ),
+        (
+            "noisy",
+            "received_waveform",
+            torch.zeros((1, 1, 1, 7), dtype=torch.complex64),
+            "must match the source composition shape",
+        ),
+        (
+            "composition",
+            "received_waveform",
+            torch.full((1, 1, 1, 8), float("inf"), dtype=torch.complex64),
+            "must be finite",
+        ),
+    ],
+)
+def test_network_receiver_rejects_malformed_waveform_records(target, field, value, message):
+    composition, noisy = _network_waveform()
+    record = composition if target == "composition" else noisy
+    invalid_record = replace(record, **{field: value})
+    if target == "composition":
+        composition = invalid_record
+    else:
+        noisy = invalid_record
+
+    with pytest.raises(ValueError, match=message):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            _FakePUSCHReceiver(),
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        None,
+        {"resource_grid": []},
+        {"resource_grid": {"fft_size": 4}, "invalid": float("inf")},
+        {"resource_grid": {"fft_size": True}},
+        {"resource_grid": {"fft_size": 0}},
+    ],
+)
+def test_network_receiver_rejects_invalid_receiver_metadata(metadata):
+    class InvalidMetadataReceiver(_FakePUSCHReceiver):
+        pass
+
+    InvalidMetadataReceiver.metadata = metadata
+    composition, noisy = _network_waveform()
+
+    with pytest.raises(ValueError, match="receiver"):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            InvalidMetadataReceiver(),
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+@pytest.mark.parametrize("device", [None, ""])
+def test_network_receiver_requires_declared_device(device):
+    class MissingDeviceReceiver(_FakePUSCHReceiver):
+        pass
+
+    MissingDeviceReceiver.device = device
+    composition, noisy = _network_waveform()
+
+    with pytest.raises(ValueError, match="execution device"):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            MissingDeviceReceiver(),
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+@pytest.mark.parametrize(
+    "filter_taps",
+    [
+        torch.ones((1, 1, 1, 1), dtype=torch.complex64),
+        torch.ones((1, 2, 1), dtype=torch.complex64),
+        torch.empty((1, 1, 0), dtype=torch.complex64),
+    ],
+)
+def test_network_receiver_rejects_invalid_link_filter_taps(filter_taps):
+    composition, noisy = _network_waveform()
+
+    with pytest.raises(ValueError, match="link FIR taps"):
+        decode_noisy_network_pusch(
+            replace(composition, link_filter_taps=filter_taps),
+            noisy,
+            _FakePUSCHReceiver(),
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+@pytest.mark.parametrize(
+    "variance",
+    [
+        (0.02,),
+        torch.tensor((0.02, 0.03)),
+        torch.tensor((-0.02,)),
+    ],
+)
+def test_network_receiver_requires_valid_sample_noise_variance_vector(variance):
+    composition, noisy = _network_waveform()
+    with pytest.raises(ValueError, match="sample-domain.*variance"):
+        decode_noisy_network_pusch(
+            composition,
+            replace(noisy, noise_variance_w_per_sample=variance),
+            _FakePUSCHReceiver(),
+            noise_variance_w_per_re=(0.04,),
+        )
+
+
+@pytest.mark.parametrize("maximum", [True, 0, 1.5])
+def test_network_receiver_requires_positive_integer_tensor_limit(maximum):
+    composition, noisy = _network_waveform()
+    with pytest.raises(ValueError, match="max_tensor_elements"):
+        decode_noisy_network_pusch(
+            composition,
+            noisy,
+            _FakePUSCHReceiver(),
+            noise_variance_w_per_re=(0.04,),
+            max_tensor_elements=maximum,
+        )
+
+
+def test_network_receiver_rejects_unpinned_implicit_noise_conversion():
+    composition, noisy = _network_waveform()
+    with pytest.raises(ValueError, match="pinned Sionna PHY 2.2.0"):
+        decode_noisy_network_pusch(composition, noisy, _FakePUSCHReceiver())
+
+
+@pytest.mark.parametrize(
+    "filter_taps",
+    [None, torch.zeros((1, 1, 2), dtype=torch.complex64)],
+)
+def test_network_receiver_reports_empty_declared_fir_support(filter_taps):
+    composition, noisy = _network_waveform()
+    result = decode_noisy_network_pusch(
+        replace(composition, link_filter_taps=filter_taps),
+        noisy,
+        _FakePUSCHReceiver(),
+        noise_variance_w_per_re=(0.04,),
+    )
+
+    diagnostic = result.report["declared_fir_cp_diagnostic"]
+    assert diagnostic["maximum_fir_memory_samples"] == 0
+    assert diagnostic["maximum_composed_support_span_samples"] == 0
+    first_tap = 0 if filter_taps is None else -1
+    last_tap = first_tap
+    assert diagnostic["per_receiver_link_support"] == [
+        [{"first_nonzero_tap": first_tap, "last_nonzero_tap": last_tap, "memory_samples": 0}]
+    ]
+
+
+@pytest.mark.parametrize(
     ("noise", "maximum", "message"),
     [
         ((True,), 100, "non-Boolean"),
@@ -606,6 +835,30 @@ def test_unitary_sionna_fft_preserves_iid_sample_noise_variance(fft_size):
         device="cpu",
     )
     torch.testing.assert_close(converted, torch.tensor((0.0, 0.25), dtype=torch.float64))
+
+
+@pytest.mark.parametrize(
+    ("variance", "fft_size"),
+    [
+        ([0.25], 4),
+        (torch.tensor([True]), 4),
+        (torch.tensor([1 + 0j]), 4),
+        (torch.tensor([1]), 4),
+        (torch.tensor([float("inf")]), 4),
+        (torch.tensor([-0.1]), 4),
+        (torch.tensor([0.1]), True),
+        (torch.tensor([0.1]), 0),
+    ],
+)
+def test_unitary_sionna_noise_conversion_rejects_invalid_inputs(variance, fft_size):
+    with pytest.raises(ValueError):
+        _unitary_sionna_noise_conversion(
+            torch,
+            variance,
+            rx_count=1,
+            fft_size=fft_size,
+            device="cpu",
+        )
 
 
 @pytest.mark.native_sionna
