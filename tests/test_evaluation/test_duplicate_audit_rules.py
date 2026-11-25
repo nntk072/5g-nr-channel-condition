@@ -118,3 +118,19 @@ def test_temporal_records_must_cover_exactly_the_split() -> None:
     records = [_window(ids[0]), _window(ids[0])] + [_window(sample) for sample in ids[1:]]
     with pytest.raises(ValueError, match="non-empty and unique"):
         find_cross_split_temporal_overlaps(records, split)
+
+
+def test_temporal_records_reject_samples_outside_the_frozen_split() -> None:
+    ids, split = _ids_and_split()
+    records = [_window(sample) for sample in ids]
+    records[0]["sample_id"] = "absent-sample"
+
+    with pytest.raises(ValueError, match="absent from frozen split"):
+        find_cross_split_temporal_overlaps(records, split)
+
+
+def test_disjoint_cross_split_time_windows_have_no_overlap() -> None:
+    ids, split = _ids_and_split()
+    records = [_window(sample, start=2.0 * i, end=2.0 * i + 1.0) for i, sample in enumerate(ids)]
+
+    assert find_cross_split_temporal_overlaps(records, split) == ()
