@@ -84,12 +84,6 @@ def _phase_view_disposition(
             _channel_view_contract_validator().validate(contract)
         except jsonschema.ValidationError as error:
             raise ValueError(f"{role} channel-view contract is invalid: {error.message}") from error
-        if set(contract) - (
-            _CHANNEL_VIEW_CONTRACT_FIELDS | {"normalization_recipe", "axes", "valid_mask"}
-        ):
-            raise ValueError(f"{role} channel-view contract has unsupported fields")
-        if not _CHANNEL_VIEW_CONTRACT_FIELDS.issubset(contract):
-            raise ValueError(f"{role} channel-view contract is missing required fields")
         try:
             return PhysicalChannelView(
                 view_id=contract["view_id"],

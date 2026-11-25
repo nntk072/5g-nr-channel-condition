@@ -6,7 +6,11 @@ from pathlib import Path
 import jsonschema
 import numpy as np
 import pytest
-from evaluation.acceptance.complex_csi import evaluate_complex_csi, symmetric_complex_csi_error
+from evaluation.acceptance.complex_csi import (
+    _upper_clopper_pearson,
+    evaluate_complex_csi,
+    symmetric_complex_csi_error,
+)
 from evaluation.acceptance.joint_acceptance import (
     build_joint_acceptance_family,
     build_joint_acceptance_family_v3,
@@ -360,3 +364,121 @@ def test_complex_csi_evaluation_rejects_invalid_procedure_settings(
     ]
     with pytest.raises(ValueError):
         _score(records, **kwargs)
+
+
+def test_complex_csi_requires_both_phase_view_contracts():
+    same = np.ones(2, dtype=np.complex128)
+    row = {
+        **_record("cluster-a", "episode-a", same, same),
+        "candidate_view_contract": _view_contract("candidate"),
+    }
+
+    with pytest.raises(ValueError, match="must be supplied together"):
+        evaluate_complex_csi([row], expected_strata=[("scene-family-a", "LOS")])
+
+
+def test_complex_csi_wraps_view_schema_and_physical_view_errors():
+    same = np.ones((1, 1, 1, 2), dtype=np.complex128)
+    invalid_schema = [
+        {
+            **_record("cluster-a", "episode-a", same, same),
+            "candidate_view_contract": {**_view_contract("candidate"), "power_scale": "bad"},
+            "challenger_view_contract": _view_contract("challenger"),
+        }
+    ]
+    with pytest.raises(ValueError, match="candidate channel-view contract is invalid"):
+        evaluate_complex_csi(invalid_schema, expected_strata=[("scene-family-a", "LOS")])
+
+    mismatched_frames = [
+        {
+            **_record("cluster-a", "episode-a", same, same),
+            "candidate_view_contract": {
+                **_view_contract("candidate"),
+                "frame_times_s": [0.0, 1.0],
+            },
+            "challenger_view_contract": _view_contract("challenger"),
+        }
+    ]
+    with pytest.raises(ValueError, match="candidate channel-view contract is invalid"):
+        evaluate_complex_csi(mismatched_frames, expected_strata=[("scene-family-a", "LOS")])
+
+
+def test_complex_csi_error_rejects_overflowed_finite_inputs():
+    with pytest.warns(RuntimeWarning), pytest.raises(ValueError, match="error is not finite"):
+        symmetric_complex_csi_error(
+            np.asarray([1e308 + 0j]), np.asarray([-1e308 + 0j]), h_floor=1e-12
+        )
+
+
+def test_complex_csi_clopper_pearson_all_failures_is_one():
+    assert _upper_clopper_pearson(3, 3, 0.05) == 1.0
+
+
+def test_complex_csi_rejects_empty_records_and_malformed_strata():
+    with pytest.raises(ValueError, match="records must be nonempty"):
+        evaluate_complex_csi([], expected_strata=[("scene-family-a", "LOS")])
+
+    same = np.ones(2, dtype=np.complex128)
+    records = [
+        _record("cluster-a", "episode-a", same, same),
+        _record("cluster-b", "episode-b", same, same),
+    ]
+    with pytest.raises(ValueError, match="each expected stratum"):
+        evaluate_complex_csi(records, expected_strata=[("", "LOS")])
+    with pytest.raises(ValueError, match="duplicate expected stratum"):
+        evaluate_complex_csi(
+            records,
+            expected_strata=[("scene-family-a", "LOS"), ("scene-family-a", "LOS")],
+        )
+
+
+def test_complex_csi_rejects_frozen_confidence_change_and_mixed_contract_coverage():
+    same = np.ones((1, 1, 1, 2), dtype=np.complex128)
+    records = [
+        _record("cluster-a", "episode-a", same, same),
+        _record("cluster-b", "episode-b", same, same),
+    ]
+    with pytest.raises(ValueError, match="frozen at 0.95"):
+        _score(records, confidence_level=0.9)
+
+    records[0]["candidate_view_contract"] = _view_contract("candidate-a")
+    records[0]["challenger_view_contract"] = _view_contract("challenger-a")
+    with pytest.raises(ValueError, match="must cover every complex-CSI record or none"):
+        _score(records)
+
+
+def test_complex_csi_requires_one_design_across_expected_strata():
+    same = np.ones(2, dtype=np.complex128)
+    first = _record("cluster-a", "episode-a", same, same)
+    second = {
+        **_record("cluster-b", "episode-b", same, same),
+        "family_id": "scene-family-b",
+        "condition": "NLOS",
+        "candidate_configuration_id": "candidate-v2",
+    }
+
+    with pytest.raises(ValueError, match="must match across strata"):
+        evaluate_complex_csi(
+            [first, second],
+            expected_strata=[("scene-family-a", "LOS"), ("scene-family-b", "NLOS")],
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "message"),
+    [
+        ("cluster_id", "cluster_id, and episode_id must be nonempty strings"),
+        (
+            "challenger_configuration_id",
+            "evaluation_grid_id and candidate/challenger configuration IDs are required",
+        ),
+        ("h_floor", "h_floor must be a finite positive real number"),
+    ],
+)
+def test_complex_csi_requires_complete_record_identity_and_numeric_floor(field, message):
+    same = np.ones(2, dtype=np.complex128)
+    row = _record("cluster-a", "episode-a", same, same)
+    row.pop(field)
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_complex_csi([row], expected_strata=[("scene-family-a", "LOS")])
