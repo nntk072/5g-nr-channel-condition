@@ -369,6 +369,90 @@ def test_standalone_rt_dmrs_builder_fails_closed_before_receiver_build(
     assert not output.exists()
 
 
+def test_standalone_rt_dmrs_builder_serializes_authorized_fixture_dataset(
+    tmp_path: Path, monkeypatch, capsys
+):
+    import importlib.util
+
+    import numpy as np
+    from datasets.channel import ChannelDataset
+
+    source = tmp_path / "source.npz"
+    fixture = ChannelDataset(
+        h=np.ones((2, 1, 16), dtype=np.complex64),
+        y=np.asarray([0, 1], dtype=np.uint8),
+        group=np.asarray(["a", "b"]),
+        domain=np.asarray(["fixture", "fixture"]),
+        source=np.asarray(["sionna_rt", "sionna_rt"]),
+        metadata=({}, {}),
+    )
+    fixture.save(source)
+    output = tmp_path / "observed.npz"
+    observed = ChannelDataset(
+        h=fixture.h,
+        y=fixture.y,
+        group=fixture.group,
+        domain=fixture.domain,
+        source=fixture.source,
+        metadata=fixture.metadata,
+        generation_report={"fixture_report": True},
+    )
+    script_path = Path("scripts/build_rt_dmrs_observation_dataset.py")
+    spec = importlib.util.spec_from_file_location("rt_dmrs_cli_test", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    calls = {}
+    monkeypatch.setattr(module, "build_rt_dmrs_generation_request", lambda *args, **kwargs: {"fixture": True})
+
+    def fake_authorize(request, **kwargs):
+        calls["authorization"] = (request, kwargs)
+        return object()
+
+    monkeypatch.setattr(module, "authorize_d1_generation", fake_authorize)
+    monkeypatch.setattr(module, "build_rt_dmrs_observation_dataset", lambda datasets, **kwargs: observed)
+    monkeypatch.setattr(module, "versions", lambda: {"git_sha": "fixture-sha"})
+    monkeypatch.setattr(module, "package_source_sha256", lambda: "fixture-source-digest")
+    monkeypatch.setattr(
+        "sys.argv", ["build_rt_dmrs_observation_dataset", str(output), str(source), "--pilot"]
+    )
+
+    module.main()
+
+    restored = ChannelDataset.load(output)
+    assert restored.generation_report["fixture_report"] is True
+    assert restored.generation_report["input_artifacts"][0]["sha256"]
+    assert restored.generation_report["source_revision"] == "fixture-sha"
+    assert calls["authorization"][1]["pilot"] is True
+    assert "Saved 2 NR DMRS observations" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("output_exists", [True, False])
+def test_standalone_rt_dmrs_builder_rejects_existing_output_or_missing_input(
+    tmp_path: Path, monkeypatch, capsys, output_exists: bool
+):
+    import runpy
+
+    namespace = runpy.run_path(
+        "scripts/build_rt_dmrs_observation_dataset.py", run_name="rt_dmrs_cli_test"
+    )
+    output = tmp_path / "output.npz"
+    source = tmp_path / "source.npz"
+    if output_exists:
+        output.write_text("keep", encoding="utf-8")
+        source.touch()
+        expected = "refusing to overwrite existing dataset"
+    else:
+        expected = "input dataset does not exist"
+    monkeypatch.setattr("sys.argv", ["build_rt_dmrs_observation_dataset", str(output), str(source)])
+
+    with pytest.raises(SystemExit) as error:
+        namespace["main"]()
+
+    assert error.value.code == 2
+    assert expected in capsys.readouterr().err
+
+
 def test_trajectory_cli_fails_closed_without_approval(tmp_path: Path, monkeypatch, capsys):
     import runpy
 
