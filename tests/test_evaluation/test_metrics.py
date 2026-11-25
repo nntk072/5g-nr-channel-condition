@@ -104,6 +104,15 @@ def test_threshold_validation():
     assert 0.1 < t <= 0.7
 
 
+def test_threshold_validation_uses_midpoint_when_roc_has_no_finite_threshold(monkeypatch):
+    monkeypatch.setattr(
+        "sklearn.metrics.roc_curve",
+        lambda *args, **kwargs: (np.array([0.0]), np.array([0.0]), np.array([np.inf])),
+    )
+
+    assert threshold_from_validation(np.array([0, 1]), np.array([0.4, 0.6])) == 0.5
+
+
 def test_bootstrap_link_blocks():
     y = np.array([0, 1] * 12)
     p = np.linspace(0, 1, len(y))
@@ -111,6 +120,17 @@ def test_bootstrap_link_blocks():
     ci = block_bootstrap_auc(y, p, g, draws=60)
     assert 0 <= ci["auroc_ci95"][0] <= ci["auroc_ci95"][1] <= 1
     assert ci["resampling_unit"] == "link/spatial_block"
+
+
+def test_bootstrap_auc_rejects_too_few_valid_class_replicates():
+    with pytest.raises(ValueError, match="Too few bootstrap replicates"):
+        block_bootstrap_auc(
+            y=np.zeros(8, dtype=int),
+            p=np.linspace(0.1, 0.8, 8),
+            groups=np.repeat(np.arange(4), 2),
+            seed=1,
+            draws=20,
+        )
 
 
 def test_hash_order_independent():
