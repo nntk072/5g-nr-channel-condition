@@ -372,6 +372,28 @@ def test_run_manifest_signature_options_must_be_supplied_together(tmp_path: Path
     assert any("must be supplied together" in error for error in report["errors"])
 
 
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        (b"not-json", "not valid UTF-8 JSON"),
+        (b"[]\n", "run verification report root must be an object"),
+    ],
+)
+def test_signed_run_report_verifier_rejects_malformed_report_roots(
+    tmp_path: Path, payload: bytes, message: str
+) -> None:
+    report_path = tmp_path / "verification-report.json"
+    report_path.write_bytes(payload)
+
+    with pytest.raises(ValueError, match=message):
+        run_manifest.verify_joint_evidence_run_report_signature(
+            report_path,
+            tmp_path / "report.sig",
+            tmp_path / "allowed_signers",
+            signer_id="reviewer",
+        )
+
+
 def test_preregistered_run_preflights_then_writes_artifact_and_bound_receipt(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
