@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
 import numpy as np
 import pytest
+from evaluation.covariance import tdl_covariance_reference as reference
 from evaluation.covariance.tdl_covariance_reference import (
     fixed_tdl_first_tap_power_components,
     fixed_tdl_rayleigh_tap_indices,
@@ -99,4 +103,114 @@ def test_first_tap_covariance_rejects_invalid_inputs(
 )
 def test_first_tap_covariance_rejects_coercible_non_numeric_dtypes(correlation) -> None:
     with pytest.raises(ValueError, match="numeric"):
+        scalable_tdl_first_tap_covariance_reference("A", correlation, 1)
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        pytest.param("contract", "unexpected source contract", id="contract"),
+        pytest.param("profile-count", "cover all five profiles", id="profile-count"),
+        pytest.param("profile-row", "profile row must be an object", id="profile-row"),
+        pytest.param("profile-model", "profile roster is invalid", id="profile-model"),
+        pytest.param("component-index", "component roster is invalid", id="component-index"),
+        pytest.param("component-fields", "component fields are invalid", id="component-fields"),
+        pytest.param("first-delay", "must begin at zero normalized delay", id="first-delay"),
+        pytest.param("los-roster", "LOS component roster is inconsistent", id="los-roster"),
+        pytest.param("los-pair", "LOS component must pair at zero delay", id="los-pair"),
+    ],
+)
+def test_scalable_profile_loader_rejects_altered_reference_contracts(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, change: str, message: str
+) -> None:
+    document = json.loads(reference._REFERENCE_PATH.read_text(encoding="utf-8"))
+    row = document["profiles"][0]
+    component = row["components"][0]
+    if change == "contract":
+        document["version"] = "other"
+    elif change == "profile-count":
+        document["profiles"].pop()
+    elif change == "profile-row":
+        document["profiles"][0] = None
+    elif change == "profile-model":
+        row["profile_model"] = "F"
+    elif change == "component-index":
+        component["component_index"] = 2
+    elif change == "component-fields":
+        component["power_db"] = float("nan")
+    elif change == "first-delay":
+        component["normalized_delay"] = 1.0
+    elif change == "los-roster":
+        for component in document["profiles"][3]["components"]:
+            component["fading_distribution"] = "Rayleigh"
+    elif change == "los-pair":
+        document["profiles"][3]["components"][1]["normalized_delay"] = 1.0
+    payload = json.dumps(document, allow_nan=True).encode("utf-8")
+    path = tmp_path / "scalable-reference.json"
+    path.write_bytes(payload)
+    monkeypatch.setattr(reference, "_REFERENCE_PATH", path)
+    monkeypatch.setattr(reference, "_REFERENCE_SHA256", hashlib.sha256(payload).hexdigest())
+    reference._load_profiles.cache_clear()
+    try:
+        with pytest.raises(ValueError, match=message):
+            reference._load_profiles()
+    finally:
+        reference._load_profiles.cache_clear()
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        pytest.param("contract", "unexpected source contract", id="contract"),
+        pytest.param("profile-count", "cover all seven profiles", id="profile-count"),
+        pytest.param("profile-row", "profile row must be an object", id="profile-row"),
+        pytest.param("profile-model", "profile roster is invalid", id="profile-model"),
+        pytest.param("component-index", "component roster is invalid", id="component-index"),
+        pytest.param("component-fields", "component fields are invalid", id="component-fields"),
+    ],
+)
+def test_fixed_profile_loader_rejects_altered_reference_contracts(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, change: str, message: str
+) -> None:
+    document = json.loads(reference._FIXED_REFERENCE_PATH.read_text(encoding="utf-8"))
+    row = document["profiles"][0]
+    component = row["components"][0]
+    if change == "contract":
+        document["version"] = "other"
+    elif change == "profile-count":
+        document["profiles"].pop()
+    elif change == "profile-row":
+        document["profiles"][0] = None
+    elif change == "profile-model":
+        row["profile_model"] = "other"
+    elif change == "component-index":
+        component["component_index"] = 2
+    elif change == "component-fields":
+        component["tap_index"] = True
+
+    payload = json.dumps(document).encode("utf-8")
+    path = tmp_path / "fixed-reference.json"
+    path.write_bytes(payload)
+    monkeypatch.setattr(reference, "_FIXED_REFERENCE_PATH", path)
+    monkeypatch.setattr(reference, "_FIXED_REFERENCE_SHA256", hashlib.sha256(payload).hexdigest())
+    reference._load_fixed_profiles.cache_clear()
+    try:
+        with pytest.raises(ValueError, match=message):
+            reference._load_fixed_profiles()
+    finally:
+        reference._load_fixed_profiles.cache_clear()
+
+
+@pytest.mark.parametrize(
+    ("correlation", "message"),
+    [
+        pytest.param([], "finite square Hermitian", id="not-matrix"),
+        pytest.param([[1.0, 0.0]], "finite square Hermitian", id="not-square"),
+        pytest.param([[float("inf")]], "finite square Hermitian", id="nonfinite"),
+        pytest.param([[0.5]], "unit diagonal", id="diagonal"),
+        pytest.param([[1.0, 1.0], [1.0, 1.0]], "positive definite", id="singular"),
+    ],
+)
+def test_first_tap_covariance_checks_matrix_structure(correlation, message: str) -> None:
+    with pytest.raises(ValueError, match=message):
         scalable_tdl_first_tap_covariance_reference("A", correlation, 1)
