@@ -517,8 +517,6 @@ def audit_path_evolution(
                     tuple(current[j].row for j in sorted(ambiguous_right)),
                 )
             )
-    if candidate_pair_count > maximum_candidate_pair_count:
-        raise ValueError("path-evolution audit exceeds its candidate-pair limit")
     return PathEvolutionAudit(
         schema="umcd.path_evolution_audit.v1",
         source_path_table_sha256=_path_table_digest(table),
