@@ -5,6 +5,7 @@ import math
 from pathlib import Path
 
 import pytest
+from evaluation.covariance.cdl import joint_tx_rx_dual_tx_rx as dual_module
 from evaluation.covariance.cdl.joint_tx_rx import (
     cdl_joint_tx_rx_spatiotemporal_covariance_reference,
 )
@@ -162,4 +163,23 @@ def test_reference_rejects_out_of_contract_inputs(
             velocity,
             tx_element_count=tx_count,
             rx_element_count=rx_count,
+        )
+
+
+def test_reference_rejects_unsupported_component_kind(monkeypatch: pytest.MonkeyPatch):
+    document = {
+        "profiles": [
+            {
+                "profile_model": "A",
+                "components": [{"component": "unsupported", "power_db": 0.0, "angles_deg": {}}],
+                "xpr_db": 0.0,
+                "cluster_spreads_deg": {"asa": 0.0, "zsa": 0.0, "asd": 0.0, "zsd": 0.0},
+            }
+        ]
+    }
+    monkeypatch.setattr(dual_module, "_reference_document", lambda: document)
+
+    with pytest.raises(ValueError, match="unsupported CDL component kind"):
+        dual_module.cdl_joint_tx_rx_dual_tx_rx_spatiotemporal_covariance_reference(
+            "A", (0.0, 0.0, 0.0), tx_element_count=1, rx_element_count=1
         )
