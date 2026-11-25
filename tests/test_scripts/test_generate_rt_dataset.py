@@ -125,3 +125,71 @@ def test_rt_data_cli_dispatches_to_content_addressed_cache_when_requested(
     assert captured["config"].mitsuba_variant == "auto"
     assert captured["seed"] == 42
     assert "GEOMETRY-LABELED RT" in capsys.readouterr().out
+
+
+def test_rt_data_cli_rejects_empty_production_approval_digest(monkeypatch, tmp_path, capsys) -> None:
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "generate_rt_dataset",
+            "--output",
+            str(tmp_path / "production.npz"),
+            "--qualification-approval",
+            str(tmp_path / "approval.json"),
+            "--qualification-approval-sha256",
+            "",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as error:
+        main()
+
+    assert error.value.code == 2
+    assert "--qualification-approval-sha256 is required with production approval" in capsys.readouterr().err
+
+
+def test_rt_data_cli_reports_failure_to_persist_generation_diagnostic(
+    monkeypatch, tmp_path, capsys
+) -> None:
+    import artifacts.provenance as provenance
+    import integrations.sionna.adapter as sionna2
+
+    output = tmp_path / "failed.npz"
+    failure_path = tmp_path / "failed.npz.failure.json"
+
+    def fail_generation(_config, *, seed, **_kwargs):
+        raise sionna2.RaytraceGenerationError(
+            "No NLOS samples", {"status": "insufficient_samples"}
+        )
+
+    monkeypatch.setattr(sionna2, "generate_raytraced", fail_generation)
+    monkeypatch.setattr(sionna2, "authorize_rt_data_generation", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr(
+        provenance,
+        "atomic_json",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(OSError("read only")),
+    )
+    monkeypatch.setattr("sys.argv", ["generate_rt_dataset", "--pilot", "--output", str(output)])
+
+    with pytest.raises(sionna2.RaytraceGenerationError, match="No NLOS samples"):
+        main()
+
+    assert not failure_path.exists()
+    assert "attempt report could not be saved" in capsys.readouterr().err
+
+
+def test_rt_data_cli_routes_authorization_errors_to_argument_parser(monkeypatch, tmp_path, capsys):
+    import integrations.sionna.adapter as sionna2
+
+    monkeypatch.setattr(
+        sionna2,
+        "authorize_rt_data_generation",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(ValueError("invalid pilot request")),
+    )
+    monkeypatch.setattr("sys.argv", ["generate_rt_dataset", "--pilot", "--output", str(tmp_path / "out.npz")])
+
+    with pytest.raises(SystemExit) as error:
+        main()
+
+    assert error.value.code == 2
+    assert "invalid pilot request" in capsys.readouterr().err
