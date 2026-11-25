@@ -24,6 +24,48 @@ from tests.test_evaluation.joint_evidence_artifact_support import (
 )
 
 
+@pytest.mark.parametrize(
+    ("options", "message"),
+    [
+        ({"require_signed_reviewer_admission": "yes"}, "must be a boolean"),
+        ({"signature_path": "signature"}, "must be supplied together"),
+        ({"trusted_signer_policy_path": "policy"}, "requires a verified manifest signature"),
+        (
+            {"trusted_signer_policy_signature_path": "signature"},
+            "must be supplied together",
+        ),
+        (
+            {
+                "trusted_signer_policy_signature_path": "policy.sig",
+                "trusted_policy_allowed_signers_path": "policy.allowed",
+                "policy_signer_id": "policy-signer",
+                "signature_path": "run.sig",
+                "trusted_allowed_signers_path": "run.allowed",
+                "signer_id": "run-signer",
+            },
+            "requires both a signer policy and a signed run manifest",
+        ),
+        (
+            {"runtime_inventory_signature_path": "runtime.sig"},
+            "must be supplied together",
+        ),
+        (
+            {"require_signed_reviewer_admission": True},
+            "requires a signed run manifest",
+        ),
+    ],
+)
+def test_run_manifest_verifier_rejects_incomplete_signature_options(
+    tmp_path: Path, options: dict[str, Any], message: str
+) -> None:
+    report = run_manifest.verify_joint_evidence_run_manifest(
+        tmp_path / "missing-manifest.json", **options
+    )
+
+    assert report["status"] == "INCONSISTENT"
+    assert any(message in error for error in report["errors"])
+
+
 def test_run_manifest_hashes_and_replays_exact_inventory_bytes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
