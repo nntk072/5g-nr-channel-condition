@@ -101,8 +101,6 @@ def _validate_composition(torch: Any, composition: Any) -> tuple[Any, Any]:
         or not torch.is_complex(contributions)
     ):
         raise TypeError("composition must contain complex PyTorch source contributions")
-    if contributions is None:
-        raise TypeError("composition must contain complex PyTorch source contributions")
     if contributions.ndim != 6:
         raise ValueError(
             "source contributions must have [batch, rx, rx_port, tx, symbol, subcarrier] axes"

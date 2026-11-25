@@ -5,12 +5,14 @@ from __future__ import annotations
 import math
 from dataclasses import replace
 
+import integrations.sionna.network_phy.records as network_records
 import numpy as np
 import pytest
 
 torch = pytest.importorskip("torch")
 
 from integrations.sionna.network_phy import (  # noqa: E402
+    NetworkTransmitterWaveform,
     add_independent_receiver_awgn,
     add_independent_receiver_waveform_awgn,
     apply_network_link_budget,
@@ -19,6 +21,7 @@ from integrations.sionna.network_phy import (  # noqa: E402
     compose_received_waveforms,
     network_resource_sinr,
     network_sinr,
+    propagate_network_transmit_waveforms,
 )
 from propagation.physics import frequency_response, subcarrier_frequencies  # noqa: E402
 
@@ -32,6 +35,178 @@ def _two_node_fixture():
     channel[:, 1, :, 1] = 1.0
     grids = torch.ones((1, 2, 1, 2, 3), dtype=torch.complex64)
     return channel, grids
+
+
+def test_transmitter_waveforms_propagate_through_causal_mimo_fir_and_keep_tail():
+    waveform = torch.tensor([[[[1.0, 2.0]], [[3.0, 4.0]]]], dtype=torch.complex64)
+    taps = torch.zeros((1, 1, 2, 1, 2), dtype=torch.complex64)
+    taps[0, 0, 0, 0] = torch.tensor([1.0, 0.5j])
+    taps[0, 0, 1, 0] = torch.tensor([2.0, -1.0])
+    result = propagate_network_transmit_waveforms(
+        NetworkTransmitterWaveform(waveform, torch.zeros(2), torch.zeros(2)), taps
+    )
+    assert result.output_sample_count == 3
+    torch.testing.assert_close(
+        result.link_waveforms[0, 0, :, 0],
+        torch.tensor([[1.0, 2.0 + 0.5j, 1.0j], [6.0, 5.0, -4.0]], dtype=torch.complex64),
+    )
+
+
+@pytest.mark.parametrize(
+    ("waveform", "taps", "limit", "error", "message"),
+    [
+        (None, None, 10, TypeError, "dense complex"),
+        (
+            torch.ones((1, 1, 1, 2)),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            10,
+            TypeError,
+            "dense complex",
+        ),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            object(),
+            10,
+            ValueError,
+            "complex MIMO FIR",
+        ),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1), dtype=torch.complex64),
+            10,
+            ValueError,
+            "1–128 taps",
+        ),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            torch.ones((1, 1, 2, 1, 1), dtype=torch.complex64),
+            10,
+            ValueError,
+            "1–128 taps",
+        ),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex128),
+            10,
+            ValueError,
+            "share complex dtype",
+        ),
+        (
+            torch.full((1, 1, 1, 2), complex(float("inf"), 0), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            100,
+            ValueError,
+            "must be finite",
+        ),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            0,
+            ValueError,
+            "positive integer",
+        ),
+        (
+            torch.ones((1, 1, 1, 2), dtype=torch.complex64),
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            1,
+            ValueError,
+            "exceed max_output_elements",
+        ),
+    ],
+)
+def test_transmitter_waveform_propagation_rejects_invalid_contracts(
+    waveform, taps, limit, error, message
+):
+    record = NetworkTransmitterWaveform(waveform, None, None)
+    with pytest.raises(error, match=message):
+        propagate_network_transmit_waveforms(record, taps, max_output_elements=limit)
+
+
+def test_transmitter_waveform_propagation_rejects_nonfinite_contribution():
+    waveform = torch.full((1, 1, 1, 2), complex(3e38, 0), dtype=torch.complex64)
+    taps = torch.full((1, 1, 1, 1, 1), 2.0 + 0.0j, dtype=torch.complex64)
+    with pytest.raises(ValueError, match="produced non-finite samples"):
+        propagate_network_transmit_waveforms(
+            NetworkTransmitterWaveform(waveform, torch.zeros(1), torch.zeros(1)), taps
+        )
+
+
+def test_transmitter_waveform_propagation_rejects_sparse_and_oversized_firs():
+    waveform = torch.ones((1, 1, 1, 2), dtype=torch.complex64)
+    sparse_taps = torch.sparse_coo_tensor(
+        torch.tensor([[0], [0], [0], [0], [0]]),
+        torch.tensor([1.0 + 0j], dtype=torch.complex64),
+        (1, 1, 1, 1, 1),
+    )
+    record = NetworkTransmitterWaveform(waveform, torch.zeros(1), torch.zeros(1))
+    for taps in (
+        sparse_taps,
+        torch.ones((1, 1, 1, 1, 129), dtype=torch.complex64),
+        torch.empty((0, 1, 1, 1, 1), dtype=torch.complex64),
+    ):
+        with pytest.raises(ValueError, match="1–128 taps"):
+            propagate_network_transmit_waveforms(record, taps)
+    with pytest.raises(ValueError, match="positive integer"):
+        propagate_network_transmit_waveforms(
+            record,
+            torch.ones((1, 1, 1, 1, 1), dtype=torch.complex64),
+            max_output_elements=True,
+        )
+
+
+def test_waveform_record_helpers_guard_interpolation_and_phase_noise(monkeypatch):
+    output_indices = torch.arange(3, dtype=torch.float64)
+    source = torch.ones((1, 4), dtype=torch.complex64)
+    monkeypatch.setattr(torch, "sinc", lambda value: torch.zeros_like(value))
+    with pytest.raises(ValueError, match="not normalizable"):
+        network_records._fractional_delay_capture_slice(
+            torch,
+            source,
+            output_indices=output_indices,
+            delay_samples=0.25,
+            kernel_radius=2,
+        )
+
+    phase = network_records._shared_phase_noise_processes(
+        torch,
+        batch_size=1,
+        node_count=2,
+        sample_count=1,
+        linewidth_hz=torch.ones(2, dtype=torch.float64),
+        sample_rate_hz=1.0,
+        generator=None,
+        device=torch.device("cpu"),
+    )
+    assert phase.shape == (1, 2, 1)
+    with pytest.raises(ValueError, match="ratio must be finite"):
+        network_records._shared_phase_noise_processes(
+            torch,
+            batch_size=1,
+            node_count=1,
+            sample_count=2,
+            linewidth_hz=torch.tensor([float("inf")], dtype=torch.float64),
+            sample_rate_hz=1.0,
+            generator=None,
+            device=torch.device("cpu"),
+        )
+
+    monkeypatch.undo()
+    monkeypatch.setattr(
+        torch,
+        "randn",
+        lambda shape, **kwargs: torch.full(shape, float("inf"), dtype=kwargs["dtype"]),
+    )
+    with pytest.raises(ValueError, match="trajectory is not finite"):
+        network_records._shared_phase_noise_processes(
+            torch,
+            batch_size=1,
+            node_count=1,
+            sample_count=2,
+            linewidth_hz=torch.ones(1, dtype=torch.float64),
+            sample_rate_hz=1.0,
+            generator=None,
+            device=torch.device("cpu"),
+        )
 
 
 def test_joint_grid_equals_sum_of_individually_filtered_source_contributions():
@@ -1370,6 +1545,7 @@ def test_network_operation_entrypoints_report_missing_torch(monkeypatch):
         lambda: network_sinr(None, (), ()),
         lambda: network_resource_sinr(None, (), ()),
         lambda: add_independent_receiver_awgn(None, (), seed=0),
+        lambda: propagate_network_transmit_waveforms(None, None),
     )
     messages = (
         "apply network transmitter impairments",
@@ -1380,6 +1556,7 @@ def test_network_operation_entrypoints_report_missing_torch(monkeypatch):
         "measure network SINR",
         "measure per-resource network SINR",
         "add network receiver noise",
+        "propagate network transmitter waveforms",
     )
     for call, message in zip(calls, messages, strict=True):
         with pytest.raises(RuntimeError, match=message):
