@@ -1,7 +1,9 @@
 # Documentation
 
-Start here. This index lists every document under `docs/`. Development records,
-evidence and plans are kept outside the published tree.
+Start here. This index lists the published documentation and points to the
+repository-only Unified Dataset research plan. Development records and evidence
+remain outside the published tree; `docs/research/` is excluded from the Sphinx
+build by `docs/conf.py`.
 
 ## Guide
 
@@ -30,6 +32,13 @@ Concepts and output contracts for users of the framework.
 - [RT scene asset identity](architecture/rt-scene-asset-identity.md)
 - [External Sionna source reference](architecture/sionna-reference.md)
 - [Grouped scalar-regression uncertainty evaluation](architecture/uncertainty-evaluation.md)
+
+## Research plan (repository only; excluded from the published site)
+
+- [Final Unified Dataset Plan](research/UNIFIED_DATASET_PLAN.md): current
+  architecture, scientific boundaries, family/task eligibility, evidence
+  gates, related work, and the requirement crosswalk. Mutable implementation status remains
+  in the active requirement ledger.
 
 ## Reference
 
